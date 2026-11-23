@@ -25,7 +25,10 @@ import fr.familia.app.core.place.AndroidPlaceLocator
 import fr.familia.app.core.place.NearbyPlaces
 import fr.familia.app.core.place.OverpassNearbyPlaces
 import fr.familia.app.core.place.PlaceArticles
-import fr.familia.app.core.place.WikivoyagePlaceArticles
+import fr.familia.app.core.place.WIKIPEDIA_HOST
+import fr.familia.app.core.place.WikimediaPlaceArticles
+import fr.familia.app.core.place.OpenMeteoWeather
+import fr.familia.app.core.place.PlaceWeather
 import fr.familia.app.core.usage.UsageTracker
 import fr.familia.app.core.video.Media3PhotoFilmMaker
 import fr.familia.app.core.video.PhotoFilmMaker
@@ -68,6 +71,12 @@ interface AppContainer {
 
     /** « À savoir sur… » (récit 96): a short article about the place of a step. */
     val placeArticles: PlaceArticles? get() = null
+
+    /** The anecdote of a destination (récit 105, règle 45): a few lines of Wikipédia. */
+    val placeAnecdotes: PlaceArticles? get() = null
+
+    /** The weather and the local time of a destination (récit 105, règle 45). */
+    val placeWeather: PlaceWeather? get() = null
 
     /** « Autour de l'étape » (récit 96): restaurants and sites around the place of a step. */
     val nearbyPlaces: NearbyPlaces? get() = null
@@ -299,7 +308,9 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** The position of the moment and the geocoder of the phone, for every place (récit 33). */
     override val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
-    override val placeArticles: PlaceArticles? by lazy { WikivoyagePlaceArticles() }
+    override val placeArticles: PlaceArticles? by lazy { WikimediaPlaceArticles() }
+    override val placeAnecdotes: PlaceArticles? by lazy { WikimediaPlaceArticles(WIKIPEDIA_HOST) }
+    override val placeWeather: PlaceWeather? by lazy { OpenMeteoWeather() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
     override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }
 

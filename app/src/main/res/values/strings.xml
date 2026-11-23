@@ -354,6 +354,10 @@
     <string name="place_article_loading">On cherche des infos sur ce lieu…</string>
     <string name="place_article_more">Lire la suite</string>
     <string name="place_article_source">Source : Wikivoyage · CC BY-SA</string>
+    <string name="place_anecdote_title">Le saviez-vous ?</string>
+    <string name="place_anecdote_source">Source : Wikipédia · CC BY-SA</string>
+    <string name="weather_title">Météo et heure sur place</string>
+    <string name="weather_source">Météo : %1$s · CC BY 4.0</string>
     <string name="trip_route_title">Le trajet</string>
     <string name="trip_route_hint">Étape par étape, sans animation : touche une étape pour l\'ouvrir.</string>
     <string name="trip_route_row">Étape %1$d sur %2$d, %3$s, %4$s</string>

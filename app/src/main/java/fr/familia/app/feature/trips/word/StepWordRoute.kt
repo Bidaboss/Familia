@@ -61,11 +61,14 @@ fun StepWordRoute(
     val ready = state as? StepWordUiState.Ready
     StepWordScreen(state, actions, onSite = {
         if (ready != null) {
-            PlaceArticleTile(ready.step.place, container?.placeArticles)
             val lat = ready.step.lat
             val lng = ready.step.lng
+            // Règle 45: the weather and the local time first, the anecdote at the bottom.
+            if (lat != null && lng != null) WeatherTimeTile(lat, lng, container?.placeWeather)
+            PlaceArticleTile(ready.step.place, container?.placeArticles)
             if (lat != null && lng != null) NearbyTile(lat, lng, container?.nearbyPlaces)
             PlaceLinksTile(ready.step.place)
+            PlaceAnecdoteTile(ready.step.place, container?.placeAnecdotes)
         }
     }) {
         CommentsSection(
