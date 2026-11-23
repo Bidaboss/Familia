@@ -65,7 +65,7 @@ class HomeTest {
     @Test
     fun `the week shows 3 events of the next 7 days and counts the others`() {
         val events = (0..8L).map { TestFamily.event("e$it", TestFamily.admin, date = today.plusDays(it)) }
-        val state = homeState(me, family, today, events, emptyMap(), emptyList(), null, emptyList())
+        val state = homeState(me, family, today, events, emptyMap(), emptyList(), emptyList())
         assertEquals(listOf("e0", "e1", "e2"), state.week.map { it.id })
         assertEquals(4, state.weekMore)
     }
@@ -175,13 +175,13 @@ class HomeTest {
         val now = Instant.parse("2026-11-16T10:00:00Z")
         val poll = Poll("p1", Poll.Kind.Choice, "Question", listOf("A", "B"), false, listOf(me.id), listOf(me.id), null, null, false, null, null, "adult2", "Adult2", null)
         val toVote = pollsToVote(me, listOf(poll), emptyMap(), now, today)
-        val withPoll = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), null, emptyList(), toVote, pollsOn = true)
+        val withPoll = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), emptyList(), toVote, pollsOn = true)
         assertTrue(withPoll.todos.isEmpty())
         assertEquals(listOf("p1"), withPoll.pollsToVote.map { it.poll.id })
         assertTrue(withPoll.showsPolls)
-        val off = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), null, emptyList(), toVote, pollsOn = false)
+        val off = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), emptyList(), toVote, pollsOn = false)
         assertTrue(!off.showsPolls)
-        val none = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), null, emptyList(), emptyList(), pollsOn = true)
+        val none = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), pollsOn = true)
         assertTrue(none.canAskPoll)
         assertTrue(!none.showsPolls)
     }
