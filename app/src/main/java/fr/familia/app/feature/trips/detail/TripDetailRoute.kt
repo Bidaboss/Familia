@@ -80,6 +80,7 @@ fun TripDetailRoute(
         photoActions = photoActions,
         onOpenExpenses = onOpenExpenses,
         illustrated = true,
+        satelliteToken = fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN,
         openAt = openAt,
         onOpenMap = onOpenMap,
         onOpenWord = onOpenWord,
