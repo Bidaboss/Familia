@@ -1903,6 +1903,13 @@ Rien à publier côté Firebase. Avec l'« APK de publication ».
 1. Liste Voyages avec le globe : toucher un voyage qui a un lieu (carte « Prochain voyage », ligne ou souvenir) : la rotation s'arrête, la caméra vole 2 s vers le lieu (le globe s'incline et se rapproche), puis le voyage s'ouvre.
 2. Toucher encore pendant le vol : le voyage s'ouvre tout de suite.
 3. Voyage sans lieu, « supprimer les animations », ou repli sur le paysage : le voyage s'ouvre sans vol.
+## Voyage : l'accueil d'un voyage sur la carte satellite et une feuille à deux hauteurs (récit 100, étape 1)
+
+Rien à publier côté Firebase. « APK de publication » (clé Mapbox) ; les APK d'essai gardent l'écran actuel.
+1. Ouvrir un voyage dont au moins une étape a un lieu : la carte satellite en fond, les étapes en points reliés par un trait blanc pointillé (la prochaine étape en jaune, plus grosse), cadrées au-dessus de la feuille. Dessous, une feuille arrondie à 40 % avec une poignée, le jour, la carte du jour (Carnet, Carte, Photos, Comptes, Valise) et le carnet.
+2. Toucher ou tirer la poignée : la feuille monte à 85 % (tout le carnet, Jour par jour, chiffres, album) ; la retoucher la redescend.
+3. Si l'image n'est pas dessinée en 6 s, avec TalkBack, ou sans étape placée : l'écran d'avant (chemin illustré), et pas de carte pendant 6 h sur ce téléphone si elle a échoué.
+4. Pas encore là : repères ronds avec la photo de l'étape, animation d'arrivée depuis la liste, recadrage sur la prochaine étape à la hauteur haute.
 ## Voyages : globe sur « Standard satellite » et repli si l'image ne vient pas (retour d'essai du 23/11)
 
 Rien à publier côté Firebase. « APK de publication ».

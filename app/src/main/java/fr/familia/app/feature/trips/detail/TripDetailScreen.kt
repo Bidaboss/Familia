@@ -28,6 +28,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import fr.familia.app.feature.trips.map.GeoPoint
+import fr.familia.app.feature.trips.map.GlobeHealth
+import fr.familia.app.feature.trips.map.TripSatelliteMap
+import fr.familia.app.feature.trips.list.talkBackOn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -130,6 +142,8 @@ fun TripDetailScreen(
     /** « Valise » (récit 98), for those who go; the number of things left to do on the round button. */
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
+    /** Public Mapbox token of this APK: with it the home is the satellite map and a sheet (récit 100); blank: the drawn path. */
+    satelliteToken: String = "",
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -191,7 +205,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, storyDays, onOpenPacking, packingCount)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, storyDays, onOpenPacking, packingCount, satelliteToken)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord, storyDays)
                 }
@@ -316,6 +330,7 @@ private fun PathContent(
     storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
+    satelliteToken: String = "",
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -343,8 +358,35 @@ private fun PathContent(
             TripPart.Expenses -> Unit
         }
     }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val placed = remember(state.steps) { state.steps.filter { it.hasPosition } }
+    var mapFailed by rememberSaveable { mutableStateOf(false) }
+    val mapAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
+    val satellite = satelliteToken.isNotBlank() && mapAllowed && !mapFailed && placed.isNotEmpty()
+    var expanded by rememberSaveable(state.trip.id) { mutableStateOf(false) }
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+    val lowHeight = maxHeight * 0.4f
+    val sheetHeight by androidx.compose.animation.core.animateDpAsState(if (expanded) maxHeight * 0.85f else lowHeight, label = "sheet")
+    if (satellite) {
+        val next = remember(state.steps) { placed.indexOfFirst { it.arrival == null }.coerceAtLeast(0) }
+        TripSatelliteMap(
+            token = satelliteToken,
+            points = placed.map { GeoPoint(it.lat!!, it.lng!!) },
+            nextIndex = next,
+            bottomPaddingDp = lowHeight.value.toDouble(),
+            onFailed = { GlobeHealth.markFailed(context); mapFailed = true },
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+    Column(
+        Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .then(if (satellite) Modifier.height(sheetHeight).clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier.fillMaxSize()),
+    ) {
+    if (satellite) SheetHandle(expanded, onToggle = { expanded = it })
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.weight(1f),
         state = listState,
         // Room at the bottom so the add button never hides the last line.
         contentPadding = PaddingValues(bottom = 96.dp),
@@ -358,7 +400,7 @@ private fun PathContent(
                 modifier = Modifier.background(state.trip.landscape.palette.sky).padding(bottom = 8.dp),
             )
         }
-        item(key = "path") { TripPathIllustration(days, chosen, state.today, label, landscape = state.trip.landscape) }
+        if (!satellite) item(key = "path") { TripPathIllustration(days, chosen, state.today, label, landscape = state.trip.landscape) }
         item(key = "day") {
             // The card sits on the bottom of the landscape, as on the maquette.
             Box(Modifier.fillMaxWidth().background(state.trip.landscape.palette.near).padding(horizontal = ClaySpacing.screen, vertical = 12.dp)) {
@@ -431,6 +473,32 @@ private fun PathContent(
                 AlbumPhotosSection(photos, photoActions, stringResource(empty))
             }
         }
+    }
+    }
+    }
+}
+
+/** The handle of the sheet: a touch or a drag up/down switches between the two heights (récit 100). */
+@Composable
+private fun SheetHandle(expanded: Boolean, onToggle: (Boolean) -> Unit) {
+    var dragged by remember { mutableStateOf(0f) }
+    val label = stringResource(if (expanded) R.string.trip_sheet_lower else R.string.trip_sheet_raise)
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .draggable(
+                orientation = Orientation.Vertical,
+                state = rememberDraggableState { dragged += it },
+                onDragStopped = {
+                    if (dragged < -40f) onToggle(true) else if (dragged > 40f) onToggle(false)
+                    dragged = 0f
+                },
+            )
+            .clickable(role = Role.Button, onClickLabel = label) { onToggle(!expanded) },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(Modifier.size(width = 48.dp, height = 6.dp).clip(RoundedCornerShape(3.dp)).background(TripPathColors.InkSoft))
     }
 }
 
