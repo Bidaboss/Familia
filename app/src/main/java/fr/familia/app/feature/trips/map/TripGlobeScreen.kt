@@ -92,6 +92,7 @@ fun TripGlobeScreen(state: TripDetailUiState, token: String, onBack: () -> Unit)
 
 @Composable
 private fun GlobeContent(points: List<GeoPoint>, labels: List<Pair<String, String>>, token: String, onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val engine = remember(points) { FlightEngine(points) }
     var state by remember(engine) { mutableStateOf(engine.state) }
     var commandId by remember(engine) { mutableIntStateOf(0) }
@@ -114,7 +115,7 @@ private fun GlobeContent(points: List<GeoPoint>, labels: List<Pair<String, Strin
     // The style has 10 s to load: after that the globe is given up for the flat map.
     LaunchedEffect(engine) {
         delay(10_000L)
-        if (!ready) onBack()
+        if (!ready) { GlobeHealth.markFailed(context); onBack() }
     }
     val target = engine.camera() ?: return
     val millis = when (state.phase) {
@@ -128,8 +129,8 @@ private fun GlobeContent(points: List<GeoPoint>, labels: List<Pair<String, Strin
             points = points,
             command = GlobeCommand(commandId, target, millis, engine.completedLegs()),
             onArrived = { id -> if (id == commandId && state.phase is FlightPhase.Flying) act { onMotionEnded() } },
-            onStyleReady = { ready = true },
-            onFailed = onBack,
+            onStyleReady = { ready = true; GlobeHealth.markWorking(context) },
+            onFailed = { GlobeHealth.markFailed(context); onBack() },
             modifier = Modifier.fillMaxSize(),
         )
         Column(

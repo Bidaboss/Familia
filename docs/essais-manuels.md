@@ -1884,3 +1884,8 @@ Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapb
 4. Pause, Précédent, Suivant, « Voir la carte » : boutons de 56 dp, toujours visibles. Pause arrête le compte des 3 s ; Reprendre le relance.
 5. Fin : « Voilà tout le trajet. », « Rejouer le survol » et « Voir la carte » (retour à la carte à plat).
 6. Sans réseau ou si Mapbox ne démarre pas dans les 10 s : retour tout seul à la carte à plat, sans message.
+## Voyage : globe en vue satellite et repli silencieux (récit 94 temps 5, récit 99 étape 1)
+
+Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapbox.
+1. « Lancer le voyage » : la Terre est maintenant en vue satellite, ronde, dans un ciel étoilé ; le trait est jaune devant, blanc derrière.
+2. Si le globe n'a pas démarré (avion, Mapbox en panne), l'appli revient à la carte à plat sans message, et le bouton « Lancer le voyage » reste caché 6 heures sur ce téléphone. Un globe qui démarre efface ce repli.
