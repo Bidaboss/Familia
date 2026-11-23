@@ -1921,3 +1921,12 @@ Rien à publier côté Firebase. « APK de publication ».
 1. Accueil d'un voyage en carte satellite : chaque étape est un rond noir numéroté (1, 2, 3…) avec son lieu dessous ; la prochaine étape est plus grosse, jaune, son lieu en surbrillance jaune.
 2. Monter la feuille à 85 % : la carte se rapproche de la prochaine étape (0,6 s) ; la redescendre recadre toutes les étapes au-dessus de la feuille.
 3. Pas encore là : la photo de l'étape dans le rond, l'animation d'arrivée depuis la liste, le regroupement des repères trop proches.
+## Voyage : carte fidèle au prototype, sans Carnet ni Jour par jour (récit 101, règles 3, 4, 5, 6, 7, 8, 9, 23 et section 9)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir un voyage avec des étapes placées : la carte part de l'Europe puis se recentre et zoome sur le voyage (environ 4 s). Toucher l'écran pendant l'animation l'arrête.
+2. Aucun bouton + / − ni de géolocalisation, ni boussole. Un seul petit bouton en bas à droite de la carte, au-dessus de la feuille : « Réglages de la carte » avec Satellite / Rues et 2D / 3D. Les repères restent après un changement de style.
+3. Repères : le départ sans numéro, puis 1, 2, 3… ; une coche verte pour une étape « Bien arrivé » ; la prochaine étape plus grosse en jaune avec son nom. Deux étapes proches se regroupent en un rond avec leur nombre ; toucher ce rond zoome dessus.
+4. Toucher un repère : la carte zoome sur l'étape et écrit son nom. Retour : la carte revient sur tout le voyage.
+5. Feuille : glisser vers le haut deux fois, elle prend tout l'écran avec une flèche en haut à gauche ; la flèche ou un glissé vers le bas la redescend. Retour la redescend aussi.
+6. Plus de bouton « Carnet » ni de tuile « Jour par jour » ; le titre de la liste du jour devient « Programme, jour N ».

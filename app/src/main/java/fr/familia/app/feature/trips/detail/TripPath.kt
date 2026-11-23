@@ -218,7 +218,7 @@ private fun DrawScope.drawLabel(at: Offset, label: String, measurer: androidx.co
 }
 
 /**
- * The chosen day under the path: « Jour 3 : l'Alcázar et les jardins », then « Carnet », « La carte »
+ * The chosen day under the path: « Jour 3 : l'Alcázar et les jardins », then « La carte »
  * and « 18 photos », and for those who go the round « Comptes » and « Valise ».
  */
 @Composable
@@ -228,7 +228,6 @@ fun TripDayCard(
     day: LocalDate,
     photoCount: Int,
     onPhotos: () -> Unit,
-    onNotebook: () -> Unit,
     onExpenses: (() -> Unit)?,
     modifier: Modifier = Modifier,
     /** « La carte » (récit 87), once a step has a point. */
@@ -258,9 +257,8 @@ fun TripDayCard(
             color = TripPathColors.Ink,
             modifier = Modifier.semantics { heading() },
         )
-        // Reading first: the notebook (what happens today), the map, the photos (Kévin, 22/11).
+        // The map and the photos; the program of the day is the list under (règle 23: no « Carnet »).
         SideBySide { item ->
-            DayButton(stringResource(R.string.trip_notebook), onNotebook, item)
             if (onMap != null) DayButton(stringResource(R.string.trip_map_open), onMap, item)
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
         }
