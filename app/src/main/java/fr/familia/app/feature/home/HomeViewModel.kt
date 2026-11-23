@@ -3,7 +3,6 @@ package fr.familia.app.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
-import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.PollRepository
@@ -12,7 +11,6 @@ import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.Family
-import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.model.PollVote
@@ -41,8 +39,8 @@ import java.time.Instant
 import java.time.LocalDate
 
 /**
- * The Accueil tab (PRD, récit 29): what I have to do, the coming week, birthdays, the next occasion
- * and the trips I follow. Each module only feeds its card while it is switched on (a null
+ * The Accueil tab (PRD, récit 29): what I have to do, the coming week, birthdays and the trips I
+ * follow. Each module only feeds its card while it is switched on (a null
  * repository), and a card that cannot load stays hidden rather than blocking the others.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,17 +50,11 @@ class HomeViewModel(
     private val currentMemberId: String,
     private val rsvps: RsvpRepository? = null,
     private val helpRequests: HelpRequestRepository? = null,
-    private val gifts: GiftRepository? = null,
     private val trips: TripRepository? = null,
     private val today: Flow<LocalDate> = currentDayFlow(),
     /** Null while the polls module is off: no block « Sondages ». */
     private val polls: PollRepository? = null,
     private val clock: () -> Instant = Instant::now,
-    /**
-     * Switch « Liste unique » (récit 9 ter): the lists of an occasion are gone from the Cadeaux tab,
-     * so the home screen no longer points to one. The birthdays stay on their own card.
-     */
-    private val singleList: Boolean = false,
 ) : ViewModel() {
 
     /** Read once and shared by the cards, so no card adds its own listener on the family. */
@@ -82,17 +74,16 @@ class HomeViewModel(
                     window,
                     myAnswers(window),
                     bonus(helpRequests?.observeMine(currentMemberId), emptyList<HelpRequest>()),
-                    combine(nextOccasion(day), followedTrips(shared, day), openPolls()) { o, t, p -> Triple(o, t, p) },
+                    combine(followedTrips(shared, day), openPolls()) { t, p -> t to p },
                 ) { fam, list, answers, help, extras ->
                     val me = fam.members.firstOrNull { it.id == currentMemberId }
                     if (me == null) {
                         HomeUiState.Ready(day)
                     } else {
-                        val next = extras.first?.let { (giftList, claims) -> occasion(giftList, me, fam, claims, day) }
-                        val (asked, votes) = extras.third
+                        val (asked, votes) = extras.second
                         val now = clock()
                         val toVote = pollsToVote(me, asked, votes, now, day)
-                        homeState(me, fam, day, list, answers, help, next, extras.second, toVote, pollsVoted(me, asked, votes, now), pollsOn = polls != null)
+                        homeState(me, fam, day, list, answers, help, extras.first, toVote, pollsVoted(me, asked, votes, now), pollsOn = polls != null)
                     }
                 }.catch { e ->
                     if (e is CancellationException) throw e
@@ -101,24 +92,6 @@ class HomeViewModel(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState.Loading)
-
-    /** The next occasion list and how many of its gifts I reserved: one listener, for that list only. */
-    private fun nextOccasion(day: LocalDate): Flow<Pair<GiftList, Int>?> {
-        val repo = gifts ?: return flowOf(null)
-        if (singleList) return flowOf(null)
-        val next = bonus(repo.observeVisibleLists(currentMemberId), emptyList())
-            .map { nextOccasionList(it, currentMemberId, day) }
-            .distinctUntilChanged()
-        return next.flatMapLatest<GiftList?, Pair<GiftList, Int>?> { list ->
-            when {
-                list == null -> flowOf(null)
-                // What is reserved for me never shows, so my own list needs no reading of the claims.
-                list.beneficiaryId == currentMemberId -> flowOf(list to 0)
-                else -> bonus(repo.observeClaims(list.id).map { claims -> claims.count { it.holderId == currentMemberId } }, 0)
-                    .map { list to it }
-            }
-        }
-    }
 
     /** The trips I follow that are not over, with the last « Bien arrivé » of the ongoing ones. */
     private fun followedTrips(family: Flow<Family>, day: LocalDate): Flow<List<HomeTrip>> {

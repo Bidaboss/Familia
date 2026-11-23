@@ -47,9 +47,6 @@ import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Feature
-import fr.familia.app.core.model.GiftList
-import fr.familia.app.core.model.GiftListKind
-import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.Member
@@ -129,13 +126,11 @@ fun HomeRoute(
     onOpenRecap: () -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
-    val giftsOn = flags.isOn(Feature.Gifts)
     val helpOn = flags.isOn(Feature.HelpRequests)
     val tripsOn = flags.isOn(Feature.Trips)
     val pollsOn = flags.isOn(Feature.Polls)
-    val singleList = flags.isOn(Feature.SingleList)
     val viewModel: HomeViewModel = viewModel(
-        key = "home-$giftsOn-$helpOn-$tripsOn-$pollsOn-$singleList",
+        key = "home-$helpOn-$tripsOn-$pollsOn",
         factory = viewModelFactory {
             initializer {
                 HomeViewModel(
@@ -144,10 +139,8 @@ fun HomeRoute(
                     currentMemberId = currentMember.id,
                     rsvps = container?.rsvpRepository,
                     helpRequests = if (helpOn) container?.helpRequestRepository else null,
-                    gifts = if (giftsOn) container?.giftRepository else null,
                     trips = if (tripsOn) container?.tripRepository else null,
                     polls = if (pollsOn) container?.pollRepository else null,
-                    singleList = singleList,
                 )
             }
         },
@@ -324,10 +317,6 @@ internal fun previewHome(): HomeUiState.Ready {
         ),
         week = listOf(dinner, event("e2", "Goûter du mercredi", today.plusDays(4), null)),
         birthdays = listOf(Birthday(camille, LocalDate.of(2026, 11, 28), 36), Birthday(noe, LocalDate.of(2026, 12, 3), 10)),
-        occasion = HomeOccasion(
-            GiftList("l1", GiftListKind.Own, "Noël de Noé", GiftOccasion.Christmas, LocalDate.of(2026, 12, 25), "b", emptyList(), "a", "Camille"),
-            "Noé", 34, 2,
-        ),
         trips = listOf(HomeTrip(trip, "Camille et Noé", ongoing = true, TripArrival(Instant.parse("2026-11-19T15:10:00Z"), "a", "Camille"))),
         canCreateTrip = true,
     )

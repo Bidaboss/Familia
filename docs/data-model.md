@@ -485,6 +485,8 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 ### `migrations/singleList/items/{listId}_{itemId}` (récit 9 ter, « Liste unique »)
 
+Depuis le 23/11, l'appli n'a plus d'interrupteur « Liste unique » : elle est toujours allumée, et l'ancien onglet Cadeaux est retiré. `config/app.features.singleList` reste à `true` dans Firestore, car les fonctions la lisent encore (copie, révélation, rappels d'anniversaire) : ne pas l'effacer.
+
 Écrit par la fonction seule, jamais lu par l'appli. Quand l'interrupteur `singleList` s'allume, chaque article d'une liste d'occasion non révélée est copié, sans rien effacer : dans « Mes envies » s'il est visible par la personne (avec l'occasion de sa liste si c'est Noël ou un anniversaire), sinon dans ses « Idées de la famille ». La copie a l'identifiant `from-{listId}-{itemId}` ; sa réservation, ses parts et les entrées de carnet des offrants suivent. Cette marque, écrite dans le même lot, empêche toute seconde copie : rallumer l'interrupteur ne copie que les nouveaux articles. Champs : `listId`, `itemId`, `target`, `copiedId`, `copiedAt`.
 
 ### `migrations/singleList/lists/{listId}` (récit 9 ter, « Liste unique »)

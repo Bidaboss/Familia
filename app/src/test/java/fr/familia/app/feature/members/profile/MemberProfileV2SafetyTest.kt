@@ -54,7 +54,7 @@ class MemberProfileV2SafetyTest {
         val gifts: @Composable (Member) -> Unit = { person ->
             ProfileWishesSection(null, reader, person, onOpenList = {})
             ProfileNotebookSection(reader, person, notebookOn = true, onOpenNotebook = {})
-            ProfileGivingSection(null, reader, person, singleList = true, notebookOn = true, {}, {}, {}, {}, {})
+            ProfileGivingSection(null, reader, person, notebookOn = true, {}, {}, {}, {}, {})
         }
         compose.setContent {
             FamiliaTheme {

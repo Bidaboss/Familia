@@ -5,35 +5,16 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.feature.events.TestFamily
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
 
-/** The Cadeaux tab in the presentation R1 bis (DESIGN-14). Fictional family of [TestFamily]. */
-class GiftsPresentationTest {
+/** The « nouvelles » of the Cadeaux tab. Fictional family of [TestFamily]. */
+class GiftsNewWishesTest {
 
     private val family = TestFamily.family
     private val today = LocalDate.of(2026, 11, 21)
-
-    private fun withBirthday(date: LocalDate?) = family.members.map { if (it.id == "adult2") it.copy(birthDate = date) else it.copy(birthDate = null) }
-
-    @Test
-    fun `the birthday of the day never shows as the next occasion`() {
-        // The party is today: the card goes on to the next occasion.
-        assertEquals(GiftMoment.Christmas(2026), nextOccasion(today, withBirthday(LocalDate.of(1980, 11, 21))))
-        val tomorrow = nextOccasion(today, withBirthday(LocalDate.of(1980, 11, 22)))
-        assertTrue(tomorrow is GiftMoment.BirthdayOf && tomorrow.member.id == "adult2" && tomorrow.date == LocalDate.of(2026, 11, 22))
-    }
-
-    @Test
-    fun `Christmas comes next when no birthday comes before it, and the next one on Christmas day`() {
-        assertEquals(GiftMoment.Christmas(2026), nextOccasion(today, withBirthday(LocalDate.of(1980, 2, 3))))
-        assertEquals(GiftMoment.Christmas(2027), nextOccasion(LocalDate.of(2026, 12, 25), withBirthday(null)))
-        assertEquals(LocalDate.of(2026, 12, 25), GiftMoment.Christmas(2026).day())
-    }
 
     private fun wishes(beneficiary: String) =
         GiftList("wishes-$beneficiary", GiftListKind.Wishes, "Mes envies", null, null, beneficiary, emptyList(), beneficiary, beneficiary)
@@ -43,7 +24,7 @@ class GiftsPresentationTest {
 
     private fun state(): GiftsUiState.Success {
         val lists = listOf(wishes("adult1"), wishes("adult2"))
-        val base = giftsState(family, lists, "adult1", today, singleList = true, presentation = true) as GiftsUiState.Success
+        val base = giftsState(family, lists, "adult1", today) as GiftsUiState.Success
         return base.copy(
             listItems = mapOf(
                 "wishes-adult2" to listOf(
@@ -68,15 +49,5 @@ class GiftsPresentationTest {
     fun `a list never opened on this phone has no news yet`() {
         val shown = withNewWishes(state(), emptyMap(), "adult1") as GiftsUiState.Success
         assertTrue(shown.newWishes.isEmpty())
-    }
-
-    @Test
-    fun `the new presentation needs the single list, and says what comes next`() {
-        val on = giftsState(family, emptyList(), "adult1", today, singleList = true, presentation = true) as GiftsUiState.Success
-        assertTrue(on.presentation)
-        assertEquals(nextOccasion(today, family.members), on.next)
-        val withoutSingleList = giftsState(family, emptyList(), "adult1", today, singleList = false, presentation = true) as GiftsUiState.Success
-        assertFalse(withoutSingleList.presentation)
-        assertNull(withoutSingleList.next)
     }
 }

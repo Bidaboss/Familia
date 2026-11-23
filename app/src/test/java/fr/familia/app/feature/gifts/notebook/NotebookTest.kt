@@ -160,12 +160,11 @@ class NotebookTest {
     }
 
     @Test
-    fun `a gift moved by the single list shows once, the copy while the switch is on`() {
+    fun `a gift moved by the single list shows once, the copy`() {
         val old = NotebookEntry("gift_noel_i", NotebookSource.Claim, "adult2", "Adult2", christmas, "Un livre", null, 15.0, null, GiftStatus.Bought, listId = "noel", itemId = "i", movedTo = "gift_wishes-adult2_from-noel-i")
         val copy = old.copy(id = "gift_wishes-adult2_from-noel-i", listId = "wishes-adult2", itemId = "from-noel-i", movedTo = null)
         val idea = entry("a", "adult2")
-        assertEquals(listOf(copy.id, idea.id), shownEntries(listOf(old, copy, idea), singleList = true).map { it.id })
-        assertEquals(listOf(old.id, idea.id), shownEntries(listOf(old, copy, idea), singleList = false).map { it.id })
+        assertEquals(listOf(copy.id, idea.id), shownEntries(listOf(old, copy, idea)).map { it.id })
         // The ideas of the family are permanent too: their reservations say their occasion.
         assertTrue(isPermanentListId("ideas-adult2"))
         assertTrue(isPermanentListId("wishes-adult2"))

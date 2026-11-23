@@ -36,7 +36,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -77,8 +76,6 @@ data class ProposeIdeaActions(
     val onSelectList: (String) -> Unit = {},
     val onTakeIt: (Boolean) -> Unit = {},
     val onPropose: () -> Unit = {},
-    /** A new surprise list for the person, when they have none the idea can go to. */
-    val onNewSurprise: (personId: String) -> Unit = {},
 )
 
 /** « Proposer à la famille »: which list of the person the idea goes to, hidden from them. Stateless. */
@@ -134,17 +131,6 @@ private fun ChoosingContent(state: ProposeIdeaUiState.Choosing, actions: Propose
         FormTile(Icons.Outlined.CardGiftcard, entry.title, accent = accent) {
             entry.price?.let { Text(formatEuros(it), style = MaterialTheme.typography.bodyLarge) }
             FormHint(stringResource(R.string.notebook_propose_body, name))
-        }
-        if (state.lists.isEmpty()) {
-            Text(stringResource(R.string.notebook_propose_no_list, name), style = MaterialTheme.typography.bodyLarge)
-            if (state.canPrepareSurprise) {
-                OutlinedButton(
-                    onClick = { entry.personId?.let(actions.onNewSurprise) },
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) { Text(stringResource(R.string.gifts_prepare_surprise)) }
-            }
-            return@Column
         }
         FormTile(Icons.AutoMirrored.Outlined.List, stringResource(R.string.notebook_propose_where), accent = accent) {
             Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {

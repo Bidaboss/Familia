@@ -14,7 +14,6 @@ import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.photo.PhotoEdit
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.SinglePhotoSaver
-import fr.familia.app.core.viewas.listsSeenBy
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.gifts.detail.GiftListUiState
@@ -72,27 +71,6 @@ class GiftsTest {
         assertFalse(canShareWishesOutside(ideas, TestFamily.adult, family))
         assertFalse(canShareWishesOutside(ideas, TestFamily.otherAdult, family))
         assertFalse(canShareWishesOutside(list("noel", "adult1"), TestFamily.adult, family))
-    }
-
-    @Test
-    fun `a surprise already prepared shows on the birthday of its person, never to that person`() {
-        // A surprise for adult1, seen by admin1 and adult2 only, as the server sends it to each.
-        val surprise = list("s1", "adult1", kind = GiftListKind.Surprise, viewers = listOf("admin1", "adult2"), creator = "adult2")
-        val other = list("s2", "adult1", kind = GiftListKind.Surprise, viewers = listOf("admin1", "adult2"), creator = "admin1")
-        val own = list("noel", "adult1", viewers = listOf("adult1", "adult2"))
-        val all = listOf(surprise, own, other.copy(revealed = true))
-        val giver = giftsState(family, listsSeenBy(all, "adult2"), "adult2", today) as GiftsUiState.Success
-        assertEquals(listOf("s1"), surprisesFor(giver, "adult1").map { it.id })
-        // Two surprises: both counted, the nearest first.
-        val two = giftsState(family, listsSeenBy(listOf(surprise, other.copy(date = LocalDate.of(2026, 12, 1))), "adult2"), "adult2", today)
-            as GiftsUiState.Success
-        assertEquals(listOf("s2", "s1"), surprisesFor(two, "adult1").map { it.id })
-        // Its person, on their phone or in « Voir comme » them, gets none of it.
-        val person = giftsState(family, listsSeenBy(all, "adult1"), "adult1", today) as GiftsUiState.Success
-        assertTrue(surprisesFor(person, "adult1").isEmpty())
-        // With the single list, a surprise is an idea of the family: the tab never says how many.
-        val single = giftsState(family, listsSeenBy(all, "adult2"), "adult2", today, singleList = true) as GiftsUiState.Success
-        assertTrue(surprisesFor(single, "adult1").isEmpty())
     }
 
     @Test
@@ -156,70 +134,35 @@ class GiftsTest {
     }
 
     @Test
-    fun `« Prochaine occasion » counts real wishes, not empty lists`() {
-        // Retour d'essai du 17/11 : « 3 listes d'envies ouvertes » for a birthday, while two of them were empty.
-        val lists = listOf(
-            list("wishes-adult1", "adult1", GiftListKind.Wishes, viewers = emptyList()),
-            list("wishes-adult2", "adult2", GiftListKind.Wishes, viewers = emptyList()),
-            list("wishes-kid2", "kid2", GiftListKind.Wishes, viewers = emptyList()),
-        )
-        fun wish(id: String, occasion: GiftOccasion?, visible: Boolean = true) =
-            GiftItem(id, "Envie $id", null, null, null, "adult1", "Adult1", visibleToBeneficiary = visible, occasion = occasion)
-        val base = giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success
-        val state = base.copy(
-            listItems = mapOf(
-                "wishes-adult1" to listOf(wish("a", GiftOccasion.Birthday), wish("b", null), wish("c", GiftOccasion.Christmas), wish("d", null, visible = false)),
-                "wishes-adult2" to emptyList(),
-                "wishes-kid2" to listOf(wish("e", GiftOccasion.Christmas)),
-            ),
-        )
-        assertEquals(2, nextOccasionCount(state, GiftMoment.BirthdayOf(TestFamily.adult, LocalDate.of(2027, 3, 1))))
-        assertEquals(0, nextOccasionCount(state, GiftMoment.BirthdayOf(TestFamily.otherAdult, LocalDate.of(2027, 3, 1))))
-        assertEquals(2, nextOccasionCount(state, GiftMoment.Christmas(2026)))
-    }
-
-    @Test
     fun `the others are sorted by household, as in Famille, adults before children`() {
         // Retour d'essai du 17/11 : « range les membres par foyers ». « Foyer Deux » comes before « Foyer Un ».
-        val state = giftsState(family, emptyList(), "admin1", today, singleList = true) as GiftsUiState.Success
+        val state = giftsState(family, emptyList(), "admin1", today) as GiftsUiState.Success
         assertEquals(listOf("admin1", "adult2", "kid2", "adult1", "kid1"), state.sections.map { it.member.id })
         assertEquals(listOf("Foyer Un", "Foyer Deux", "Foyer Deux", "Foyer Un", "Foyer Un"), state.sections.map { it.householdName })
-        val runs = householdRuns(state.sections.filter { !it.keptByMe })
-        assertEquals(listOf("Foyer Deux", null, "Foyer Un", null), runs.map { it.first?.name })
     }
 
     @Test
-    fun `the tab shows the member, then their children, then the others who have lists`() {
-        val lists = listOf(
-            list("w", "adult1", GiftListKind.Wishes, viewers = emptyList()),
-            list("own", "admin1", viewers = listOf("admin1", "adult2")),
-            list("old", "adult2", revealed = true),
-        )
+    fun `the tab shows the member, then their children, then everyone else`() {
+        val lists = listOf(list("w", "adult1", GiftListKind.Wishes, viewers = emptyList()))
         val state = giftsState(family, lists, "adult2", today) as GiftsUiState.Success
-        assertEquals(listOf("adult2", "kid2", "admin1", "adult1"), state.sections.map { it.member.id })
+        assertEquals(listOf("adult2", "kid2", "admin1", "adult1", "kid1"), state.sections.map { it.member.id })
         assertTrue(state.sections[1].keptByMe)
-        assertEquals("w", state.sections[3].wishes?.id)
-        assertEquals(listOf("old"), state.archived.map { it.first.id })
+        assertEquals("w", state.sections.first { it.member.id == "adult1" }.wishes?.id)
         assertTrue(state.canPrepareSurprise)
     }
 
     @Test
-    fun `with the single list, everyone shows with their wishes and the ideas of the family, and no list for an occasion`() {
+    fun `everyone shows with their wishes and the ideas of the family, and no list for an occasion`() {
         val lists = listOf(
             list("w", "adult1", GiftListKind.Wishes, viewers = emptyList()),
             list("own", "admin1", viewers = listOf("admin1", "adult2")),
             list("old", "adult2", revealed = true),
             list("ideas-adult1", "adult1", GiftListKind.Ideas, viewers = emptyList(), creator = "admin1"),
         )
-        val state = giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success
-        assertTrue(state.singleList)
+        val state = giftsState(family, lists, "adult2", today) as GiftsUiState.Success
         assertEquals(family.members.size, state.sections.size)
-        assertTrue(state.sections.all { it.lists.isEmpty() })
         assertTrue(state.archived.isEmpty())
         assertEquals("ideas-adult1", state.sections.first { it.member.id == "adult1" }.ideas?.id)
-        // Switch off: the ideas of the family stay out of the tab.
-        val off = giftsState(family, lists, "adult2", today) as GiftsUiState.Success
-        assertTrue(off.sections.none { it.ideas != null || it.lists.any { l -> l.kind == GiftListKind.Ideas } })
     }
 
     @Test
@@ -234,32 +177,21 @@ class GiftsTest {
     }
 
     @Test
-    fun `choosing an occasion keeps its people and counts the wishes said for it, or for whenever`() {
+    fun `the card of the wishes counts what its person sees, never the ideas of the family`() {
         val lists = listOf(
             list("wishes-adult1", "adult1", GiftListKind.Wishes, viewers = emptyList()),
             list("ideas-adult1", "adult1", GiftListKind.Ideas, viewers = emptyList(), creator = "admin1"),
         )
-        fun item(id: String, occasion: GiftOccasion?) = GiftItem(id, id, null, null, null, "adult1", "Adult1", true, occasion = occasion)
-        val base = (giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success).copy(
+        fun item(id: String, visible: Boolean = true) = GiftItem(id, id, null, null, null, "adult1", "Adult1", visible)
+        val base = (giftsState(family, lists, "adult2", today) as GiftsUiState.Success).copy(
             listItems = mapOf(
-                "wishes-adult1" to listOf(item("noel", GiftOccasion.Christmas), item("anniv", GiftOccasion.Birthday), item("libre", null)),
-                "ideas-adult1" to listOf(item("idee", null)),
+                "wishes-adult1" to listOf(item("noel"), item("anniv"), item("libre"), item("cachee", visible = false)),
+                "ideas-adult1" to listOf(item("idee")),
             ),
         )
-        val all = forMoment(base, null) as GiftsUiState.Success
-        assertEquals(3, all.wishPreviews.getValue("wishes-adult1").count)
-        assertTrue(all.occasions.first() is GiftMoment.Christmas)
-        val christmas = forMoment(base, all.occasions.first()) as GiftsUiState.Success
-        assertEquals(listOf("libre", "noel"), christmas.wishPreviews.getValue("wishes-adult1").titles)
-        // The ideas of the family get no preview: their card never says how many.
-        assertTrue("ideas-adult1" !in christmas.wishPreviews)
-        assertEquals(family.members.size, christmas.sections.size)
-        val adult1 = family.members.first { it.id == "adult1" }
-        val birthday = forMoment(base, GiftMoment.BirthdayOf(adult1, LocalDate.of(2027, 1, 1))) as GiftsUiState.Success
-        // A birthday that is not among the next ones is not an occasion of the tab: everyone shows.
-        assertEquals(null, birthday.moment)
-        // Switch off: no occasion to choose.
-        assertTrue((forMoment(base.copy(singleList = false), null) as GiftsUiState.Success).occasions.isEmpty())
+        val shown = withWishPreviews(base) as GiftsUiState.Success
+        assertEquals(3, shown.wishPreviews.getValue("wishes-adult1").count)
+        assertTrue("ideas-adult1" !in shown.wishPreviews)
     }
 
     @Test

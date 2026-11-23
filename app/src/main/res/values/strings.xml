@@ -283,7 +283,6 @@
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
     <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
-    <string name="feature_help_single_list">Une seule liste d\'envies par personne, sa liste « Surprise » cachée et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
     <string name="feature_help_good_deals">Dans Entraide, les bons plans et les bonnes adresses de la famille.</string>
@@ -789,9 +788,7 @@
     <string name="nav_gifts_child">Mes envies</string>
     <string name="gifts_error_title">Les cadeaux ne s\'affichent pas</string>
     <string name="gifts_error_body">L\'appli n\'a pas pu lire les cadeaux. Réessaie, et si ça continue, préviens un chef de famille.</string>
-    <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
-    <string name="gifts_section_me">Moi</string>
     <string name="gifts_wishes_none">Pas encore d\'envie</string>
     <plurals name="gifts_wishes_preview">
         <item quantity="one">%1$d envie : %2$s</item>
@@ -799,26 +796,15 @@
         <item quantity="other">%1$d envies : %2$s</item>
     </plurals>
     <string name="gifts_wishes_empty">Encore vide : touche pour ajouter une envie</string>
-    <string name="gifts_birthdays_title">Anniversaires à venir</string>
     <string name="gifts_birthday_of">Anniversaire de %1$s</string>
     <string name="gifts_prepare_surprise">Préparer une surprise</string>
-    <plurals name="gifts_surprises_in_progress">
-        <item quantity="one">%d surprise en préparation</item>
-        <item quantity="other">%d surprises en préparation</item>
-    </plurals>
     <string name="gifts_surprise_prepared">Une surprise est déjà en préparation</string>
-    <string name="gifts_preparing_title">Surprises en préparation</string>
     <string name="gifts_preparing_for">Pour %1$s</string>
-    <string name="gifts_preparing_ideas_title">Surprise pour %1$s</string>
-    <string name="gifts_preparing_ideas_birthday">Dans ses idées, pour son anniversaire : %1$s</string>
-    <string name="gifts_preparing_ideas">Dans la surprise de la famille</string>
     <string name="surprise_pick_title">Préparer une surprise</string>
     <string name="surprise_pick_question">Pour qui ?</string>
     <string name="surprise_pick_next">Prochain anniversaire</string>
     <string name="surprise_pick_birthday">Anniversaire : %1$s</string>
     <string name="surprise_pick_error">Impossible d\'afficher la famille. Vérifie ta connexion, puis réessaie.</string>
-    <string name="gifts_all_birthdays">Tous les anniversaires</string>
-    <string name="gifts_archived_title">Listes passées</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
     <string name="gift_my_wishes">Mes envies</string>
     <string name="gift_wishes_of">Envies de %1$s</string>
@@ -832,9 +818,6 @@
     <string name="gift_wish_for_christmas">Pour Noël</string>
     <string name="gift_wish_for_my_birthday">Pour mon anniversaire</string>
     <string name="gift_wish_for_birthday">Pour son anniversaire</string>
-    <string name="gifts_moment_all">Tout le monde</string>
-    <string name="gifts_moment_christmas">Noël %1$d</string>
-    <string name="gift_ideas_title">La surprise de la famille</string>
     <string name="gift_ideas_of">Surprise pour %1$s</string>
     <string name="gift_ideas_subtitle">%1$s ne voit jamais cette partie</string>
     <string name="gift_ideas_notice">La surprise de la famille pour %1$s : note et prends des idées. %1$s ne voit jamais cette liste, ni qui a pris quoi.</string>
@@ -864,7 +847,6 @@
     <string name="profile_giving_empty">Rien pour l\'instant. Ajoute une idée, ou réserve une envie sur sa liste.</string>
     <string name="profile_giving_surprise">Surprise en cours : %1$s</string>
     <string name="profile_giving_all">Tout voir dans Cadeaux</string>
-    <string name="gifts_my_wishes_on_page">Elles sont sur ta fiche. Touche ici pour y aller.</string>
     <string name="gift_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="gift_claim_taken">Quelqu\'un vient de la réserver, juste avant toi.</string>
     <string name="gift_claim_removed">Son auteur vient de la retirer de la liste.</string>
@@ -944,7 +926,6 @@
     <string name="notebook_archive">Archives (%1$d)</string>
     <string name="notebook_propose_body">L\'idée rejoint une liste de %1$s, sans que %1$s la voie : la famille peut la prendre ou lancer un cadeau commun. Elle quitte ton carnet ; si tu la prends, elle y revient comme réservation.</string>
     <string name="notebook_propose_where">Sur quelle liste ?</string>
-    <string name="notebook_propose_no_list">%1$s n\'a aucune liste où cette idée resterait cachée.</string>
     <string name="notebook_propose_take_it">Je le prends moi-même</string>
     <string name="notebook_propose_note_kept">Ta note privée n\'est pas recopiée.</string>
     <string name="notebook_propose_confirm">Proposer</string>
@@ -2586,22 +2567,13 @@
     <string name="feature_member_card">Goûts et passions sur la fiche</string>
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
-    <string name="feature_single_list">Une seule liste d\'envies par personne</string>
     <string name="feature_surprise_button">Bouton surprise</string>
-    <string name="single_list_confirm_title">Passer à une seule liste par personne ?</string>
-    <string name="single_list_confirm_body">Les listes d\'occasion sont copiées dans « Mes envies » et les surprises, puis les anciennes listes copiées en entier sont effacées pour de bon. Leurs envies, réservations, parts et photos restent dans les copies.</string>
-    <string name="single_list_confirm">Allumer</string>
     <string name="gift_mark_received">Je l\'ai reçue</string>
     <string name="gift_mark_received_title">Tu l\'as déjà reçue ?</string>
     <string name="gift_mark_received_text">Elle sera rangée comme reçue.</string>
     <string name="gift_mark_received_confirm">Oui, reçue</string>
     <string name="feature_more_photos">Plus de photos</string>
     <string name="feature_recipe_book">Livre de recettes</string>
-    <string name="gifts_next_occasion_label">Prochaine occasion</string>
-    <string name="gifts_next_christmas">Noël, %1$s</string>
-    <string name="gifts_next_birthday">Anniversaire de %1$s, %2$s</string>
-    <string name="gifts_next_my_birthday">Ton anniversaire, %1$s</string>
-    <string name="gifts_upcoming_title">À venir</string>
     <!-- Nouvel onglet Cadeaux (PRODUIT-119 et 120) -->
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
@@ -2622,22 +2594,7 @@
         <item quantity="one">demain</item>
         <item quantity="other">dans %d jours</item>
     </plurals>
-    <plurals name="gifts_open_wish_lists">
-        <item quantity="one">%d liste d\'envies ouverte</item>
-        <item quantity="other">%d listes d\'envies ouvertes</item>
-    </plurals>
     <string name="gifts_next_no_wish">Pas encore d\'envie</string>
-    <plurals name="gifts_next_my_wishes">
-        <item quantity="one">%d envie dans ta liste</item>
-        <item quantity="other">%d envies dans ta liste</item>
-    </plurals>
-    <plurals name="gifts_next_their_wishes">
-        <item quantity="one">%d envie dans sa liste</item>
-        <item quantity="other">%d envies dans sa liste</item>
-    </plurals>
-    <string name="gifts_see_ideas">Voir les idées</string>
-    <string name="gifts_my_wish_list">Ma liste d\'envies</string>
-    <string name="gifts_family_wishes_title">Les envies de la famille</string>
     <plurals name="gifts_wishes_count">
         <item quantity="one">%d envie</item>
         <item quantity="other">%d envies</item>
@@ -2646,7 +2603,6 @@
         <item quantity="one">%d nouvelle</item>
         <item quantity="other">%d nouvelles</item>
     </plurals>
-    <string name="gifts_ideas_for">Idées pour %1$s</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>

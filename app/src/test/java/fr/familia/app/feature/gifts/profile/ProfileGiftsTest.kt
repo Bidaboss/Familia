@@ -18,8 +18,6 @@ import fr.familia.app.feature.gifts.GiftsScreen
 import fr.familia.app.feature.gifts.WishPreview
 import fr.familia.app.feature.gifts.notebook.giftsFor
 import fr.familia.app.feature.gifts.previewGifts
-import fr.familia.app.feature.gifts.birthdaysSection
-import androidx.compose.foundation.lazy.LazyColumn
 import fr.familia.app.feature.gifts.surpriseIdeasToRead
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -60,7 +58,7 @@ class ProfileGiftsTest {
             entry("e4", null, "Une plante"),
             entry("e5", "b", "Des gants", source = NotebookSource.Share),
         )
-        assertEquals(listOf("e5", "e2", "e1"), giftsFor(entries, "b", singleList = false).map { it.id })
+        assertEquals(listOf("e5", "e2", "e1"), giftsFor(entries, "b").map { it.id })
     }
 
     @Test
@@ -139,47 +137,24 @@ class ProfileGiftsTest {
         var page = 0
         compose.setContent {
             FamiliaTheme {
-                GiftsScreen(previewGifts(), onOpenList = { opened += it }, onNewList = {}, onRetry = {}, onOpenMyPage = { page++ })
+                GiftsScreen(previewGifts(), onOpenList = { opened += it }, onRetry = {}, onOpenMyPage = { page++ })
             }
         }
-        compose.onNodeWithText("Elles sont sur ta fiche", substring = true).performClick()
+        compose.onNodeWithText("Ma fiche").performClick()
         assertEquals(1, page)
         assertTrue(opened.isEmpty())
     }
 
     @Test
-    fun `with the single list, only the birthdays of others are read for a surprise`() {
-        val state = previewGifts().copy(singleList = true)
+    fun `only the birthdays of others are read for a surprise`() {
+        val state = previewGifts()
         assertEquals(listOf("b"), surpriseIdeasToRead(state))
-        assertTrue(surpriseIdeasToRead(previewGifts()).isEmpty())
         val mine = state.copy(birthdays = state.birthdays.map { it.copy(member = state.sections.first { s -> s.isMe }.member) })
         assertTrue(surpriseIdeasToRead(mine).isEmpty())
         // A child without the app whose lists I keep: their adults see a surprise for them (retour du 18/11).
         val kid = state.sections.first { it.member.id == "c" }.member
         val forKid = state.copy(birthdays = state.birthdays.map { it.copy(member = kid) })
         assertEquals(listOf("c"), surpriseIdeasToRead(forKid))
-    }
-
-    private fun showBirthdays(opened: MutableList<String>) {
-        // With the single list there is no list for an occasion: only the ideas of the family.
-        val preview = previewGifts()
-        val state = preview.copy(singleList = true, surprisePreparedFor = setOf("b"), sections = preview.sections.map { it.copy(lists = emptyList()) })
-        compose.setContent {
-            FamiliaTheme {
-                // The birthdays alone: the whole tab may push the card out of the test screen.
-                LazyColumn { birthdaysSection(state, onAllBirthdays = {}, onPrepareSurprise = {}, onOpenList = { opened += it }) }
-            }
-        }
-        compose.waitForIdle()
-    }
-
-    @Test
-    fun `a surprise idea shows on the birthday card and opens the ideas`() {
-        val opened = mutableListOf<String>()
-        showBirthdays(opened)
-        compose.onNodeWithText("Une surprise est déjà en préparation").performClick()
-        assertEquals(listOf("ideas-b"), opened)
-        compose.onNodeWithText("Préparer une surprise").assertExists()
     }
 
     @Test

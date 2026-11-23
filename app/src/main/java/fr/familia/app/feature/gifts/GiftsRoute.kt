@@ -21,9 +21,6 @@ fun GiftsRoute(
     container: AppContainer?,
     currentMember: Member,
     onOpenList: (listId: String) -> Unit,
-    onNewList: () -> Unit,
-    onAllBirthdays: () -> Unit,
-    onPrepareSurprise: (memberId: String) -> Unit,
     /** « Mes envies » live on the member's page (retour d'essai, 17/11); null keeps them in the tab. */
     onOpenMyPage: (() -> Unit)? = null,
     /** « Préparer une surprise » (récit 63): the choice of the person. */
@@ -31,32 +28,27 @@ fun GiftsRoute(
     /** « Ajouter une envie » on the new tab (PRODUIT-119). */
     onAddWish: (listId: String) -> Unit = onOpenList,
 ) {
-    val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
-    val presentation = true
     // For the whole family only (récit 63): off, the admin principal keeps the tab as it was.
     val surpriseButton = LocalFeatureFlags.current.isOnForFamily(Feature.SurpriseButton)
-    // The new tab comes with the single list (PRODUIT-131): off, the old tab stays until it leaves.
-    val tabV2 = singleList
     val viewedAs = LocalViewAs.current.viewed
     val context = LocalContext.current
     val visits = remember { GiftSeenPreferences(context.applicationContext) }
     val viewModel: GiftsViewModel = viewModel(
         // A new ViewModel when a switch moves: the lists shown change with it.
-        key = "gifts-$singleList-$presentation-$surpriseButton",
+        key = "gifts-$surpriseButton",
         factory = viewModelFactory {
             initializer {
                 GiftsViewModel(
                     container?.giftRepository, container?.memberRepository, currentMember.id,
-                    singleList = singleList, presentation = presentation, seen = visits.seen,
+                    seen = visits.seen,
                     surpriseButton = surpriseButton,
-                    tabV2 = tabV2,
                 )
             }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     // « Voir comme » never moves the « nouvelles » of the admin's own phone.
-    val countsVisits = viewedAs == null && presentation
+    val countsVisits = viewedAs == null
     val shown = state as? GiftsUiState.Success
     val wishesIds = shown?.sections?.filter { !it.isMe }?.mapNotNull { it.wishes?.id }.orEmpty()
     LaunchedEffect(wishesIds, countsVisits) {
@@ -68,13 +60,9 @@ fun GiftsRoute(
             if (countsVisits) visits.markSeen(listId)
             onOpenList(listId)
         },
-        onNewList = onNewList,
         onRetry = viewModel::retry,
-        onAllBirthdays = onAllBirthdays,
-        onPrepareSurprise = onPrepareSurprise,
         // « Voir comme »: some lists may be kept from the admin.
         someListsHidden = viewedAs != null,
-        onSelectMoment = viewModel::selectMoment,
         onOpenMyPage = onOpenMyPage,
         onOpenSurprisePicker = onOpenSurprisePicker,
         onAddWish = onAddWish,

@@ -52,7 +52,6 @@ fun MemberProfileRoute(
     val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
     val cardOn = LocalFeatureFlags.current.isOn(Feature.MemberCard)
     val giftsOn = LocalFeatureFlags.current.isOn(Feature.Gifts)
-    val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val notebookOn = LocalFeatureFlags.current.isOn(Feature.GiftNotebook)
     // The page organised in sections (récit 66), the only one since the 18/11 (PRODUIT-131).
     val v2 = run {
@@ -101,7 +100,7 @@ fun MemberProfileRoute(
                 // My private notebook, under my wishes, on my own page only (PRD rév. 293).
                 ProfileNotebookSection(currentMember, person, notebookOn, giftActions.onOpenNotebook)
                 ProfileGivingSection(
-                    container, currentMember, person, singleList, notebookOn,
+                    container, currentMember, person, notebookOn,
                     onOpenList = giftActions.onOpenList,
                     onOpenNotebook = giftActions.onOpenNotebook,
                     onAddIdea = giftActions.onAddIdea,

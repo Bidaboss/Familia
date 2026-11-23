@@ -57,7 +57,7 @@ import java.time.temporal.ChronoUnit
  * The Cadeaux tab by people (récit 91, variant A): one row per person, grouped by household, and a
  * single gesture, touching the row opens the person's list of wishes. From the top: the black surprise bar,
  * « Mes envies », « Bientôt » (the birthdays of the next 30 days), « Toute la famille », then
- * « Cadeaux reçus » and « Listes archivées ».
+ * « Listes archivées ».
  *
  * Never a count of ideas nor of reservations: only « N envies », what the person sees of their own
  * list. Nothing of a surprise in « Voir comme » (the caller says so).
@@ -117,6 +117,9 @@ internal fun householdBlocks(others: List<GiftPersonSection>, myHouseholdId: Str
     return blocks.filter { it.mine } + blocks.filterNot { it.mine }
 }
 
+/** How far « Bientôt » looks ahead. */
+internal const val UPCOMING_BIRTHDAY_DAYS = 30L
+
 /** The birthdays of the next 30 days, nearest first, never this member's own. Pure, for the tests. */
 internal fun birthdaysSoon(state: GiftsUiState.Success): List<Birthday> {
     val until = state.today.plusDays(UPCOMING_BIRTHDAY_DAYS)
@@ -173,7 +176,7 @@ private fun BarRow(text: String, onClick: () -> Unit) {
 
 @Composable
 private fun BarLine(line: PreparingLine, onOpenList: (String) -> Unit) {
-    val member = line.member()
+    val member = line.member
     Row(
         Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button) { onOpenList(line.target()) }.padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -184,15 +187,7 @@ private fun BarLine(line: PreparingLine, onOpenList: (String) -> Unit) {
     }
 }
 
-private fun PreparingLine.target(): String = when (this) {
-    is PreparingLine.OfList -> list.id
-    is PreparingLine.OfIdeas -> ideasListId(member.id)
-}
-
-private fun PreparingLine.member() = when (this) {
-    is PreparingLine.OfList -> member
-    is PreparingLine.OfIdeas -> member
-}
+private fun PreparingLine.target(): String = ideasListId(member.id)
 
 /** « Mes envies »: a yellow edge, how many the family sees, « Ajouter une envie » and « Ma fiche ». */
 @Composable
