@@ -45,6 +45,7 @@ import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, delete
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import {
   AlertData, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
+  TripDocumentData, tripDocumentFile,
 } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -631,6 +632,13 @@ export const onTripAlertWritten = onDocumentWritten('trips/{tripId}/alerts/{memb
   const after = event.data?.after.data() as AlertData | undefined;
   if (!after || !isNewAlert(before, after)) return;
   await notifyAlert(getFirestore(), send, event.params.tripId, event.params.memberId, after);
+});
+
+// « Documents » (récit 105, règle 41): a removed document takes its file with it, even when the
+// admin principal removed it or the app was cut between the file and the record.
+export const onTripDocumentDeleted = onDocumentDeleted('trips/{tripId}/documents/{docId}', async (event) => {
+  const path = tripDocumentFile(event.params.tripId, event.params.docId, event.data?.data() as TripDocumentData | undefined);
+  if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
 });
 
 // « Le mot de l'étape » (récit 88) goes with its step, with its hearts and comments.
