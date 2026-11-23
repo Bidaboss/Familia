@@ -29,6 +29,12 @@ interface TripRepository {
     /** Creates the trip, or updates it when [isNew] is false (creator and creation time never change). */
     suspend fun saveTrip(trip: Trip, isNew: Boolean)
 
+    /**
+     * « Monnaie » (récit 105, règle 42): the currency of the trip, an ISO code; null or « EUR » is
+     * the euro. Only the creator or the admin principal (the rules). Touches nothing else.
+     */
+    suspend fun setCurrency(tripId: String, code: String?)
+
     /** Deletes the trip; its steps are deleted on the server. */
     suspend fun deleteTrip(id: String)
 

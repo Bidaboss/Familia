@@ -1,5 +1,7 @@
 package fr.familia.app.core.data
 
+import fr.familia.app.core.money.ExchangeRates
+import fr.familia.app.core.money.OpenExchangeRates
 import android.content.Context
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
@@ -69,6 +71,9 @@ interface AppContainer {
 
     /** « Autour de l'étape » (récit 96): restaurants and sites around the place of a step. */
     val nearbyPlaces: NearbyPlaces? get() = null
+
+    /** « Monnaie » (récit 105): the exchange rates from the euro, with their date. */
+    val exchangeRates: ExchangeRates? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -296,6 +301,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
     override val placeArticles: PlaceArticles? by lazy { WikivoyagePlaceArticles() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
+    override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }
 
     override val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 

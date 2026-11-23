@@ -20,6 +20,8 @@ data class Trip(
     val creatorName: String,
     /** The decor of the path (récit 81, DESIGN-53); an older trip has none and stays in the dunes. */
     val landscape: TripLandscape = TripLandscape.Dunes,
+    /** « Monnaie » (récit 105, règle 42): one currency per trip, its ISO code; null is the euro. */
+    val currency: String? = null,
 )
 
 /** The six landscapes of a trip, [key] as stored in Firestore. */

@@ -49,6 +49,8 @@ fun TripDetailRoute(
     onOpenPhrases: (() -> Unit)? = null,
     /** « Sécurité » (récit 105): opened from the round button when a step is in a country of the table, never France. */
     onOpenSafety: (() -> Unit)? = null,
+    /** « Monnaie » (récit 105): for those who go, once a step is abroad or the trip has a currency. */
+    onOpenMoney: (() -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -83,6 +85,7 @@ fun TripDetailRoute(
         onOpenPacking = onOpenPacking,
         onOpenPhrases = onOpenPhrases?.takeIf { PhraseBook.abroad(abroad).isNotEmpty() },
         onOpenSafety = onOpenSafety?.takeIf { EmergencyNumbers.abroad(abroad).isNotEmpty() },
+        onOpenMoney = onOpenMoney?.takeIf { shown?.isParticipant == true && (abroad.isNotEmpty() || shown.trip.currency != null) },
         packingCount = packingCount,
         photos = photos,
         photoActions = photoActions,

@@ -34,6 +34,10 @@ data class TripPhrasesDestination(val tripId: String)
 @Serializable
 data class TripSafetyDestination(val tripId: String)
 
+/** « Monnaie » (récit 105, règle 42). */
+@Serializable
+data class TripMoneyDestination(val tripId: String)
+
 /** The map of [tripId]: its steps joined in order on the landscape (récit 87). */
 @Serializable
 data class TripMapDestination(val tripId: String)

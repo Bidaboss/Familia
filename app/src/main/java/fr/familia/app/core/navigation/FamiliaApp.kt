@@ -303,8 +303,10 @@ import fr.familia.app.feature.trips.map.TripGlobeRoute
 import fr.familia.app.feature.trips.TripPackingDestination
 import fr.familia.app.feature.trips.TripPhrasesDestination
 import fr.familia.app.feature.trips.TripSafetyDestination
+import fr.familia.app.feature.trips.TripMoneyDestination
 import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.safety.TripSafetyRoute
+import fr.familia.app.feature.trips.money.TripMoneyRoute
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripWordDestination
 import fr.familia.app.feature.trips.word.StepWordRoute
@@ -1174,6 +1176,7 @@ fun FamiliaApp(
                             onOpenPacking = { navController.navigate(TripPackingDestination(tripId)) },
                             onOpenPhrases = { navController.navigate(TripPhrasesDestination(tripId)) },
                             onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
+                            onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
@@ -1193,6 +1196,9 @@ fun FamiliaApp(
                     }
                     composable<TripSafetyDestination> { entry ->
                         TripSafetyRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripSafetyDestination>().tripId, onBack = { navController.popBackStack() })
+                    }
+                    composable<TripMoneyDestination> { entry ->
+                        TripMoneyRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripMoneyDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     composable<TripMapDestination> { entry ->
                         val tripId = entry.toRoute<TripMapDestination>().tripId
