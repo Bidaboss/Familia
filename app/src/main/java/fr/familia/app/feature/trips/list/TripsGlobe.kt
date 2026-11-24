@@ -45,6 +45,10 @@ import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.gestures
 import fr.familia.app.feature.trips.map.GeoPoint
+import fr.familia.app.feature.trips.map.GlobeHealth
+import fr.familia.app.feature.trips.map.MAP_STYLE_TIMEOUT_MS
+import fr.familia.app.feature.trips.map.MapFailureLog
+import fr.familia.app.feature.trips.map.mapFailureReason
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.toPoint
 import kotlinx.coroutines.delay
@@ -139,10 +143,14 @@ fun TripsGlobe(
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
         if (ready) showHandAdded(style, if (souvenirs) handAdded else emptyList())
     }
-    // 6 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the landscape.
+    // 15 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the
+    // landscape, and the reason goes to « Plantages » (retour d'essai du 24/11).
     LaunchedEffect(Unit) {
-        delay(6_000L)
-        if (!ready) onFailed()
+        delay(MAP_STYLE_TIMEOUT_MS)
+        if (!ready) {
+            MapFailureLog.record(context, mapFailureReason(token, MapFailureLog.online(context), null, null, timedOut = true))
+            onFailed()
+        }
     }
     // A trip opened: the camera flies there (the globe turns, tilts, comes closer), then the screen opens the trip.
     LaunchedEffect(flight?.id, view) {
@@ -224,7 +232,7 @@ fun TripsGlobe(
                         },
                     )
                     // Shown only once the picture is really drawn: a black void is worse than the landscape.
-                    map.mapboxMap.subscribeMapLoaded { ready = true }
+                    map.mapboxMap.subscribeMapLoaded { ready = true; GlobeHealth.markWorking(context) }
                     view = map
                 }
             }.getOrElse {

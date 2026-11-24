@@ -41,6 +41,7 @@ import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.MapLoadingErrorType
 import com.mapbox.maps.MapView
 import com.mapbox.maps.QueriedRenderedFeature
 import com.mapbox.maps.RenderedQueryGeometry
@@ -92,7 +93,7 @@ enum class MapLook { Satellite, Streets }
  * with the fingers: no + / − button, no locate button (règle 5); one discreet button for the
  * settings (satellite or streets, 2D or 3D). A touch on a marker chooses the step ([onSelect]),
  * which the camera comes closer to; [selected] null frames all the steps again. When the picture
- * is not there in 6 s (slow phone, no network) or the view cannot start, [onFailed] tells the screen,
+ * is not there in 15 s (slow phone, no network) or the view cannot start, [onFailed] tells the screen,
  * which falls back on the drawn landscape.
  */
 @Composable
@@ -133,7 +134,18 @@ fun TripSatelliteMap(
     // Règle 25: back from a page opened here, the map is where it was, and the arrival does not play again.
     var introPlayed by rememberSaveable { mutableStateOf(false) }
     val memory = rememberSaveable(saver = CameraMemory.Saver) { CameraMemory() }
-    val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(2) }
+    val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(4) }
+    // Why it failed, for « Plantages » (retour d'essai du 24/11): the last error Mapbox gave, once only.
+    val lastError = remember { arrayOfNulls<String>(1) }
+    val gaveUp = remember { booleanArrayOf(false) }
+    val fail: (Throwable?, Boolean) -> Unit = { viewError, timedOut ->
+        if (!gaveUp[0]) {
+            gaveUp[0] = true
+            MapFailureLog.record(context, mapFailureReason(token, MapFailureLog.online(context), lastError[0], viewError, timedOut))
+            GlobeHealth.markFailed(context)
+            onFailed()
+        }
+    }
     val view = remember { arrayOfNulls<MapView>(1) }
     val applied = remember { arrayOf<Any?>(null, null, null, null, null) } // look, tilted, sheetHigh, selected, photos
     val density = context.resources.displayMetrics.density
@@ -167,8 +179,8 @@ fun TripSatelliteMap(
     }
     DisposableEffect(Unit) { onDispose { listener.forEach { it?.cancel() } } }
     LaunchedEffect(Unit) {
-        delay(6_000L)
-        if (!drawn) onFailed()
+        delay(MAP_STYLE_TIMEOUT_MS)
+        if (!drawn) fail(null, true)
     }
     // The arrival: out to the continent of the trip, then in on the trip, unless the person touches the map.
     LaunchedEffect(drawn) {
@@ -211,12 +223,19 @@ fun TripSatelliteMap(
                         // Règle 5: nothing but the map; the compass and the scale bar go too.
                         runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
                         map.mapboxMap.setCamera(memory.camera?.let(::cameraOf) ?: frame(map, points, bottomPaddingDp * density, tilted))
-                        listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true }
+                        // The style is there: the map shows, even while the last tiles still come (slow phone, slow network).
+                        listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true; GlobeHealth.markWorking(context) }
+                        listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; GlobeHealth.markWorking(context) }
+                        listener[3] = map.mapboxMap.subscribeMapLoadingError { error ->
+                            lastError[0] = "${error.type}: ${error.message}".take(50)
+                            // A missing tile or icon leaves the map; only a style that cannot load is the end.
+                            if (error.type == MapLoadingErrorType.STYLE && !drawn) fail(null, false)
+                        }
                         listener[1] = map.mapboxMap.subscribeMapIdle {
                             val camera = map.mapboxMap.cameraState
                             memory.keep(camera.center.longitude(), camera.center.latitude(), camera.zoom, camera.bearing, camera.pitch)
                         }
-                        loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, photoMarkers.toMap()) }
+                        loadLook(map, look, points, names, arrived, nextIndex, selected, { fail(it, false) }, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, photoMarkers.toMap()) }
                         applied[0] = look; applied[1] = tilted; applied[2] = sheetHigh; applied[3] = selected; applied[4] = photoMarkers.toMap()
                         map.gestures.addOnMapClickListener(
                             OnMapClickListener { point ->
@@ -238,8 +257,8 @@ fun TripSatelliteMap(
                             },
                         )
                     }
-                }.getOrElse {
-                    onFailed()
+                }.getOrElse { error ->
+                    fail(error, false)
                     android.view.View(context)
                 }
             },
@@ -251,7 +270,7 @@ fun TripSatelliteMap(
                 if (applied[0] != look) {
                     applied[0] = look
                     applied[4] = shownPhotos
-                    loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) }
+                    loadLook(map, look, points, names, arrived, nextIndex, selected, { fail(it, false) }, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) }
                 } else if (applied[4] != shownPhotos) {
                     applied[4] = shownPhotos
                     map.mapboxMap.getStyle()?.let { style -> runCatching { showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) } }
@@ -329,13 +348,13 @@ private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilte
 }
 
 /** Loads the look of the map, then draws the steps on it (again after a change of look: the style forgets them). */
-private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: () -> Unit, labels: List<String>?, afterDraw: (Style) -> Unit = {}) {
+private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: (Throwable) -> Unit, labels: List<String>?, afterDraw: (Style) -> Unit = {}) {
     val satellite = look == MapLook.Satellite
     view.mapboxMap.loadStyle(if (satellite) Style.STANDARD_SATELLITE else Style.STANDARD) { style ->
         runCatching {
             if (satellite) configureSatelliteGlobe(style)
             drawSteps(style, points, names, arrived, next, selected, trail = if (satellite) "#FFFFFF" else "#333333", labels = labels)
-        }.onFailure { onFailed() }
+        }.onFailure { onFailed(it) }
         // The photos are an extra: a failure there leaves the plain rounds.
         runCatching { afterDraw(style) }
     }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -86,11 +87,15 @@ fun TripMapBackdrop(
 ) {
     val context = LocalContext.current
     val placed = remember(steps) { steps.filter { it.hasPosition } }
-    var failed by rememberSaveable { mutableStateOf(false) }
-    val allowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
+    // A new try each time the screen opens (retour d'essai du 24/11), and « Réessayer » when it failed.
+    var failed by remember { mutableStateOf(false) }
+    var mapTry by remember { mutableStateOf(0) }
+    val allowed = remember { !talkBackOn(context) }
     // Règle 46: no satellite map while the battery is saved; the screen opens as a plain page.
     val saving = rememberBatterySavingAtOpening()
-    val withMap = satelliteMapUsable(token, allowed && !failed && !saving, talkBack = false) && placed.isNotEmpty()
+    // The sheet keeps its heights when the map fails (spec A3): the notice takes the place of the map.
+    val mapLayout = satelliteMapUsable(token, allowed && !saving, talkBack = false) && placed.isNotEmpty()
+    val withMap = mapLayout && !failed
     val playArrival = playsEditArrival(arrival, withMap, remember { animationsOff(context) })
     // Played once: back from a page opened here, or the screen turned, it does not come again.
     var arrivalDone by rememberSaveable { mutableStateOf(false) }
@@ -108,14 +113,17 @@ fun TripMapBackdrop(
     LaunchedEffect(placed, focusId) { if (selected == null) selected = focusIndex(placed, focusId) }
     // The keyboard open: the sheet takes the whole screen, so the field being typed stays above it.
     val keyboard = WindowInsets.isImeVisible
-    LaunchedEffect(keyboard, withMap) { if (keyboard && withMap) level = 2 }
+    LaunchedEffect(keyboard, mapLayout) { if (keyboard && mapLayout) level = 2 }
     // Retour first lowers the sheet; the screen's own Retour (ask before leaving) comes after it.
-    BackHandler(enabled = withMap && level > 0) { level -= 1 }
+    BackHandler(enabled = mapLayout && level > 0) { level -= 1 }
     // One layout with or without the map: [content] keeps its place, so it is not made again when the steps arrive.
     BoxWithConstraints(Modifier.fillMaxSize().background(TripPathColors.Sky)) {
         val low = maxHeight * backdropSheetShare(0)
-        val sheet by animateDpAsState(if (withMap) maxHeight * backdropSheetShare(level) else maxHeight, label = "backdrop-sheet")
-        if (withMap) {
+        val sheet by animateDpAsState(if (mapLayout) maxHeight * backdropSheetShare(level) else maxHeight, label = "backdrop-sheet")
+        if (mapLayout && failed) {
+            MapUnavailableNotice(onRetry = { failed = false; mapTry++ }, modifier = Modifier.fillMaxWidth().height(maxHeight - low))
+        }
+        if (withMap) key(mapTry) {
             TripSatelliteMap(
                 token = token,
                 points = placed.map { GeoPoint(it.lat!!, it.lng!!) },
@@ -130,7 +138,7 @@ fun TripMapBackdrop(
                 introDelayMs = EditArrival.CAMERA_WAIT_MS,
                 sheetHigh = false,
                 bottomPaddingDp = low.value.toDouble(),
-                onFailed = { GlobeHealth.markFailed(context); failed = true },
+                onFailed = { failed = true },
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -139,14 +147,14 @@ fun TripMapBackdrop(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(sheet)
-                .clip(RoundedCornerShape(topStart = if (withMap) 28.dp else 0.dp, topEnd = if (withMap) 28.dp else 0.dp))
+                .clip(RoundedCornerShape(topStart = if (mapLayout) 28.dp else 0.dp, topEnd = if (mapLayout) 28.dp else 0.dp))
                 .background(TripPathColors.Sky),
         ) {
-            if (withMap) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
+            if (mapLayout) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
             // Low or high, the sheet is far from the status bar: the bars of the screens inside do not leave room for it.
             Column(
-                Modifier.weight(1f).fillMaxWidth().then(if (withMap && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
-            ) { content(withMap) }
+                Modifier.weight(1f).fillMaxWidth().then(if (mapLayout && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
+            ) { content(mapLayout) }
         }
     }
 }

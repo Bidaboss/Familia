@@ -2242,6 +2242,16 @@ Sur un téléphone en Android 10 ou plus :
 4. Avant que le film soit fait, le menu ⋮ propose seulement l'IA (s'il y a des photos liées à une étape).
 5. Les films d'album d'un événement et du diaporama du mois gardent leurs boutons « Faire le film », « Regarder », « Partager », sans « Télécharger » ni IA.
 
+## Voyage : la carte ne se coupe plus en silence (retour d'essai du 24/11, DESIGN-100 A)
+
+**Publier Firebase : non.** Avec l'« APK de publication » (clé Mapbox).
+1. Mode avion, ouvrir un voyage qui a des étapes placées : la feuille garde ses hauteurs (poignée en haut). Au-dessus, sur le ciel, « Carte indisponible pour le moment. » et « Réessayer » (56 dp). Plus d'ancienne page qui défile sans feuille.
+2. Couper le mode avion, toucher « Réessayer » : la carte satellite revient sans quitter l'écran.
+3. Fermer puis rouvrir le voyage : la carte est retentée à chaque ouverture, même juste après un échec. Rien n'est coupé pendant des heures : après un échec, le globe de la liste et « Lancer le voyage » reviennent au bout de 3 minutes, ou dès le prochain lancement de l'appli.
+4. Valise, Documents, Argent ou une page de lieu ouverte en mode avion : même ligne « Carte indisponible » au-dessus de la feuille, et la feuille ne saute pas en plein écran au bout de 15 s.
+5. Téléphone lent ou réseau faible : la carte a maintenant 15 s pour afficher son style (au lieu de 6 s), et elle compte comme réussie dès que le style est là, même si quelques tuiles arrivent encore.
+6. Après un échec, relancer l'appli, puis Administration → Plantages : une ligne « MapUnavailable$Timeout » (ou NoNetwork, SdkError, ViewFailed, NoToken, BadToken), avec « Écran : Carte … : délai 15 s, dernière erreur … ». « Copier pour Claude » la copie. Une seule ligne par raison et par écran tant que l'appli tourne.
+
 ## Voyage : « Enrichir avec une IA » se tire au-dessus de la carte (règle 8)
 
 **Publier Firebase : non.**

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,7 +40,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import fr.familia.app.feature.trips.map.GeoPoint
-import fr.familia.app.feature.trips.map.GlobeHealth
+import fr.familia.app.feature.trips.map.MapFailureLog
+import fr.familia.app.feature.trips.map.MapUnavailable
+import fr.familia.app.feature.trips.map.MapUnavailableNotice
 import fr.familia.app.feature.trips.map.TripSatelliteMap
 import fr.familia.app.feature.trips.list.animationsOff
 import fr.familia.app.feature.trips.list.talkBackOn
@@ -383,17 +386,23 @@ private fun PathContent(
     }
     val context = androidx.compose.ui.platform.LocalContext.current
     val placed = remember(state.steps) { state.steps.filter { it.hasPosition } }
-    var mapFailed by rememberSaveable { mutableStateOf(false) }
-    val mapAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
+    // A new try each time the trip opens (retour d'essai du 24/11): a failure is never kept for hours.
+    var mapFailed by remember { mutableStateOf(false) }
+    var mapTry by remember { mutableStateOf(0) }
+    val mapAllowed = remember { !talkBackOn(context) }
     // Règle 46: under 20 % unplugged, or with Android's saver, no satellite map (the path instead).
     val saving = rememberBatterySavingAtOpening()
-    val satellite = satelliteToken.isNotBlank() && mapAllowed && !mapFailed && !saving && placed.isNotEmpty()
+    // The sheet and its heights stay when the map fails (spec A3): « Carte indisponible » and « Réessayer » above it.
+    val mapLayout = satelliteToken.isNotBlank() && mapAllowed && !saving && placed.isNotEmpty()
+    val satellite = mapLayout && !mapFailed
+    // An « APK de publication » without its token says so in « Plantages » (a test APK has none on purpose).
+    LaunchedEffect(Unit) { if (satelliteToken.isBlank()) MapFailureLog.record(context, MapUnavailable.NoToken()) }
     // The sheet has three heights: low (the map above), high, and the whole screen (règle 8).
     var level by rememberSaveable(state.trip.id) { mutableStateOf(0) }
     val expanded = level >= 1
     var selected by rememberSaveable(state.trip.id) { mutableStateOf<Int?>(null) }
     // Back first puts the map back as it was (règle 25, « Retour dézoome »), then lowers the sheet.
-    androidx.activity.compose.BackHandler(enabled = satellite && (selected != null || level > 0)) {
+    androidx.activity.compose.BackHandler(enabled = mapLayout && (selected != null || level > 0)) {
         if (selected != null) selected = null else level -= 1
     }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -402,7 +411,13 @@ private fun PathContent(
         when (level) { 0 -> lowHeight; 1 -> maxHeight * 0.85f; else -> maxHeight },
         label = "sheet",
     )
-    if (satellite) {
+    if (mapLayout && mapFailed) {
+        MapUnavailableNotice(
+            onRetry = { mapFailed = false; mapTry++ },
+            modifier = Modifier.fillMaxWidth().height(maxHeight - lowHeight),
+        )
+    }
+    if (satellite) key(mapTry) {
         val next = remember(state.steps) { placed.indexOfFirst { it.arrival == null } }
         TripSatelliteMap(
             token = satelliteToken,
@@ -418,7 +433,7 @@ private fun PathContent(
             intro = !animationsOff(context),
             sheetHigh = expanded,
             bottomPaddingDp = lowHeight.value.toDouble(),
-            onFailed = { GlobeHealth.markFailed(context); mapFailed = true },
+            onFailed = { mapFailed = true },
             modifier = Modifier.fillMaxSize(),
         )
     }
@@ -426,9 +441,9 @@ private fun PathContent(
         Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
-            .then(if (satellite) Modifier.height(sheetHeight).clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier.fillMaxSize()),
+            .then(if (mapLayout) Modifier.height(sheetHeight).clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier.fillMaxSize()),
     ) {
-    if (satellite) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
+    if (mapLayout) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
     LazyColumn(
         modifier = Modifier.weight(1f),
         state = listState,
