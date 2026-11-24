@@ -44,7 +44,7 @@ import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Member, N
 import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import {
-  addTripPhotoToBurst, AlertData, deleteStepVoiceNotes, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
+  addTripPhotoToBurst, AlertData, deleteStepFilms, deleteStepVoiceNotes, FilmData, filmFile, notifyFilm, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
   sendTripPhotoDigests, TripDocumentData, tripDocumentFile, voiceNoteFile,
 } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
@@ -661,6 +661,8 @@ export const onStepDeletedWord = onDocumentDeleted('trips/{tripId}/steps/{stepId
   const results = await Promise.allSettled([
     deleteStepWord(getFirestore(), event.params.tripId, event.params.stepId),
     deleteStepVoiceNotes(getFirestore(), event.params.tripId, event.params.stepId),
+    // And its films of the day (récit 108).
+    deleteStepFilms(getFirestore(), event.params.tripId, event.params.stepId),
   ]);
   for (const r of results) if (r.status === 'rejected') throw r.reason;
 });
@@ -668,6 +670,17 @@ export const onStepDeletedWord = onDocumentDeleted('trips/{tripId}/steps/{stepId
 // A removed voice note takes its file with it, whoever removed it (récit 104, règle 35).
 export const onTripVoiceNoteDeleted = onDocumentDeleted('trips/{tripId}/voiceNotes/{noteId}', async (event) => {
   const path = voiceNoteFile(event.params.tripId, event.params.noteId, event.data?.data());
+  if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
+});
+
+// Film de la journée (récit 108, règle 32): one notice to the followers of the trip, never per photo.
+export const onTripFilmCreated = onDocumentCreated('trips/{tripId}/films/{filmId}', async (event) => {
+  await notifyFilm(getFirestore(), send, event.params.tripId, event.data?.data() as FilmData | undefined);
+});
+
+// A removed film takes its file with it, whoever removed it (récit 108).
+export const onTripFilmDeleted = onDocumentDeleted('trips/{tripId}/films/{filmId}', async (event) => {
+  const path = filmFile(event.params.tripId, event.params.filmId, event.data?.data() as FilmData | undefined);
   if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
 });
 

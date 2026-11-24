@@ -2177,3 +2177,10 @@ Rien à publier côté Firebase. « APK de publication ».
 4. Avec beaucoup de photos, le film reste sous 3 minutes : les images passent un peu plus vite (pas sous 1,2 s), puis certaines photos sont laissées de côté, au moins une par étape.
 5. Film d'une étape : ajouter une photo depuis l'étape après avoir vu son film, puis revenir sur l'étape : « Voir le film de l'étape » refait le film avec la nouvelle photo (retour C1 de #555).
 6. Les films d'album d'un événement et le diaporama du mois ne changent pas.
+
+## Voyage : publication du film de la journée, côté serveur (récit 108, partie 3a : règles 32, PRD 156 et 157)
+
+**Publier Firebase : oui** (règles Firestore et Storage, fonctions `onTripFilmCreated` et `onTripFilmDeleted`).
+Rien à toucher dans l'appli pour l'instant : le bouton « Publier le film de la journée » arrive dans la partie 3b. Après Publier Firebase :
+1. Ouvrir la console Firebase → Functions : `onTripFilmCreated` et `onTripFilmDeleted` sont listées et actives.
+2. Les essais automatiques couvrent le reste : un seul film par étape et par jour, envoyé seulement par un participant, 10 Mo au plus, en `video/mp4`, lu seulement par ceux qui voient le voyage, une seule notification à ceux qui suivent (rien pour un voyage surprise, plafond quotidien respecté), et le fichier effacé quand le film ou l'étape est supprimé.

@@ -8,7 +8,7 @@ import { Member, Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
   ALERT_GAP_MS, alertNotice, arrivalNotice, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, joinNames, notifyAlert, notifyArrival,
-  addTripPhotoToBurst, deleteStepVoiceNotes, voiceNoteFile, PHOTO_BURSTS, photoBurstDue, sendArrivalReminders, sendTripPhotoDigests, StepData, TripData, tripDocumentFile, withApp,
+  addTripPhotoToBurst, deleteStepFilms, deleteStepVoiceNotes, filmDay, filmFile, filmNotice, notifyFilm, voiceNoteFile, PHOTO_BURSTS, photoBurstDue, sendArrivalReminders, sendTripPhotoDigests, StepData, TripData, tripDocumentFile, withApp,
 } from '../src/trips';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
@@ -326,5 +326,78 @@ describe('notes vocales (récit 104, règle 35)', () => {
     assert.equal(voiceNoteFile('t1', 'v1', { authorId: '../x' }), null);
     assert.equal(voiceNoteFile('t1', 'v-1', { authorId: 'lou' }), null);
     assert.equal(voiceNoteFile('t1', 'v1', undefined), null);
+  });
+});
+
+describe('film de la journée (récit 108, règle 32)', () => {
+  beforeEach(async () => {
+    await db.recursiveDelete(db.collection('trips'));
+    await db.recursiveDelete(db.collection('members'));
+    await db.recursiveDelete(db.collection(PHOTO_BURSTS));
+  });
+
+  async function seedMembers() {
+    await db.doc('members/lou').set(member('Lou', 'adult', 'uid-lou'));
+    await db.doc('members/sam').set(member('Sam'));
+    await db.doc('members/noe').set(member('Noé', 'childWithoutApp'));
+    await db.doc('members/ines').set(member('Inès'));
+    await db.doc('members/max').set(member('Max'));
+    for (const id of ['lou', 'sam', 'ines', 'max']) await db.doc(`members/${id}/devices/token-${id}`).set({ updatedAt: new Date() });
+  }
+
+  test('the notice says the trip, the day, the place and who published', () => {
+    assert.equal(filmDay('2027-07-12'), '12 juillet');
+    assert.equal(filmDay('nope'), 'nope');
+    const notice = filmNotice('t1', corse, 'Ajaccio, Corse', '2027-07-12', 'Lou');
+    assert.equal(notice.title, 'Corse : le film du 12 juillet');
+    assert.equal(notice.body, 'Ajaccio, par Lou. Touche pour le voir.');
+    assert.equal(notice.tripId, 't1');
+    assert.equal(filmNotice('t1', corse, null, '2027-07-12', null).body, 'par un participant. Touche pour le voir.');
+  });
+
+  test('the followers with the app are told once, the author left out, and the burst of photos goes', async () => {
+    await seedMembers();
+    await db.doc('trips/t1').set(corse);
+    await db.doc('trips/t1/steps/s1').set(step({ place: 'Ajaccio, Corse' }));
+    await addTripPhotoToBurst(db, 't1', 'sam', new Date());
+    const { sent, send } = fakeSender();
+    const count = await notifyFilm(db, send, 't1', { authorId: 'lou', authorName: 'Lou', stepId: 's1', day: '2027-07-12' });
+    // Followers: lou (the author), sam, noe (no app), ines, max.
+    assert.deepEqual(sent.map((s) => s.token).sort(), ['token-ines', 'token-max', 'token-sam']);
+    assert.equal(sent.every((s) => s.notice.title === 'Corse : le film du 12 juillet'), true);
+    assert.equal(count, sent.length);
+    assert.equal((await db.collection(PHOTO_BURSTS).doc('t1').get()).exists, false);
+  });
+
+  test('a trip hidden from someone never tells them', async () => {
+    await seedMembers();
+    await db.doc('trips/t1').set({ ...corse, readerIds: ['lou', 'sam'] });
+    await db.doc('trips/t1/steps/s1').set(step());
+    const { sent, send } = fakeSender();
+    await notifyFilm(db, send, 't1', { authorId: 'lou', authorName: 'Lou', stepId: 's1', day: '2027-07-12' });
+    assert.deepEqual(sent.map((s) => s.token), ['token-sam']);
+  });
+
+  test('nothing for a trip that is gone or a record that is not a film', async () => {
+    const { sent, send } = fakeSender();
+    assert.equal(await notifyFilm(db, send, 'gone', { authorId: 'lou', stepId: 's1', day: '2027-07-12' }), 0);
+    assert.equal(await notifyFilm(db, send, 't1', undefined), 0);
+    assert.equal(sent.length, 0);
+  });
+
+  test('a removed step takes its films, not those of the other steps', async () => {
+    const films = db.collection('trips/t1/films');
+    await films.doc('s1_20270712').set({ authorId: 'lou', stepId: 's1', day: '2027-07-12' });
+    await films.doc('s1_20270713').set({ authorId: 'sam', stepId: 's1', day: '2027-07-13' });
+    await films.doc('s2_20270712').set({ authorId: 'lou', stepId: 's2', day: '2027-07-12' });
+    assert.equal(await deleteStepFilms(db, 't1', 's1'), 2);
+    assert.deepEqual((await films.get()).docs.map((d) => d.id), ['s2_20270712']);
+  });
+
+  test('the file of a removed film is at its own place only', () => {
+    assert.equal(filmFile('t1', 's1_20270712', { authorId: 'lou' }), 'trips/t1/films/lou/s1_20270712.mp4');
+    assert.equal(filmFile('t1', 's1_20270712', { authorId: '../x' }), null);
+    assert.equal(filmFile('t1', 's1', { authorId: 'lou' }), null);
+    assert.equal(filmFile('t1', 's1_20270712', undefined), null);
   });
 });

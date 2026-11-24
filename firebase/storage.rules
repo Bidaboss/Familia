@@ -146,6 +146,23 @@ service firebase.storage {
       allow delete: if isMember() && authorId == myMemberId();
     }
 
+    // Film de la journée (récit 108, règle 32, PRD 156): trips/{tripId}/films/{authorId}/{filmId}.mp4,
+    // made once on the phone of a participant, H.264 at about 1,5 Mbit/s, 10 MB at most (45 s are
+    // about 8 MB). The followers watch it; a participant sends their own once, before the record
+    // that names it (firestore.rules, one film a step and a day). The server removes the file with
+    // its record, its step or its trip; the author may remove their own.
+    match /trips/{tripId}/films/{authorId}/{fileName} {
+      allow read: if isMember() && myMemberId() in tripData(tripId).readerIds;
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && myMemberId() in tripData(tripId).participantIds
+        && fileName.matches('^[A-Za-z0-9_-]{1,64}_[0-9]{8}[.]mp4$')
+        && request.resource.size > 0 && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType == 'video/mp4';
+      allow delete: if isMember() && authorId == myMemberId();
+    }
+
     match /trips/{tripId}/{authorId}/{fileName} {
       allow read: if isMember() && myMemberId() in tripData(tripId).readerIds;
       allow create, update: if isMember()
