@@ -198,12 +198,15 @@ fun TripDetailScreen(
             if (success?.isParticipant == true) {
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     quickAdd?.let { QuickAddButton(it) }
-                    ExtendedFloatingActionButton(
-                    onClick = onAddStep,
-                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.trip_add_step)) },
-                    text = { Text(stringResource(R.string.trip_add_step)) },
-                )
+                    // DESIGN-99 A (E-10): on the path, steps are added by the « + » of « Le trajet »; no floating button over the cards.
+                    if (!illustrated) {
+                        ExtendedFloatingActionButton(
+                            onClick = onAddStep,
+                            // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                            icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.trip_add_step)) },
+                            text = { Text(stringResource(R.string.trip_add_step)) },
+                        )
+                    }
                 }
             }
         },

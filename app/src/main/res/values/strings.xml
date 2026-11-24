@@ -355,6 +355,9 @@
     <string name="place_cover_credit">Photo : %1$s</string>
     <string name="trip_cover_planned">Voyage programmé</string>
     <string name="timeline_add_place_a11y">%1$s : ajouter à %2$s</string>
+    <string name="timeline_insert_transport">Transport</string>
+    <string name="timeline_insert_after_a11y">Ajouter après %1$s</string>
+    <string name="timeline_insert_start_a11y">Ajouter au début du voyage</string>
     <plurals name="timeline_photos_a11y">
         <item quantity="one">%1$d photo à %2$s</item>
         <item quantity="other">%1$d photos à %2$s</item>

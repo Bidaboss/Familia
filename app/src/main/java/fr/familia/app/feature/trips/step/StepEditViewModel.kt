@@ -40,6 +40,8 @@ sealed interface StepEditUiState {
         val saveFailed: Boolean = false,
         /** The trip of the step, recalled at the top of the form (DESIGN-57). */
         val trip: Trip? = null,
+        /** The types to choose from; none or one: the form does not ask (DESIGN-99 A, E-17). */
+        val typeOptions: List<StepType> = StepType.entries,
     ) : StepEditUiState
 
     data object Done : StepEditUiState
@@ -57,6 +59,9 @@ class StepEditViewModel(
     private val stepId: String?,
     /** The place a new step starts with (the destination just chosen, récit 95); null for an empty form. */
     private val presetPlace: String? = null,
+    /** From a « + » of « Le trajet » (DESIGN-99 A): what it adds, and the day it starts. */
+    private val presetKind: StepAddKind? = null,
+    private val presetDay: java.time.LocalDate? = null,
     private val writeTimeoutMillis: Long = 4_000,
     private val zone: () -> ZoneId = ZoneId::systemDefault,
     private val now: () -> Instant = Instant::now,
@@ -96,7 +101,11 @@ class StepEditViewModel(
         original = existing
         // Kept with the draft: a step saved just before Android stopped the app is not written twice.
         editedId = existing?.id ?: savedState.get<String>(DRAFT_ID) ?: tripRepo.newStepId(tripId).also { savedState[DRAFT_ID] = it }
-        initialForm = existing?.let { StepForm.from(it) } ?: StepForm(place = presetPlace.orEmpty().take(MAX_STEP_PLACE), departDate = trip.startDate)
+        initialForm = existing?.let { StepForm.from(it) } ?: StepForm(
+            type = presetStepType(presetKind) ?: StepForm().type,
+            place = presetPlace.orEmpty().take(MAX_STEP_PLACE),
+            departDate = presetDay?.coerceIn(trip.startDate, trip.endDate) ?: trip.startDate,
+        )
         val form = restoreDraft() ?: initialForm
         _uiState.value = StepEditUiState.Editing(
             form = form,
@@ -105,6 +114,7 @@ class StepEditViewModel(
             canDelete = existing != null && canDeleteStep(trip, me, family),
             errors = emptySet(),
             trip = trip,
+            typeOptions = stepTypeOptions(presetKind, existing?.type),
         )
     }
 

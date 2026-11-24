@@ -19,7 +19,16 @@ import kotlinx.coroutines.flow.flowOf
 
 /** Connects the step form to its ViewModel, and closes it once saved or deleted. */
 @Composable
-fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: String, stepId: String?, onDone: () -> Unit, presetPlace: String? = null) {
+fun StepEditRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    tripId: String,
+    stepId: String?,
+    onDone: () -> Unit,
+    presetPlace: String? = null,
+    presetKind: StepAddKind? = null,
+    presetDay: java.time.LocalDate? = null,
+) {
     val viewModel: StepEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -30,6 +39,8 @@ fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: Strin
                     tripId,
                     stepId,
                     presetPlace = presetPlace,
+                    presetKind = presetKind,
+                    presetDay = presetDay,
                     locator = container?.placeLocator,
                     savedState = createSavedStateHandle(),
                 )

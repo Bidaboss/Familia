@@ -24,7 +24,14 @@ data class TripEditDestination(val tripId: String? = null)
 
 /** Step form: a new step of [tripId] when [stepId] is null. */
 @Serializable
-data class TripStepEditDestination(val tripId: String, val stepId: String? = null, val place: String? = null)
+data class TripStepEditDestination(
+    val tripId: String,
+    val stepId: String? = null,
+    val place: String? = null,
+    /** A new step from a « + » of « Le trajet » (DESIGN-99 A): « Destination » or « Transport » (StepAddKind), and its day (ISO). */
+    val kind: String? = null,
+    val day: String? = null,
+)
 
 /**
  * « Phrases utiles » of [tripId] (récit 105): ten phrases of the language of each country abroad, or

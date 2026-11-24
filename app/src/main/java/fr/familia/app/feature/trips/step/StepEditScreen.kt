@@ -165,9 +165,10 @@ private fun FormContent(
     ) {
         state.trip?.let { TripReminder(it) }
 
-        TripTile(Icons.Outlined.Category, stringResource(R.string.trip_step_tile_type)) {
+        // DESIGN-99 A (E-17): the « + » of « Le trajet » already said what is added; only a transport chooses its way.
+        if (state.typeOptions.size > 1) TripTile(Icons.Outlined.Category, stringResource(R.string.trip_step_tile_type)) {
             CategoryTiles(
-                options = StepType.entries,
+                options = state.typeOptions,
                 selected = form.type,
                 onSelect = { type -> onChange { it.copy(type = type) } },
                 label = { stepTypeLabel(it) },

@@ -2273,3 +2273,14 @@ Sur un téléphone en Android 10 ou plus :
 1. Un voyage vers La Palmyre (sa page Wikipédia n'a pas de photo) : en tête de l'accueil, sur la carte « Prochain voyage » de la liste et à la création, une vraie photo prise tout près (moins de 10 km : par exemple le zoo ou le phare), avec son crédit. Plus jamais de vue satellite.
 2. Un voyage vers La Rochelle : la photo de sa page, comme avant.
 3. Sans réseau, ou sans aucune photo autour : le paysage dessiné.
+
+## Voyage : ajouter par les « + » du trajet (DESIGN-99 A, E-10, E-11, E-17)
+
+**Publier Firebase : non.**
+1. Accueil d'un voyage, pour quelqu'un qui y va : plus de bouton jaune « Ajouter une étape » qui flotte sur les cartes.
+2. Dans « Le trajet », un petit « + » rond (56 dp) sous « Le voyage commence » et sous chaque élément. TalkBack lit « Ajouter au début du voyage » ou « Ajouter après La Palmyre ».
+3. Toucher un « + » ouvre un menu : Destination, Transport, Hébergement, Restaurant, Spot et « Enrichir avec une IA ». Hébergement, Restaurant et Spot n'apparaissent que si le voyage a déjà une destination : ils vont sous la destination d'avant, ou sous la suivante pour le « + » du début.
+4. « Destination » ouvre le formulaire sans « Quel type d'étape ? », avec la date du jour où ce « + » se trouve (la fin de la destination d'avant). Une fois enregistrée, elle apparaît dans le trajet avec ses nuits − / +.
+5. « Transport » ouvre le formulaire avec seulement Avion, Train, Bus et Voiture.
+6. Modifier une destination existante : pas de choix du type. Une ancienne étape « Activité » peut encore changer de type, par exemple pour devenir une destination.
+7. Quelqu'un qui suit le voyage sans y aller : aucun « + ».
