@@ -991,10 +991,15 @@ Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées d
 | `slot` | entier de 1 à 30 | La place, la même que dans l'identifiant |
 | `createdAt` | horodatage serveur | Les photos s'affichent de la plus récente à la plus ancienne |
 | `takenAt` | horodatage, facultatif | Le moment de la prise de vue, lu par le téléphone dans l'EXIF du fichier choisi (DateTimeOriginal) avant de le réencoder. Jamais avant 2001 ni plus d'un jour après l'heure du serveur (marge pour l'horloge du téléphone). Absent pour les photos envoyées avant le 17/11/2026, sans EXIF ou prises dans les 10 dernières minutes (`createdAt` donne alors le même jour). Sert à « Il y a N ans » (récit 36). Seule la date est gardée, jamais le lieu. Même champ pour les albums d'événement et les photos de recette. |
+| `stepId` | texte, facultatif | L'étape depuis laquelle la photo a été ajoutée (récit 104, règle 31) : un identifiant simple d'une étape existante de ce voyage. Sans lui, ou si l'étape a été supprimée, l'appli range la photo sous la destination de son jour (`takenAt`, sinon `createdAt`), ou dans « sans étape ». |
 
 Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{slot}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus), sans données EXIF, donc sans lieu. L'appli envoie les deux fichiers avant d'écrire le document. Si un envoi a été coupé, l'auteur peut renvoyer une place dont le document n'existe pas.
 
 Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Storage. Chaque participant, enfant compris, ajoute les siennes. L'auteur, le créateur du voyage et l'admin principal les retirent, les fichiers d'abord, puis le document. Une photo n'est jamais modifiée : une fois son document écrit, ses fichiers ne peuvent plus être renvoyés. Tests : `firebase/tests/trips.test.mjs` et `firebase/tests/storage.test.mjs`.
+
+### `tripPhotoBursts/{tripId}` (récit 104, règle 34)
+
+Les photos d'un voyage qui attendent d'être annoncées. Aucune notification ne part par photo. `onTripPhotoCreated` ajoute 1 au compteur de l'auteur dans `counts` (`memberId` : nombre), garde `firstAt` (la première photo de la rafale) et pose `dueAt` 10 min après cette photo, jamais plus de 45 min après `firstAt`. Toutes les 15 min, `goodNewsReactionDigests` appelle aussi `sendTripPhotoDigests`. Celle-ci envoie par `deliver()` (plafond de 3 par heure, nuit, résumé du soir) une notification « Corse : 5 nouvelles photos » / « Par Lou et Sam. » aux lecteurs du voyage qui ont l'appli (`readerIds` seulement). Quand il n'y a qu'un auteur, il ne la reçoit pas. Ensuite, le document est supprimé si rien n'est arrivé pendant l'envoi. Sinon, le reste attend la rafale suivante. Le document part avec le voyage. Les fonctions seules le lisent et l'écrivent.
 
 ### Cloud Functions des voyages
 

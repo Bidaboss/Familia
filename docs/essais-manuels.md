@@ -2038,3 +2038,11 @@ Rien à publier côté Firebase. « APK de publication ».
 4. Avec TalkBack : chaque vignette dit « Photo de <prénom> », « + N » dit le nombre de photos de la destination, le carré dit « Ajouter des photos à <destination> ».
 5. Supprimer la destination : ses photos restent et reviennent sous la destination de leur jour, ou dans « photos sans étape ».
 6. Un membre qui suit le voyage sans y participer ne voit pas le carré d'ajout ; un membre qui ne suit pas le voyage ne voit toujours aucune photo.
+
+## Voyage : les photos annoncées en une seule notification (récit 104, partie 4 : règle 34)
+
+**Publier Firebase : oui** (une nouvelle fonction, `onTripPhotoCreated`, et firestore.rules), avant l'APK.
+1. Avec deux téléphones : sur le premier, ajouter 3 photos à un voyage que le second suit. Aucune notification n'arrive tout de suite.
+2. Entre 10 et 25 min après la dernière photo, le second reçoit une seule notification « <voyage> : 3 nouvelles photos », « Par <prénom>. ». La toucher ouvre le voyage.
+3. L'auteur, quand il est seul, ne reçoit rien. Un membre qui ne suit pas le voyage ne reçoit rien non plus.
+4. En ajoutant une photo toutes les 5 min, la notification part quand même au plus tard 45 à 60 min après la première.
