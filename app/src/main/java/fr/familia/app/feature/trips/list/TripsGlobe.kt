@@ -199,11 +199,18 @@ fun TripsGlobe(
     var ready by remember { mutableStateOf(false) }
     // Kept, or Mapbox drops the subscription once nothing holds it (E-33, E-34: ready never came).
     val listeners = remember { arrayOfNulls<com.mapbox.common.Cancelable>(3) }
-    DisposableEffect(Unit) { onDispose { listeners.forEach { it?.cancel() } } }
-    // The sources of the style, whether a tile of them came, whether the drawn Earth was taken.
+    // The sources of the style, the sources a tile came from, whether the drawn Earth was taken,
+    // and the check of the imagery waiting to run (removed when the screen goes: B of #610).
     val styleSources = remember { arrayOf<Set<String>>(emptySet()) }
-    val imageryCame = remember { booleanArrayOf(false) }
+    val tileSources = remember { java.util.Collections.synchronizedSet(HashSet<String>()) }
     val fellBack = remember { booleanArrayOf(false) }
+    val imageryCheck = remember { arrayOfNulls<Runnable>(1) }
+    DisposableEffect(Unit) {
+        onDispose {
+            listeners.forEach { it?.cancel() }
+            imageryCheck[0]?.let { check -> view?.removeCallbacks(check) }
+        }
+    }
     // The last error Mapbox gave, for « Plantages ».
     val lastError = remember { arrayOfNulls<String>(1) }
     val gaveUp = remember { booleanArrayOf(false) }
@@ -338,19 +345,24 @@ fun TripsGlobe(
                     drawGlobe(look.styleUri, look)
                     // The imagery of the style: one tile of its own sources is enough to know it came.
                     listeners[2] = map.mapboxMap.subscribeSourceDataLoaded { event ->
-                        if (event.type == SourceDataLoadedType.TILE && event.loaded == true && event.sourceId in styleSources[0]) imageryCame[0] = true
+                        // Kept whatever the source: a tile may come before the sources of the style are read (C of #610).
+                        if (event.type == SourceDataLoadedType.TILE && event.loaded == true) tileSources.add(event.sourceId)
                     }
                     // Retour du 24/11 soir (globe noir): a satellite globe whose imagery never comes takes
                     // the drawn Earth (oceans, lands, nothing written) instead of staying black.
                     if (globeNeedsImagery(look.styleUri)) {
-                        map.postDelayed({
-                            if (globeFallsBack(imageryCame[0], ready, fellBack[0])) {
+                        val check = Runnable {
+                            val imageryCame = synchronized(tileSources) { tileSources.any { it in styleSources[0] } }
+                            if (map.isAttachedToWindow && globeFallsBack(imageryCame, ready, fellBack[0])) {
                                 fellBack[0] = true
                                 Log.w("TripsGlobe", "imagery missing, drawn globe")
                                 MapFailureLog.record(context, MapUnavailable.TileError("globe : imagerie absente ${IMAGERY_WAIT_MS / 1000} s, Terre dessinée"))
-                                drawGlobe(DRAWN_GLOBE_STYLE, GlobeLook.Standard)
+                                runCatching { drawGlobe(DRAWN_GLOBE_STYLE, GlobeLook.Standard) }
+                                    .onFailure { Log.w("TripsGlobe", "drawn globe refused", it) }
                             }
-                        }, IMAGERY_WAIT_MS)
+                        }
+                        imageryCheck[0] = check
+                        map.postDelayed(check, IMAGERY_WAIT_MS)
                     }
                     // A touch on a dot opens its trip (with the flight); anywhere else, nothing.
                     map.gestures.addOnMapClickListener(
