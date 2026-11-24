@@ -205,8 +205,8 @@ fun TripsGlobe(
                     map.gestures.addOnMapClickListener(
                         OnMapClickListener { point ->
                             map.mapboxMap.queryRenderedFeatures(
-                                // A 48 dp square around the finger: the dots are smaller than a finger.
-                                RenderedQueryGeometry(touchBox(map.mapboxMap.pixelForCoordinate(point), 24.0 * map.resources.displayMetrics.density)),
+                                // A 56 dp square around the finger: the dots are smaller than a finger.
+                                RenderedQueryGeometry(touchBox(map.mapboxMap.pixelForCoordinate(point), 28.0 * map.resources.displayMetrics.density)),
                                 RenderedQueryOptions(SPOT_LAYERS, null),
                             ) { result ->
                                 val index = result.value?.firstOrNull()?.queriedFeature?.feature?.getNumberProperty("i")?.toInt()
