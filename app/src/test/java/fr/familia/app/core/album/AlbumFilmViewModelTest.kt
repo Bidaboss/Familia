@@ -81,4 +81,15 @@ class AlbumFilmViewModelTest {
         val ready = vm.uiState.value as FilmState.Ready
         assertTrue(ready.path.endsWith("etape-t1-s1.mp4"))
     }
+
+    @Test
+    fun `a film made of other photos is forgotten, the same photos keep it`() = runTest {
+        val vm = AlbumFilmViewModel(FakeStorage(), FakeMaker(), "etape-t1-s1", File("films"), FilmStyle.Trip) { 2.5 }
+        val first = listOf(photo("adult2", 1, 30), photo("kid1", 4, 10))
+        vm.make(first)
+        vm.keepFor(first.reversed())
+        assertTrue(vm.uiState.value is FilmState.Ready)
+        vm.keepFor(first + photo("adult1", 2, 50))
+        assertEquals(FilmState.Idle, vm.uiState.value)
+    }
 }

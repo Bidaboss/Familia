@@ -46,12 +46,15 @@ class AlbumFilmViewModel(
     private val state = MutableStateFlow<FilmState>(FilmState.Idle)
     val uiState: StateFlow<FilmState> = state.asStateFlow()
     private var job: Job? = null
+    /** The photos the film in [uiState] was made of. */
+    private var madeOf: List<String>? = null
 
     fun make(photos: List<AlbumPhoto>) {
         val files = storage ?: return
         val film = maker ?: return
         if (photos.size < FILM_MIN_PHOTOS || state.value == FilmState.Making) return
         state.value = FilmState.Making
+        madeOf = photos.map { it.photoPath }.sorted()
         job = viewModelScope.launch {
             state.value = try {
                 val ordered = photos.sortedWith(albumPhotoOrder).reversed()
@@ -65,6 +68,14 @@ class AlbumFilmViewModel(
                 FilmState.Failed
             }
         }
+    }
+
+    /**
+     * The photos to film are now [photos] (relecture #555, C1): a film made of others is forgotten,
+     * so that « Voir » makes it again with the new ones.
+     */
+    fun keepFor(photos: List<AlbumPhoto>) {
+        if (state.value is FilmState.Ready && photos.map { it.photoPath }.sorted() != madeOf) state.value = FilmState.Idle
     }
 
     fun cancel() {

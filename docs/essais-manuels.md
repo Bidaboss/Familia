@@ -2167,3 +2167,13 @@ Rien à publier côté Firebase. « APK de publication ».
 5. Les photos d'une autre étape ou de « Voir les photos » sans étape n'entrent pas dans ce film.
 6. Le film du voyage dans « Voir les photos » et les films d'album d'un événement ne changent pas (photos fixes).
 7. Poids : un film de 15 photos (≈ 38 s) fait autour de 7 Mo (à voir dans « Partager » → taille du fichier).
+
+## Voyage : le film du voyage fait des films d'étape (récit 108, partie 2 : règle 32)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage dont plusieurs étapes ont des photos, puis « Voir les photos » → « Faire le film ».
+2. Le film suit l'ordre du trajet : pour chaque étape qui a des photos, une carte bleu foncé « Étape 1 » avec son nom, puis ses photos des plus anciennes aux plus récentes, avec le zoom lent. Les photos ajoutées sans étape viennent à la fin, sans carte.
+3. Une étape sans photo n'a pas de carte.
+4. Avec beaucoup de photos, le film reste sous 3 minutes : les images passent un peu plus vite (pas sous 1,2 s), puis certaines photos sont laissées de côté, au moins une par étape.
+5. Film d'une étape : ajouter une photo depuis l'étape après avoir vu son film, puis revenir sur l'étape : « Voir le film de l'étape » refait le film avec la nouvelle photo (retour C1 de #555).
+6. Les films d'album d'un événement et le diaporama du mois ne changent pas.

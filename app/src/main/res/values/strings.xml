@@ -1498,6 +1498,8 @@
     <string name="step_film_help">Les photos de l\'étape, des plus anciennes aux plus récentes, 2,5 s chacune. Le film se fait sur ton téléphone, reste sur cet écran.</string>
     <string name="step_film_need_photos">Il faut au moins 2 photos ajoutées depuis cette étape pour faire son film.</string>
     <string name="step_film_more">Autres actions du film</string>
+    <string name="trip_film_help">Les films des étapes bout à bout, dans l\'ordre du trajet, chacun annoncé par le nom de l\'étape. 3 minutes au plus. Le film se fait sur ton téléphone.</string>
+    <string name="trip_film_step_number">Étape %1$d</string>
     <!-- Album of an event (récit 41). -->
     <string name="event_album_title">Photos</string>
     <string name="event_album_not_open">L\'album s\'ouvre le jour de l\'événement. Ceux qui ont dit « Je viens » pourront y mettre leurs photos.</string>
