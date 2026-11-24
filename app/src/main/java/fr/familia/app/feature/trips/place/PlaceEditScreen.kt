@@ -53,7 +53,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
-import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.ui.EmptyState
@@ -71,19 +71,19 @@ import fr.familia.app.feature.trips.map.placeLinks
 import java.time.LocalTime
 
 /** The icon of each kind of place, as on the panel of a destination. */
-fun placeKindIcon(kind: PlaceKind): ImageVector = when (kind) {
-    PlaceKind.Lodging -> Icons.Outlined.Hotel
-    PlaceKind.Restaurant -> Icons.Outlined.Restaurant
-    PlaceKind.Spot -> Icons.Outlined.Place
+fun placeKindIcon(kind: TripPlaceKind): ImageVector = when (kind) {
+    TripPlaceKind.Lodging -> Icons.Outlined.Hotel
+    TripPlaceKind.Restaurant -> Icons.Outlined.Restaurant
+    TripPlaceKind.Spot -> Icons.Outlined.Place
 }
 
 /** « Hébergement », « Restaurant », « Spot ». */
 @Composable
-fun placeKindLabel(kind: PlaceKind): String = stringResource(
+fun placeKindLabel(kind: TripPlaceKind): String = stringResource(
     when (kind) {
-        PlaceKind.Lodging -> R.string.place_kind_lodging
-        PlaceKind.Restaurant -> R.string.place_kind_restaurant
-        PlaceKind.Spot -> R.string.place_kind_spot
+        TripPlaceKind.Lodging -> R.string.place_kind_lodging
+        TripPlaceKind.Restaurant -> R.string.place_kind_restaurant
+        TripPlaceKind.Spot -> R.string.place_kind_spot
     },
 )
 
@@ -144,16 +144,16 @@ private fun pageTitle(state: PlaceEditUiState.Editing): String = when {
     !state.canEdit -> state.form.name.trim().ifEmpty { placeKindLabel(state.kind) }
     state.isNew -> stringResource(
         when (state.kind) {
-            PlaceKind.Lodging -> R.string.place_new_lodging
-            PlaceKind.Restaurant -> R.string.place_new_restaurant
-            PlaceKind.Spot -> R.string.place_new_spot
+            TripPlaceKind.Lodging -> R.string.place_new_lodging
+            TripPlaceKind.Restaurant -> R.string.place_new_restaurant
+            TripPlaceKind.Spot -> R.string.place_new_spot
         },
     )
     else -> stringResource(
         when (state.kind) {
-            PlaceKind.Lodging -> R.string.place_edit_lodging
-            PlaceKind.Restaurant -> R.string.place_edit_restaurant
-            PlaceKind.Spot -> R.string.place_edit_spot
+            TripPlaceKind.Lodging -> R.string.place_edit_lodging
+            TripPlaceKind.Restaurant -> R.string.place_edit_restaurant
+            TripPlaceKind.Spot -> R.string.place_edit_spot
         },
     )
 }
@@ -194,7 +194,7 @@ private fun FormContent(
             if (state.destination.isNotEmpty()) FormHint(stringResource(R.string.place_in_destination, state.destination))
         }
 
-        TripTile(Icons.Outlined.Schedule, stringResource(if (state.kind == PlaceKind.Spot) R.string.place_tile_time else R.string.place_tile_arrive)) {
+        TripTile(Icons.Outlined.Schedule, stringResource(if (state.kind == TripPlaceKind.Spot) R.string.place_tile_time else R.string.place_tile_arrive)) {
             if (state.canEdit) {
                 TimeBox(
                     time = form.arriveTime,
@@ -203,7 +203,7 @@ private fun FormContent(
                     label = stringResource(R.string.trip_step_time),
                     initial = defaultHour(state.kind),
                 )
-                FormHint(stringResource(if (state.kind == PlaceKind.Lodging) R.string.place_time_hint_lodging else R.string.place_time_hint))
+                FormHint(stringResource(if (state.kind == TripPlaceKind.Lodging) R.string.place_time_hint_lodging else R.string.place_time_hint))
             } else {
                 Text(form.arriveTime?.let(::hourText) ?: stringResource(R.string.place_no_time), style = MaterialTheme.typography.bodyLarge)
             }
@@ -218,7 +218,7 @@ private fun FormContent(
                         onValueChange = { value -> onChange { it.copy(note = value) } },
                         isError = PlaceFormError.NoteTooLong in errors,
                         placeholder = {
-                            Text(stringResource(if (state.kind == PlaceKind.Lodging) R.string.place_note_example_lodging else R.string.place_note_example))
+                            Text(stringResource(if (state.kind == TripPlaceKind.Lodging) R.string.place_note_example_lodging else R.string.place_note_example))
                         },
                         // Several lines, said clearly, without a field too high (règle 26).
                         minLines = 3,
@@ -296,13 +296,13 @@ private fun TripadvisorLink(name: String, destination: String) {
 }
 
 @Composable
-private fun DeletePlaceButton(kind: PlaceKind, name: String, enabled: Boolean, onDelete: () -> Unit) {
+private fun DeletePlaceButton(kind: TripPlaceKind, name: String, enabled: Boolean, onDelete: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
     val text = stringResource(
         when (kind) {
-            PlaceKind.Lodging -> R.string.place_delete_lodging
-            PlaceKind.Restaurant -> R.string.place_delete_restaurant
-            PlaceKind.Spot -> R.string.place_delete_spot
+            TripPlaceKind.Lodging -> R.string.place_delete_lodging
+            TripPlaceKind.Restaurant -> R.string.place_delete_restaurant
+            TripPlaceKind.Spot -> R.string.place_delete_spot
         },
     )
     TripDeleteButton(text, enabled = enabled, onClick = { confirm = true })
@@ -322,10 +322,10 @@ private fun DeletePlaceButton(kind: PlaceKind, name: String, enabled: Boolean, o
 }
 
 /** The hour the clock opens on: arrival at 16 h for a bed, 20 h for a restaurant, 10 h for a visit. */
-internal fun defaultHour(kind: PlaceKind): LocalTime = when (kind) {
-    PlaceKind.Lodging -> LocalTime.of(16, 0)
-    PlaceKind.Restaurant -> LocalTime.of(20, 0)
-    PlaceKind.Spot -> LocalTime.of(10, 0)
+internal fun defaultHour(kind: TripPlaceKind): LocalTime = when (kind) {
+    TripPlaceKind.Lodging -> LocalTime.of(16, 0)
+    TripPlaceKind.Restaurant -> LocalTime.of(20, 0)
+    TripPlaceKind.Spot -> LocalTime.of(10, 0)
 }
 
 /** « 20 h 30 », « 9 h ». */
@@ -352,7 +352,7 @@ private fun errorMessage(errors: Set<PlaceFormError>, vararg kinds: PlaceFormErr
 
 /** Fictional data for previews, screenshots and the accessibility tests. */
 internal fun previewPlaceEditState(
-    kind: PlaceKind = PlaceKind.Restaurant,
+    kind: TripPlaceKind = TripPlaceKind.Restaurant,
     isNew: Boolean = false,
     canEdit: Boolean = true,
     errors: Set<PlaceFormError> = emptySet(),

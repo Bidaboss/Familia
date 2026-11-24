@@ -7,7 +7,7 @@ import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TripPlaceRepository
 import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Family
-import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripPlace
 import fr.familia.app.feature.trips.canDeleteStep
@@ -28,7 +28,7 @@ sealed interface PlaceEditUiState {
     data object Unavailable : PlaceEditUiState
 
     data class Editing(
-        val kind: PlaceKind,
+        val kind: TripPlaceKind,
         val form: PlaceForm,
         val isNew: Boolean,
         /** A participant changes the place; a follower only reads it. */
@@ -61,7 +61,7 @@ class PlaceEditViewModel(
     private val tripId: String,
     private val placeId: String?,
     private val stepId: String? = null,
-    private val kind: PlaceKind? = null,
+    private val kind: TripPlaceKind? = null,
     /** The name a new place starts with (chosen in a search); null for an empty name. */
     private val presetName: String? = null,
     private val writeTimeoutMillis: Long = 4_000,
@@ -75,7 +75,7 @@ class PlaceEditViewModel(
     private var original: TripPlace? = null
     private var editedId = ""
     private var editedStepId = ""
-    private var editedKind = PlaceKind.Restaurant
+    private var editedKind = TripPlaceKind.Restaurant
     private var initialForm = PlaceForm()
     private var showErrors = false
 

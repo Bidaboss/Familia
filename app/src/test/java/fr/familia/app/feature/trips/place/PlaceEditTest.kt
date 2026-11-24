@@ -2,7 +2,7 @@ package fr.familia.app.feature.trips.place
 
 import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.data.TripPlaceRepository
-import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripPlace
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.trips.FakeTrips
@@ -43,7 +43,7 @@ class PlaceEditTest {
     }
 
     private val bistrot = TripPlace(
-        id = "p1", stepId = "s1", kind = PlaceKind.Restaurant, name = "Le Bistrot du Port", address = "Quai Napoléon, Ajaccio",
+        id = "p1", stepId = "s1", kind = TripPlaceKind.Restaurant, name = "Le Bistrot du Port", address = "Quai Napoléon, Ajaccio",
         lat = 41.9192, lng = 8.7386, arriveTime = LocalTime.of(20, 0), note = "Table au nom de Camille", cost = 80.0,
     )
 
@@ -53,7 +53,7 @@ class PlaceEditTest {
         places: FakePlaces = FakePlaces(listOf(bistrot)),
         me: String = "adult2",
         placeId: String? = "p1",
-        kind: PlaceKind? = null,
+        kind: TripPlaceKind? = null,
         stepId: String? = null,
         saved: SavedStateHandle = SavedStateHandle(),
     ) = PlaceEditViewModel(trips(), places, FakeMembers(), me, "t1", placeId, stepId = stepId, kind = kind, savedState = saved)
@@ -63,7 +63,7 @@ class PlaceEditTest {
     @Test
     fun `a participant opens a place with its hour, its note and its cost, under its destination`() {
         val state = vm().editing()
-        assertEquals(PlaceKind.Restaurant, state.kind)
+        assertEquals(TripPlaceKind.Restaurant, state.kind)
         assertEquals("Le Bistrot du Port", state.form.name)
         assertEquals(LocalTime.of(20, 0), state.form.arriveTime)
         assertEquals("80", state.form.cost)
@@ -107,7 +107,7 @@ class PlaceEditTest {
     @Test
     fun `a new place needs a name, and is saved under the destination with its kind`() {
         val places = FakePlaces()
-        val vm = vm(places, placeId = null, stepId = "s1", kind = PlaceKind.Lodging)
+        val vm = vm(places, placeId = null, stepId = "s1", kind = TripPlaceKind.Lodging)
         val state = vm.editing()
         assertTrue(state.isNew)
         assertFalse(state.canDelete)
@@ -119,7 +119,7 @@ class PlaceEditTest {
         val (place, isNew) = places.saved.single()
         assertTrue(isNew)
         assertEquals("p-new", place.id)
-        assertEquals(PlaceKind.Lodging, place.kind)
+        assertEquals(TripPlaceKind.Lodging, place.kind)
         assertEquals("Camping Les Pins", place.name)
         assertNull(place.arriveTime)
         assertNull(place.note)
@@ -143,9 +143,9 @@ class PlaceEditTest {
 
     @Test
     fun `a follower adds no place, and a place or a destination that is gone says so`() {
-        assertEquals(PlaceEditUiState.Unavailable, vm(placeId = null, stepId = "s1", kind = PlaceKind.Spot, me = "kid1").uiState.value)
+        assertEquals(PlaceEditUiState.Unavailable, vm(placeId = null, stepId = "s1", kind = TripPlaceKind.Spot, me = "kid1").uiState.value)
         assertEquals(PlaceEditUiState.Unavailable, vm(placeId = "gone").uiState.value)
-        assertEquals(PlaceEditUiState.Unavailable, vm(placeId = null, stepId = "nowhere", kind = PlaceKind.Spot).uiState.value)
+        assertEquals(PlaceEditUiState.Unavailable, vm(placeId = null, stepId = "nowhere", kind = TripPlaceKind.Spot).uiState.value)
     }
 
     @Test
@@ -169,9 +169,9 @@ class PlaceEditTest {
     @Test
     fun `the draft comes back when Android recreates the page, with the same id`() {
         val saved = SavedStateHandle()
-        val first = vm(FakePlaces(), placeId = null, stepId = "s1", kind = PlaceKind.Spot, saved = saved)
+        val first = vm(FakePlaces(), placeId = null, stepId = "s1", kind = TripPlaceKind.Spot, saved = saved)
         first.update { it.copy(name = "Citadelle", note = "Visite à 10 h") }
-        val again = vm(FakePlaces(), placeId = null, stepId = "s1", kind = PlaceKind.Spot, saved = saved)
+        val again = vm(FakePlaces(), placeId = null, stepId = "s1", kind = TripPlaceKind.Spot, saved = saved)
         assertEquals("Citadelle", again.editing().form.name)
         assertEquals("Visite à 10 h", again.editing().form.note)
         assertTrue(again.editing().hasChanges)
@@ -207,6 +207,6 @@ class PlaceEditTest {
         assertEquals("€", currencySymbol(null))
         assertEquals("€", currencySymbol("EUR"))
         assertEquals("XYZ", currencySymbol("XYZ"))
-        assertEquals(LocalTime.of(16, 0), defaultHour(PlaceKind.Lodging))
+        assertEquals(LocalTime.of(16, 0), defaultHour(TripPlaceKind.Lodging))
     }
 }

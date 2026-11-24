@@ -10,7 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.model.TripPlaceKind
 
 /**
  * Connects the page of a place to its ViewModel, and closes it once saved or deleted: the one of
@@ -24,7 +24,7 @@ fun PlaceEditRoute(
     placeId: String?,
     onDone: () -> Unit,
     stepId: String? = null,
-    kind: PlaceKind? = null,
+    kind: TripPlaceKind? = null,
     presetName: String? = null,
 ) {
     val viewModel: PlaceEditViewModel = viewModel(

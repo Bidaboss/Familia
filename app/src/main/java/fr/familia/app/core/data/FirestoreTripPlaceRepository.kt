@@ -4,7 +4,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
-import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripPlace
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -61,7 +61,7 @@ class FirestoreTripPlaceRepository(private val db: FirebaseFirestore) : TripPlac
 
 /** Reads a place; null for a document this version cannot read (unknown kind, no name). */
 internal fun DocumentSnapshot.toPlace(): TripPlace? {
-    val kind = PlaceKind.of(getString("kind")) ?: return null
+    val kind = TripPlaceKind.of(getString("kind")) ?: return null
     val name = getString("name")?.takeIf { it.isNotBlank() } ?: return null
     val stepId = getString("stepId") ?: return null
     return TripPlace(

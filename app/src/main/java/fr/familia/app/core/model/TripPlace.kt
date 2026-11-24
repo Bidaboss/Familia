@@ -3,14 +3,14 @@ package fr.familia.app.core.model
 import java.time.LocalTime
 
 /** The three kinds of place a destination programmes (récit 103, règles 18 to 21), [key] as stored in Firestore. */
-enum class PlaceKind(val key: String) {
+enum class TripPlaceKind(val key: String) {
     Lodging("lodging"),
     Restaurant("restaurant"),
     Spot("spot"),
     ;
 
     companion object {
-        fun of(key: String?): PlaceKind? = entries.firstOrNull { it.key == key }
+        fun of(key: String?): TripPlaceKind? = entries.firstOrNull { it.key == key }
     }
 }
 
@@ -24,7 +24,7 @@ enum class PlaceKind(val key: String) {
 data class TripPlace(
     val id: String,
     val stepId: String,
-    val kind: PlaceKind,
+    val kind: TripPlaceKind,
     val name: String,
     val address: String?,
     val lat: Double?,

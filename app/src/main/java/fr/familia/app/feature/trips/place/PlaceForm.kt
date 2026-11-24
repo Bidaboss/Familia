@@ -1,6 +1,6 @@
 package fr.familia.app.feature.trips.place
 
-import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripPlace
 import java.time.LocalTime
 
@@ -13,7 +13,7 @@ data class PlaceForm(
     val cost: String = "",
 ) {
     /** The place to save under [stepId]; the address and the point stay those of [before]. */
-    fun toPlace(id: String, stepId: String, kind: PlaceKind, before: TripPlace?): TripPlace {
+    fun toPlace(id: String, stepId: String, kind: TripPlaceKind, before: TripPlace?): TripPlace {
         val sameName = before != null && before.name == name.trim()
         return TripPlace(
             id = id,

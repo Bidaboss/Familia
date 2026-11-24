@@ -307,7 +307,7 @@ import fr.familia.app.feature.trips.TripMoneyDestination
 import fr.familia.app.feature.trips.TripPlaceAddDestination
 import fr.familia.app.feature.trips.TripPlaceDestination
 import fr.familia.app.feature.trips.place.PlaceEditRoute
-import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.safety.TripSafetyRoute
 import fr.familia.app.feature.trips.money.TripMoneyRoute
@@ -1218,7 +1218,7 @@ fun FamiliaApp(
                             placeId = null,
                             onDone = { navController.popBackStack() },
                             stepId = route.stepId,
-                            kind = PlaceKind.entries.firstOrNull { it.name == route.kind },
+                            kind = TripPlaceKind.entries.firstOrNull { it.name == route.kind },
                             presetName = route.name,
                         )
                     }

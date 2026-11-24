@@ -68,7 +68,7 @@ data class TripPlaceDestination(val tripId: String, val placeId: String)
 
 /**
  * A new place under the destination [stepId] of [tripId] (récit 103): [kind] is the name of a
- * PlaceKind (« Lodging », « Restaurant », « Spot »); [name], when chosen in a search, fills the page.
+ * TripPlaceKind (« Lodging », « Restaurant », « Spot »); [name], when chosen in a search, fills the page.
  */
 @Serializable
 data class TripPlaceAddDestination(val tripId: String, val stepId: String, val kind: String, val name: String? = null)
