@@ -1403,6 +1403,24 @@
         <item quantity="many">Dans %d nuits</item>
         <item quantity="other">Dans %d nuits</item>
     </plurals>
+    <string name="trip_dates_title">Dates du voyage</string>
+    <string name="trip_dates_start">Date de début</string>
+    <string name="trip_dates_end">Date de fin</string>
+    <string name="trip_dates_none">À choisir</string>
+    <string name="trip_dates_clear">Effacer les dates</string>
+    <string name="trip_dates_pick_start">Touche le premier jour</string>
+    <string name="trip_dates_pick_end">Touche le dernier jour</string>
+    <string name="trip_dates_one_day">1 jour sélectionné</string>
+    <plurals name="trip_dates_nights">
+        <item quantity="one">%1$d nuit sélectionnée</item>
+        <item quantity="many">%1$d nuits sélectionnées</item>
+        <item quantity="other">%1$d nuits sélectionnées</item>
+    </plurals>
+    <string name="trip_dates_save">Enregistrer</string>
+    <string name="trip_dates_day_start">%1$s, début du voyage</string>
+    <string name="trip_dates_day_end">%1$s, fin du voyage</string>
+    <string name="trip_dates_day_only">%1$s, seul jour du voyage</string>
+    <string name="trip_dates_day_in">%1$s, pendant le voyage</string>
     <plurals name="trips_days">
         <item quantity="one">%d jour</item>
         <item quantity="many">%d jours</item>
