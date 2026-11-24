@@ -138,6 +138,8 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   await db.recursiveDelete(member.collection('settings'));
   // « Me le rappeler » (récit 56): private reminders go with the member.
   await db.recursiveDelete(member.collection('reminders'));
+  // « Carnet de baroudeur » (récit 107): the places added by hand are private too.
+  await db.recursiveDelete(member.collection('travelPlaces'));
   await db.recursiveDelete(db.collection('usage').doc(memberId).collection('days'));
 }
 
