@@ -2107,3 +2107,14 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Choisir « Rues » et « 3D » : la carte change tout de suite. Toucher « Annuler » : elle revient comme avant.
 3. Choisir de nouveau « Rues » et « 3D », puis « Enregistrer ». Quitter le voyage, en ouvrir un autre : il s'ouvre en Rues 3D. Le choix reste aussi après avoir fermé l'appli.
 4. Toucher en dehors de la fenêtre revient au même qu'« Annuler ».
+
+## Voyage : la photo de l'étape dans son repère (récit 110, partie 2 : règle 7)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec la carte satellite, dont une destination a déjà des photos : son repère rond montre la première photo de la destination, avec un anneau blanc et le numéro de l'étape dans un petit rond foncé (✓ une fois « Bien arrivé »).
+2. La prochaine étape a un rond plus grand, avec un anneau jaune.
+3. Une destination sans photo garde le rond foncé numéroté.
+4. Ajouter la première photo d'une destination : son repère prend la photo sans quitter l'écran.
+5. Dézoomer : les repères proches se regroupent en un rond avec leur nombre, photos comprises, puis se séparent au zoom.
+6. Toucher un repère avec photo : il est choisi comme un repère simple.
+7. Sans réseau, ou si une photo ne se charge pas : le rond simple reste, la carte ne bascule pas sur le dessin.
