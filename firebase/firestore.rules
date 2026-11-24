@@ -2813,6 +2813,31 @@ service cloud.firestore {
         && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
     }
 
+    // Notes vocales (récit 104, règle 35): trips/{tripId}/voiceNotes/{noteId}, recorded during the
+    // trip under a destination (stepId, a step of this trip that exists), 1 to 120 seconds. The file
+    // is in Storage at trips/{tripId}/voice/{authorId}/{noteId}.m4a, sent before this record, 2 MB
+    // at most. The followers listen; a participant adds their own; the author or who manages the
+    // trip removes one, and the server removes its file. Never edited. A removed step takes its
+    // notes with it (server), and a removed trip everything.
+    match /trips/{tripId}/voiceNotes/{noteId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+      allow create: if isMember()
+        && isParticipantOf(tripId)
+        && noteId.matches('^[A-Za-z0-9]{1,40}$')
+        && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'stepId', 'seconds', 'createdAt'])
+        && request.resource.data.keys().hasAll(['authorId', 'authorName', 'stepId', 'seconds', 'createdAt'])
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.stepId is string
+        && request.resource.data.stepId.matches('^[A-Za-z0-9_-]{1,64}$')
+        && exists(/databases/$(database)/documents/trips/$(tripId)/steps/$(request.resource.data.stepId))
+        && request.resource.data.seconds is int
+        && request.resource.data.seconds >= 1 && request.resource.data.seconds <= 120
+        && request.resource.data.createdAt == request.time;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
+    }
+
     // tripPhotoBursts/{tripId} (récit 104, règle 34): the photos of a trip waiting to be told as one
     // notice. Only the functions read and write it; no phone ever does.
     match /tripPhotoBursts/{tripId} {

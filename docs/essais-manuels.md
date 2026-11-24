@@ -2060,3 +2060,15 @@ Rien à publier côté Firebase. « APK de publication ».
 3. Choisir « Photo » puis une photo : elle apparaît sous la destination du jour, et personne ne reçoit de notification.
 4. Choisir « Mot court » : la page « Le mot de l'étape » de la destination du jour s'ouvre.
 5. Avant le départ, après le retour, ou pour quelqu'un qui suit le voyage sans y participer : pas de bouton rond.
+
+## Voyage : la note vocale de l'ajout rapide (récit 104, partie 3b : règle 35)
+
+**Publier Firebase : oui** (firestore.rules, storage.rules et deux fonctions), avant l'APK.
+1. Pendant un voyage dont on fait partie, toucher le bouton rond, puis « Note vocale ». La première fois, Android demande le micro : accepter.
+2. Toucher « Enregistrer » et parler, puis « Arrêter » : « Note de 0:12 prête à envoyer ». « Recommencer » efface et reprend. Toucher « Envoyer ».
+3. Sous la destination du jour apparaît « Note vocale de <prénom>, 0:12 » avec un bouton ▶ de 56 dp. Le toucher fait entendre la note, et le toucher encore l'arrête.
+4. Au bout de 2 min, l'enregistrement s'arrête tout seul.
+5. L'auteur, ou le créateur du voyage, voit une corbeille. Elle demande confirmation, puis supprime la note.
+6. Un membre qui suit le voyage sans y participer l'écoute, mais n'a ni le choix « Note vocale » ni la corbeille.
+7. Supprimer la destination : ses notes vocales partent avec elle.
+8. Avec TalkBack : le bouton dit « Écouter » ou « Arrêter l'écoute », et le compteur d'enregistrement est lu.

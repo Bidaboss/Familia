@@ -26,6 +26,12 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.TripPlaceKind
 import java.time.ZoneId
+import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
+import fr.familia.app.R
+import fr.familia.app.feature.trips.voice.VoiceNoteDialog
+import fr.familia.app.feature.trips.voice.rememberVoicePlayer
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -121,13 +127,24 @@ fun TripDetailRoute(
     val stay = remember(shown?.trip, shown?.steps, shown?.today) {
         shown?.takeIf { it.isParticipant }?.let { currentStay(tripTimeline(it.trip, it.steps), it.today) }
     }
+    // Notes vocales (récit 104, partie 3b): under each destination; recorded from « Ajout rapide ».
+    val voiceRepo = container?.tripVoiceNoteRepository
+    val voiceNotes by remember(voiceRepo, tripId) {
+        voiceRepo?.observe(tripId)
+            ?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) }
+            ?: flowOf(emptyList())
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
+    val voicePlayer = rememberVoicePlayer()
+    val scope = rememberCoroutineScope()
+    var voiceStep by rememberSaveable { mutableStateOf<String?>(null) }
     val quickAdd = stay?.let { today ->
         val id = today.step.id
         QuickAdd(
             destination = placeName(today.step),
             onPhoto = addPhoto?.let { add -> { add(id) } },
             onWord = onOpenWord?.let { word -> { word(id) } },
-        ).takeIf { it.onPhoto != null || it.onWord != null }
+            onVoice = voiceRepo?.let { { voiceStep = id } },
+        ).takeIf { it.onPhoto != null || it.onWord != null || it.onVoice != null }
     }
     TripDetailScreen(
         state = state,
@@ -167,6 +184,20 @@ fun TripDetailRoute(
             withoutStep = byStep.withoutStep.size,
             onSeePhotos = onSeePhotos,
             onAddPhoto = addPhoto,
+            voiceNotes = remember(voiceNotes) { voiceNotes.groupBy { it.stepId } },
+            playingVoiceId = voicePlayer.playingId,
+            onPlayVoice = { note ->
+                if (voicePlayer.playingId == note.id) {
+                    voicePlayer.stop()
+                } else {
+                    scope.launch { voiceRepo?.playUrl(tripId, note)?.let { url -> voicePlayer.play(note, url) } }
+                }
+            },
+            canDeleteVoice = { note -> note.authorId == currentMember.id || shown?.canManage == true },
+            onDeleteVoice = { note ->
+                if (voicePlayer.playingId == note.id) voicePlayer.stop()
+                scope.launch { runCatching { voiceRepo?.delete(tripId, note) } }
+            },
         ),
         quickAdd = quickAdd,
         cover = { success ->
@@ -174,12 +205,26 @@ fun TripDetailRoute(
         },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
-}
-
-/** The actions of « À prévoir »: « Je m'en charge » and « Je ne peux plus » only while packingList is on. */
-fun TripDetailViewModel.checklistActions(myId: String, packingOn: Boolean): ChecklistActions =
-    if (packingOn) {
-        ChecklistActions(this::addItem, this::editItem, this::setItemDone, this::deleteItem, this::takeItem, this::releaseItem, myId)
-    } else {
-        ChecklistActions(this::addItem, this::editItem, this::setItemDone, this::deleteItem)
+    val recordAt = voiceStep
+    val recordStay = stay?.takeIf { it.step.id == recordAt }
+    if (recordAt != null && voiceRepo != null) {
+        VoiceNoteDialog(
+            destination = recordStay?.let { placeName(it.step) } ?: "",
+            onSend = { file, seconds ->
+                voiceStep = null
+                scope.launch {
+                    try {
+                        voiceRepo.add(tripId, currentMember, recordAt, file, seconds)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Toast.makeText(context, R.string.voice_send_failed, Toast.LENGTH_LONG).show()
+                    } finally {
+                        file.delete()
+                    }
+                }
+            },
+            onDismiss = { voiceStep = null },
+        )
     }
+}

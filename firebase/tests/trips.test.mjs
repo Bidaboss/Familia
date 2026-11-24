@@ -357,6 +357,47 @@ describe('trip checklist', () => {
   });
 });
 
+describe('trip voice notes (récit 104, règle 35)', () => {
+  beforeEach(async () => {
+    // ADULT and adult3 take part; everyone but OTHER_ADULT follows.
+    await storedTrip('t1', ADULT, { readerIds: EVERYONE.filter((id) => id !== 'adult2') });
+    await storedStep('t1', 's1');
+  });
+
+  const note = (author, overrides = {}) => ({
+    authorId: author.memberId, authorName: author.memberId, stepId: 's1', seconds: 42, createdAt: serverTimestamp(), ...overrides,
+  });
+
+  test('a participant records a note under a step of the trip, and the followers read it', async () => {
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/voiceNotes/v1'), note(NEIGHBOUR)));
+    await assertSucceeds(getDoc(doc(as(env, KID), 'trips/t1/voiceNotes/v1')));
+    await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/voiceNotes/v1')));
+    await assertFails(setDoc(doc(as(env, KID), 'trips/t1/voiceNotes/v2'), note(KID)));
+  });
+
+  test('1 to 120 seconds, a step that exists, in their own name, nothing more', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/voiceNotes/v1'), note(NEIGHBOUR, { seconds: 120 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v2'), note(NEIGHBOUR, { seconds: 121 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v3'), note(NEIGHBOUR, { seconds: 0 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v4'), note(NEIGHBOUR, { seconds: 4.5 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v5'), note(NEIGHBOUR, { stepId: 'nope' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v6'), note(NEIGHBOUR, { stepId: 's1/x/y' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v7'), note(ADULT)));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v8'), note(NEIGHBOUR, { place: 'Ajaccio' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v-9'), note(NEIGHBOUR)));
+    await assertFails(setDoc(doc(db, 'trips/t1/voiceNotes/v1'), note(NEIGHBOUR, { seconds: 10 })));
+  });
+
+  test('the author or the creator of the trip removes a note, nobody else', async () => {
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/voiceNotes/v1'), note(NEIGHBOUR));
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/voiceNotes/v2'), note(NEIGHBOUR));
+    await assertFails(deleteDoc(doc(as(env, KID), 'trips/t1/voiceNotes/v1')));
+    await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/voiceNotes/v1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t1/voiceNotes/v2')));
+  });
+});
+
 describe('trip photos (récit 15)', () => {
   beforeEach(async () => {
     // ADULT and adult3 take part; everyone but OTHER_ADULT follows.
