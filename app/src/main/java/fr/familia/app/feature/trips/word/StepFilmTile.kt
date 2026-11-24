@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -235,7 +235,7 @@ fun StepFilmTile(
 private fun PublishItem(onClick: () -> Unit) {
     DropdownMenuItem(
         text = { Text(stringResource(R.string.day_film_publish)) },
-        leadingIcon = { Icon(Icons.Outlined.CloudUpload, contentDescription = null) },
+        leadingIcon = { Icon(Icons.Outlined.DynamicFeed, contentDescription = null) },
         onClick = onClick,
         modifier = Modifier.heightIn(min = 56.dp),
     )
