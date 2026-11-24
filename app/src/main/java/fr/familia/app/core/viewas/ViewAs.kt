@@ -3,6 +3,7 @@ package fr.familia.app.core.viewas
 import androidx.compose.runtime.staticCompositionLocalOf
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.PackingRepository
+import fr.familia.app.core.data.TravelPlaceRepository
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.usage.UsageTracker
 
@@ -67,6 +68,9 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val tripRepository = base.tripRepository?.let { ReadOnlyTripRepository(it, guard) }
     override val tripWordRepository = base.tripWordRepository?.let { ReadOnlyTripWordRepository(it, guard) }
     override val tripPlaceRepository = base.tripPlaceRepository?.let { ReadOnlyTripPlaceRepository(it, guard) }
+
+    // « Carnet de baroudeur » is private: in « Voir comme », nobody's hand-added destinations are read.
+    override val travelPlaceRepository: TravelPlaceRepository? = null
     override val expenseRepository = base.expenseRepository?.let { ReadOnlyExpenseRepository(it, guard) }
     override val recipeRepository = base.recipeRepository?.let { ReadOnlyRecipeRepository(it, guard) }
     override val capsuleRepository = base.capsuleRepository?.let { ReadOnlyCapsuleRepository(it, guard) }

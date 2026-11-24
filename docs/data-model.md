@@ -981,6 +981,20 @@ Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus
 
 Droits : ceux qui suivent le voyage (`readerIds`) lisent, les participants ajoutent, modifient et suppriment, sous une destination qui existe ; l'admin principal peut aussi supprimer. Un nom changé retire l'adresse et le point (c'est un autre lieu). `onStepDeletedPlaces` supprime les lieux d'une destination supprimée ; la suppression du voyage les emporte tous. Tests : `firebase/tests/tripPlaces.test.mjs` et `firebase/functions/test/tripPlaces.test.ts`.
 
+### `members/{memberId}/travelPlaces/{placeId}` (récit 107, destinations ajoutées à la main au carnet de baroudeur)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `name` | texte | 1 à 80 caractères (« Lisbonne ») |
+| `country` | texte ou null | Le pays en français, 60 caractères au plus ; null quand le téléphone ne le trouve pas |
+| `countryCode` | texte ou null | Code ISO à deux lettres majuscules (« PT ») |
+| `lat`, `lng` | nombres | Le point, pour l'icône sur le planisphère |
+| `date` | texte « yyyy-MM-dd » | Le premier jour du voyage, jamais dans le futur (l'appli demande un jour passé), pas avant 1900 |
+| `days` | entier, 1 à 365 | Le nombre de jours |
+| `createdAt` | horodatage | Heure du serveur |
+
+Un voyage fait hors de l'appli (règle 38) : ni étape, ni kilomètre, ni photo. Privé : seul son membre le lit, l'ajoute et le supprime, l'admin principal compris ; jamais modifié. Absent de « Voir comme ». La suppression du membre l'efface (`deleteMemberData`). Tests : `firebase/tests/travelPlaces.test.mjs`.
+
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
