@@ -186,7 +186,8 @@ fun TripsScreen(
             topBar = {
                 Column(Modifier.background(skyColor).statusBarsPadding()) {
                     TripsTopBar(onBack, onDark = dark, onOpenCarnet = onOpenCarnet)
-                    if (success != null && !success.isEmpty) {
+                    // The hand-added destinations (règle 38) count too: a member with only those sees « Souvenirs ».
+                    if (success != null && !(success.isEmpty && handAdded.isEmpty())) {
                         TripsSwitch(souvenirs, success.past.size + handAdded.size, onChoose = { souvenirs = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     }
                 }
@@ -222,7 +223,7 @@ fun TripsScreen(
                         },
                     )
                     is TripsUiState.Success -> when {
-                        state.isEmpty && !state.canCreate -> EmptyState(
+                        state.isEmpty && handAdded.isEmpty() && !state.canCreate -> EmptyState(
                             icon = Icons.Outlined.CardTravel,
                             title = stringResource(R.string.trips_empty_title),
                             body = stringResource(R.string.trips_empty_body_child),
@@ -562,12 +563,28 @@ internal fun MiniLandscape(landscape: TripLandscape, modifier: Modifier, pale: B
     }
 }
 
+/** A card of « Souvenirs »: a past trip, or a destination added by hand to the carnet (règle 38). */
+private sealed interface SouvenirItem {
+    val date: LocalDate
+    val key: String
+
+    data class Trip(val summary: TripSummary) : SouvenirItem {
+        override val date: LocalDate get() = summary.trip.startDate
+        override val key: String get() = "past-" + summary.trip.id
+    }
+
+    data class HandAdded(val place: TravelPlace) : SouvenirItem {
+        override val date: LocalDate get() = place.date
+        override val key: String get() = "hand-" + place.id
+    }
+}
+
 /** « Souvenirs »: the past trips, most recent first, two by row. */
 @Composable
 private fun Souvenirs(state: TripsUiState.Success, onOpenTrip: (String) -> Unit, handAdded: List<TravelPlace> = emptyList(), onOpenCarnet: (() -> Unit)? = null) {
     val columns = if (LocalDensity.current.fontScale >= 1.3f) 1 else 2
     // The trips and the hand-added destinations (règle 38) together, the most recent first.
-    val cards: List<Any> = (state.past.map { it.trip.startDate to it } + handAdded.map { it.date to it }).sortedByDescending { it.first }.map { it.second }
+    val cards = (state.past.map { SouvenirItem.Trip(it) } + handAdded.map { SouvenirItem.HandAdded(it) }).sortedByDescending { it.date }
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
@@ -580,12 +597,12 @@ private fun Souvenirs(state: TripsUiState.Success, onOpenTrip: (String) -> Unit,
                 color = TripPathColors.InkSoft,
             )
         }
-        items(cards.chunked(columns), key = { row -> row.first().let { if (it is TripSummary) "past-" + it.trip.id else "hand-" + (it as TravelPlace).id } }) { row ->
+        items(cards.chunked(columns), key = { row -> row.first().key }) { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 row.forEach { card ->
                     when (card) {
-                        is TripSummary -> SouvenirCard(card, Modifier.weight(1f)) { onOpenTrip(card.trip.id) }
-                        is TravelPlace -> HandAddedCard(card, Modifier.weight(1f), onOpenCarnet)
+                        is SouvenirItem.Trip -> SouvenirCard(card.summary, Modifier.weight(1f)) { onOpenTrip(card.summary.trip.id) }
+                        is SouvenirItem.HandAdded -> HandAddedCard(card.place, Modifier.weight(1f), onOpenCarnet)
                     }
                 }
                 repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
