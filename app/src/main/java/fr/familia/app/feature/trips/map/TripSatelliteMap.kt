@@ -127,8 +127,11 @@ fun TripSatelliteMap(
     globeIntro: Boolean = false,
     /** The time the sheet takes to go down before the camera moves (the reference video: the sheet first). */
     introDelayMs: Long = 0L,
+    /** E-59: a touch on the map away from the rounds (the sheet in the middle goes down one height). */
+    onEmptyTap: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val currentEmptyTap = androidx.compose.runtime.rememberUpdatedState(onEmptyTap)
     var drawn by remember { mutableStateOf(false) }
     // The settings kept for the person (récit 110): Satellite or Rues, 2D or 3D.
     val saved = remember { MapSettingsStore.read(context) }
@@ -273,6 +276,7 @@ fun TripSatelliteMap(
                                             mapAnimationOptions { duration(500L) },
                                         )
                                         index != null -> onSelect(index)
+                                        else -> currentEmptyTap.value()
                                     }
                                 }
                                 false

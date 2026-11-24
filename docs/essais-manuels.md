@@ -2588,3 +2588,13 @@ Sur un téléphone en Android 10 ou plus :
 4. Une destination sans photo (le dessin s'affiche) : au prochain lancement, « Plantages » montre une ligne « Photo du lieu : … » avec la raison, par exemple « refusé 403 fr.wikipedia.org », « délai dépassé » ou « image HttpException… ». Le nom du lieu n'y est jamais.
 5. Avec une photo qui s'affiche : aucune ligne nouvelle.
 6. Le globe de « Voyages » prend les mêmes images que la carte d'un voyage (Satellite Streets), sans noms ni routes. Sur le téléphone où la carte d'un voyage montrait de vraies photos mais où le globe restait noir, le globe a maintenant ses couleurs.
+
+## Voyage : une feuille plus facile à monter et descendre, retour E-59
+
+**Publier Firebase : non.**
+1. Sur un voyage avec la carte : poser le doigt n'importe où sur toute la largeur du haut de la feuille (pas seulement la petite barre) et glisser d'un petit centimètre vers le haut : la feuille monte d'un cran ; vers le bas : elle descend d'un cran.
+2. Un geste rapide, même court, suffit aussi. La feuille se cale toujours sur une des trois hauteurs (bas, milieu, plein écran).
+3. Toucher le haut de la feuille sans glisser : bas → milieu → plein écran ; en plein écran, le toucher la remet au milieu. La flèche ↓ en haut à gauche aussi.
+4. Feuille au milieu, liste tout en haut : glisser vers le bas au milieu de la liste fait descendre la feuille. Liste défilée : elle défile d'abord, puis la feuille descend au geste suivant.
+5. Feuille au milieu : toucher la carte hors des ronds fait descendre la feuille d'un cran. Toucher un rond ouvre toujours son étape.
+6. Même chose sur « Voyages » (globe) et sur la page d'une destination.

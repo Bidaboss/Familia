@@ -34,6 +34,7 @@ import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.power.rememberBatterySavingAtOpening
 import fr.familia.app.feature.trips.detail.SheetHandle
+import fr.familia.app.feature.trips.detail.sheetDrag
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.mapLabels
 import fr.familia.app.feature.trips.detail.tripTimeline
@@ -165,7 +166,8 @@ fun TripMapBackdrop(
                 .fillMaxWidth()
                 .height(sheet)
                 .clip(RoundedCornerShape(topStart = if (sheeted) 28.dp else 0.dp, topEnd = if (sheeted) 28.dp else 0.dp))
-                .background(TripPathColors.Sky),
+                .background(TripPathColors.Sky)
+                .then(if (sheeted) Modifier.sheetDrag(level) { level = it.coerceIn(0, 2) } else Modifier),
         ) {
             if (sheeted) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
             // Low or high, the sheet is far from the status bar: the bars of the screens inside do not leave room for it.
