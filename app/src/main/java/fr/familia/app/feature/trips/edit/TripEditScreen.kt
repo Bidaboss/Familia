@@ -151,7 +151,7 @@ fun TripEditScreen(
                     body = stringResource(R.string.trip_unavailable_body),
                 )
             }
-            is TripEditUiState.Editing -> FormContent(state, onChange, onDelete, cover)
+            is TripEditUiState.Editing -> FormContent(state, onChange, onDelete, cover, banner = !inSheet)
         }
     }
 }
@@ -162,6 +162,8 @@ private fun FormContent(
     onChange: ((TripForm) -> TripForm) -> Unit,
     onDelete: () -> Unit,
     cover: (@Composable (Modifier) -> Unit)?,
+    /** False under the map: the satellite map above already shows the place, the image would show it twice. */
+    banner: Boolean = true,
 ) {
     val form = state.form
     val errors = state.errors
@@ -180,7 +182,7 @@ private fun FormContent(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        PreviewBanner(form, cover)
+        if (banner) PreviewBanner(form, cover)
 
         TripTile(Icons.Outlined.CardTravel, stringResource(R.string.trip_tile_trip), Modifier.part(TripPart.Trip)) {
             FormLabel(stringResource(R.string.trip_field_title))

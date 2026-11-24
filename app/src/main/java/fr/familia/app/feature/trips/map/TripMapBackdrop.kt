@@ -4,6 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,8 +46,10 @@ internal fun focusIndex(placed: List<TripStep>, focusId: String?): Int? = placed
  * A modification screen of a trip with its map open above it (règles 4, 6 and 9): the satellite map
  * of the steps, free to move and zoom, the step [focusId] chosen; [content] in a sheet that pulls up
  * (60 %, 85 %, the whole screen) and goes down again with Retour, a drag or the arrow (règle 8).
- * TalkBack, no token, a map in failure or no step with a point: [content] alone, as before.
+ * TalkBack, no token, a map in failure or no step with a point: [content] alone, as before. The
+ * keyboard open raises the sheet to the whole screen.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TripMapBackdrop(
     token: String,
@@ -56,42 +62,46 @@ fun TripMapBackdrop(
     val placed = remember(steps) { steps.filter { it.hasPosition } }
     var failed by rememberSaveable { mutableStateOf(false) }
     val allowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
-    if (!satelliteMapUsable(token, allowed && !failed, talkBack = false) || placed.isEmpty()) {
-        content(false)
-        return
-    }
+    val withMap = satelliteMapUsable(token, allowed && !failed, talkBack = false) && placed.isNotEmpty()
     var level by rememberSaveable { mutableStateOf(0) }
-    var selected by rememberSaveable(focusId) { mutableStateOf(focusIndex(placed, focusId)) }
+    var selected by rememberSaveable(focusId) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(placed, focusId) { if (selected == null) selected = focusIndex(placed, focusId) }
+    // The keyboard open: the sheet takes the whole screen, so the field being typed stays above it.
+    val keyboard = WindowInsets.isImeVisible
+    LaunchedEffect(keyboard, withMap) { if (keyboard && withMap) level = 2 }
     // Retour first lowers the sheet; the screen's own Retour (ask before leaving) comes after it.
-    BackHandler(enabled = level > 0) { level -= 1 }
+    BackHandler(enabled = withMap && level > 0) { level -= 1 }
+    // One layout with or without the map: [content] keeps its place, so it is not made again when the steps arrive.
     BoxWithConstraints(Modifier.fillMaxSize().background(TripPathColors.Sky)) {
         val low = maxHeight * backdropSheetShare(0)
-        val sheet by animateDpAsState(maxHeight * backdropSheetShare(level), label = "backdrop-sheet")
-        TripSatelliteMap(
-            token = token,
-            points = placed.map { GeoPoint(it.lat!!, it.lng!!) },
-            names = placed.map { it.place },
-            arrived = placed.map { it.arrival != null },
-            labels = remember(trip, steps) { trip?.let { mapLabels(placed, tripTimeline(it, steps)) } },
-            nextIndex = placed.indexOfFirst { it.arrival == null },
-            selected = selected,
-            onSelect = { selected = it },
-            intro = false,
-            sheetHigh = false,
-            bottomPaddingDp = low.value.toDouble(),
-            onFailed = { GlobeHealth.markFailed(context); failed = true },
-            modifier = Modifier.fillMaxSize(),
-        )
+        val sheet by animateDpAsState(if (withMap) maxHeight * backdropSheetShare(level) else maxHeight, label = "backdrop-sheet")
+        if (withMap) {
+            TripSatelliteMap(
+                token = token,
+                points = placed.map { GeoPoint(it.lat!!, it.lng!!) },
+                names = placed.map { it.place },
+                arrived = placed.map { it.arrival != null },
+                labels = remember(trip, steps) { trip?.let { mapLabels(placed, tripTimeline(it, steps)) } },
+                nextIndex = placed.indexOfFirst { it.arrival == null },
+                selected = selected,
+                onSelect = { selected = it },
+                intro = false,
+                sheetHigh = false,
+                bottomPaddingDp = low.value.toDouble(),
+                onFailed = { GlobeHealth.markFailed(context); failed = true },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         Column(
             Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(sheet)
-                .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                .clip(RoundedCornerShape(topStart = if (withMap) 28.dp else 0.dp, topEnd = if (withMap) 28.dp else 0.dp))
                 .background(TripPathColors.Sky),
         ) {
-            SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
-            Column(Modifier.weight(1f).fillMaxWidth()) { content(true) }
+            if (withMap) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
+            Column(Modifier.weight(1f).fillMaxWidth()) { content(withMap) }
         }
     }
 }
