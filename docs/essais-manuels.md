@@ -2251,3 +2251,10 @@ Sur un téléphone en Android 10 ou plus :
 4. Valise, Documents, Argent ou une page de lieu ouverte en mode avion : même ligne « Carte indisponible » au-dessus de la feuille, et la feuille ne saute pas en plein écran au bout de 15 s.
 5. Téléphone lent ou réseau faible : la carte a maintenant 15 s pour afficher son style (au lieu de 6 s), et elle compte comme réussie dès que le style est là, même si quelques tuiles arrivent encore.
 6. Après un échec, relancer l'appli, puis Administration → Plantages : une ligne « MapUnavailable$Timeout » (ou NoNetwork, SdkError, ViewFailed, NoToken, BadToken), avec « Écran : Carte … : délai 15 s, dernière erreur … ». « Copier pour Claude » la copie. Une seule ligne par raison et par écran tant que l'appli tourne.
+
+## Voyage : « Enrichir avec une IA » se tire au-dessus de la carte (règle 8)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui a des étapes placées, puis « Enrichir avec une IA ». L'écran s'ouvre dans la feuille au-dessus de la carte, comme Valise, Documents ou Argent.
+2. Tirer la feuille vers le haut : l'écran prend toute la hauteur. La redescendre : la carte réapparaît.
+3. Avec TalkBack, sans réseau ou sans étape placée, l'écran s'affiche seul, comme avant.
