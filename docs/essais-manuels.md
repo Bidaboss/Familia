@@ -1955,3 +1955,14 @@ Rien à publier côté Firebase. « APK de publication ».
 3. Appuyer sur un point : le globe s'arrête, vole vers le lieu en 2 s, puis le voyage s'ouvre. Un deuxième appui pendant le vol l'ouvre tout de suite. Avec deux voyages au même point, c'est le premier de la liste qui s'ouvre.
 4. Passer sur « Souvenirs » puis revenir : les points changent avec l'onglet (blancs à contour orange pour les souvenirs), sans recharger le globe.
 5. La carte « Prochain voyage » montre la photo du lieu avec son crédit ; sans photo, la vue satellite ; sans réseau, le paysage dessiné.
+
+
+## Voyage : page d'un hébergement, d'un restaurant ou d'un spot (récit 103, partie « lieux » 1 : règles 19, 21, 24, 26)
+
+« Publier Firebase » (nouvelles règles et une fonction), puis « APK de publication ». La page s'ouvre depuis le panneau d'une destination quand le fil voyage l'aura branché ; avant, rien ne change à l'écran.
+1. Panneau d'une destination, « Ajouter » sous Restaurants : la page « Ton restaurant » avec Nom, Heure d'arrivée au restaurant, Notes (plusieurs lignes, compteur sur 600), Coût dans la monnaie du voyage, « Voir sur Tripadvisor ». Le bouton du bas dit « Ajouter au voyage ».
+2. Enregistrer sans nom : « Écris le nom du lieu. ». Coût « beaucoup » : « Écris un montant, par exemple 80 ou 12,50. ».
+3. Rouvrir le restaurant depuis le panneau : « Modifier ton restaurant », l'heure et la note sont là ; changer l'heure puis Retour : « Quitter sans enregistrer ? ».
+4. En bas de la page : « Supprimer ce restaurant », avec confirmation. Il disparaît du panneau.
+5. Un membre qui suit le voyage sans partir : la page se lit, sans champ ni bouton.
+6. Supprimer la destination : ses hébergements, restaurants et spots disparaissent aussi.

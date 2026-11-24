@@ -44,6 +44,7 @@ import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.data.SouvenirRepository
 import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.data.TripRepository
+import fr.familia.app.core.data.TripPlaceRepository
 import fr.familia.app.core.data.TripWordRepository
 import fr.familia.app.core.data.UsageRepository
 import fr.familia.app.core.data.WeeklyQuestionRepository
@@ -102,6 +103,7 @@ import fr.familia.app.core.model.Transfer
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.core.model.TripPlace
 import fr.familia.app.core.model.TripWord
 import fr.familia.app.core.model.UsageDay
 import fr.familia.app.core.model.WeeklyAnswer
@@ -221,6 +223,14 @@ class ReadOnlyTripWordRepository(private val inner: TripWordRepository, private 
     override suspend fun setHeart(tripId: String, stepId: String, memberId: String, hearted: Boolean) = guard.refuse()
     override fun comments(tripId: String, stepId: String): EventCommentRepository =
         ReadOnlyEventCommentRepository(inner.comments(tripId, stepId), guard)
+}
+
+class ReadOnlyTripPlaceRepository(private val inner: TripPlaceRepository, private val guard: ViewAsGuard) : TripPlaceRepository {
+    override fun observePlaces(tripId: String): Flow<List<TripPlace>> = inner.observePlaces(tripId)
+    override suspend fun getPlace(tripId: String, placeId: String): TripPlace? = inner.getPlace(tripId, placeId)
+    override fun newPlaceId(tripId: String): String = inner.newPlaceId(tripId)
+    override suspend fun savePlace(tripId: String, place: TripPlace, isNew: Boolean) = guard.refuse()
+    override suspend fun deletePlace(tripId: String, placeId: String) = guard.refuse()
 }
 
 class ReadOnlyTripRepository(private val inner: TripRepository, private val guard: ViewAsGuard) : TripRepository {

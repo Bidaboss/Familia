@@ -951,6 +951,22 @@ Un document par participant, réécrit à chaque alerte. Aucune position n'y est
 
 Les numéros d'urgence de l'écran « Sécurité » sont une table fixe dans l'appli (`feature/trips/safety/EmergencyNumbers.kt`), jamais pour la France. Le pays d'une étape est lu par le géocodeur du téléphone à partir de son point : rien de nouveau n'est stocké.
 
+### `trips/{tripId}/places/{placeId}` (récit 103, hébergements, restaurants et spots d'une destination)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `stepId` | texte | La destination (une étape du voyage) sous laquelle le lieu est programmé ; ne change jamais |
+| `kind` | texte | `lodging` (hébergement), `restaurant` ou `spot` |
+| `name` | texte | 1 à 120 caractères |
+| `address` | texte ou null | L'adresse trouvée par une recherche, 200 caractères au plus |
+| `lat`, `lng` | nombres ou null | Le point du lieu, tous deux ou aucun |
+| `arriveTime` | texte ou null | Heure d'arrivée « HH:mm », facultative (règle 21) |
+| `note` | texte ou null | Notes sur plusieurs lignes, 600 caractères au plus |
+| `cost` | nombre ou null | Coût pour le groupe, dans la monnaie du voyage, de 0 à 1 000 000 (budget, règle 40) |
+| `updatedAt` | horodatage | Heure du serveur |
+
+Droits : ceux qui suivent le voyage (`readerIds`) lisent, les participants ajoutent, modifient et suppriment, sous une destination qui existe ; l'admin principal peut aussi supprimer. Un nom changé retire l'adresse et le point (c'est un autre lieu). `onStepDeletedPlaces` supprime les lieux d'une destination supprimée ; la suppression du voyage les emporte tous. Tests : `firebase/tests/tripPlaces.test.mjs` et `firebase/functions/test/tripPlaces.test.ts`.
+
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
