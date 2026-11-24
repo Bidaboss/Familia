@@ -2567,3 +2567,14 @@ Sur un téléphone en Android 10 ou plus :
 3. Toucher une tuile : la carte change tout de suite derrière. « Enregistrer » (bouton foncé, texte blanc) garde le choix pour la prochaine fois.
 4. Le ✕, un toucher sur la carte assombrie ou le retour d'Android ferment la feuille et remettent la carte comme avant. Pas de bouton « Annuler » rouge.
 5. Avec TalkBack : le titre et les deux sections sont des titres ; chaque tuile dit son nom et si elle est choisie.
+
+## Voyages : le globe entier au-dessus de la feuille, sans écritures, retours E-65 à E-68
+
+**Publier Firebase : non.**
+1. Ouvrir « Voyages » (feuille à mi-hauteur) : le globe est entier, centré dans la partie au-dessus de la feuille, avec une petite marge ; il ne passe pas sous la feuille.
+2. Descendre la feuille (basse) : le globe glisse en douceur et se recentre dans la partie visible, plus grand s'il y a la place. Remonter : il suit et rapetisse si besoin.
+3. Sur le globe : aucun nom de pays, aucune frontière, aucune route ; seuls les points des voyages (et leurs noms) restent.
+4. Ouvrir un voyage : sa carte garde les noms en français et les routes.
+5. Feuille basse : le bouton jaune « Nouveau voyage » disparaît, il ne cache plus « À venir | Souvenirs ». Il revient dès qu'on remonte la feuille.
+6. Feuille basse : la feuille descend jusqu'en bas de l'écran, sous la barre de gestes ; la carte du voyage s'arrête proprement au-dessus de cette barre.
+7. Sans globe (économie de batterie) : la liste ne change pas.

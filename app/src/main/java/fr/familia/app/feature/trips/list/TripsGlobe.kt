@@ -29,6 +29,7 @@ import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapLoadingErrorType
 import com.mapbox.maps.MapView
 import com.mapbox.maps.RenderedQueryGeometry
@@ -65,7 +66,9 @@ import fr.familia.app.feature.trips.map.viewErrorLine
 import fr.familia.app.feature.trips.map.mapFailureReason
 import fr.familia.app.feature.trips.map.GlobeLook
 import fr.familia.app.feature.trips.map.GlobeLookStore
+import fr.familia.app.feature.trips.map.cleanGlobe
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
+import fr.familia.app.feature.trips.map.wholeGlobeZoom
 import fr.familia.app.feature.trips.map.recordTileError
 import fr.familia.app.feature.trips.map.toPoint
 import kotlinx.coroutines.delay
@@ -87,6 +90,13 @@ internal fun spotTrip(spot: GlobeSpot?): String? = spot?.tripIds?.firstOrNull()
 
 /** The flight to a trip the member opened: the camera goes there in [FLIGHT_MILLIS], then the trip opens. */
 data class GlobeFlight(val id: Int, val tripId: String, val point: GeoPoint)
+
+/**
+ * E-65: the zoom of the globe of the list above a sheet of [sheetDp]: the zoom of the variant,
+ * smaller when the globe would not fit whole, 16 dp from the edges of the part above the sheet.
+ */
+internal fun globeFrame(widthDp: Double, heightDp: Double, sheetDp: Double, lookZoom: Double): Double =
+    minOf(lookZoom, wholeGlobeZoom(widthDp, heightDp - sheetDp))
 
 internal const val FLIGHT_MILLIS = 2_000L
 
@@ -150,6 +160,8 @@ fun TripsGlobe(
     cycleLook: Boolean = false,
     /** The accent yellow of the app (the pill of the bottom bar): the dots of the coming trips (E-38). */
     accent: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFFF2C14E),
+    /** E-65: the height of the sheet over the bottom of the globe, in dp; the globe stays whole above it. */
+    bottomInsetDp: Float = 0f,
 ) {
     val context = LocalContext.current
     val look = remember { GlobeLookStore.read(context) }
@@ -202,6 +214,19 @@ fun TripsGlobe(
     LaunchedEffect(Unit) {
         delay(MAP_STYLE_TIMEOUT_MS)
         if (globeGivesUp(ready)) giveUp(null)
+    }
+    // E-65: the globe centred in the part above the sheet, and whole there, at every height of the
+    // sheet; the sheet glides, so the globe follows it frame by frame.
+    LaunchedEffect(view, ready, bottomInsetDp, flight?.id) {
+        val map = view ?: return@LaunchedEffect
+        if (flight != null || map.width == 0) return@LaunchedEffect
+        val density = map.resources.displayMetrics.density
+        val visible = globeFrame(map.width / density.toDouble(), map.height / density.toDouble(), bottomInsetDp.toDouble(), shownZoom)
+        runCatching {
+            map.mapboxMap.setCamera(
+                CameraOptions.Builder().padding(EdgeInsets(0.0, 0.0, bottomInsetDp * density.toDouble(), 0.0)).zoom(visible).build(),
+            )
+        }
     }
     // A trip opened: the camera flies there (the globe turns, tilts, comes closer), then the screen opens the trip.
     LaunchedEffect(flight?.id, view) {
@@ -274,6 +299,8 @@ fun TripsGlobe(
                     map.mapboxMap.loadStyle(look.styleUri) { style ->
                         runCatching {
                             configureSatelliteGlobe(style, look)
+                            // E-66: no names, borders or roads on the globe of the list.
+                            cleanGlobe(style)
                             // Before the trips: its layer lies under their dots.
                             addHandAdded(style)
                             addMarkers(style, accentHex(accent))

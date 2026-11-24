@@ -5,6 +5,11 @@ import fr.familia.app.feature.trips.map.backdropSheetShare
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -13,7 +18,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -168,11 +172,14 @@ fun TripsScreen(
     var level by rememberSaveable { mutableStateOf(1) }
     androidx.activity.compose.BackHandler(enabled = globeOn && level == 2) { level = 1 }
     // Low sheet, more globe: it keeps its centre above the sheet.
-    val globeShare by androidx.compose.animation.core.animateFloatAsState(if (level == 0) 0.85f else 0.62f, label = "globe-share")
+    // E-65: where the top of the sheet is, from the bottom of the screen, for the globe above it.
+    var screenBottom by remember { mutableStateOf(0f) }
+    var sheetTop by remember { mutableStateOf(0f) }
+    val sheetFromBottom = (screenBottom - sheetTop).coerceAtLeast(0f)
     // Over the globe the top bar sits on the night sky.
     val dark = globeOn
     val skyColor = if (dark) Color.Transparent else TripPathColors.Sky
-    Box(Modifier.fillMaxSize().then(if (dark) Modifier.background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF0B1F45), Color(0xFF050B1A)))) else Modifier)) {
+    Box(Modifier.fillMaxSize().onGloballyPositioned { screenBottom = it.positionInRoot().y + it.size.height }.then(if (dark) Modifier.background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF0B1F45), Color(0xFF050B1A)))) else Modifier)) {
     if (globeOn) {
         TripsGlobe(
             token = globeToken,
@@ -185,7 +192,9 @@ fun TripsScreen(
             onOpenTrip = { id -> openTrip(id) },
             cycleLook = true,
             accent = fr.familia.app.core.theme.LocalClayStyle.current.tabPill,
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(globeShare).align(Alignment.TopCenter),
+            // E-65: the whole screen, the camera keeping the sheet as its bottom padding.
+            bottomInsetDp = with(LocalDensity.current) { sheetFromBottom.toDp().value },
+            modifier = Modifier.fillMaxSize(),
         )
     }
     CompositionLocalProvider(LocalContentColor provides TripPathColors.Ink) {
@@ -198,8 +207,11 @@ fun TripsScreen(
                 }
             },
             // E-28: the yellow pill of the prototype, floating bottom right over the list, not a dark bar.
+            // E-68: the sheet goes down to the bottom of the screen, under the navigation bar, its content above it.
+            contentWindowInsets = if (globeOn) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
             floatingActionButton = {
-                if (success?.canCreate == true) NewTripButton(onAddTrip)
+                // E-68: the sheet low leaves no room under « À venir | Souvenirs »: the button comes back with the sheet up.
+                if (success?.canCreate == true && !(globeOn && level == 0)) Box(Modifier.navigationBarsPadding()) { NewTripButton(onAddTrip) }
             },
         ) { padding ->
             androidx.compose.foundation.layout.BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
@@ -216,6 +228,7 @@ fun TripsScreen(
               }
               Column(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(sheet)
+                    .onGloballyPositioned { sheetTop = it.positionInRoot().y }
                     .then(if (globeOn) Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier),
               ) {
               if (globeOn) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
@@ -228,7 +241,7 @@ fun TripsScreen(
                   )
               }
               if (saving) BatterySavingBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-              Box(Modifier.weight(1f).fillMaxWidth()) {
+              Box(Modifier.weight(1f).fillMaxWidth().then(if (globeOn) Modifier.navigationBarsPadding() else Modifier)) {
                 when (state) {
                     TripsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                     TripsUiState.Error -> EmptyState(
