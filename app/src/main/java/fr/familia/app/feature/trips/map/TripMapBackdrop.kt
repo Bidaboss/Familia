@@ -38,10 +38,10 @@ import kotlinx.coroutines.delay
 import fr.familia.app.feature.trips.list.animationsOff
 import fr.familia.app.feature.trips.list.talkBackOn
 
-/** The share of the screen the sheet takes at each of its three heights (règle 8): low, high, whole screen. */
+/** The share of the screen the sheet takes at each of its three heights (règle 8, DESIGN-98 A, as on the prototype): 22 % at the bottom, 48 % in the middle, the whole screen. The home of a trip uses the same. */
 internal fun backdropSheetShare(level: Int): Float = when (level) {
-    0 -> 0.6f
-    1 -> 0.85f
+    0 -> 0.22f
+    1 -> 0.48f
     else -> 1f
 }
 

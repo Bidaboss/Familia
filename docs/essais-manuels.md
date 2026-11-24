@@ -2258,3 +2258,11 @@ Sur un téléphone en Android 10 ou plus :
 1. Ouvrir un voyage qui a des étapes placées, puis « Enrichir avec une IA ». L'écran s'ouvre dans la feuille au-dessus de la carte, comme Valise, Documents ou Argent.
 2. Tirer la feuille vers le haut : l'écran prend toute la hauteur. La redescendre : la carte réapparaît.
 3. Avec TalkBack, sans réseau ou sans étape placée, l'écran s'affiche seul, comme avant.
+
+## Voyage : la feuille à trois positions du prototype (DESIGN-98 A)
+
+**Publier Firebase : non.** « APK de publication » (carte satellite).
+1. Accueil d'un voyage : la feuille s'ouvre tout en bas, sur environ un quart de l'écran (22 %). La carte prend le reste.
+2. Glisser la poignée vers le haut : la feuille monte au milieu (48 %). Glisser encore : elle prend tout l'écran, avec la flèche en haut à gauche. La flèche ou un glissé vers le bas la redescend d'un cran. Un appui sur la poignée passe de tout en bas au milieu, et inversement.
+3. Même chose dans « Modifier », Valise, Documents, Argent et les pages d'une étape ou d'un lieu.
+4. Carte indisponible : la feuille garde ces trois positions, et la ligne « Carte indisponible » est au-dessus.

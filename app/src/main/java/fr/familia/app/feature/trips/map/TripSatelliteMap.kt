@@ -138,6 +138,8 @@ fun TripSatelliteMap(
     // Why it failed, for « Plantages » (retour d'essai du 24/11): the last error Mapbox gave, once only.
     val lastError = remember { arrayOfNulls<String>(1) }
     val gaveUp = remember { booleanArrayOf(false) }
+    // A change of look (Satellite or Rues) loads a new style: its failure leaves an empty map, so it counts too (C1 of #573).
+    val restyling = remember { booleanArrayOf(false) }
     val fail: (Throwable?, Boolean) -> Unit = { viewError, timedOut ->
         if (!gaveUp[0]) {
             gaveUp[0] = true
@@ -225,11 +227,11 @@ fun TripSatelliteMap(
                         map.mapboxMap.setCamera(memory.camera?.let(::cameraOf) ?: frame(map, points, bottomPaddingDp * density, tilted))
                         // The style is there: the map shows, even while the last tiles still come (slow phone, slow network).
                         listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true; GlobeHealth.markWorking(context) }
-                        listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; GlobeHealth.markWorking(context) }
+                        listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; restyling[0] = false; GlobeHealth.markWorking(context) }
                         listener[3] = map.mapboxMap.subscribeMapLoadingError { error ->
-                            lastError[0] = "${error.type}: ${error.message}".take(50)
+                            lastError[0] = mapErrorLine(error.type.toString(), error.message)
                             // A missing tile or icon leaves the map; only a style that cannot load is the end.
-                            if (error.type == MapLoadingErrorType.STYLE && !drawn) fail(null, false)
+                            if (error.type == MapLoadingErrorType.STYLE && (!drawn || restyling[0])) fail(null, false)
                         }
                         listener[1] = map.mapboxMap.subscribeMapIdle {
                             val camera = map.mapboxMap.cameraState
@@ -269,6 +271,7 @@ fun TripSatelliteMap(
                 val shownPhotos = photoMarkers.toMap()
                 if (applied[0] != look) {
                     applied[0] = look
+                    restyling[0] = true
                     applied[4] = shownPhotos
                     loadLook(map, look, points, names, arrived, nextIndex, selected, { fail(it, false) }, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) }
                 } else if (applied[4] != shownPhotos) {

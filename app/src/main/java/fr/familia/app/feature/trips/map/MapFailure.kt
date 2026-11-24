@@ -49,6 +49,10 @@ fun mapFailureReason(token: String, online: Boolean, sdkError: String?, viewErro
     else -> MapUnavailable.Timeout(listOfNotNull("délai ${MAP_STYLE_TIMEOUT_MS / 1000} s", sdkError?.let { "dernière erreur $it" }).joinToString(", "))
 }
 
+/** The error of Mapbox for « Plantages »: its type and message, without any token of an address (C3 of #573), 50 characters at most. */
+fun mapErrorLine(type: String, message: String): String =
+    "$type: ${message.replace(Regex("access_token=[^&\\s]*"), "access_token=…")}".take(50)
+
 /** The line of « Plantages » that says where: « Carte TripDetail : délai 15 s ». */
 fun mapFailureScreen(where: String, failure: MapUnavailable): String =
     "Carte ${where.ifBlank { "?" }} : ${failure.detail}".take(80)

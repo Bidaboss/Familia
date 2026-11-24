@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.map.MapFailureLog
+import fr.familia.app.feature.trips.map.backdropSheetShare
 import fr.familia.app.feature.trips.map.MapUnavailable
 import fr.familia.app.feature.trips.map.MapUnavailableNotice
 import fr.familia.app.feature.trips.map.TripSatelliteMap
@@ -406,9 +407,10 @@ private fun PathContent(
         if (selected != null) selected = null else level -= 1
     }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
-    val lowHeight = maxHeight * 0.4f
+    // Three heights as on the prototype (DESIGN-98 A): 22 % at the bottom, 48 % in the middle, the whole screen.
+    val lowHeight = maxHeight * backdropSheetShare(0)
     val sheetHeight by androidx.compose.animation.core.animateDpAsState(
-        when (level) { 0 -> lowHeight; 1 -> maxHeight * 0.85f; else -> maxHeight },
+        maxHeight * backdropSheetShare(level),
         label = "sheet",
     )
     if (mapLayout && mapFailed) {

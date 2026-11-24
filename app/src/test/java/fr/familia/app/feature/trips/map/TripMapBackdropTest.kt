@@ -13,8 +13,8 @@ class TripMapBackdropTest {
     private fun step(id: String) = TripStep(id, StepType.Lodging, "Rome", LocalDate.of(2027, 7, 10), null, null, null, null, lat = 41.9, lng = 12.5)
 
     @Test fun theSheetHasThreeHeights() {
-        assertEquals(0.6f, backdropSheetShare(0))
-        assertEquals(0.85f, backdropSheetShare(1))
+        assertEquals(0.22f, backdropSheetShare(0))
+        assertEquals(0.48f, backdropSheetShare(1))
         assertEquals(1f, backdropSheetShare(2))
     }
 
