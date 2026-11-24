@@ -55,8 +55,12 @@ internal object EditArrival {
     const val SHEET_HIGH_MS = 600L
     /** After the map is drawn, the camera waits for the sheet to be down. */
     const val CAMERA_WAIT_MS = 300L
-    const val OUT_MS = 1_100L
-    const val IN_MS = 1_500L
+    /** DESIGN-101 B: about 6 s in all, slow enough to see the trip arrive, cut by a touch. */
+    const val OUT_MS = 2_400L
+    const val IN_MS = 3_300L
+    /** The arrival of the page of a trip (règle 3): out to the continent, then in on the steps, about 6 s. */
+    const val HOME_OUT_MS = 2_600L
+    const val HOME_IN_MS = 3_400L
     /** The whole Earth in the globe projection of Mapbox Standard. */
     const val GLOBE_ZOOM = 1.0
 }

@@ -2312,3 +2312,12 @@ Sur un téléphone en Android 10 ou plus :
 4. Toucher la poignée : passe de tout en bas au milieu, et inversement.
 5. Sans globe (TalkBack, économie de batterie, pas de jeton) : la liste prend tout l'écran comme avant, sans poignée.
 6. Avec « Supprimer les animations » dans les réglages du téléphone, ouvrir un voyage à plusieurs destinations éloignées : la carte s'ouvre cadrée sur toutes les étapes, pas sur leur milieu (C1 de #580).
+
+## Voyage : l'arrivée sur la carte dure environ 6 s (DESIGN-101 B)
+
+**Publier Firebase : non.** « APK de publication » (carte satellite).
+1. Ouvrir un voyage avec des étapes placées : la carte s'éloigne vers le continent puis plonge sur le trajet, en environ 6 secondes (avant, environ 3 s).
+2. Modifier une étape puis revenir : la carte s'éloigne jusqu'à la Terre entière puis revient sur le trajet, aussi en environ 6 secondes.
+3. Pendant l'une ou l'autre, toucher la carte : le mouvement s'arrête tout de suite, là où il est, et la carte se laisse déplacer.
+4. Revenir d'une page ouverte depuis la carte : l'arrivée ne rejoue pas.
+5. Avec « Supprimer les animations » dans les réglages du téléphone : pas d'arrivée, comme avant.
