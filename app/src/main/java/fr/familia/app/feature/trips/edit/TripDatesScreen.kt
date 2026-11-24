@@ -207,7 +207,7 @@ fun TripDatesScreen(start: LocalDate?, end: LocalDate?, onSave: (LocalDate, Loca
                         when {
                             nights == null && range.start == null -> stringResource(R.string.trip_dates_pick_start)
                             nights == null -> stringResource(R.string.trip_dates_pick_end)
-                            nights == 0L -> stringResource(R.string.trip_dates_one_day)
+                            nights == 0L -> stringResource(R.string.trip_dates_single_day)
                             else -> pluralStringResource(R.plurals.trip_dates_nights, nights.toInt(), nights.toInt())
                         },
                         fontSize = 15.sp,

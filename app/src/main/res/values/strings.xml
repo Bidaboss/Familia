@@ -1411,7 +1411,7 @@
     <string name="trip_dates_clear">Effacer les dates</string>
     <string name="trip_dates_pick_start">Touche le premier jour</string>
     <string name="trip_dates_pick_end">Touche le dernier jour</string>
-    <string name="trip_dates_one_day">1 jour sélectionné</string>
+    <string name="trip_dates_single_day">1 jour sélectionné</string>
     <plurals name="trip_dates_nights">
         <item quantity="one">%1$d nuit sélectionnée</item>
         <item quantity="many">%1$d nuits sélectionnées</item>
