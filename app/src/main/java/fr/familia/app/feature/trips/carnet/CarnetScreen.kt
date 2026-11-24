@@ -26,10 +26,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Flight
 import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -488,14 +489,15 @@ private fun Trophies(carnet: Carnet) {
 
 @Composable
 private fun TrophyCell(trophy: Trophy, won: Boolean, modifier: Modifier) {
-    val (icon, label) = when (trophy) {
+    val pair: Pair<androidx.compose.ui.graphics.vector.ImageVector, Int> = when (trophy) {
         Trophy.FirstTrip -> Icons.Outlined.Flag to R.string.carnet_trophy_first
         Trophy.ThreeCountries -> Icons.Outlined.Place to R.string.carnet_trophy_three
-        Trophy.TwoContinents -> Icons.Outlined.Public to R.string.carnet_trophy_continents
+        Trophy.TwoContinents -> Icons.Outlined.Map to R.string.carnet_trophy_continents
         Trophy.FiveCountries -> Icons.Outlined.Place to R.string.carnet_trophy_five
         Trophy.TenThousandKm -> Icons.Outlined.Flight to R.string.carnet_trophy_km
-        Trophy.AroundTheWorld -> Icons.Outlined.BarChart to R.string.carnet_trophy_world
+        Trophy.AroundTheWorld -> Icons.Outlined.EmojiEvents to R.string.carnet_trophy_world
     }
+    val (icon, label) = pair
     val name = stringResource(label)
     val described = stringResource(if (won) R.string.carnet_trophy_won else R.string.carnet_trophy_locked, name)
     Column(
