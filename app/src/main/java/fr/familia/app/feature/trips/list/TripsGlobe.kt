@@ -26,20 +26,43 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
+import com.mapbox.maps.RenderedQueryGeometry
+import com.mapbox.maps.RenderedQueryOptions
+import com.mapbox.maps.ScreenBox
+import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.Style
+import com.mapbox.maps.extension.style.expressions.dsl.generated.get
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.circleLayer
+import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
+import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
+import com.mapbox.maps.plugin.gestures.gestures
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.toPoint
 import kotlinx.coroutines.delay
 
 /** One point of the globe of the list: where a trip goes. [highlighted]: the next trip, in black. */
-data class GlobeMarker(val point: GeoPoint, val highlighted: Boolean)
+data class GlobeMarker(val point: GeoPoint, val highlighted: Boolean, val tripId: String = "")
+
+/** One dot drawn on the globe: the trips that go to the same place (about 1 km) share it, with their number. */
+data class GlobeSpot(val point: GeoPoint, val highlighted: Boolean, val tripIds: List<String>)
+
+/** Groups the trips going to the same place into one dot (spec liste-voyages-globe : « un seul point avec leur nombre »), in the order of [markers]. */
+internal fun globeSpots(markers: List<GlobeMarker>): List<GlobeSpot> =
+    markers.groupBy { Math.round(it.point.lat * 100) to Math.round(it.point.lng * 100) }.values.map { same ->
+        GlobeSpot(same.first().point, same.any { it.highlighted }, same.map { it.tripId })
+    }
+
+/** The trip a touch on [spot] opens: the next one when it is there, else the first in the list. */
+internal fun spotTrip(spot: GlobeSpot?): String? = spot?.tripIds?.firstOrNull()
 
 /** The flight to a trip the member opened: the camera goes there in [FLIGHT_MILLIS], then the trip opens. */
 data class GlobeFlight(val id: Int, val tripId: String, val point: GeoPoint)
@@ -84,6 +107,8 @@ fun TripsGlobe(
     flight: GlobeFlight?,
     onFailed: () -> Unit,
     modifier: Modifier = Modifier,
+    /** A touch on a dot: the trip there (the next one when several trips share the place). */
+    onOpenTrip: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val started = LocalLifecycleOwner.current.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
@@ -98,8 +123,16 @@ fun TripsGlobe(
     val stillAnyway = remember { animationsOff(context) }
     val turns = globeTurns(started, stopped || flight != null, powerSave, stillAnyway)
     val first = markers.firstOrNull { it.highlighted } ?: markers.firstOrNull()
+    val spots = remember(markers) { globeSpots(markers) }
+    val currentSpots = androidx.compose.runtime.rememberUpdatedState(spots)
+    val currentOpen = androidx.compose.runtime.rememberUpdatedState(onOpenTrip)
     var view by remember { mutableStateOf<MapView?>(null) }
     var ready by remember { mutableStateOf(false) }
+    // À venir and Souvenirs share the globe: switching only redraws its dots.
+    LaunchedEffect(view, ready, spots, souvenirs) {
+        val style = view?.mapboxMap?.style ?: return@LaunchedEffect
+        if (ready) showSpots(style, spots, souvenirs)
+    }
     // 6 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the landscape.
     LaunchedEffect(Unit) {
         delay(6_000L)
@@ -164,9 +197,24 @@ fun TripsGlobe(
                     map.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
                         runCatching {
                             configureSatelliteGlobe(style)
-                            addMarkers(style, markers, souvenirs)
+                            addMarkers(style)
+                            showSpots(style, spots, souvenirs)
                         }.onFailure { onFailed() }
                     }
+                    // A touch on a dot opens its trip (with the flight); anywhere else, nothing.
+                    map.gestures.addOnMapClickListener(
+                        OnMapClickListener { point ->
+                            map.mapboxMap.queryRenderedFeatures(
+                                // A 56 dp square around the finger: the dots are smaller than a finger.
+                                RenderedQueryGeometry(touchBox(map.mapboxMap.pixelForCoordinate(point), 28.0 * map.resources.displayMetrics.density)),
+                                RenderedQueryOptions(SPOT_LAYERS, null),
+                            ) { result ->
+                                val index = result.value?.firstOrNull()?.queriedFeature?.feature?.getNumberProperty("i")?.toInt()
+                                spotTrip(index?.let { currentSpots.value.getOrNull(it) })?.let { currentOpen.value(it) }
+                            }
+                            false
+                        },
+                    )
                     // Shown only once the picture is really drawn: a black void is worse than the landscape.
                     map.mapboxMap.subscribeMapLoaded { ready = true }
                     view = map
@@ -179,24 +227,36 @@ fun TripsGlobe(
     )
 }
 
-private fun addMarkers(style: Style, markers: List<GlobeMarker>, souvenirs: Boolean) {
-    fun collection(list: List<GlobeMarker>) = FeatureCollection.fromFeatures(list.map { Feature.fromGeometry(it.point.toPoint()) })
-    style.addSource(geoJsonSource("trips-other") { featureCollection(collection(markers.filter { !it.highlighted })) })
-    style.addSource(geoJsonSource("trips-next") { featureCollection(collection(markers.filter { it.highlighted })) })
-    style.addLayer(
-        circleLayer("trips-other-dots", "trips-other") {
-            circleRadius(7.0)
-            circleColor(if (souvenirs) "#FFFFFF" else "#FFD84A")
-            circleStrokeColor(if (souvenirs) "#E8833A" else "#FFFFFF")
-            circleStrokeWidth(2.0)
-        },
-    )
-    style.addLayer(
-        circleLayer("trips-next-dots", "trips-next") {
-            circleRadius(9.0)
-            circleColor("#111111")
-            circleStrokeColor("#FFFFFF")
-            circleStrokeWidth(3.0)
-        },
-    )
+private fun touchBox(at: ScreenCoordinate, half: Double) =
+    ScreenBox(ScreenCoordinate(at.x - half, at.y - half), ScreenCoordinate(at.x + half, at.y + half))
+
+private val SPOT_LAYERS = listOf("trips-other-dots", "trips-next-dots", "trips-past-dots")
+
+private fun spotFeature(spot: GlobeSpot, index: Int): Feature =
+    Feature.fromGeometry(spot.point.toPoint()).also {
+        it.addNumberProperty("i", index)
+        it.addStringProperty("count", if (spot.tripIds.size > 1) spot.tripIds.size.toString() else "")
+    }
+
+/** The dots of the tab shown: the next trip in black, the following ones yellow, the past ones white with an orange ring. */
+private fun showSpots(style: Style, spots: List<GlobeSpot>, souvenirs: Boolean) {
+    fun collection(keep: (GlobeSpot) -> Boolean) =
+        FeatureCollection.fromFeatures(spots.mapIndexedNotNull { i, spot -> if (keep(spot)) spotFeature(spot, i) else null })
+    style.getSourceAs<GeoJsonSource>("trips-other")?.featureCollection(collection { !souvenirs && !it.highlighted })
+    style.getSourceAs<GeoJsonSource>("trips-next")?.featureCollection(collection { !souvenirs && it.highlighted })
+    style.getSourceAs<GeoJsonSource>("trips-past")?.featureCollection(collection { souvenirs })
+}
+
+private fun addMarkers(style: Style) {
+    val empty = FeatureCollection.fromFeatures(emptyList())
+    style.addSource(geoJsonSource("trips-other") { featureCollection(empty) })
+    style.addSource(geoJsonSource("trips-next") { featureCollection(empty) })
+    style.addSource(geoJsonSource("trips-past") { featureCollection(empty) })
+    style.addLayer(circleLayer("trips-other-dots", "trips-other") { circleRadius(9.0); circleColor("#FFD84A"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(2.0) })
+    style.addLayer(circleLayer("trips-past-dots", "trips-past") { circleRadius(9.0); circleColor("#FFFFFF"); circleStrokeColor("#E8833A"); circleStrokeWidth(2.0) })
+    style.addLayer(circleLayer("trips-next-dots", "trips-next") { circleRadius(11.0); circleColor("#111111"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
+    // Several trips at the same place: their number in the dot.
+    style.addLayer(symbolLayer("trips-other-count", "trips-other") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
+    style.addLayer(symbolLayer("trips-past-count", "trips-past") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
+    style.addLayer(symbolLayer("trips-next-count", "trips-next") { textField(get("count")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
 }
