@@ -1,7 +1,7 @@
 // What the functions read and write in Firestore. Each function takes the database and the
 // sender as parameters, so the tests run them against the emulator with a fake sender.
 
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, GrpcStatus } from 'firebase-admin/firestore';
 import type { Firestore } from 'firebase-admin/firestore';
 import {
   changeNotice, changeRecipients, ChangeKind, EventData, Member, Notice, parisDay, addDays, reminders, RsvpStatus,
@@ -120,16 +120,28 @@ export async function releaseBringOf(db: Firestore, memberId: string): Promise<v
  * A member was removed (a separation, for example): their answers, bags, alerts, documents and voice notes
  * of trips, phones, settings and days of use (PRD, récit 1 nonies) go too.
  * The family has a few hundred events at most, so going through them all stays cheap.
+ * Returns the Storage folders of their trip files, for the caller to empty: a file sent without its
+ * document or note (the app cut off in between) is in none of them, and a passport must not stay.
  */
-export async function deleteMemberData(db: Firestore, memberId: string): Promise<void> {
+export async function deleteMemberData(db: Firestore, memberId: string): Promise<string[]> {
   const events = await db.collection('events').select().get();
   const writer = db.bulkWriter();
+  // A burst sent in between is gone (NOT_FOUND): nothing left to remove. Any other failure is
+  // retried, then logged, as close() does not throw for a single write.
+  writer.onWriteError((error) => {
+    if (error.code === GrpcStatus.NOT_FOUND) return false;
+    if (error.failedAttempts < 3) return true;
+    console.error('deleteMemberData', error.documentRef.path, error.message);
+    return false;
+  });
   for (const event of events.docs) {
     writer.delete(event.ref.collection('rsvps').doc(memberId));
   }
   // « À emporter » (récit 62): their bags, which nobody else could read, go too.
   const trips = await db.collection('trips').select().get();
+  const folders: string[] = [];
   for (const trip of trips.docs) {
+    folders.push(`trips/${trip.id}/documents/${memberId}/`, `trips/${trip.id}/voice/${memberId}/`);
     writer.delete(trip.ref.collection('bags').doc(memberId));
     // « Prévenir ma famille » (récit 105): their last alert.
     writer.delete(trip.ref.collection('alerts').doc(memberId));
@@ -156,6 +168,7 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   // « Carnet de baroudeur » (récit 107): the places added by hand are private too.
   await db.recursiveDelete(member.collection('travelPlaces'));
   await db.recursiveDelete(db.collection('usage').doc(memberId).collection('days'));
+  return folders;
 }
 
 /** PRD, récit 6 bis: at 18 h, the members coming tomorrow are reminded. */

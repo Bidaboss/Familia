@@ -249,7 +249,9 @@ export const onEventPhotoCreated = onDocumentCreated('events/{eventId}/photos/{p
 });
 
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {
-  await deleteMemberData(getFirestore(), event.params.memberId);
+  const folders = await deleteMemberData(getFirestore(), event.params.memberId);
+  // Their trip files, even one sent without its document or note.
+  await Promise.all(folders.map((prefix) => getStorage().bucket().deleteFiles({ prefix })));
   // « Qui apporte quoi » (récit 4 bis): what they had taken is free again.
   await releaseBringOf(getFirestore(), event.params.memberId);
   await deleteCommentMutesOf(getFirestore(), event.params.memberId);
