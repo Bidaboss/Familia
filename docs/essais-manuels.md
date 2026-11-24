@@ -2203,3 +2203,14 @@ Il faut deux téléphones : un participant du voyage (A) et quelqu'un qui le sui
 5. Deux participants qui publient le même jour la même étape : le second lit « Quelqu'un a déjà publié le film du … » et rien de lui ne reste dans Storage.
 6. Un voyage surprise ou caché à quelqu'un : pas de carte dans le fil, pas de notification.
 7. Film du voyage dans « Voir les photos » : après avoir fait le film, ajouter une photo puis revenir : « Faire le film » le refait (retour C2 de #557).
+
+## Voyage : télécharger un film dans la galerie (récit 108, partie 4 : règle 32)
+
+**Publier Firebase : non.**
+Sur un téléphone en Android 10 ou plus :
+1. Film d'une étape : « Voir le film de l'étape », puis le menu ⋮ → « Télécharger ». La ligne « Film enregistré dans la galerie… » s'affiche. Dans Galerie (ou Google Photos) → dossier Familia des films, le film y est, nommé d'après l'étape.
+2. Film publié d'une étape : à droite de « Film du …, par … », le bouton d'enregistrement (TalkBack lit « Télécharger le film du … ») le copie dans la galerie, depuis le réseau.
+3. Film du voyage (« Voir les photos » → « Faire le film ») : sous « Partager », « Télécharger » fait de même.
+4. Sans réseau, le film publié dit « Le film n'a pas pu être enregistré… ». Les films faits sur le téléphone s'enregistrent quand même.
+5. Les films d'album d'un événement n'ont pas « Télécharger » (seulement les films de voyage, règle 32).
+6. Sur Android 8 ou 9, « Télécharger » n'apparaît pas : « Partager » reste, avec son rappel.
