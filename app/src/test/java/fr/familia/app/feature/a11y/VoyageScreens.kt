@@ -283,7 +283,7 @@ internal object VoyageScreens {
                 meId = "m1",
                 onShare = {},
             )
-        }
+        },
         // Fiche F3: the bags are always on the light blue page of « Valise ».
         screen("À emporter") { androidx.compose.foundation.layout.Box(Modifier.background(TripPathColors.Sky)) {
             PackingBags(
