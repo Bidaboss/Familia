@@ -148,18 +148,19 @@ fun TripsScreen(
         (success.ongoing + success.upcoming).mapNotNull { s -> s.place?.let { GlobeMarker(it, false, s.trip.id, s.placeName.orEmpty()) } }
             .let { list -> list.mapIndexed { i, m -> if (i == 0) m.copy(highlighted = true) else m } }
     }
-    // Opening a trip from the globe: the camera flies there for 2 s, then the trip opens; a second touch opens it at once.
+    // Opening a trip from the globe (E-60): the camera starts to fly there and the trip opens after a third of a second; a second touch opens it at once.
     var flight by remember { mutableStateOf<GlobeFlight?>(null) }
     var flights by remember { mutableStateOf(0) }
     val still = remember { animationsOff(context) }
     androidx.compose.runtime.LaunchedEffect(flight?.id) {
         flight?.let {
-            kotlinx.coroutines.delay(FLIGHT_MILLIS)
+            kotlinx.coroutines.delay(OPEN_AFTER_FLIGHT_MILLIS)
             flight = null
             onOpenTrip(it.tripId)
         }
     }
     val openTrip: (String) -> Unit = { id ->
+        fr.familia.app.feature.trips.TripOpenTiming.touched()
         val place = success?.let { (it.ongoing + it.upcoming + it.past).firstOrNull { s -> s.trip.id == id }?.place }
         if (globeOn && place != null && !still && flight == null) {
             flights++

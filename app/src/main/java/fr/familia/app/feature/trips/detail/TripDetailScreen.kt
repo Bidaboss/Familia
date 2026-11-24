@@ -406,6 +406,8 @@ private fun PathContent(
     // The sheet has three heights: low (the map above), high, and the whole screen (règle 8).
     // Fiche F1 §2: the sheet opens in the middle (48 %).
     var level by rememberSaveable(state.trip.id) { mutableStateOf(1) }
+    // E-60: the screen of the trip is there; the log says how long after the touch.
+    LaunchedEffect(state.trip.id) { fr.familia.app.feature.trips.TripOpenTiming.reached("écran") }
     val expanded = level >= 1
     var selected by rememberSaveable(state.trip.id) { mutableStateOf<Int?>(null) }
     // Back first puts the map back as it was (règle 25, « Retour dézoome »), then lowers the sheet.
