@@ -40,6 +40,8 @@ class TripDepartureTest {
         val car = TripStep("car", StepType.Car, "Maison", start, null, null, null, null)
         val stay = TripStep("stay", StepType.Lodging, "La Palmyre", start, null, start.plusDays(3), null, null)
         assertEquals("La Palmyre", firstDestination(trip, listOf(stay, car)))
+        // Named as « Le programme » names it: the part before the comma.
+        assertEquals("La Palmyre", firstDestination(trip, listOf(stay.copy(place = "La Palmyre, Les Mathes, France"), car)))
         assertNull(firstDestination(trip, listOf(car)))
     }
 }

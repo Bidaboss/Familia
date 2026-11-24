@@ -39,6 +39,7 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.trips.detail.TripPathColors
+import fr.familia.app.feature.trips.detail.placeName
 import fr.familia.app.feature.trips.detail.tripTimeline
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -78,9 +79,9 @@ fun tripDeparture(trips: List<Trip>, memberId: String, today: LocalDate): TripDe
     return TripDeparture(trip.id, trip.title, place = null, tomorrow = trip.startDate != today)
 }
 
-/** The first destination of the trip, as « Le programme » numbers them. */
+/** The first destination of the trip, named as « Le programme » names it (the part before the comma). */
 fun firstDestination(trip: Trip, steps: List<TripStep>): String? =
-    tripTimeline(trip, steps).destinations.firstOrNull()?.step?.place?.trim()?.takeIf { it.isNotEmpty() }
+    tripTimeline(trip, steps).destinations.firstOrNull()?.step?.let(::placeName)?.takeIf { it.isNotBlank() }
 
 /** The departure of tomorrow or today, with its first destination, updated live; nothing on error. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -122,7 +123,7 @@ fun rememberTripDeparture(container: AppContainer?, member: Member): TripDepartu
 
 /** The card: on the sky of the trips, the day said in big, then « Valise » and « Voir le trajet », 56 dp each. */
 @Composable
-fun TripDepartureCard(state: TripDeparture, onPacking: () -> Unit, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+fun TripDepartureCard(state: TripDeparture, onPacking: (() -> Unit)?, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val where = state.place ?: state.title
     val headline = stringResource(if (state.tomorrow) R.string.departure_tomorrow else R.string.departure_today, where)
     Column(
@@ -150,7 +151,8 @@ fun TripDepartureCard(state: TripDeparture, onPacking: () -> Unit, onOpen: () ->
             if (state.place != null) Text(state.title, fontSize = 15.sp, color = TripPathColors.InkSoft)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton(
+            // « Valise » only while packingList is on; « Voir le trajet » then takes the whole row.
+            if (onPacking != null) FilledTonalButton(
                 onClick = onPacking,
                 colors = ButtonDefaults.filledTonalButtonColors(containerColor = TripPathColors.Ink, contentColor = Color.White),
                 modifier = Modifier.weight(1f).heightIn(min = 56.dp),

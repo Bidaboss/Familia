@@ -278,7 +278,11 @@ fun HomeRoute(
             {
                 TripDepartureCard(
                     departure,
-                    onPacking = { actions.onOpenPacking(departure.tripId) },
+                    onPacking = if (flags.isOn(Feature.PackingList)) {
+                        { actions.onOpenPacking(departure.tripId) }
+                    } else {
+                        null
+                    },
                     onOpen = { actions.onOpenTrip(departure.tripId) },
                 )
             }
