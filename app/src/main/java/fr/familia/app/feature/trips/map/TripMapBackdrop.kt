@@ -29,7 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
-import fr.familia.app.core.power.rememberBatterySaving
+import fr.familia.app.core.power.rememberBatterySavingAtOpening
 import fr.familia.app.feature.trips.detail.SheetHandle
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.mapLabels
@@ -92,7 +92,7 @@ fun TripMapBackdrop(
     var mapTry by remember { mutableStateOf(0) }
     val allowed = remember { !talkBackOn(context) }
     // Règle 46: no satellite map while the battery is saved; the screen opens as a plain page.
-    val saving = rememberBatterySaving()
+    val saving = rememberBatterySavingAtOpening()
     // The sheet keeps its heights when the map fails (spec A3): the notice takes the place of the map.
     val mapLayout = satelliteMapUsable(token, allowed && !saving, talkBack = false) && placed.isNotEmpty()
     val withMap = mapLayout && !failed

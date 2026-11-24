@@ -3,7 +3,7 @@ package fr.familia.app.feature.trips.detail
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.power.BatterySavingBanner
-import fr.familia.app.core.power.rememberBatterySaving
+import fr.familia.app.core.power.rememberBatterySavingAtOpening
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
@@ -391,7 +391,7 @@ private fun PathContent(
     var mapTry by remember { mutableStateOf(0) }
     val mapAllowed = remember { !talkBackOn(context) }
     // Règle 46: under 20 % unplugged, or with Android's saver, no satellite map (the path instead).
-    val saving = rememberBatterySaving()
+    val saving = rememberBatterySavingAtOpening()
     // The sheet and its heights stay when the map fails (spec A3): « Carte indisponible » and « Réessayer » above it.
     val mapLayout = satelliteToken.isNotBlank() && mapAllowed && !saving && placed.isNotEmpty()
     val satellite = mapLayout && !mapFailed
