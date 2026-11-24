@@ -24,6 +24,7 @@ import fr.familia.app.core.album.book.PhotoBookButton
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.share.galleryFilmName
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import kotlinx.coroutines.CancellationException
@@ -91,7 +92,13 @@ fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: Str
         actionsBar = { HelpButton(ScreenHelp.TripDetail) },
         top = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                AlbumFilmPart(film, if (plan == null) 0 else state.photos.size, filmActions, help = stringResource(R.string.trip_film_help))
+                AlbumFilmPart(
+                    film,
+                    if (plan == null) 0 else state.photos.size,
+                    filmActions,
+                    help = stringResource(R.string.trip_film_help),
+                    downloadName = galleryFilmName("voyage", trip?.title ?: tripId),
+                )
                 // Le livre photo (récit 59), behind the switch photoBook: the caller gives it or not.
                 if (onMakeBook != null && state.photos.isNotEmpty()) PhotoBookButton(onMakeBook)
             }

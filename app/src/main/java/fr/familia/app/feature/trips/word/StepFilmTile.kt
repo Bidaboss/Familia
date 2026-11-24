@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -50,8 +51,12 @@ import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.share.FilmDownloadLine
+import fr.familia.app.core.share.FilmSource
 import fr.familia.app.core.share.ShareConsentReminder
+import fr.familia.app.core.share.galleryFilmName
 import fr.familia.app.core.share.playVideo
+import fr.familia.app.core.share.rememberFilmDownload
 import fr.familia.app.core.share.shareVideo
 import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.feature.trips.TripTile
@@ -78,6 +83,8 @@ fun StepFilm(
     album: List<AlbumPhoto>,
     trip: Trip? = null,
     me: Member? = null,
+    /** The name of the step, for the file saved in the gallery. */
+    place: String? = null,
 ) {
     val filmsDir = File(LocalContext.current.cacheDir, "films")
     val filmViewModel: AlbumFilmViewModel = viewModel(
@@ -106,7 +113,7 @@ fun StepFilm(
     val day = if (canPublish && trip != null) dayToPublish(stepPhotos, films, stepId, trip, today) else null
     val publish: (LocalDate) -> Unit = { d -> if (me != null) publisher.publish(me, d, stepPhotos) }
     val repository = container?.tripFilmRepository
-    StepFilmTile(film, stepPhotos.size, actions, onPublish = day?.takeIf { publishing !is DayFilmState.Working }?.let { d -> { publish(d) } }) {
+    StepFilmTile(film, stepPhotos.size, actions, downloadName = galleryFilmName("etape", place ?: stepId), onPublish = day?.takeIf { publishing !is DayFilmState.Working }?.let { d -> { publish(d) } }) {
         DayFilmsPart(
             state = publishing,
             published = stepFilms(films, stepId),
@@ -128,6 +135,8 @@ fun StepFilmTile(
     state: FilmState,
     photoCount: Int,
     actions: FilmActions,
+    /** The file name in the gallery for « Télécharger » (règle 32); null offers none. */
+    downloadName: String? = null,
     /** « Publier le film de la journée » in the menu, for a participant with a day to publish (PRD 156). */
     onPublish: (() -> Unit)? = null,
     below: @Composable () -> Unit = {},
@@ -138,6 +147,7 @@ fun StepFilmTile(
     var noPlayer by rememberSaveable { mutableStateOf(false) }
     var menu by rememberSaveable { mutableStateOf(false) }
     var remind by rememberSaveable { mutableStateOf(false) }
+    val download = rememberFilmDownload()?.takeIf { downloadName != null }
     LaunchedEffect(state) {
         if (state is FilmState.Ready && playWhenReady) {
             playWhenReady = false
@@ -207,10 +217,19 @@ fun StepFilmTile(
                                     onClick = { menu = false; remind = true },
                                     modifier = Modifier.heightIn(min = 56.dp),
                                 )
+                                if (download != null && downloadName != null) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.film_download)) },
+                                        leadingIcon = { Icon(Icons.Outlined.SaveAlt, contentDescription = null) },
+                                        onClick = { menu = false; download.download(FilmSource.Local(File(state.path), downloadName)) },
+                                        modifier = Modifier.heightIn(min = 56.dp),
+                                    )
+                                }
                                 if (onPublish != null) PublishItem { menu = false; onPublish() }
                             }
                         }
                     }
+                    FilmDownloadLine(download)
                     if (noPlayer) {
                         Text(stringResource(R.string.album_film_no_player), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }

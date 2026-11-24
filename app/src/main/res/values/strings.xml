@@ -1509,6 +1509,11 @@
     <string name="day_film_too_big">Ce film est trop lourd pour être publié (10 Mo au plus).</string>
     <string name="day_film_reminder">Le film du %1$s n\'est pas encore publié.</string>
     <string name="day_film_published">Film du %1$s, par %2$s</string>
+    <string name="film_download">Télécharger</string>
+    <string name="film_download_film">Télécharger le film du %1$s</string>
+    <string name="film_downloading">Le film s\'enregistre dans la galerie…</string>
+    <string name="film_downloaded">Film enregistré dans la galerie, dossier Familia des films.</string>
+    <string name="film_download_failed">Le film n\'a pas pu être enregistré. Vérifie la place libre et le réseau.</string>
     <!-- Album of an event (récit 41). -->
     <string name="event_album_title">Photos</string>
     <string name="event_album_not_open">L\'album s\'ouvre le jour de l\'événement. Ceux qui ont dit « Je viens » pourront y mettre leurs photos.</string>
