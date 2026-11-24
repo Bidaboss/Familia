@@ -305,6 +305,7 @@ import fr.familia.app.feature.trips.TripPhrasesDestination
 import fr.familia.app.feature.trips.TripSafetyDestination
 import fr.familia.app.feature.trips.TripMoneyDestination
 import fr.familia.app.feature.trips.TripDocumentsDestination
+import fr.familia.app.feature.trips.TripEnrichDestination
 import fr.familia.app.feature.trips.TripPlaceAddDestination
 import fr.familia.app.feature.trips.TripPlaceDestination
 import fr.familia.app.feature.trips.place.PlaceEditRoute
@@ -313,6 +314,7 @@ import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.safety.TripSafetyRoute
 import fr.familia.app.feature.trips.money.TripMoneyRoute
 import fr.familia.app.feature.trips.documents.TripDocumentsRoute
+import fr.familia.app.feature.trips.enrich.TripEnrichRoute
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripWordDestination
 import fr.familia.app.feature.trips.word.StepWordRoute
@@ -1190,6 +1192,7 @@ fun FamiliaApp(
                             onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
                             onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             onOpenDocuments = { navController.navigate(TripDocumentsDestination(tripId)) },
+                            onOpenEnrich = { navController.navigate(TripEnrichDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
                             onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
@@ -1226,6 +1229,9 @@ fun FamiliaApp(
                         TripScreenOverMap(container, tripId) {
                             TripMoneyRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
+                    }
+                    composable<TripEnrichDestination> { entry ->
+                        TripEnrichRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripEnrichDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     // Récit 103: the page of an accommodation, a restaurant or a spot of a destination.
                     composable<TripPlaceDestination> { entry ->

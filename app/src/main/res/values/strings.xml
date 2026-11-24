@@ -3703,4 +3703,51 @@
     <string name="place_choose_other_lodging">Choisir un autre hébergement</string>
     <string name="place_choose_other_restaurant">Choisir un autre restaurant</string>
     <string name="place_choose_other_spot">Choisir un autre spot</string>
+
+    <!-- « Enrichir avec une IA » (récit 106, règles 27 à 30) -->
+    <string name="enrich_round_label">Enrichir avec une IA</string>
+    <string name="enrich_title">Enrichir avec une IA</string>
+    <string name="enrich_intro">Copiez la demande dans l\'IA de votre choix, puis collez ici sa réponse. Rien n\'est ajouté avant que vous l\'ayez vu et coché.</string>
+    <string name="enrich_not_allowed">Seuls ceux qui partent enrichissent le voyage.</string>
+    <string name="enrich_for">Pour</string>
+    <string name="enrich_for_trip">Tout le voyage</string>
+    <string name="enrich_for_destination">%1$s seulement</string>
+    <string name="enrich_step_copy">1. Copiez la demande</string>
+    <string name="enrich_copy">Copier la demande</string>
+    <string name="enrich_copied">Demande copiée. Collez-la dans votre IA.</string>
+    <string name="enrich_step_paste">2. Collez la réponse de l\'IA</string>
+    <string name="enrich_answer">Réponse de l\'IA</string>
+    <string name="enrich_read">Lire la réponse</string>
+    <string name="enrich_step_check">3. Vérifiez et cochez</string>
+    <string name="enrich_new_destination">Nouvelle destination : %1$s</string>
+    <string name="enrich_dates">Du %1$s au %2$s</string>
+    <string name="enrich_place">%1$s · %2$s</string>
+    <string name="enrich_at">vers %1$s</string>
+    <string name="enrich_kind_lodging">Hébergement</string>
+    <string name="enrich_kind_restaurant">Restaurant</string>
+    <string name="enrich_kind_spot">Spot</string>
+    <string name="enrich_skipped_title">Laissé de côté</string>
+    <string name="enrich_skip_link">« %1$s » contenait un lien.</string>
+    <string name="enrich_skip_dates">« %1$s » : dates manquantes ou fausses.</string>
+    <string name="enrich_skip_outside">« %1$s » : en dehors des dates du voyage.</string>
+    <string name="enrich_skip_overlap">« %1$s » : ces nuits sont déjà prises par une autre destination.</string>
+    <string name="enrich_skip_name">Un élément sans nom.</string>
+    <string name="enrich_skip_kind">« %1$s » : ni hébergement, ni restaurant, ni spot.</string>
+    <string name="enrich_skip_too_many">%1$s éléments de plus que la limite.</string>
+    <string name="enrich_refused_empty">Collez d\'abord la réponse de l\'IA.</string>
+    <string name="enrich_refused_too_long">Cette réponse est trop longue. Demandez à l\'IA une réponse plus courte.</string>
+    <string name="enrich_refused_not_json">Cette réponse n\'est pas au format demandé. Recopiez la demande telle quelle dans l\'IA, puis collez sa réponse entière.</string>
+    <string name="enrich_refused_nothing">Rien à ajouter dans cette réponse.</string>
+    <string name="enrich_adding">Ajout en cours…</string>
+    <string name="enrich_save_failed">Une partie n\'a pas pu être ajoutée. Vérifiez la connexion et le voyage.</string>
+    <plurals name="enrich_add">
+        <item quantity="one">Ajouter %1$d élément</item>
+        <item quantity="many">Ajouter %1$d éléments</item>
+        <item quantity="other">Ajouter %1$d éléments</item>
+    </plurals>
+    <plurals name="enrich_added">
+        <item quantity="one">%1$d élément ajouté au voyage.</item>
+        <item quantity="many">%1$d éléments ajoutés au voyage.</item>
+        <item quantity="other">%1$d éléments ajoutés au voyage.</item>
+    </plurals>
 </resources>

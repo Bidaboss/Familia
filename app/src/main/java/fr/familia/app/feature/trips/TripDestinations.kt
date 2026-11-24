@@ -42,6 +42,10 @@ data class TripMoneyDestination(val tripId: String)
 @Serializable
 data class TripDocumentsDestination(val tripId: String)
 
+/** « Enrichir avec une IA » (récit 106). */
+@Serializable
+data class TripEnrichDestination(val tripId: String)
+
 /** The map of [tripId]: its steps joined in order on the landscape (récit 87). */
 @Serializable
 data class TripMapDestination(val tripId: String)
