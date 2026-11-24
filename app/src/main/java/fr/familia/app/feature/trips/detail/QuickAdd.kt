@@ -52,7 +52,13 @@ class QuickAdd(
 fun QuickAddButton(quick: QuickAdd) {
     var open by rememberSaveable { mutableStateOf(false) }
     val label = stringResource(R.string.quick_add_title, quick.destination)
-    FloatingActionButton(onClick = { open = true }) {
+    // Fiche F1 §5.3: a white round with a shadow, the camera in dark ink.
+    FloatingActionButton(
+        onClick = { open = true },
+        shape = androidx.compose.foundation.shape.CircleShape,
+        containerColor = androidx.compose.ui.graphics.Color.White,
+        contentColor = androidx.compose.ui.graphics.Color(0xFF17333F),
+    ) {
         Icon(Icons.Outlined.PhotoCamera, contentDescription = label)
     }
     if (open) {

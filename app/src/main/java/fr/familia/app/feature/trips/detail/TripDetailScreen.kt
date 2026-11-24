@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,6 +55,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
@@ -169,8 +172,10 @@ fun TripDetailScreen(
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
     Scaffold(
+        // Fiche F1: on the path the map goes under the status bar and the top is drawn over it.
+        contentWindowInsets = if (path) androidx.compose.foundation.layout.WindowInsets.navigationBars else androidx.compose.material3.ScaffoldDefaults.contentWindowInsets,
         topBar = {
-            FamiliaTopBar(
+            if (!path) FamiliaTopBar(
                 title = {
                     if (path && success != null) {
                         PathTitle(success)
@@ -237,7 +242,12 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, cover, timeline, onOpenDocuments, onOpenEnrich)
+                    PathContent(
+                        state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, cover, timeline, onOpenDocuments, onOpenEnrich,
+                        onBack = onBack,
+                        onEditTrip = onEditTrip.takeIf { state.canManage },
+                        onShare = onShare,
+                    )
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -368,11 +378,13 @@ private fun PathContent(
     timeline: TimelineActions? = null,
     onOpenDocuments: (() -> Unit)? = null,
     onOpenEnrich: (() -> Unit)? = null,
+    onBack: () -> Unit = {},
+    onEditTrip: (() -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     // The day of the card: today during the trip, else its first day (no strip of days any more: « Le trajet » shows them all).
     val chosen = TripDays.firstShown(days, state.today)
-    val number = days.indexOf(chosen) + 1
     val daySteps = TripDays.stepsOf(state.steps, chosen, days)
     val places = daySteps.map { it.place }.distinct()
     val label = when {
@@ -381,11 +393,12 @@ private fun PathContent(
         else -> places.firstOrNull()
     }
     val listState = rememberLazyListState()
-    val withCover = cover != null && state.today.isBefore(state.trip.startDate)
+    // Fiche F1 §5.1: the big photo card heads the sheet before, during and after the trip.
+    val withCover = cover != null
     // « Bien arrivé » stays at hand on the day of the step only (DESIGN-102 A), for those who go.
     val nextStep = remember(state.steps, state.today) { StepArrivalDay.stepOfToday(state.steps, state.today) }
     val showNext = nextStep != null && state.isParticipant
-    val notebookIndex = (if (withCover) 1 else 0) + 1 + (if (state.sendFailed) 1 else 0) + (if (showNext) 2 else 0)
+    val notebookIndex = (if (withCover) 1 else 0) + 2 + (if (onOpenEnrich != null && state.isParticipant) 1 else 0) + (if (state.sendFailed) 1 else 0) + (if (showNext) 2 else 0)
     // Opened from « Étapes » or « À prévoir » of the list: that part first, once.
     var opened by rememberSaveable(state.trip.id) { mutableStateOf(false) }
     LaunchedEffect(openAt) {
@@ -413,7 +426,8 @@ private fun PathContent(
     // An « APK de publication » without its token says so in « Plantages » (a test APK has none on purpose).
     LaunchedEffect(Unit) { if (satelliteToken.isBlank()) MapFailureLog.record(context, MapUnavailable.NoToken()) }
     // The sheet has three heights: low (the map above), high, and the whole screen (règle 8).
-    var level by rememberSaveable(state.trip.id) { mutableStateOf(0) }
+    // Fiche F1 §2: the sheet opens in the middle (48 %).
+    var level by rememberSaveable(state.trip.id) { mutableStateOf(1) }
     val expanded = level >= 1
     var selected by rememberSaveable(state.trip.id) { mutableStateOf<Int?>(null) }
     // Back first puts the map back as it was (règle 25, « Retour dézoome »), then lowers the sheet.
@@ -451,8 +465,14 @@ private fun PathContent(
             sheetHigh = expanded,
             bottomPaddingDp = lowHeight.value.toDouble(),
             onFailed = { mapCause = it.detail; mapFailed = true },
+            settingsAtTop = true,
             modifier = Modifier.fillMaxSize(),
         )
+    }
+    val countdown = tripCountdown(state.trip.startDate, state.trip.endDate, state.today)
+    // Fiche F1 §3: the top floats over the map; on the whole screen the sheet covers it.
+    if (mapLayout && level < 2) {
+        TripHeader(state.trip, state.participants, countdown, onBack, onEditTrip, onShare, showCredit = satellite)
     }
     Column(
         Modifier
@@ -460,6 +480,13 @@ private fun PathContent(
             .fillMaxWidth()
             .then(if (mapLayout) Modifier.height(sheetHeight).clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier.fillMaxSize()),
     ) {
+    if (!mapLayout) {
+        TripHeader(
+            state.trip, state.participants, countdown, onBack, onEditTrip, onShare, showCredit = false,
+            modifier = Modifier.background(state.trip.landscape.palette.sky).padding(bottom = 8.dp),
+        )
+    }
+    if (mapLayout && level == 2) Spacer(Modifier.statusBarsPadding())
     if (mapLayout) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
     LazyColumn(
         modifier = Modifier.weight(1f),
@@ -474,28 +501,15 @@ private fun PathContent(
             item(key = "cover") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { cover(state) } }
         }
         if (!satellite) item(key = "path") { TripPathIllustration(days, chosen, state.today, label, landscape = state.trip.landscape) }
-        // Before and during the trip, the countdown on a white card (récit 109, règle 16); nothing once it is over.
-        val countdown = tripCountdown(state.trip.startDate, state.trip.endDate, state.today)
-        if (countdown != TripCountdown.Over) {
-            item(key = "countdown") { CountdownCard(countdown, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }
+        // Fiche F1 §5.2 to §5.5: the dates, who goes, then « Enrichir le voyage avec une IA ».
+        item(key = "dates") {
+            TripDatesRow(state.trip, onEditTrip, Modifier.padding(start = 12.dp, end = 16.dp, top = 12.dp))
         }
-        item(key = "day") {
-            // The card sits on the bottom of the landscape, as on the maquette.
-            Box(Modifier.fillMaxWidth().background(state.trip.landscape.palette.near).padding(horizontal = ClaySpacing.screen, vertical = 12.dp)) {
-                TripDayCard(
-                    number = number,
-                    places = places,
-                    day = chosen,
-                    photoCount = photos.photos.size,
-                    onPhotos = onSeePhotos,
-                    onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
-                    // The satellite map is already open above the sheet (règle 23): « La carte » stays only for the fallback (TalkBack, no map).
-                    onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() && !satellite },
-                    onPacking = onOpenPacking?.takeIf { state.isParticipant },
-                    packingCount = packingCount,
-                    onDocuments = onOpenDocuments?.takeIf { state.isParticipant },
-                )
-            }
+        item(key = "people") {
+            TripPeopleRow(state.people, state.participants, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 4.dp))
+        }
+        if (onOpenEnrich != null && state.isParticipant) {
+            item(key = "enrich") { TripEnrichPill(onOpenEnrich, Modifier.padding(horizontal = ClaySpacing.screen)) }
         }
         if (state.sendFailed) {
             item(key = "failed") {
@@ -529,20 +543,19 @@ private fun PathContent(
                 TripTimelineSection(state.trip, state.steps, timeline ?: TimelineActions(onOpen = onEditStep))
             }
         }
-        if (onOpenEnrich != null && state.isParticipant) {
-            item(key = "enrich") {
-                // A small, readable button, only on the trip (règle 30).
-                TextButton(
-                    onClick = onOpenEnrich,
-                    modifier = Modifier.padding(horizontal = ClaySpacing.screen).heightIn(min = 56.dp),
-                ) {
-                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
-                    Text(stringResource(R.string.enrich_round_label), modifier = Modifier.padding(start = 8.dp))
+        // Fiche F1 §5.6: the tools of the trip in two columns, under « Le trajet ».
+        item(key = "tools") {
+            val tools = buildList {
+                if (onOpenExpenses != null && state.isParticipant) add(TripTool(stringResource(R.string.trip_expenses_short), stringResource(R.string.expenses_open), onOpenExpenses))
+                if (onOpenPacking != null && state.isParticipant) {
+                    val description = if (packingCount == 0) stringResource(R.string.packing_round_ready) else pluralStringResource(R.plurals.packing_round_todo, packingCount, packingCount)
+                    add(TripTool(stringResource(R.string.packing_round_label), description, onOpenPacking, badge = packingCount))
                 }
+                if (onOpenDocuments != null && state.isParticipant) add(TripTool(stringResource(R.string.documents_round_label), stringResource(R.string.documents_round_description), onOpenDocuments))
+                // The satellite map is already above the sheet (règle 23): « La carte » stays only for the fallback (TalkBack, no map).
+                if (onOpenMap != null && state.steps.isNotEmpty() && !satellite) add(TripTool(stringResource(R.string.trip_map_open), stringResource(R.string.trip_map_open), onOpenMap))
             }
-        }
-        tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
-            item(key = "figures") { TripFiguresTile(figures, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }
+            TripToolsGrid(tools, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp))
         }
         item(key = "photos-title") {
             TripSectionTitle(stringResource(R.string.trip_photos), Modifier.padding(horizontal = ClaySpacing.screen))
@@ -581,11 +594,12 @@ internal fun SheetHandle(level: Int, onLevel: (Int) -> Unit) {
             .clickable(role = Role.Button, onClickLabel = label) { onLevel(if (level > 0) 0 else 1) },
         contentAlignment = Alignment.Center,
     ) {
-        Box(Modifier.size(width = 48.dp, height = 6.dp).clip(RoundedCornerShape(3.dp)).background(TripPathColors.InkSoft))
+        // Fiche F1 §2: a grey bar of 44 × 5 dp; on the whole screen an arrow at the top left instead.
+        if (level < 2) Box(Modifier.size(width = 44.dp, height = 5.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF9FB2BD)))
         if (level == 2) {
-            androidx.compose.material3.IconButton(onClick = { onLevel(1) }, modifier = Modifier.align(Alignment.CenterStart).size(56.dp)) {
+            androidx.compose.material3.IconButton(onClick = { onLevel(1) }, modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).size(56.dp)) {
                 androidx.compose.material3.Icon(
-                    androidx.compose.material.icons.Icons.Outlined.KeyboardArrowDown,
+                    androidx.compose.material.icons.Icons.Filled.ArrowDownward,
                     contentDescription = stringResource(R.string.trip_sheet_lower),
                     tint = TripPathColors.Ink,
                 )
@@ -619,16 +633,6 @@ private fun CountdownLine(countdown: TripCountdown, color: Color = Color.Unspeci
         TripCountdown.Over -> return
     }
     Text(text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = color)
-}
-
-/** « 4 nuits avant le départ » in big, dark ink on white in every theme, as on the prototype. */
-@Composable
-private fun CountdownCard(countdown: TripCountdown, modifier: Modifier = Modifier) {
-    Box(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(TripSheetColors.Card).padding(horizontal = 16.dp, vertical = 14.dp),
-    ) {
-        CountdownLine(countdown, color = TripSheetColors.Ink)
-    }
 }
 
 @Composable

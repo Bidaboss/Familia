@@ -42,6 +42,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.offset
+import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
@@ -72,9 +75,10 @@ const val MAX_COVER_PLACES = 5
 private const val SLIDE_MILLIS = 4_000L
 
 /**
- * The home of a planned trip (règle 10): the image of the main place, or several images that go by
- * every 4 s (stopped with « Pause », when the phone asks for no animation, or with TalkBack so the page does not change under the reading), « Voyage
- * programmé », the name of the trip, its month, its days and its kilometres.
+ * The big photo card of a trip (règle 10, fiche F1 §5.1): the photo of the main place, or several that
+ * go by every 4 s (stopped with « Pause », when the phone asks for no animation, or with TalkBack so the
+ * page does not change under the reading). Over it: « ● Voyage programmé » (« En cours », « Terminé »),
+ * the name of the place shown, the name of the trip, its month, its days and its kilometres.
  */
 @Composable
 fun TripCoverCarousel(
@@ -82,6 +86,7 @@ fun TripCoverCarousel(
     steps: List<TripStep>,
     photos: PlacePhotos?,
     modifier: Modifier = Modifier,
+    today: java.time.LocalDate = java.time.LocalDate.now(),
 ) {
     val places = coverPlaces(trip, steps)
     val pager = rememberPagerState { places.size }
@@ -97,7 +102,13 @@ fun TripCoverCarousel(
         }
     }
     val figures = tripFigures(trip, steps, 0)
-    Box(modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(24.dp))) {
+    val days = tripLength(trip)
+    val phase = when {
+        today.isBefore(trip.startDate) -> R.string.trip_cover_planned
+        today.isAfter(trip.endDate) -> R.string.trip_cover_over
+        else -> R.string.trip_cover_ongoing
+    }
+    Box(modifier.fillMaxWidth().height(210.dp).clip(RoundedCornerShape(24.dp))) {
         HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
             val place = places[page]
             Box(
@@ -106,40 +117,56 @@ fun TripCoverCarousel(
                 },
             ) {
                 PlaceCover(
-                    place.name, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
+                    // Without a step, the name is the free title of the trip: it never goes to Wikipedia (B1 of #586).
+                    place.name.takeIf { steps.isNotEmpty() }, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
                     // Under « Voyage programmé », away from the pause button and the title: the licence asks for it to be read.
                     creditAlignment = Alignment.TopStart,
-                    creditTop = 46.dp,
+                    creditTop = 44.dp,
                 )
             }
         }
-        Text(
-            stringResource(R.string.trip_cover_planned),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = TripSheetColors.Ink,
-            modifier = Modifier.align(Alignment.TopStart).padding(10.dp).clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Highlight).padding(horizontal = 10.dp, vertical = 4.dp),
-        )
+        // « ● Voyage programmé »: dark blue at 85 %, 24 dp high (F1).
+        Row(
+            Modifier.align(Alignment.TopStart).padding(start = 12.dp, top = 14.dp).height(24.dp)
+                .clip(RoundedCornerShape(12.dp)).background(CoverBlue.copy(alpha = 0.85f)).padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Box(Modifier.size(8.dp).clip(CircleShape).background(Color.White))
+            Text(stringResource(phase), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1)
+        }
         Column(
             Modifier
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))))
-                .padding(start = 14.dp, end = 14.dp, top = 24.dp, bottom = 12.dp),
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))))
+                .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(trip.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            val days = tripLength(trip)
-            val parts = buildList {
-                add(frenchDate(trip.startDate, "MMMM yyyy"))
-                add(pluralStringResource(R.plurals.trips_days, days, days))
-                figures?.distanceKm?.let { add(stringResource(R.string.figures_km, it)) }
-            }
-            Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = Color.White)
-            if (places.size > 1) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    repeat(places.size) { i ->
-                        Box(Modifier.size(if (i == pager.currentPage) 10.dp else 7.dp).clip(CircleShape).background(if (i == pager.currentPage) Color.White else Color.White.copy(alpha = 0.5f)))
+            // The place of the photo shown, above the name of the trip.
+            Text(
+                places.getOrNull(pager.currentPage)?.name.orEmpty(),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.offset(x = (-8).dp).clip(RoundedCornerShape(10.dp)).background(Color.Black.copy(alpha = 0.35f)).padding(horizontal = 8.dp, vertical = 2.dp),
+            )
+            Text(trip.title, fontFamily = Fredoka, fontSize = 30.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(26.dp)) {
+                    CoverFigure(frenchDate(trip.startDate, "MMMM"), trip.startDate.year.toString())
+                    CoverFigure("$days", pluralStringResource(R.plurals.trip_cover_figure_days, days))
+                    figures?.distanceKm?.let { km ->
+                        CoverFigure(java.text.NumberFormat.getIntegerInstance(java.util.Locale.FRANCE).format(km), stringResource(R.string.trip_cover_figure_km))
+                    }
+                }
+                if (places.size > 1) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 6.dp)) {
+                        repeat(places.size) { i ->
+                            Box(Modifier.size(8.dp).clip(CircleShape).background(if (i == pager.currentPage) Color.White else Color.White.copy(alpha = 0.5f)))
+                        }
                     }
                 }
             }
@@ -153,9 +180,21 @@ fun TripCoverCarousel(
                     if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
                     contentDescription = stringResource(if (paused) R.string.trip_cover_play else R.string.trip_cover_pause),
                     tint = Color.White,
-                    modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.45f)).padding(6.dp),
+                    modifier = Modifier.size(48.dp).clip(CircleShape).background(CoverBlue.copy(alpha = 0.7f)).padding(12.dp),
                 )
             }
         }
+    }
+}
+
+/** The dark blue of the labels over the photo (F1: rgb(23,51,63)). */
+private val CoverBlue = Color(0xFF17333F)
+
+/** « août » over « 2027 », « 8 » over « JOURS » (F1: 19 sp heavy, then 12 sp capitals). */
+@Composable
+private fun CoverFigure(value: String, label: String) {
+    Column {
+        Text(value, fontSize = 19.sp, fontWeight = FontWeight.Black, color = Color.White, maxLines = 1)
+        Text(label.uppercase(), fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1)
     }
 }
