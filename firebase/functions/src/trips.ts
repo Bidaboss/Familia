@@ -164,6 +164,24 @@ export async function deleteStepWord(db: Firestore, tripId: string, stepId: stri
   await db.recursiveDelete(db.collection('trips').doc(tripId).collection('words').doc(stepId));
 }
 
+/** The voice notes of a deleted step (récit 104, règle 35) go with it; their files follow (onTripVoiceNoteDeleted). */
+export async function deleteStepVoiceNotes(db: Firestore, tripId: string, stepId: string): Promise<number> {
+  const notes = await db.collection('trips').doc(tripId).collection('voiceNotes').where('stepId', '==', stepId).get();
+  if (notes.empty) return 0;
+  // No limit of 500 writes, as for the places of a trip.
+  const writer = db.bulkWriter();
+  notes.docs.forEach((d) => void writer.delete(d.ref));
+  await writer.close();
+  return notes.size;
+}
+
+/** The file of a removed voice note, at its own place only, named after the record. */
+export function voiceNoteFile(tripId: string, noteId: string, data: { authorId?: unknown } | undefined): string | null {
+  if (!data || typeof data.authorId !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(data.authorId)) return null;
+  if (!/^[A-Za-z0-9]{1,40}$/.test(noteId)) return null;
+  return `trips/${tripId}/voice/${data.authorId}/${noteId}.m4a`;
+}
+
 /** A document of a trip (récit 105, règle 41), as the rules write it. */
 export interface TripDocumentData {
   ownerId?: unknown;

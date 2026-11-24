@@ -12,6 +12,8 @@
     <!-- « Rejoignez-moi » (récit 33): the position is read once, while the app is in use. Never in the background. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- « Note vocale » (récit 104, règle 35): the microphone, asked the first time, only while recording. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- « Partager Familia » (récit 1 bis bis) puts WhatsApp first when it is installed. -->
     <queries>

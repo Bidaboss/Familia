@@ -2051,3 +2051,108 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Entre 10 et 25 min après la dernière photo, le second reçoit une seule notification « <voyage> : 3 nouvelles photos », « Par <prénom>. ». La toucher ouvre le voyage.
 3. L'auteur, quand il est seul, ne reçoit rien. Un membre qui ne suit pas le voyage ne reçoit rien non plus.
 4. En ajoutant une photo toutes les 5 min, la notification part quand même au plus tard 45 à 60 min après la première.
+
+## Voyage : l'ajout rapide pendant le voyage (récit 104, partie 3a : règle 35)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Pendant un voyage dont on fait partie (aujourd'hui entre le départ et le retour), un bouton rond avec un appareil photo apparaît au-dessus de « Ajouter une étape ».
+2. Le toucher : une feuille s'ouvre, avec le titre « Ajouter à <destination du jour> » et les choix « Photo » et « Mot court ».
+3. Choisir « Photo » puis une photo : elle apparaît sous la destination du jour. Aucune notification ne part tout de suite : les suiveurs en reçoivent une seule, 10 à 25 min plus tard, pour toutes les photos (#538).
+4. Choisir « Mot court » : la page « Le mot de l'étape » de la destination du jour s'ouvre.
+5. Avant le départ, après le retour, ou pour quelqu'un qui suit le voyage sans y participer : pas de bouton rond.
+
+## Voyage : la note vocale de l'ajout rapide (récit 104, partie 3b : règle 35)
+
+**Publier Firebase : oui** (firestore.rules, storage.rules et deux fonctions), avant l'APK.
+1. Pendant un voyage dont on fait partie, toucher le bouton rond, puis « Note vocale ». La première fois, Android demande le micro : accepter.
+2. Toucher « Enregistrer » et parler, puis « Arrêter » : « Note de 0:12 prête à envoyer ». « Recommencer » efface et reprend. Toucher « Envoyer ».
+3. Sous la destination du jour apparaît « Note vocale de <prénom>, 0:12 » avec un bouton ▶ de 56 dp. Le toucher fait entendre la note, et le toucher encore l'arrête.
+4. Au bout de 2 min, l'enregistrement s'arrête tout seul.
+5. L'auteur, ou le créateur du voyage, voit une corbeille. Elle demande confirmation, puis supprime la note.
+6. Un membre qui suit le voyage sans y participer l'écoute, mais n'a ni le choix « Note vocale » ni la corbeille.
+7. Supprimer la destination : ses notes vocales partent avec elle.
+8. Avec TalkBack : le bouton dit « Écouter » ou « Arrêter l'écoute », et le compteur d'enregistrement est lu.
+
+## Voyage : couleurs de « Le programme » rangées dans une palette (retour C1 de #527)
+
+**Publier Firebase : non.** Rien ne doit changer à l'écran.
+1. Ouvrir un voyage planifié : la carte blanche « Le programme » garde son encre foncée, ses ronds bleu foncé et ses « + » bleu foncé, en thème clair comme en thème sombre.
+2. Changer un nombre de nuits puis attendre le bandeau : « Annuler » reste jaune sur bleu foncé.
+3. Sur la photo du haut, l'étiquette « Voyage programmé » reste jaune avec une encre foncée.
+
+## Voyage : Retour remet la carte où elle était (règle 25)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec au moins deux destinations placées : la carte satellite fait son arrivée (vers le continent, puis sur le voyage).
+2. Déplacer la carte du doigt et zoomer sur une destination, puis faire défiler la feuille jusqu'à « Le programme ».
+3. Toucher une destination ou un lieu pour ouvrir sa page, puis Retour : la carte est exactement où on l'avait laissée, l'arrivée ne se rejoue pas, et la feuille est à la même hauteur et au même endroit de la liste.
+4. Pareil après « Mot de l'étape », « Photos », « Valise », et après avoir tourné le téléphone.
+5. Quitter le voyage (Retour jusqu'à la liste) puis le rouvrir : l'arrivée se joue de nouveau, cadrée sur tout le voyage.
+6. Avec « Supprimer les animations » d'Android : pas d'arrivée, et Retour remet aussi la carte où elle était.
+
+## Voyage : compte à rebours, nuits et jours (récit 109 : règles 15, 16 et 26)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui part dans 4 jours : sous la photo, une carte blanche dit « 4 nuits avant le départ ». La veille, elle dit « Demain, c'est le départ », le jour même « C'est le jour J », puis « Jour 2 sur 6 » pendant le voyage. Une fois le voyage fini, plus de carte.
+2. Liste Voyages : la pastille d'un voyage à venir dit « Dans 4 nuits » (et non plus « Dans 4 jours »), puis « Demain » et « Aujourd'hui ».
+3. Accueil, la veille du départ, pour quelqu'un qui part : la carte « Demain, départ pour <première destination> » avec « Valise » et « Voir le trajet ». « Valise » ouvre la valise du voyage, « Voir le trajet » ouvre le voyage. Le jour J : « C'est le jour J : départ pour … ». Le lendemain, la carte « En ce moment » reprend sa place. Sans destination placée, la carte dit le nom du voyage.
+4. Même voyage, pour quelqu'un qui le suit sans partir : pas de carte la veille. Aucune notification ne part.
+5. Nouveau voyage avec un départ passé (l'an dernier) : sous les dates, « Combien de jours ? » avec − et +. « + » avance la date de retour d'un jour, et « − » s'arrête à 1 jour. Avec un départ aujourd'hui ou plus tard, cette ligne n'apparaît pas.
+6. Modifier une étape, champ « Une note » : l'aide dit « Plusieurs lignes possibles : … ». Le champ grandit jusqu'à 6 lignes, puis il défile au lieu de grandir encore.
+
+## Voyage : réglages de carte enregistrés (récit 110, partie 1 : règle 5 et section 9)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec la carte satellite, toucher le bouton discret en bas à droite : « Satellite / Rues » et « 2D / 3D », puis « Annuler » et « Enregistrer ». Il n'y a ni Lire, ni Terrain, ni Hiver, ni profil altimétrique (décision 155).
+2. Choisir « Rues » et « 3D » : la carte change tout de suite. Toucher « Annuler » : elle revient comme avant.
+3. Choisir de nouveau « Rues » et « 3D », puis « Enregistrer ». Quitter le voyage, en ouvrir un autre : il s'ouvre en Rues 3D. Le choix reste aussi après avoir fermé l'appli.
+4. Toucher en dehors de la fenêtre revient au même qu'« Annuler ».
+
+## Voyage : la photo de l'étape dans son repère (récit 110, partie 2 : règle 7)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec la carte satellite, dont une destination a déjà des photos : son repère rond montre la première photo de la destination, avec un anneau blanc et le numéro de l'étape dans un petit rond foncé (✓ une fois « Bien arrivé »).
+2. La prochaine étape a un rond plus grand, avec un anneau jaune.
+3. Une destination sans photo garde le rond foncé numéroté.
+4. Ajouter la première photo d'une destination : son repère prend la photo sans quitter l'écran.
+5. Dézoomer : les repères proches se regroupent en un rond avec leur nombre, photos comprises, puis se séparent au zoom.
+6. Toucher un repère avec photo : il est choisi comme un repère simple.
+7. Sans réseau, ou si une photo ne se charge pas : le rond simple reste, la carte ne bascule pas sur le dessin.
+
+## Voyage : « Où allez-vous ? » sur le globe (récit 110, partie 3 : règle 11)
+
+**Publier Firebase : non.**
+1. Voyages → « Nouveau voyage » : au-dessus de « Où allez-vous ? », le globe satellite tourne doucement.
+2. Chercher « La Palmyre » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
+3. « Continuer » mène à la suite de la création, comme avant, avec le nom du voyage déjà rempli.
+4. Avec TalkBack, sans réseau, ou si le globe a échoué récemment : le formulaire reste seul, sans globe, et tout marche pareil.
+
+## Voyage : repères avec photo, regroupement et chargement (retours C1 et C2 de #547)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec deux destinations proches qui ont des photos, puis dézoomer : les deux repères avec photo se fondent dans la même bulle numérotée, et aucune photo ne reste par-dessus la bulle. Zoomer : ils se séparent avec leur photo.
+2. Ouvrir un voyage avec beaucoup de destinations qui ont des photos : les photos des repères arrivent presque ensemble, et non plus l'une après l'autre.
+
+## Voyage : l'arrivée de « Modifier », comme la vidéo de référence (récit 111, partie 1 : règle 4)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui a des destinations placées, puis « Modifier » : la feuille du formulaire s'ouvre haute, puis descend ; la carte recule jusqu'à la Terre entière, puis replonge sur toutes les étapes, au-dessus de la feuille, en un seul mouvement d'environ 2,5 s.
+2. Recommencer et toucher la carte pendant le mouvement : il s'arrête là, et la carte se déplace et se zoome au doigt.
+3. Tirer la feuille vers le haut pendant l'arrivée : elle reste où on l'a mise.
+4. Depuis la modification, tourner le téléphone ou ouvrir le clavier puis le fermer : l'arrivée ne se rejoue pas.
+5. Modifier une étape : pas d'arrivée, la carte s'ouvre directement sur l'étape, comme avant.
+6. Avec « Supprimer les animations » dans les réglages d'Android, ou TalkBack : pas d'arrivée.
+7. Nouveau voyage : rien ne change (pas encore de carte au-dessus du formulaire).
+
+## Voyage : tous les écrans du voyage se tirent au-dessus de la carte (récit 111, partie 2 : règle 8)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui a des destinations placées, puis « Valise » : la carte satellite du voyage reste en haut, et « Valise » s'ouvre dans la feuille du bas, avec sa poignée.
+2. Tirer la poignée vers le haut : la feuille monte, puis prend tout l'écran avec la flèche en haut à gauche ; la flèche, un glissement vers le bas ou Retour la redescendent. Retour quand la feuille est basse quitte l'écran, comme avant.
+3. Pareil pour « Documents », « Phrases utiles », « Sécurité », « Monnaie », « Comptes » (la liste, une dépense, son historique), la page d'un hébergement, d'un restaurant ou d'un spot, et « Le mot de l'étape ».
+4. Depuis « Le mot de l'étape » et l'ajout d'un lieu à une destination : la carte choisit cette destination.
+5. La carte se déplace et se zoome au doigt ; pas de bouton + / −, seulement le réglage discret en bas à droite.
+6. Feuille basse ou haute : le titre de l’écran n’a pas de vide au-dessus de lui. Plein écran : le titre est sous la barre d’état, sans la chevaucher.
+7. Ouvrir le clavier dans un champ (une dépense, une note) : la feuille prend tout l'écran.
+8. Avec TalkBack, sans réseau, ou pour un voyage sans destination placée : ces écrans restent des pages classiques, comme avant.
+9. Les photos du voyage restent en plein écran (c'est une visionneuse).

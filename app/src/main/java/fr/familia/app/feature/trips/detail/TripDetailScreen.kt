@@ -157,6 +157,8 @@ fun TripDetailScreen(
     cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     /** « Le trajet » (règle 16): open a step, − / + on the nights; null: open only. */
     timeline: TimelineActions? = null,
+    /** « Ajout rapide » (récit 104, règle 35): during the trip, for those who go; null elsewhere. */
+    quickAdd: QuickAdd? = null,
     /** « Enrichir avec une IA » (récit 106, règle 30): a small button under the trip, for those who go; null elsewhere. */
     onOpenEnrich: (() -> Unit)? = null,
 ) {
@@ -192,12 +194,15 @@ fun TripDetailScreen(
         },
         floatingActionButton = {
             if (success?.isParticipant == true) {
-                ExtendedFloatingActionButton(
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    quickAdd?.let { QuickAddButton(it) }
+                    ExtendedFloatingActionButton(
                     onClick = onAddStep,
                     // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
                     icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.trip_add_step)) },
                     text = { Text(stringResource(R.string.trip_add_step)) },
                 )
+                }
             }
         },
     ) { padding ->
@@ -407,6 +412,8 @@ private fun PathContent(
             names = placed.map { it.place },
             arrived = placed.map { it.arrival != null },
             labels = remember(state.steps) { mapLabels(placed, tripTimeline(state.trip, state.steps)) },
+            // The first photo of each destination in its round (récit 110, règle 7): only photos this person can see.
+            photoPaths = remember(placed, timeline?.photos) { fr.familia.app.feature.trips.map.markerPhotoPaths(placed.map { it.id }, timeline?.photos.orEmpty()) },
             nextIndex = next,
             selected = selected,
             onSelect = { selected = it },
@@ -434,6 +441,11 @@ private fun PathContent(
             item(key = "cover") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { cover(state) } }
         }
         if (!satellite) item(key = "path") { TripPathIllustration(days, chosen, state.today, label, landscape = state.trip.landscape) }
+        // Before and during the trip, the countdown on a white card (récit 109, règle 16); nothing once it is over.
+        val countdown = tripCountdown(state.trip.startDate, state.trip.endDate, state.today)
+        if (countdown != TripCountdown.Over) {
+            item(key = "countdown") { CountdownCard(countdown, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }
+        }
         item(key = "day") {
             // The card sits on the bottom of the landscape, as on the maquette.
             Box(Modifier.fillMaxWidth().background(state.trip.landscape.palette.near).padding(horizontal = ClaySpacing.screen, vertical = 12.dp)) {
@@ -568,7 +580,7 @@ private fun PackingOrChecklist(state: TripDetailUiState.Success, checklist: Chec
 
 /** « 4 nuits avant le départ », « Demain », « Jour 2 sur 6 »; nothing once the trip is over. */
 @Composable
-private fun CountdownLine(countdown: TripCountdown) {
+private fun CountdownLine(countdown: TripCountdown, color: Color = Color.Unspecified) {
     val text = when (countdown) {
         is TripCountdown.NightsBefore -> pluralStringResource(R.plurals.trip_countdown_nights, countdown.nights, countdown.nights)
         TripCountdown.Tomorrow -> stringResource(R.string.trip_countdown_tomorrow)
@@ -576,7 +588,17 @@ private fun CountdownLine(countdown: TripCountdown) {
         is TripCountdown.During -> stringResource(R.string.trip_countdown_during, countdown.day, countdown.of)
         TripCountdown.Over -> return
     }
-    Text(text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+    Text(text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = color)
+}
+
+/** « 4 nuits avant le départ » in big, dark ink on white in every theme, as on the prototype. */
+@Composable
+private fun CountdownCard(countdown: TripCountdown, modifier: Modifier = Modifier) {
+    Box(
+        modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(TripSheetColors.Card).padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        CountdownLine(countdown, color = TripSheetColors.Ink)
+    }
 }
 
 @Composable

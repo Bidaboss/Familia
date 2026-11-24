@@ -130,6 +130,22 @@ service firebase.storage {
       allow delete: if isMember() && (ownerId == myMemberId() || tripData(tripId).creatorId == myMemberId());
     }
 
+    // Notes vocales (récit 104, règle 35): trips/{tripId}/voice/{authorId}/{noteId}.m4a, AAC in
+    // MPEG-4, 2 MB at most (2 min at 48 kb/s is about 720 KB). The followers listen; a participant
+    // sends their own once, before the record that names it (firestore.rules). The server removes
+    // the file with its record, its step or its trip; the author may remove their own.
+    match /trips/{tripId}/voice/{authorId}/{fileName} {
+      allow read: if isMember() && myMemberId() in tripData(tripId).readerIds;
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && myMemberId() in tripData(tripId).participantIds
+        && fileName.matches('^[A-Za-z0-9]{1,40}[.]m4a$')
+        && request.resource.size > 0 && request.resource.size <= 2 * 1024 * 1024
+        && request.resource.contentType == 'audio/mp4';
+      allow delete: if isMember() && authorId == myMemberId();
+    }
+
     match /trips/{tripId}/{authorId}/{fileName} {
       allow read: if isMember() && myMemberId() in tripData(tripId).readerIds;
       allow create, update: if isMember()

@@ -76,6 +76,9 @@ interface AppContainer {
     /** The accommodations, restaurants and spots of the destinations (récit 103). */
     val tripPlaceRepository: TripPlaceRepository? get() = null
 
+    /** The destinations added by hand to « Carnet de baroudeur » (récit 107). */
+    val travelPlaceRepository: TravelPlaceRepository? get() = null
+
     /** « À savoir sur… » (récit 96): a short article about the place of a step. */
     val placeArticles: PlaceArticles? get() = null
 
@@ -99,6 +102,9 @@ interface AppContainer {
 
     /** « Documents » (récit 105, règle 41): tickets, bookings and papers, for those who go. Null in « Voir comme ». */
     val tripDocumentRepository: TripDocumentRepository? get() = null
+
+    /** Notes vocales (récit 104, règle 35), recorded during the trip. Null in « Voir comme ». */
+    val tripVoiceNoteRepository: TripVoiceNoteRepository? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -214,6 +220,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
     override val tripWordRepository: TripWordRepository? by lazy { firestore?.let { FirestoreTripWordRepository(it) } }
     override val tripPlaceRepository: TripPlaceRepository? by lazy { firestore?.let { FirestoreTripPlaceRepository(it) } }
+    override val travelPlaceRepository: TravelPlaceRepository? by lazy { firestore?.let { FirestoreTravelPlaceRepository(it) } }
 
     /** The accounts of a trip (récit 16 bis). */
     override val expenseRepository: ExpenseRepository? by lazy { firestore?.let { FirestoreExpenseRepository(it) } }
@@ -253,6 +260,10 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     override val tripDocumentRepository: TripDocumentRepository? by lazy {
         firestore?.let { FirestoreTripDocumentRepository(it, FirebaseStorage.getInstance()) }
+    }
+
+    override val tripVoiceNoteRepository: TripVoiceNoteRepository? by lazy {
+        firestore?.let { FirestoreTripVoiceNoteRepository(it, FirebaseStorage.getInstance()) }
     }
 
     private val photoLinks: PhotoLinks by lazy {

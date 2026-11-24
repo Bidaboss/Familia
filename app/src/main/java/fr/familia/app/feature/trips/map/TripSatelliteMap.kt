@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import android.graphics.Bitmap
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
@@ -62,6 +64,12 @@ import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.scalebar.scalebar
 import fr.familia.app.R
+import fr.familia.app.core.photo.LocalPhotoStorage
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.delay
 
 /** What the satellite home of a trip needs to know about the map (récit 100). */
@@ -106,29 +114,80 @@ fun TripSatelliteMap(
     intro: Boolean = true,
     /** The text of each round (« Le trajet » numbers the destinations); null: the departure without number, then 1 to n. */
     labels: List<String>? = null,
+    /** The thumbnail of the first photo of each point (récit 110): shown in its round instead of the plain dot. */
+    photoPaths: List<String?> = emptyList(),
+    /** « Modifier » (récit 111, règle 4): the arrival goes out to the whole globe, then back in on the steps. */
+    globeIntro: Boolean = false,
+    /** The time the sheet takes to go down before the camera moves (the reference video: the sheet first). */
+    introDelayMs: Long = 0L,
 ) {
     val context = LocalContext.current
     var drawn by remember { mutableStateOf(false) }
-    var look by rememberSaveable { mutableStateOf(MapLook.Satellite) }
-    var tilted by rememberSaveable { mutableStateOf(false) }
+    // The settings kept for the person (récit 110): Satellite or Rues, 2D or 3D.
+    val saved = remember { MapSettingsStore.read(context) }
+    var look by rememberSaveable { mutableStateOf(saved.look) }
+    var tilted by rememberSaveable { mutableStateOf(saved.tilted) }
     var settingsOpen by remember { mutableStateOf(false) }
     // A touch of the map stops the arrival at once (règle 3: a click interrupts the animation).
     var touched by remember { mutableStateOf(false) }
-    val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(1) }
+    // Règle 25: back from a page opened here, the map is where it was, and the arrival does not play again.
+    var introPlayed by rememberSaveable { mutableStateOf(false) }
+    val memory = rememberSaveable(saver = CameraMemory.Saver) { CameraMemory() }
+    val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(2) }
     val view = remember { arrayOfNulls<MapView>(1) }
-    val applied = remember { arrayOf<Any?>(null, null, null, null) } // look, tilted, sheetHigh, selected
+    val applied = remember { arrayOf<Any?>(null, null, null, null, null) } // look, tilted, sheetHigh, selected, photos
     val density = context.resources.displayMetrics.density
-    DisposableEffect(Unit) { onDispose { listener[0]?.cancel() } }
+    // The rounds with a photo (récit 110), drawn once each photo is loaded; the others stay plain dots.
+    val storage = LocalPhotoStorage.current
+    val photoMarkers = remember { mutableStateMapOf<Int, Bitmap>() }
+    LaunchedEffect(photoPaths, labels, nextIndex, arrived, storage) {
+        photoMarkers.keys.retainAll { photoPaths.getOrNull(it) != null }
+        val files = storage ?: return@LaunchedEffect
+        // A few at a time (relecture #547, C2): each round shows as soon as its photo is there.
+        val gate = Semaphore(MarkerPhotos.AT_ONCE)
+        coroutineScope {
+            photoPaths.forEachIndexed { i, path ->
+                if (path == null) return@forEachIndexed
+                launch {
+                    gate.withPermit {
+                        val url = try {
+                            files.downloadUrl(path)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            files.knownUrl(path)
+                        } ?: return@withPermit
+                        val label = labels?.getOrNull(i) ?: stepNumberLabel(i, arrived.getOrElse(i) { false })
+                        val next = i == nextIndex
+                        MarkerPhotos.load(context, url, if (next) MarkerPhotos.NEXT_SIZE_DP else MarkerPhotos.SIZE_DP, label, next)?.let { photoMarkers[i] = it }
+                    }
+                }
+            }
+        }
+    }
+    DisposableEffect(Unit) { onDispose { listener.forEach { it?.cancel() } } }
     LaunchedEffect(Unit) {
         delay(6_000L)
         if (!drawn) onFailed()
     }
     // The arrival: out to the continent of the trip, then in on the trip, unless the person touches the map.
     LaunchedEffect(drawn) {
-        if (!drawn || !intro) return@LaunchedEffect
+        if (!drawn || !intro || introPlayed) return@LaunchedEffect
         val map = view[0] ?: return@LaunchedEffect
         if (touched) return@LaunchedEffect
-        map.camera.easeTo(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(points.map { it.lng }.average(), points.map { it.lat }.average())).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
+        introPlayed = true
+        val middle = com.mapbox.geojson.Point.fromLngLat(points.map { it.lng }.average(), points.map { it.lat }.average())
+        if (globeIntro) {
+            // Règle 4, as on the reference video: out to the whole Earth, then one dive back on all the steps.
+            delay(introDelayMs)
+            if (touched) return@LaunchedEffect
+            map.camera.easeTo(CameraOptions.Builder().center(middle).zoom(EditArrival.GLOBE_ZOOM).pitch(0.0).bearing(0.0).build(), mapAnimationOptions { duration(EditArrival.OUT_MS) })
+            delay(EditArrival.OUT_MS + 50L)
+            if (touched) return@LaunchedEffect
+            map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(EditArrival.IN_MS) })
+            return@LaunchedEffect
+        }
+        map.camera.easeTo(CameraOptions.Builder().center(middle).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
         delay(1_400L)
         if (touched) return@LaunchedEffect
         map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(2_400L) })
@@ -138,6 +197,7 @@ fun TripSatelliteMap(
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                 touched = true
+                introPlayed = true
             }
         },
     ) {
@@ -150,15 +210,19 @@ fun TripSatelliteMap(
                         view[0] = map
                         // Règle 5: nothing but the map; the compass and the scale bar go too.
                         runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
-                        map.mapboxMap.setCamera(frame(map, points, bottomPaddingDp * density, tilted))
+                        map.mapboxMap.setCamera(memory.camera?.let(::cameraOf) ?: frame(map, points, bottomPaddingDp * density, tilted))
                         listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true }
-                        loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels)
-                        applied[0] = look; applied[1] = tilted; applied[2] = sheetHigh; applied[3] = selected
+                        listener[1] = map.mapboxMap.subscribeMapIdle {
+                            val camera = map.mapboxMap.cameraState
+                            memory.keep(camera.center.longitude(), camera.center.latitude(), camera.zoom, camera.bearing, camera.pitch)
+                        }
+                        loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, photoMarkers.toMap()) }
+                        applied[0] = look; applied[1] = tilted; applied[2] = sheetHigh; applied[3] = selected; applied[4] = photoMarkers.toMap()
                         map.gestures.addOnMapClickListener(
                             OnMapClickListener { point ->
                                 map.mapboxMap.queryRenderedFeatures(
                                     RenderedQueryGeometry(map.mapboxMap.pixelForCoordinate(point)),
-                                    RenderedQueryOptions(listOf("home-steps-dots", "home-done-dots", "home-next-dot", "home-cluster"), null),
+                                    RenderedQueryOptions(listOf("home-steps-dots", "home-done-dots", "home-next-dot", "home-cluster", "home-photo-icons", "home-next-photo-icon"), null),
                                 ) { result ->
                                     val feature = result.value?.firstOrNull()?.queriedFeature?.feature
                                     val index = feature?.getNumberProperty("i")?.toInt()
@@ -183,9 +247,14 @@ fun TripSatelliteMap(
                 val map = (v as? MapView) ?: return@AndroidView
                 if (!drawn) return@AndroidView
                 val padding = bottomPaddingDp * density
+                val shownPhotos = photoMarkers.toMap()
                 if (applied[0] != look) {
                     applied[0] = look
-                    loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels)
+                    applied[4] = shownPhotos
+                    loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) }
+                } else if (applied[4] != shownPhotos) {
+                    applied[4] = shownPhotos
+                    map.mapboxMap.getStyle()?.let { style -> runCatching { showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) } }
                 }
                 if (applied[1] != tilted || applied[2] != sheetHigh || applied[3] != selected) {
                     val target = when {
@@ -212,8 +281,15 @@ fun TripSatelliteMap(
         }
     }
     if (settingsOpen) {
+        // The map follows each choice at once; « Enregistrer » keeps it for next time, « Annuler » puts back what was there.
+        val before = remember { MapSettings(look, tilted) }
+        val cancel = {
+            look = before.look
+            tilted = before.tilted
+            settingsOpen = false
+        }
         AlertDialog(
-            onDismissRequest = { settingsOpen = false },
+            onDismissRequest = cancel,
             title = { Text(stringResource(R.string.trip_map_settings)) },
             text = {
                 Column {
@@ -227,10 +303,23 @@ fun TripSatelliteMap(
                     }
                 }
             },
-            confirmButton = { TextButton({ settingsOpen = false }, Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.trip_map_settings_done)) } },
+            confirmButton = {
+                TextButton(
+                    {
+                        MapSettingsStore.save(context, MapSettings(look, tilted))
+                        settingsOpen = false
+                    },
+                    Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.trip_map_settings_save)) }
+            },
+            dismissButton = { TextButton(cancel, Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
+
+/** The camera kept by [CameraMemory]: longitude, latitude, zoom, bearing, pitch. */
+private fun cameraOf(kept: DoubleArray): CameraOptions =
+    CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(kept[0], kept[1])).zoom(kept[2]).bearing(kept[3]).pitch(kept[4]).build()
 
 private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilted: Boolean = false): CameraOptions {
     val pitch = if (tilted) 60.0 else 0.0
@@ -240,14 +329,39 @@ private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilte
 }
 
 /** Loads the look of the map, then draws the steps on it (again after a change of look: the style forgets them). */
-private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: () -> Unit, labels: List<String>?) {
+private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: () -> Unit, labels: List<String>?, afterDraw: (Style) -> Unit = {}) {
     val satellite = look == MapLook.Satellite
     view.mapboxMap.loadStyle(if (satellite) Style.STANDARD_SATELLITE else Style.STANDARD) { style ->
         runCatching {
             if (satellite) configureSatelliteGlobe(style)
             drawSteps(style, points, names, arrived, next, selected, trail = if (satellite) "#FFFFFF" else "#333333", labels = labels)
         }.onFailure { onFailed() }
+        // The photos are an extra: a failure there leaves the plain rounds.
+        runCatching { afterDraw(style) }
     }
+}
+
+/**
+ * Puts the photo rounds (récit 110) over the plain dots. The photo is a property of the same points
+ * (« img » on home-steps and home-next), so a photo round gathers into the same bubble as its plain
+ * round and comes apart with it (relecture #547, C1). Called again when a photo arrives.
+ */
+private fun showPhotos(style: Style, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, nextIndex: Int, labels: List<String>?, photos: Map<Int, Bitmap>) {
+    photos.forEach { (i, bitmap) -> style.addImage("step-photo-$i", bitmap) }
+    fun collection(indices: List<Int>) = FeatureCollection.fromFeatures(
+        indices.map { i -> feature(points, names, arrived, i, labels).also { if (i in photos.keys) it.addStringProperty("img", "step-photo-$i") } },
+    )
+    style.getSourceAs<GeoJsonSource>("home-steps")?.featureCollection(collection(points.indices.filter { it != nextIndex }))
+    style.getSourceAs<GeoJsonSource>("home-next")?.featureCollection(collection(points.indices.filter { it == nextIndex }))
+    if (style.styleLayerExists("home-photo-icons")) return
+    val withPhoto = Expression.has("img")
+    style.addLayer(
+        symbolLayer("home-photo-icons", "home-steps") {
+            filter(Expression.all(Expression.not(Expression.has("point_count")), withPhoto))
+            iconImage(get("img")); iconAllowOverlap(true); iconIgnorePlacement(true)
+        },
+    )
+    style.addLayer(symbolLayer("home-next-photo-icon", "home-next") { filter(withPhoto); iconImage(get("img")); iconAllowOverlap(true); iconIgnorePlacement(true) })
 }
 
 private fun feature(points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, i: Int, labels: List<String>? = null) =

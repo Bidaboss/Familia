@@ -981,6 +981,20 @@ Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus
 
 Droits : ceux qui suivent le voyage (`readerIds`) lisent, les participants ajoutent, modifient et suppriment, sous une destination qui existe ; l'admin principal peut aussi supprimer. Un nom changé retire l'adresse et le point (c'est un autre lieu). `onStepDeletedPlaces` supprime les lieux d'une destination supprimée ; la suppression du voyage les emporte tous. Tests : `firebase/tests/tripPlaces.test.mjs` et `firebase/functions/test/tripPlaces.test.ts`.
 
+### `members/{memberId}/travelPlaces/{placeId}` (récit 107, destinations ajoutées à la main au carnet de baroudeur)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `name` | texte | 1 à 80 caractères (« Lisbonne ») |
+| `country` | texte ou null | Le pays en français, 60 caractères au plus ; null quand le téléphone ne le trouve pas |
+| `countryCode` | texte ou null | Code ISO à deux lettres majuscules (« PT ») |
+| `lat`, `lng` | nombres | Le point, pour l'icône sur le planisphère |
+| `date` | texte « yyyy-MM-dd » | Le premier jour du voyage, jamais dans le futur (l'appli demande un jour passé), pas avant 1900 |
+| `days` | entier, 1 à 365 | Le nombre de jours |
+| `createdAt` | horodatage | Heure du serveur |
+
+Un voyage fait hors de l'appli (règle 38) : ni étape, ni kilomètre, ni photo. Privé : seul son membre le lit, l'ajoute et le supprime, l'admin principal compris ; jamais modifié. Absent de « Voir comme ». La suppression du membre l'efface (`deleteMemberData`). Tests : `firebase/tests/travelPlaces.test.mjs`.
+
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
@@ -996,6 +1010,19 @@ Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées d
 Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{slot}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus), sans données EXIF, donc sans lieu. L'appli envoie les deux fichiers avant d'écrire le document. Si un envoi a été coupé, l'auteur peut renvoyer une place dont le document n'existe pas.
 
 Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Storage. Chaque participant, enfant compris, ajoute les siennes. L'auteur, le créateur du voyage et l'admin principal les retirent, les fichiers d'abord, puis le document. Une photo n'est jamais modifiée : une fois son document écrit, ses fichiers ne peuvent plus être renvoyés. Tests : `firebase/tests/trips.test.mjs` et `firebase/tests/storage.test.mjs`.
+
+### `trips/{tripId}/voiceNotes/{noteId}` (récit 104, règle 35)
+
+Les notes vocales de l'ajout rapide, enregistrées pendant le voyage sous la destination du jour.
+
+| Champ | Type | Description |
+|---|---|---|
+| `authorId`, `authorName` | texte | L'auteur et son prénom |
+| `stepId` | texte | La destination (une étape existante de ce voyage, identifiant simple) |
+| `seconds` | entier de 1 à 120 | La durée |
+| `createdAt` | horodatage serveur | Les notes s'affichent de la plus ancienne à la plus récente |
+
+Fichier dans Storage : `trips/{tripId}/voice/{authorId}/{noteId}.m4a`. C'est de l'AAC mono à 48 kb/s, soit environ 720 Ko pour 2 min. Le fichier fait 2 Mo au plus et son type doit être `audio/mp4`. Il est envoyé avant la fiche et n'est jamais remplacé. Les lecteurs du voyage l'écoutent, et chaque participant ajoute les siennes. L'auteur, ou qui gère le voyage, retire une note : `onTripVoiceNoteDeleted` efface alors son fichier. Supprimer l'étape supprime ses notes (`onStepDeletedWord`), et supprimer le voyage supprime tout. Aucune notification n'est envoyée. Le micro n'est demandé que la première fois, au moment d'enregistrer.
 
 ### `tripPhotoBursts/{tripId}` (récit 104, règle 34)
 

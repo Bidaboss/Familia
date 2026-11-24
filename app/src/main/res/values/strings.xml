@@ -360,6 +360,29 @@
         <item quantity="one">%1$d photo à %2$s</item>
         <item quantity="other">%1$d photos à %2$s</item>
     </plurals>
+    <string name="quick_add_title">Ajouter à %1$s</string>
+    <string name="quick_add_photo">Photo</string>
+    <string name="quick_add_word">Mot court</string>
+    <string name="quick_add_voice">Note vocale</string>
+    <string name="voice_title">Note vocale à %1$s</string>
+    <string name="voice_ready">Touche « Enregistrer » et parle. %1$s au plus.</string>
+    <string name="voice_needs_mic">Familia a besoin du micro pour enregistrer ta note, %1$s au plus. Rien n\'est enregistré sans toi.</string>
+    <string name="voice_recording">Enregistrement… %1$s sur %2$s</string>
+    <string name="voice_done">Note de %1$s prête à envoyer.</string>
+    <string name="voice_failed">L\'enregistrement n\'a pas marché. Réessaie.</string>
+    <string name="voice_quiet">Rangée sous la destination du jour, sans notification. Elle part avec l\'étape.</string>
+    <string name="voice_record">Enregistrer</string>
+    <string name="voice_stop">Arrêter</string>
+    <string name="voice_send">Envoyer</string>
+    <string name="voice_again">Recommencer</string>
+    <string name="voice_send_failed">La note vocale n\'est pas partie. Réessaie avec du réseau.</string>
+    <string name="voice_note_by">Note vocale de %1$s, %2$s</string>
+    <string name="voice_play">Écouter</string>
+    <string name="voice_stop_playing">Arrêter l\'écoute</string>
+    <string name="voice_delete">Supprimer la note vocale</string>
+    <string name="voice_delete_confirm">Supprimer cette note vocale ?</string>
+    <string name="voice_delete_yes">Supprimer</string>
+    <string name="quick_add_quiet">Rangé sous la destination du jour. Les photos sont annoncées une seule fois, toutes ensemble.</string>
     <string name="timeline_photo_add">Ajouter des photos à %1$s</string>
     <plurals name="timeline_photos_without_step">
         <item quantity="one">%d photo sans étape</item>
@@ -1334,10 +1357,10 @@
     <string name="trips_none_coming">Aucun voyage prévu pour l\'instant. Touche « Nouveau voyage » pour préparer le prochain.</string>
     <string name="trips_none_coming_child">Aucun voyage prévu pour l\'instant. Va voir tes souvenirs de voyage en haut.</string>
     <string name="trips_day_of">Jour %1$d sur %2$d</string>
-    <plurals name="trips_in_days">
-        <item quantity="one">Dans %d jour</item>
-        <item quantity="many">Dans %d jours</item>
-        <item quantity="other">Dans %d jours</item>
+    <plurals name="trips_in_nights">
+        <item quantity="one">Dans %d nuit</item>
+        <item quantity="many">Dans %d nuits</item>
+        <item quantity="other">Dans %d nuits</item>
     </plurals>
     <plurals name="trips_days">
         <item quantity="one">%d jour</item>
@@ -1412,6 +1435,13 @@
     <string name="now_travelling_many">%1$s sont à %2$s</string>
     <string name="now_travelling_detail">Jour %1$d, %2$s</string>
     <string name="now_travelling_open">ouvrir le voyage</string>
+    <!-- La veille et le jour J d'un voyage, sur l'Accueil, pour ceux qui partent (récit 109) -->
+    <string name="departure_label_tomorrow">Demain</string>
+    <string name="departure_label_today">Jour J</string>
+    <string name="departure_tomorrow">Demain, départ pour %1$s</string>
+    <string name="departure_today">C\'est le jour J : départ pour %1$s</string>
+    <string name="departure_packing">Valise</string>
+    <string name="departure_open">Voir le trajet</string>
     <!-- Photo albums, shared by the trips (récit 15) and later the events (récit 41). -->
     <string name="album_photos_add">Ajouter des photos</string>
     <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
@@ -1917,6 +1947,10 @@
     <string name="trip_tile_trip">Le voyage</string>
     <string name="trip_title_hint">Il deviendra le nom du voyage pour toute la famille : en haut du voyage, dans la liste et dans le fil. Tu pourras le changer plus tard.</string>
     <string name="trip_form_no_night">Aller-retour dans la journée</string>
+    <string name="trip_past_days_title">Combien de jours ?</string>
+    <string name="trip_past_days_less">Un jour de moins</string>
+    <string name="trip_past_days_more">Un jour de plus</string>
+    <string name="trip_past_days_hint">Pour un voyage déjà fait : la date de retour suit le nombre de jours.</string>
     <plurals name="trip_form_nights">
         <item quantity="one">%1$d nuitée</item>
         <item quantity="other">%1$d nuitées</item>
@@ -1974,7 +2008,7 @@
     <string name="globe_resume">Reprendre</string>
     <string name="trip_map_open">La carte</string>
     <string name="trip_map_settings">Réglages de la carte</string>
-    <string name="trip_map_settings_done">Fermer</string>
+    <string name="trip_map_settings_save">Enregistrer</string>
     <string name="trip_map_look_satellite">Satellite</string>
     <string name="trip_map_look_streets">Rues</string>
     <string name="trip_map_mode_2d">2D</string>
@@ -2024,7 +2058,7 @@
     <string name="trip_step_day">Jour</string>
     <string name="trip_step_time">Heure</string>
     <string name="trip_step_tile_note">Une note</string>
-    <string name="trip_step_note_hint">Numéro de train, de vol, voiture, quai…</string>
+    <string name="trip_step_note_hint">Plusieurs lignes possibles : numéro de train, de vol, voiture, quai…</string>
     <string name="trip_step_add">Ajouter l\'étape</string>
     <string name="trip_step_in_trip">Dans le voyage · %1$s · %2$s</string>
     <string name="trip_step_type_flight">Vol</string>

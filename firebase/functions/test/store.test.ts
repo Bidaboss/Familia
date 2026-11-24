@@ -106,13 +106,15 @@ test('deleting an event deletes its answers, and only its answers', async () => 
   assert.equal((await db.collection('events/later/rsvps').get()).size, 1);
 });
 
-test('removing a member deletes their answers, bags, phones, settings, reminders and days of use', async () => {
+test('removing a member deletes their answers, bags, phones, settings, reminders, travel places and days of use', async () => {
   await db.doc('trips/corse').set({ title: 'Corse', participantIds: ['ines', 'noe'] });
   await db.doc('trips/corse/bags/ines').set({ items: [{ label: 'Maillot', done: false }] });
   await db.doc('trips/corse/bags/noe').set({ items: [{ label: 'Bonnet', done: true }] });
   await db.doc('members/ines/settings/notifications').set({ dayBeforeReminder: false });
   await db.doc('members/ines/reminders/meal').set({ eventId: 'meal', offsets: ['h1'] });
   await db.doc('members/noe/reminders/meal').set({ eventId: 'meal', offsets: ['h1'] });
+  await db.doc('members/ines/travelPlaces/lisbonne').set({ name: 'Lisbonne', lat: 38.7, lng: -9.1, date: '2024-05-02', days: 4 });
+  await db.doc('members/noe/travelPlaces/rome').set({ name: 'Rome', lat: 41.9, lng: 12.5, date: '2023-04-10', days: 3 });
   await db.doc('usage/ines/days/2026-11-20').set({ day: '2026-11-20', opens: 2, seconds: { home: 60 } });
   await db.doc('usage/noe/days/2026-11-20').set({ day: '2026-11-20', opens: 1, seconds: { home: 30 } });
   await db.doc('members/ines').delete();
@@ -126,6 +128,8 @@ test('removing a member deletes their answers, bags, phones, settings, reminders
   assert.equal((await db.doc('members/ines/settings/notifications').get()).exists, false);
   assert.equal((await db.collection('members/ines/reminders').get()).size, 0);
   assert.equal((await db.doc('members/noe/reminders/meal').get()).exists, true);
+  assert.equal((await db.collection('members/ines/travelPlaces').get()).size, 0);
+  assert.equal((await db.doc('members/noe/travelPlaces/rome').get()).exists, true);
   assert.equal((await db.collection('usage/ines/days').get()).size, 0);
   assert.equal((await db.doc('usage/noe/days/2026-11-20').get()).exists, true);
 });
