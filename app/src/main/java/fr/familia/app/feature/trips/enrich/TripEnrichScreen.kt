@@ -310,6 +310,7 @@ private fun skipText(reason: SkipReason): Int = when (reason) {
     SkipReason.Link -> R.string.enrich_skip_link
     SkipReason.BadDates -> R.string.enrich_skip_dates
     SkipReason.OutsideTrip -> R.string.enrich_skip_outside
+    SkipReason.Overlap -> R.string.enrich_skip_overlap
     SkipReason.MissingName -> R.string.enrich_skip_name
     SkipReason.BadKind -> R.string.enrich_skip_kind
     SkipReason.TooMany -> R.string.enrich_skip_too_many

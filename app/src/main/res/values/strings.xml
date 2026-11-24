@@ -3687,6 +3687,7 @@
     <string name="enrich_skip_link">« %1$s » contenait un lien.</string>
     <string name="enrich_skip_dates">« %1$s » : dates manquantes ou fausses.</string>
     <string name="enrich_skip_outside">« %1$s » : en dehors des dates du voyage.</string>
+    <string name="enrich_skip_overlap">« %1$s » : ces nuits sont déjà prises par une autre destination.</string>
     <string name="enrich_skip_name">Un élément sans nom.</string>
     <string name="enrich_skip_kind">« %1$s » : ni hébergement, ni restaurant, ni spot.</string>
     <string name="enrich_skip_too_many">%1$s éléments de plus que la limite.</string>

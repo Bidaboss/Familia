@@ -67,7 +67,7 @@ data class ProposedDestination(
 }
 
 /** Why a part of the answer was left out, said in the preview. */
-enum class SkipReason { Link, BadDates, OutsideTrip, MissingName, BadKind, TooMany }
+enum class SkipReason { Link, BadDates, OutsideTrip, Overlap, MissingName, BadKind, TooMany }
 
 data class Skipped(val what: String, val reason: SkipReason)
 
@@ -162,6 +162,8 @@ fun readEnrichAnswer(answer: String, trip: Trip, steps: List<TripStep>, target: 
     val destinations = when (target) {
         EnrichTarget.Trip -> {
             val list = root["destinations"] as? JsonArray ?: return EnrichReading.Refused.NotJson
+            // The nights already held, from the first night to the day of leaving.
+            val taken = stays.map { it.start to it.end }.toMutableList()
             if (list.size > TripEnrich.MAX_DESTINATIONS) skipped += Skipped("${list.size - TripEnrich.MAX_DESTINATIONS}", SkipReason.TooMany)
             list.take(TripEnrich.MAX_DESTINATIONS).mapNotNull { element ->
                 val item = element as? JsonObject ?: return@mapNotNull null
@@ -188,7 +190,15 @@ fun readEnrichAnswer(answer: String, trip: Trip, steps: List<TripStep>, target: 
                         skipped += Skipped(city, SkipReason.OutsideTrip)
                         null
                     }
-                    else -> ProposedDestination(city, null, from, to, places)
+                    // Two stays never share a night: neither an existing one, nor one of this answer.
+                    taken.any { (start, end) -> from < end && start < to } -> {
+                        skipped += Skipped(city, SkipReason.Overlap)
+                        null
+                    }
+                    else -> {
+                        taken += from to to
+                        ProposedDestination(city, null, from, to, places)
+                    }
                 }
             }
         }

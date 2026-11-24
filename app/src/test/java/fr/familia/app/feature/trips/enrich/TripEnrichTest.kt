@@ -105,6 +105,20 @@ class TripEnrichTest {
     }
 
     @Test
+    fun `a new stay never shares a night with a stay of the trip or of the same answer`() {
+        val answer = """{"destinations": [
+            {"ville": "Sintra", "du": "2027-07-13", "au": "2027-07-15"},
+            {"ville": "Porto", "du": "2027-07-14", "au": "2027-07-17"},
+            {"ville": "Braga", "du": "2027-07-16", "au": "2027-07-18"},
+            {"ville": "Faro", "du": "2027-07-17", "au": "2027-07-19"}
+        ]}"""
+        val reading = read(answer) as EnrichReading.Read
+        assertEquals(listOf("Porto", "Faro"), reading.destinations.map { it.city })
+        assertEquals(listOf(SkipReason.Overlap, SkipReason.Overlap), reading.skipped.map { it.reason })
+        assertEquals(listOf("Sintra", "Braga"), reading.skipped.map { it.what })
+    }
+
+    @Test
     fun `anything else than the JSON asked is refused, and the limits hold`() {
         assertEquals(EnrichReading.Refused.Empty, read("   "))
         assertEquals(EnrichReading.Refused.NotJson, read("Voici des idées : Lisbonne, Porto."))
