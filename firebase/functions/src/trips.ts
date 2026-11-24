@@ -161,3 +161,21 @@ export async function deleteTripContents(db: Firestore, tripId: string): Promise
 export async function deleteStepWord(db: Firestore, tripId: string, stepId: string): Promise<void> {
   await db.recursiveDelete(db.collection('trips').doc(tripId).collection('words').doc(stepId));
 }
+
+/** A document of a trip (récit 105, règle 41), as the rules write it. */
+export interface TripDocumentData {
+  ownerId?: unknown;
+  file?: unknown;
+}
+
+/**
+ * The file of a removed document of a trip, in Storage: only the one at its own place, named after
+ * the document. The admin principal may remove the record but not the file (the two reads of the
+ * Storage rules), and a removal cut halfway would leave it: the server takes it away.
+ */
+export function tripDocumentFile(tripId: string, docId: string, data: TripDocumentData | undefined): string | null {
+  if (!data || typeof data.ownerId !== 'string' || typeof data.file !== 'string') return null;
+  if (!/^[A-Za-z0-9]{1,40}$/.test(data.ownerId)) return null;
+  if (!['pdf', 'jpg', 'png'].some((ext) => data.file === `${docId}.${ext}`)) return null;
+  return `trips/${tripId}/documents/${data.ownerId}/${data.file}`;
+}

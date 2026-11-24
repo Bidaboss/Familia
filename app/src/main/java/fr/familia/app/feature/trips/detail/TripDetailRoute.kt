@@ -55,6 +55,8 @@ fun TripDetailRoute(
     onOpenSafety: (() -> Unit)? = null,
     /** « Monnaie » (récit 105): for those who go, once a step is abroad or the trip has a currency. */
     onOpenMoney: (() -> Unit)? = null,
+    /** « Documents » (récit 105, règle 41): for those who go, never the followers. */
+    onOpenDocuments: (() -> Unit)? = null,
     /** The page of a place programmed under a destination (récit 103, règle 19). */
     onOpenPlace: (placeId: String) -> Unit = {},
     /** A new accommodation, restaurant or spot under the destination [stepId] (règle 20). */
@@ -100,6 +102,7 @@ fun TripDetailRoute(
         onOpenPhrases = onOpenPhrases?.takeIf { PhraseBook.abroad(abroad).isNotEmpty() },
         onOpenSafety = onOpenSafety?.takeIf { EmergencyNumbers.abroad(abroad).isNotEmpty() },
         onOpenMoney = onOpenMoney?.takeIf { shown?.isParticipant == true && (abroad.isNotEmpty() || shown.trip.currency != null) },
+        onOpenDocuments = onOpenDocuments?.takeIf { shown?.isParticipant == true && container?.tripDocumentRepository != null },
         packingCount = packingCount,
         photos = photos,
         photoActions = photoActions,

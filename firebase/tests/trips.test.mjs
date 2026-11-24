@@ -622,3 +622,59 @@ describe('« Prévenir ma famille » (récit 105, règle 43)', () => {
     await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/alerts/adult3'), alert(NEIGHBOUR)));
   });
 });
+
+describe('« Documents » (récit 105, règle 41)', () => {
+  const document = (m, overrides = {}) => ({
+    ownerId: m.memberId, ownerName: m.memberId, title: 'Billet aller', kind: 'ticket',
+    file: 'd1.pdf', contentType: 'application/pdf', size: 1024, createdAt: serverTimestamp(), ...overrides,
+  });
+
+  async function storedDocument(tripId, id, m) {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `trips/${tripId}/documents/${id}`), {
+        ...document(m, { file: `${id}.pdf` }), createdAt: Timestamp.fromMillis(0),
+      });
+    });
+  }
+
+  test('a participant adds one, signed with their name, and only those who go read it', async () => {
+    await storedTrip('t1', ADULT);
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d1'), document(NEIGHBOUR)));
+    await assertSucceeds(getDoc(doc(as(env, ADULT), 'trips/t1/documents/d1')));
+    // KID follows the trip (EVERYONE) without going: no document for them.
+    await assertFails(getDoc(doc(as(env, KID), 'trips/t1/documents/d1')));
+    await assertFails(getDocs(collection(as(env, KID), 'trips/t1/documents')));
+  });
+
+  test('the shape is checked: owner, kind, file named after the document, type, size, time', async () => {
+    await storedTrip('t1', ADULT);
+    const db = as(env, NEIGHBOUR);
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(ADULT)));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { kind: 'photo' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { file: 'd2.pdf' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { contentType: 'image/jpeg' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { size: 6 * 1024 * 1024 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { title: '' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { createdAt: Timestamp.fromMillis(0) })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { lat: 1 })));
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/documents/d3'), document(NEIGHBOUR, { file: 'd3.png', contentType: 'image/png' })));
+  });
+
+  test('a follower who does not go adds none; nothing is edited', async () => {
+    await storedTrip('t1', ADULT);
+    await assertFails(setDoc(doc(as(env, KID), 'trips/t1/documents/d1'), document(KID)));
+    await storedDocument('t1', 'd2', NEIGHBOUR);
+    await assertFails(updateDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d2'), { title: 'Autre' }));
+  });
+
+  test('the owner, the creator of the trip or the admin principal removes one, nobody else', async () => {
+    await storedTrip('t1', ADULT, { participantIds: ['adult1', 'adult3', 'adult2'], readerIds: EVERYONE });
+    await storedDocument('t1', 'd1', NEIGHBOUR);
+    await storedDocument('t1', 'd2', NEIGHBOUR);
+    await storedDocument('t1', 'd3', NEIGHBOUR);
+    await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'trips/t1/documents/d1')));
+    await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t1/documents/d2')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/documents/d3')));
+  });
+});

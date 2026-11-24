@@ -38,6 +38,10 @@ data class TripSafetyDestination(val tripId: String)
 @Serializable
 data class TripMoneyDestination(val tripId: String)
 
+/** « Documents » (récit 105, règle 41). */
+@Serializable
+data class TripDocumentsDestination(val tripId: String)
+
 /** The map of [tripId]: its steps joined in order on the landscape (récit 87). */
 @Serializable
 data class TripMapDestination(val tripId: String)

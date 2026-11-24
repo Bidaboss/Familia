@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Euro
 import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.Luggage
@@ -245,6 +246,8 @@ fun TripDayCard(
     onSafety: (() -> Unit)? = null,
     /** « Monnaie » (récit 105): the currency of the trip and the rate of the day, for those who go. */
     onMoney: (() -> Unit)? = null,
+    /** « Documents » (récit 105, règle 41): tickets, bookings and papers, for those who go. */
+    onDocuments: (() -> Unit)? = null,
 ) {
     val title = if (places.isEmpty()) {
         stringResource(R.string.trip_day_title, number, frenchDate(day, "EEEE d MMMM"))
@@ -271,7 +274,7 @@ fun TripDayCard(
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
         }
         // Then the tools, for those who go: two round buttons with their word under them.
-        if (onExpenses != null || onPacking != null || onPhrases != null || onSafety != null || onMoney != null) {
+        if (onExpenses != null || onPacking != null || onPhrases != null || onSafety != null || onMoney != null || onDocuments != null) {
             // Up to four rounds: they go on a second line rather than out of the card.
             FlowRow(
                 Modifier.fillMaxWidth(),
@@ -286,6 +289,9 @@ fun TripDayCard(
                 }
                 if (onMoney != null) {
                     ToolRound(Icons.Outlined.Euro, stringResource(R.string.money_round_label), stringResource(R.string.money_round_description), onMoney)
+                }
+                if (onDocuments != null) {
+                    ToolRound(Icons.Outlined.Description, stringResource(R.string.documents_round_label), stringResource(R.string.documents_round_description), onDocuments)
                 }
                 if (onSafety != null) {
                     ToolRound(Icons.Outlined.HealthAndSafety, stringResource(R.string.safety_round_label), stringResource(R.string.safety_round_description), onSafety)

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Files shared with other apps: the picture the camera takes for a profile photo, and the
-     film of a trip (récit 16) sent through the share sheet of Android, and the image of a share (récit 31). -->
+     film of a trip (récit 16) sent through the share sheet of Android, the image of a share (récit 31)
+     and a document of a trip (récit 105). -->
 <paths>
     <cache-path name="photos" path="photos/" />
     <cache-path name="films" path="films/" />
     <cache-path name="shares" path="shares/" />
+    <!-- A document of a trip opened in the viewer of the phone (récit 105), emptied at each visit. -->
+    <cache-path name="documents" path="documents/" />
 </paths>

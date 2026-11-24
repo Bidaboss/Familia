@@ -304,6 +304,7 @@ import fr.familia.app.feature.trips.TripPackingDestination
 import fr.familia.app.feature.trips.TripPhrasesDestination
 import fr.familia.app.feature.trips.TripSafetyDestination
 import fr.familia.app.feature.trips.TripMoneyDestination
+import fr.familia.app.feature.trips.TripDocumentsDestination
 import fr.familia.app.feature.trips.TripPlaceAddDestination
 import fr.familia.app.feature.trips.TripPlaceDestination
 import fr.familia.app.feature.trips.place.PlaceEditRoute
@@ -311,6 +312,7 @@ import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.safety.TripSafetyRoute
 import fr.familia.app.feature.trips.money.TripMoneyRoute
+import fr.familia.app.feature.trips.documents.TripDocumentsRoute
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripWordDestination
 import fr.familia.app.feature.trips.word.StepWordRoute
@@ -1181,6 +1183,7 @@ fun FamiliaApp(
                             onOpenPhrases = { navController.navigate(TripPhrasesDestination(tripId)) },
                             onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
                             onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
+                            onOpenDocuments = { navController.navigate(TripDocumentsDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
                             onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
@@ -1223,6 +1226,9 @@ fun FamiliaApp(
                             kind = TripPlaceKind.entries.firstOrNull { it.name == route.kind },
                             presetName = route.name,
                         )
+                    }
+                    composable<TripDocumentsDestination> { entry ->
+                        TripDocumentsRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripDocumentsDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     composable<TripMapDestination> { entry ->
                         val tripId = entry.toRoute<TripMapDestination>().tripId

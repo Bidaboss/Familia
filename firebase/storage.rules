@@ -108,6 +108,28 @@ service firebase.storage {
       allow delete: if isMember() && (authorId == myMemberId() || isOwner());
     }
 
+    // « Documents » (récit 105, règle 41): trips/{tripId}/documents/{ownerId}/{docId}.pdf|jpg|png,
+    // 5 MB at most. Only those who go read them (never the followers). The owner sends their own
+    // file once, before the document that names it; it is never replaced. The owner or the creator
+    // of the trip removes it (the admin principal removes the record, and the file goes with the
+    // trip: see LIMIT above). Deleting the trip removes the whole folder trips/{tripId}/.
+    function isTripDocumentFile(fileName) {
+      return request.resource.size > 0 && request.resource.size <= 5 * 1024 * 1024
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]pdf$') && request.resource.contentType == 'application/pdf')
+            || (fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && request.resource.contentType == 'image/jpeg')
+            || (fileName.matches('^[A-Za-z0-9]{1,40}[.]png$') && request.resource.contentType == 'image/png'));
+    }
+
+    match /trips/{tripId}/documents/{ownerId}/{fileName} {
+      allow read: if isMember() && myMemberId() in tripData(tripId).participantIds;
+      allow create: if isMember()
+        && resource == null
+        && ownerId == myMemberId()
+        && myMemberId() in tripData(tripId).participantIds
+        && isTripDocumentFile(fileName);
+      allow delete: if isMember() && (ownerId == myMemberId() || tripData(tripId).creatorId == myMemberId());
+    }
+
     match /trips/{tripId}/{authorId}/{fileName} {
       allow read: if isMember() && myMemberId() in tripData(tripId).readerIds;
       allow create, update: if isMember()
