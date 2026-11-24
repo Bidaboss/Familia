@@ -99,6 +99,9 @@ interface AppContainer {
 
     /** « Documents » (récit 105, règle 41): tickets, bookings and papers, for those who go. Null in « Voir comme ». */
     val tripDocumentRepository: TripDocumentRepository? get() = null
+
+    /** Notes vocales (récit 104, règle 35), recorded during the trip. Null in « Voir comme ». */
+    val tripVoiceNoteRepository: TripVoiceNoteRepository? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -253,6 +256,10 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     override val tripDocumentRepository: TripDocumentRepository? by lazy {
         firestore?.let { FirestoreTripDocumentRepository(it, FirebaseStorage.getInstance()) }
+    }
+
+    override val tripVoiceNoteRepository: TripVoiceNoteRepository? by lazy {
+        firestore?.let { FirestoreTripVoiceNoteRepository(it, FirebaseStorage.getInstance()) }
     }
 
     private val photoLinks: PhotoLinks by lazy {

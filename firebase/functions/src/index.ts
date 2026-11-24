@@ -44,8 +44,8 @@ import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Member, N
 import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import {
-  addTripPhotoToBurst, AlertData, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
-  sendTripPhotoDigests, TripDocumentData, tripDocumentFile,
+  addTripPhotoToBurst, AlertData, deleteStepVoiceNotes, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
+  sendTripPhotoDigests, TripDocumentData, tripDocumentFile, voiceNoteFile,
 } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -655,7 +655,18 @@ export const onTripPhotoCreated = onDocumentCreated('trips/{tripId}/photos/{phot
 
 // « Le mot de l'étape » (récit 88) goes with its step, with its hearts and comments.
 export const onStepDeletedWord = onDocumentDeleted('trips/{tripId}/steps/{stepId}', async (event) => {
-  await deleteStepWord(getFirestore(), event.params.tripId, event.params.stepId);
+  // And its voice notes (récit 104, règle 35): one failing never keeps the other.
+  const results = await Promise.allSettled([
+    deleteStepWord(getFirestore(), event.params.tripId, event.params.stepId),
+    deleteStepVoiceNotes(getFirestore(), event.params.tripId, event.params.stepId),
+  ]);
+  for (const r of results) if (r.status === 'rejected') throw r.reason;
+});
+
+// A removed voice note takes its file with it, whoever removed it (récit 104, règle 35).
+export const onTripVoiceNoteDeleted = onDocumentDeleted('trips/{tripId}/voiceNotes/{noteId}', async (event) => {
+  const path = voiceNoteFile(event.params.tripId, event.params.noteId, event.data?.data());
+  if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
 });
 
 export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {

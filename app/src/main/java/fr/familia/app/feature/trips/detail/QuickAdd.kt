@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -41,6 +42,8 @@ class QuickAdd(
     /** Null when this member has no photo place left. */
     val onPhoto: (() -> Unit)?,
     val onWord: (() -> Unit)?,
+    /** « Note vocale » (partie 3b): null when the notes cannot be sent. */
+    val onVoice: (() -> Unit)? = null,
 )
 
 /** The round camera button, above « Ajouter une étape », and its sheet: Photo, Mot court. */
@@ -64,6 +67,12 @@ fun QuickAddButton(quick: QuickAdd) {
                     QuickRow(Icons.Outlined.PhotoCamera, stringResource(R.string.quick_add_photo)) {
                         open = false
                         photo()
+                    }
+                }
+                quick.onVoice?.let { voice ->
+                    QuickRow(Icons.Outlined.Mic, stringResource(R.string.quick_add_voice)) {
+                        open = false
+                        voice()
                     }
                 }
                 quick.onWord?.let { word ->
