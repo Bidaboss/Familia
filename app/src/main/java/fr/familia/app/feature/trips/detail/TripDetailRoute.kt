@@ -228,3 +228,11 @@ fun TripDetailRoute(
         )
     }
 }
+
+/** The actions of « À prévoir »: « Je m'en charge » and « Je ne peux plus » only while packingList is on. */
+fun TripDetailViewModel.checklistActions(myId: String, packingOn: Boolean): ChecklistActions =
+    if (packingOn) {
+        ChecklistActions(this::addItem, this::editItem, this::setItemDone, this::deleteItem, this::takeItem, this::releaseItem, myId)
+    } else {
+        ChecklistActions(this::addItem, this::editItem, this::setItemDone, this::deleteItem)
+    }
