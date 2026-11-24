@@ -23,7 +23,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -367,7 +367,7 @@ private fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = { actions.onPlayVoice(note) }, modifier = Modifier.size(56.dp)) {
             Icon(
-                if (playing) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
+                if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                 contentDescription = stringResource(if (playing) R.string.voice_stop_playing else R.string.voice_play),
                 tint = Deep,
             )
