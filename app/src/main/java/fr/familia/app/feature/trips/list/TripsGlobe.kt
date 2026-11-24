@@ -126,13 +126,13 @@ fun TripsGlobe(
     val spots = remember(markers) { globeSpots(markers) }
     val currentSpots = androidx.compose.runtime.rememberUpdatedState(spots)
     val currentOpen = androidx.compose.runtime.rememberUpdatedState(onOpenTrip)
+    var view by remember { mutableStateOf<MapView?>(null) }
+    var ready by remember { mutableStateOf(false) }
     // À venir and Souvenirs share the globe: switching only redraws its dots.
     LaunchedEffect(view, ready, spots, souvenirs) {
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
         if (ready) showSpots(style, spots, souvenirs)
     }
-    var view by remember { mutableStateOf<MapView?>(null) }
-    var ready by remember { mutableStateOf(false) }
     // 6 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the landscape.
     LaunchedEffect(Unit) {
         delay(6_000L)
