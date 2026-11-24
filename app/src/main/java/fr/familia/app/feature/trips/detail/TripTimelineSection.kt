@@ -196,7 +196,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
                     .padding(start = 12.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, name)) { actions.onOpen(row.step.id) }
-                    .heightIn(min = 48.dp),
+                    .heightIn(min = 56.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text("$name ›", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -254,7 +254,7 @@ private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
+            .heightIn(min = 56.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, placeName(row.step)), onClick = onOpen)
             .padding(horizontal = 12.dp, vertical = 6.dp),
