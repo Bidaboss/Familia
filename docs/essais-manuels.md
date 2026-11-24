@@ -2184,3 +2184,10 @@ Rien à publier côté Firebase. « APK de publication ».
 Rien à toucher dans l'appli pour l'instant : le bouton « Publier le film de la journée » arrive dans la partie 3b. Après Publier Firebase :
 1. Ouvrir la console Firebase → Functions : `onTripFilmCreated` et `onTripFilmDeleted` sont listées et actives.
 2. Les essais automatiques couvrent le reste : un seul film par étape et par jour, envoyé seulement par un participant, 10 Mo au plus, en `video/mp4`, lu seulement par ceux qui voient le voyage, une seule notification à ceux qui suivent (rien pour un voyage surprise, plafond quotidien respecté), et le fichier effacé quand le film ou l'étape est supprimé.
+
+## Voyage : suite de la relecture du film de la journée (récit 108, partie 3a bis)
+
+**Publier Firebase : oui** (règles Firestore et fonction `onTripFilmCreated`).
+Rien à voir dans l'appli. Les essais automatiques couvrent :
+1. Un film publié n'efface plus les photos en attente d'être annoncées (celles d'une autre étape gardent leur avis).
+2. Un film ne peut être daté que d'un vrai jour du voyage, entre son début et sa fin.

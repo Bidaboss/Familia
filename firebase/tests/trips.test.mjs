@@ -429,6 +429,10 @@ describe('film de la journée (récit 108, règle 32)', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/films/x_20270712'), film(NEIGHBOUR)));
     await assertFails(setDoc(doc(db, 'trips/t1/films/nope_20270712'), film(NEIGHBOUR, { stepId: 'nope' })));
     await assertFails(setDoc(doc(db, 'trips/t1/films/s1_2027712'), film(NEIGHBOUR, { day: '2027-7-12' })));
+    // A real day, inside the trip (10 to 20 July).
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20271312'), film(NEIGHBOUR, { day: '2027-13-12' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270709'), film(NEIGHBOUR, { day: '2027-07-09' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270721'), film(NEIGHBOUR, { day: '2027-07-21' })));
     await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(ADULT)));
     await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { seconds: 301 })));
     await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { seconds: 2.5 })));
