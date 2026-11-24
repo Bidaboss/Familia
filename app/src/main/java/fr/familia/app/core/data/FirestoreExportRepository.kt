@@ -13,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 /**
  * Reads the collections of docs/data-model.md from the server only: the offline cache may hold
  * part of the data, and a backup must be complete or not be made. Left out on purpose: the capsules the admin principal cannot read, the trips they do not follow (and the photos of trips), the answers of the question of the week before they show to everyone, memberEmails (rebuilt from the members), and each member's
- * phones and settings, which only they can read.
+ * phones and settings, and the other members' destinations of the carnet, which only they can read.
  */
 class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepository {
 
@@ -37,11 +37,15 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
         val weekly = async { weeklyQuestions() }
         val capsules = async { capsules(memberId) }
         val trips = async { trips(memberId) }
+        // Carnet de baroudeur (récit 112): only the admin's own; the others' are private.
+        val travelPlaces = async {
+            db.collection("members").document(memberId).collection("travelPlaces").get(Source.SERVER).await().documents.map(::toExport)
+        }
         val (questions, weeklyAnswers) = weekly.await()
         val (tripDocs, tripSteps, tripItems) = trips.await()
         FamilyData(
             households.await(), members.await(), events.await(), answers.await(), helpRequests.await(), questions, weeklyAnswers,
-            capsules.await(), tripDocs, tripSteps, tripItems,
+            capsules.await(), tripDocs, tripSteps, tripItems, travelPlaces.await(),
         )
     }
 
