@@ -107,7 +107,7 @@ fun TripCoverCarousel(
                 },
             ) {
                 PlaceCover(
-                    place.name, place.point, trip.landscape, photos, token, Modifier.fillMaxSize(),
+                    place.name, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
                     // Under « Voyage programmé », away from the pause button and the title: the licence asks for it to be read.
                     creditAlignment = Alignment.TopStart,
                     creditTop = 46.dp,

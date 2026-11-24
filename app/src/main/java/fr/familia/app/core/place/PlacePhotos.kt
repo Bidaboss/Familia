@@ -23,6 +23,12 @@ data class PlacePhoto(val url: String, val credit: String)
 interface PlacePhotos {
     /** The photo of [place], or null when there is none, no network, or a page that names several places. */
     suspend fun of(place: String): PlacePhoto?
+
+    /**
+     * The photo of [place], else, when its page has none (« La Palmyre », DESIGN-104 A), the photo
+     * of the nearest Wikipedia page around [lat], [lng] that has one. Null when none is found.
+     */
+    suspend fun of(place: String, lat: Double?, lng: Double?): PlacePhoto? = of(place)
 }
 
 /** The summary service of Wikipedia in French then the image info of Commons: free, no key, a generic User-Agent. */
@@ -43,6 +49,24 @@ class WikimediaPlacePhotos : PlacePhotos {
         }
         // Only a real answer is kept for the session: no network tries again next time.
         if (found != null && found.isSuccess) known[title] = found
+        return found?.getOrNull()
+    }
+
+    override suspend fun of(place: String, lat: Double?, lng: Double?): PlacePhoto? {
+        of(place)?.let { return it }
+        if (lat == null || lng == null) return null
+        val key = "@%.3f,%.3f".format(java.util.Locale.ROOT, lat, lng)
+        known[key]?.let { return it.getOrNull() }
+        val found = withContext(Dispatchers.IO) {
+            withTimeoutOrNull(TIMEOUT_MS) {
+                runCatching {
+                    val image = read(nearbyPhotosUrl(lat, lng))?.let(::parseNearbyImage) ?: return@runCatching null
+                    val credit = read(commonsInfoUrl(image.file))?.let(::parseCredit) ?: DEFAULT_CREDIT
+                    PlacePhoto(image.url, credit)
+                }
+            }
+        }
+        if (found != null && found.isSuccess) known[key] = found
         return found?.getOrNull()
     }
 
@@ -80,6 +104,30 @@ fun photoSummaryUrl(title: String): String =
 fun commonsInfoUrl(file: String): String =
     "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=imageinfo&iiprop=extmetadata&titles=" +
         URLEncoder.encode("File:$file", "UTF-8")
+
+/** The pages of French Wikipedia within 10 km of a point, nearest first, with their main image. */
+fun nearbyPhotosUrl(lat: Double, lng: Double): String =
+    "https://fr.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&generator=geosearch" +
+        "&ggscoord=" + URLEncoder.encode("%.5f|%.5f".format(java.util.Locale.ROOT, lat, lng), "UTF-8") +
+        "&ggsradius=10000&ggslimit=10&prop=pageimages&piprop=thumbnail%7Coriginal&pithumbsize=$PHOTO_WIDTH"
+
+/**
+ * The first photo among the nearby pages (their order is « index », the nearest first): a real
+ * photo (jpg, png, webp), never a drawing, a map or a flag. Null when none has one.
+ */
+fun parseNearbyImage(json: String): SummaryImage? = runCatching {
+    val pages = Json.parseToJsonElement(json).jsonObject["query"]?.jsonObject?.get("pages")?.jsonArray ?: return@runCatching null
+    pages.map { it.jsonObject }
+        .sortedBy { it["index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: Int.MAX_VALUE }
+        .firstNotNullOfOrNull { page ->
+            val thumb = page["thumbnail"]?.jsonObject?.get("source")?.jsonPrimitive?.contentOrNull
+            val original = page["original"]?.jsonObject?.get("source")?.jsonPrimitive?.contentOrNull
+            val source = (thumb ?: original)?.takeIf { it.startsWith("https://upload.wikimedia.org/") } ?: return@firstNotNullOfOrNull null
+            val file = fileName(original ?: source)?.takeIf { name -> name.lowercase().let { it.endsWith(".jpg") || it.endsWith(".jpeg") || it.endsWith(".png") || it.endsWith(".webp") } }
+                ?: return@firstNotNullOfOrNull null
+            SummaryImage(url = widened(source), file = file)
+        }
+}.getOrNull()
 
 /** The image of a summary: its address at [PHOTO_WIDTH] and the name of its Commons file. */
 data class SummaryImage(val url: String, val file: String)

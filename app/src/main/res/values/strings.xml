@@ -352,7 +352,6 @@
     <string name="nearby_row_description">%1$s, %2$s, à %3$s, ouvre la carte</string>
     <string name="place_article_title">À savoir sur %1$s</string>
     <string name="place_cover_photo">Photo de %1$s</string>
-    <string name="place_cover_satellite">Vue satellite de %1$s</string>
     <string name="place_cover_credit">Photo : %1$s</string>
     <string name="trip_cover_planned">Voyage programmé</string>
     <string name="timeline_add_place_a11y">%1$s : ajouter à %2$s</string>
