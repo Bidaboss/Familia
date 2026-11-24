@@ -443,13 +443,12 @@ private fun HeroCard(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         // The photo of the place where the trip goes (règles 10, 12), with its credit; no place, no image.
-        if (summary.place != null && (photos != null || token.isNotBlank())) {
+        if (summary.place != null && photos != null) {
             PlaceCover(
                 place = summary.placeName,
                 point = summary.place,
                 landscape = trip.landscape,
                 photos = photos,
-                token = token,
                 modifier = Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(18.dp)),
             )
         }

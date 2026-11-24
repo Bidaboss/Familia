@@ -117,7 +117,7 @@ fun TripEditRoute(
             onDelete = viewModel::delete,
             onBack = onBack,
             cover = { modifier ->
-                PlaceCover(coverPlace, coverPoint, landscape, container?.placePhotos, BuildConfig.MAPBOX_PUBLIC_TOKEN, modifier)
+                PlaceCover(coverPlace, coverPoint, landscape, container?.placePhotos, modifier)
             },
             inSheet = inSheet,
         )

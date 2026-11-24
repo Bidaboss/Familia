@@ -2266,3 +2266,10 @@ Sur un téléphone en Android 10 ou plus :
 2. Glisser la poignée vers le haut : la feuille monte au milieu (48 %). Glisser encore : elle prend tout l'écran, avec la flèche en haut à gauche. La flèche ou un glissé vers le bas la redescend d'un cran. Un appui sur la poignée passe de tout en bas au milieu, et inversement.
 3. Même chose dans « Modifier », Valise, Documents, Argent et les pages d'une étape ou d'un lieu.
 4. Carte indisponible : la feuille garde ces trois positions, et la ligne « Carte indisponible » est au-dessus.
+
+## Voyage : la photo de la destination, jamais une vue de carte (DESIGN-104 A)
+
+**Publier Firebase : non.**
+1. Un voyage vers La Palmyre (sa page Wikipédia n'a pas de photo) : en tête de l'accueil, sur la carte « Prochain voyage » de la liste et à la création, une vraie photo prise tout près (moins de 10 km : par exemple le zoo ou le phare), avec son crédit. Plus jamais de vue satellite.
+2. Un voyage vers La Rochelle : la photo de sa page, comme avant.
+3. Sans réseau, ou sans aucune photo autour : le paysage dessiné.
