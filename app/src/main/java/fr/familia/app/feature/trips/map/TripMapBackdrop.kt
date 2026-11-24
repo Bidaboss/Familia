@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -138,7 +140,10 @@ fun TripMapBackdrop(
                 .background(TripPathColors.Sky),
         ) {
             if (withMap) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
-            Column(Modifier.weight(1f).fillMaxWidth()) { content(withMap) }
+            // Low or high, the sheet is far from the status bar: the bars of the screens inside do not leave room for it.
+            Column(
+                Modifier.weight(1f).fillMaxWidth().then(if (withMap && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
+            ) { content(withMap) }
         }
     }
 }

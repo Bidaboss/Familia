@@ -2143,3 +2143,16 @@ Rien à publier côté Firebase. « APK de publication ».
 5. Modifier une étape : pas d'arrivée, la carte s'ouvre directement sur l'étape, comme avant.
 6. Avec « Supprimer les animations » dans les réglages d'Android, ou TalkBack : pas d'arrivée.
 7. Nouveau voyage : rien ne change (pas encore de carte au-dessus du formulaire).
+
+## Voyage : tous les écrans du voyage se tirent au-dessus de la carte (récit 111, partie 2 : règle 8)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui a des destinations placées, puis « Valise » : la carte satellite du voyage reste en haut, et « Valise » s'ouvre dans la feuille du bas, avec sa poignée.
+2. Tirer la poignée vers le haut : la feuille monte, puis prend tout l'écran avec la flèche en haut à gauche ; la flèche, un glissement vers le bas ou Retour la redescendent. Retour quand la feuille est basse quitte l'écran, comme avant.
+3. Pareil pour « Documents », « Phrases utiles », « Sécurité », « Monnaie », « Comptes » (la liste, une dépense, son historique), la page d'un hébergement, d'un restaurant ou d'un spot, et « Le mot de l'étape ».
+4. Depuis « Le mot de l'étape » et l'ajout d'un lieu à une destination : la carte choisit cette destination.
+5. La carte se déplace et se zoome au doigt ; pas de bouton + / −, seulement le réglage discret en bas à droite.
+6. Feuille basse ou haute : le titre de l'écran n'a pas de vide au-dessus de lui. Plein écran : il passe sous la barre d'état sans la chevaucher.
+7. Ouvrir le clavier dans un champ (une dépense, une note) : la feuille prend tout l'écran.
+8. Avec TalkBack, sans réseau, ou pour un voyage sans destination placée : ces écrans restent des pages classiques, comme avant.
+9. Les photos du voyage restent en plein écran (c'est une visionneuse).
