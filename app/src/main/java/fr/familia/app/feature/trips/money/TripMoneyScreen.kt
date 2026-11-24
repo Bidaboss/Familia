@@ -160,7 +160,7 @@ private fun RateBlock(currency: TripCurrency, rates: RatesState, onRetry: () -> 
 
 /** The date of the rate and its source, as the terms of the source ask. */
 @Composable
-private fun Source(date: String) {
+internal fun Source(date: String) {
     val context = LocalContext.current
     Text(
         stringResource(R.string.money_rate_source, date, OpenExchangeRates.SOURCE_NAME),
@@ -259,7 +259,7 @@ private fun CurrencyPicker(current: TripCurrency, onPick: (TripCurrency) -> Unit
 private const val MAX_AMOUNT_CHARS = 12
 
 /** A French number: two decimals at most, none for big amounts. */
-private fun number(value: Double): String {
+internal fun number(value: Double): String {
     val format = NumberFormat.getNumberInstance(Locale.FRANCE)
     format.maximumFractionDigits = if (value >= 1000) 0 else if (value >= 1) 2 else 4
     return format.format(value)

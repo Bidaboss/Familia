@@ -3413,8 +3413,9 @@
     <string name="safety_alert_failed">Le message n\'est pas parti. Réessaie, ou appelle directement.</string>
     <string name="safety_alert_ok">D\'accord</string>
     <string name="money_title">Monnaie</string>
-    <string name="money_round_label">Monnaie</string>
-    <string name="money_round_description">Monnaie du voyage et taux du jour</string>
+    <string name="money_step_title">Monnaie : %1$s (%2$s)</string>
+    <string name="money_step_open">Convertir</string>
+    <string name="money_from_expenses">Monnaie du voyage et taux du jour</string>
     <string name="money_currency_heading">Monnaie du voyage</string>
     <string name="money_currency_value">%1$s (%2$s)</string>
     <string name="money_change">Changer la monnaie</string>

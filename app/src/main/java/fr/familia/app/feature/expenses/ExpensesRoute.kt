@@ -50,7 +50,9 @@ fun ExpensesRoute(
     onEdit: (expenseId: String) -> Unit,
     onHistory: (expenseId: String) -> Unit,
     onBack: () -> Unit,
-) = ExpensesRoute(container, currentMember, ExpenseContainer(ExpenseContainerType.Trip, tripId), onAdd, onEdit, onHistory, onBack)
+    /** « Monnaie » of the trip (récit 112, règle 42), from the top bar. */
+    onMoney: (() -> Unit)? = null,
+) = ExpensesRoute(container, currentMember, ExpenseContainer(ExpenseContainerType.Trip, tripId), onAdd, onEdit, onHistory, onBack, onMoney)
 
 /** Connects the accounts of an event to their ViewModel. */
 @Composable
@@ -73,6 +75,7 @@ private fun ExpensesRoute(
     onEdit: (expenseId: String) -> Unit,
     onHistory: (expenseId: String) -> Unit,
     onBack: () -> Unit,
+    onMoney: (() -> Unit)? = null,
 ) {
     val viewModel: ExpensesViewModel = viewModel(
         key = "expenses-${of.bookId}",
@@ -99,6 +102,7 @@ private fun ExpensesRoute(
         actions = actions,
         onHistory = onHistory,
         kind = of.type,
+        onMoney = onMoney,
     )
 }
 

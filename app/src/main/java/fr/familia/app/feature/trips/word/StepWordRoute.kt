@@ -14,6 +14,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.isOwner
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.events.comments.CommentsSection
+import fr.familia.app.feature.trips.money.StepMoneyTile
 import fr.familia.app.feature.trips.phrases.StepPhrasesTile
 import fr.familia.app.feature.trips.photos.stepAiSubject
 import fr.familia.app.feature.trips.safety.StepSafetyTile
@@ -31,6 +32,8 @@ fun StepWordRoute(
     onOpenPhrases: ((country: String) -> Unit)? = null,
     /** « Sécurité » of the country of the step, with « Prévenir ma famille » (récit 112, règle 43). */
     onOpenSafety: ((country: String) -> Unit)? = null,
+    /** « Monnaie » of the trip, from a step outside the euro zone (récit 112, règle 42). */
+    onOpenMoney: (() -> Unit)? = null,
 ) {
     val viewModel: StepWordViewModel = viewModel(
         key = "step-word-$tripId-$stepId",
@@ -74,10 +77,11 @@ fun StepWordRoute(
             val lng = ready.step.lng
             // Règle 45: the weather and the local time first, the anecdote at the bottom.
             if (lat != null && lng != null) WeatherTimeTile(lat, lng, container?.placeWeather)
-            // Règles 39, 43 et 44: the phrases and the emergency numbers of the country are on the page
-            // of a step abroad, no longer round buttons of the trip.
+            // Règles 39, 42, 43 et 44: the phrases, the emergency numbers and the currency of the country
+            // are on the page of a step abroad, no longer round buttons of the trip.
             StepPhrasesTile(container, ready.step, onOpenPhrases)
             StepSafetyTile(container, ready.step, onOpenSafety)
+            StepMoneyTile(container, ready.step, onOpenMoney)
             PlaceArticleTile(ready.step.place, container?.placeArticles)
             if (lat != null && lng != null) NearbyTile(lat, lng, container?.nearbyPlaces)
             PlaceLinksTile(ready.step.place)

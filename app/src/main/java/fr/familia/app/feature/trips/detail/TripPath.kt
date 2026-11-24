@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Euro
 import androidx.compose.material.icons.outlined.Luggage
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Arrangement
@@ -238,8 +237,6 @@ fun TripDayCard(
     /** « Valise » (récit 98): the round button under the menus, for those who go. */
     onPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
-    /** « Monnaie » (récit 105): the currency of the trip and the rate of the day, for those who go. */
-    onMoney: (() -> Unit)? = null,
     /** « Documents » (récit 105, règle 41): tickets, bookings and papers, for those who go. */
     onDocuments: (() -> Unit)? = null,
 ) {
@@ -268,7 +265,7 @@ fun TripDayCard(
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
         }
         // Then the tools, for those who go: two round buttons with their word under them.
-        if (onExpenses != null || onPacking != null || onMoney != null || onDocuments != null) {
+        if (onExpenses != null || onPacking != null || onDocuments != null) {
             // Up to four rounds: they go on a second line rather than out of the card.
             FlowRow(
                 Modifier.fillMaxWidth(),
@@ -277,9 +274,6 @@ fun TripDayCard(
             ) {
                 if (onExpenses != null) {
                     ToolRound(Icons.Outlined.Payments, stringResource(R.string.trip_expenses_short), stringResource(R.string.expenses_open), onExpenses)
-                }
-                if (onMoney != null) {
-                    ToolRound(Icons.Outlined.Euro, stringResource(R.string.money_round_label), stringResource(R.string.money_round_description), onMoney)
                 }
                 if (onDocuments != null) {
                     ToolRound(Icons.Outlined.Description, stringResource(R.string.documents_round_label), stringResource(R.string.documents_round_description), onDocuments)

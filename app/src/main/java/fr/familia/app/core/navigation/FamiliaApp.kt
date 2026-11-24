@@ -1192,7 +1192,6 @@ fun FamiliaApp(
                             onOpenPhoto = { photoId -> navController.navigate(TripPhotosDestination(tripId, photoId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
                             onOpenPacking = { navController.navigate(TripPackingDestination(tripId)) },
-                            onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             onOpenDocuments = { navController.navigate(TripDocumentsDestination(tripId)) },
                             onOpenEnrich = { navController.navigate(TripEnrichDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
@@ -1299,6 +1298,7 @@ fun FamiliaApp(
                                 onBack = { navController.popBackStack() },
                                 onOpenPhrases = { country -> navController.navigate(TripPhrasesDestination(route.tripId, country)) },
                                 onOpenSafety = { country -> navController.navigate(TripSafetyDestination(route.tripId, country)) },
+                                onOpenMoney = { navController.navigate(TripMoneyDestination(route.tripId)) },
                             )
                         }
                     }
@@ -1313,6 +1313,8 @@ fun FamiliaApp(
                                 onEdit = { id -> navController.navigate(TripExpenseEditDestination(tripId, id)) },
                                 onHistory = { id -> navController.navigate(TripExpenseHistoryDestination(tripId, id)) },
                                 onBack = { navController.popBackStack() },
+                                // Règle 42: the currency of the trip is that of its budget (PRODUIT-162).
+                                onMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             )
                         }
                     }
