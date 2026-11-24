@@ -67,7 +67,8 @@ class CarnetViewModel(
     private val finished: Flow<List<CarnetTrip>> = combine(
         trips?.observeFollowedTrips(memberId)?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) } ?: flowOf(emptyList()),
         day,
-    ) { all, now -> all.filter { memberId in it.participantIds && it.endDate < now }.sortedBy { it.startDate } }
+    // A trip counts from its last day (récit 112): the evening of the return, it is in the carnet.
+    ) { all, now -> all.filter { memberId in it.participantIds && !it.endDate.isAfter(now) }.sortedBy { it.startDate } }
         .distinctUntilChanged()
         .flatMapLatest { done -> if (done.isEmpty()) flowOf(emptyList()) else combine(done.map(::counted)) { it.toList() } }
 

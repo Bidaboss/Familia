@@ -78,6 +78,22 @@ class CarnetViewModelTest {
     }
 
     @Test
+    fun `a trip that ends today counts the same day, one that ends tomorrow not yet`() = runTest {
+        val trips = FakeTrips(
+            initial = listOf(
+                TestTrips.trip(id = "t1", participants = listOf("adult1"), start = today.minusDays(3), end = today),
+                TestTrips.trip(id = "t2", participants = listOf("adult1"), start = today.minusDays(3), end = today.plusDays(1)),
+            ),
+            steps = mapOf("t1" to listOf(TestTrips.step("s1", today.minusDays(3), lat = 38.7, lng = -9.1))),
+        )
+        val vm = CarnetViewModel(trips, null, FakePlaces(), FakeMembers(), FakeLocator(), "adult1", flowOf(today))
+        val job = launch { vm.uiState.collect {} }
+        val ready = vm.uiState.first { it is CarnetUiState.Ready } as CarnetUiState.Ready
+        assertEquals(1, ready.carnet.trips)
+        job.cancel()
+    }
+
+    @Test
     fun `a hand-added destination comes in the carnet with its country`() = runTest {
         val places = FakePlaces()
         val vm = CarnetViewModel(FakeTrips(initial = emptyList()), null, places, FakeMembers(), FakeLocator(), "adult1", flowOf(today))
