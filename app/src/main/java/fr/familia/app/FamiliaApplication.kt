@@ -9,6 +9,8 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.FirebaseAppContainer
 import fr.familia.app.core.data.NetworkMonitor
 import fr.familia.app.core.notifications.NotificationChannels
+import fr.familia.app.core.place.WIKIMEDIA_USER_AGENT
+import okhttp3.OkHttpClient
 
 class FamiliaApplication : Application(), ImageLoaderFactory {
     lateinit var container: AppContainer
@@ -39,9 +41,30 @@ class FamiliaApplication : Application(), ImageLoaderFactory {
                 .maxSizeBytes(IMAGE_CACHE_BYTES)
                 .build()
         }
+        .okHttpClient {
+            OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    val request = chain.request()
+                    if (isWikimedia(request.url.host)) {
+                        chain.proceed(request.newBuilder().header("User-Agent", WIKIMEDIA_USER_AGENT).build())
+                    } else {
+                        chain.proceed(request)
+                    }
+                }
+                .build()
+        }
         .build()
 
     companion object {
         const val IMAGE_CACHE_BYTES = 250L * 1024 * 1024
+
+        /**
+         * The Wikimedia sites ask every client for a User-Agent that names it (retour E-47): the
+         * images of Commons get ours, the generic one of the app; the other images keep the default.
+         */
+        fun isWikimedia(host: String): Boolean =
+            WIKIMEDIA_HOSTS.any { host == it || host.endsWith(".$it") }
+
+        private val WIKIMEDIA_HOSTS = listOf("wikimedia.org", "wikipedia.org", "wikivoyage.org")
     }
 }

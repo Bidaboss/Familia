@@ -41,6 +41,22 @@ Chaque fil branche « Partager » sur ses écrans avec les mêmes briques :
 
 Déjà branchés : événement, sondage, anniversaire (Planning et liste des anniversaires), voyage. Les listes, Bonnes nouvelles et Coups de main sont faits par leurs fils.
 
+## Services externes
+
+Les services lus par le téléphone, en dehors de Firebase. Aucun ne reçoit le nom de la famille ni d'un membre : seulement un lieu ou un point, et un User-Agent générique (`Familia/1.0 (application familiale Android)`, `WIKIMEDIA_USER_AGENT`).
+
+| Service | Adresse | Pour quoi | Fichier |
+|---|---|---|---|
+| Mapbox | api.mapbox.com | Cartes et globe du voyage (jeton public) | `feature/trips/map` |
+| Géocodeur d'Android | (service du téléphone) | Trouver un lieu tapé | `core/place/PlaceLocator.kt` |
+| Wikipédia et Wikimedia Commons | fr.wikipedia.org, commons.wikimedia.org, upload.wikimedia.org | Photo d'un lieu, sa licence, l'anecdote d'une destination | `core/place/PlacePhotos.kt` |
+| Wikivoyage | fr.wikivoyage.org | « À savoir sur… » | `core/place/PlaceArticles.kt` |
+| Overpass (OpenStreetMap) | overpass-api.de, overpass.private.coffee, overpass.kumi.systems (essayés dans cet ordre) | Lieux autour d'une étape, recherche de lieux | `core/place/PlaceSearch.kt`, `core/place/NearbyPlaces.kt` |
+| Open-Meteo | api.open-meteo.com | Météo d'une étape | `core/place/PlaceWeather.kt` |
+| ExchangeRate-API | open.er-api.com | Taux de change des dépenses | `core/money/ExchangeRates.kt` |
+
+Les images de Wikimedia sont chargées par Coil avec ce même User-Agent (intercepteur de `FamiliaApplication`), et seulement aux largeurs que Commons sert (`WIKIMEDIA_WIDTHS`, 960 px pour une photo de lieu).
+
 ## Compilation
 
 - La CI GitHub (`.github/workflows/android.yml`) compile l'APK de test, lance le lint Android et les tests unitaires à chaque pull request. L'APK est téléchargeable dans l'onglet « Actions » de la PR, rubrique « Artifacts ».

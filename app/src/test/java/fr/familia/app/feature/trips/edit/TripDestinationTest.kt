@@ -8,7 +8,7 @@ import org.junit.Test
 class TripDestinationTest {
     @Test
     fun `the trip takes the first part of the address as its name`() {
-        assertEquals("La Palmyre", destinationName(Place(45.7, -1.2, address = "La Palmyre, Les Mathes, France")))
+        assertEquals("La Samoure", destinationName(Place(45.7, -1.2, address = "La Samoure, Les Camilles, France")))
     }
 
     @Test
@@ -37,12 +37,12 @@ class TripDestinationTest {
         assertEquals(null, suggestionQuery("La", null))
         assertEquals(null, suggestionQuery("  La  ", null))
         assertEquals("La P", suggestionQuery(" La P", null))
-        assertEquals("La Rochelle", suggestionQuery("La Rochelle ", null))
+        assertEquals("Samoure", suggestionQuery("Samoure ", null))
     }
 
     @Test
     fun `no new question once a place is chosen`() {
-        assertEquals(null, suggestionQuery("La Palmyre", Place(45.7, -1.2, address = "La Palmyre, Les Mathes, France")))
+        assertEquals(null, suggestionQuery("La Samoure", Place(45.7, -1.2, address = "La Samoure, Les Camilles, France")))
     }
 
     @Test

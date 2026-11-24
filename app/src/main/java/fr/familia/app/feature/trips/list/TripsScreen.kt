@@ -440,7 +440,7 @@ private fun waitLabel(trip: Trip, today: LocalDate): String = when (val days = d
     else -> pluralStringResource(R.plurals.trips_in_nights, days, days)
 }
 
-/** What TalkBack reads of a trip: « La Palmyre, du dimanche 11 au vendredi 16 avril 2027, dans 142 jours, avec Inès et Hugo ». */
+/** What TalkBack reads of a trip: « La Samoure, du dimanche 11 au vendredi 16 avril 2027, dans 142 jours, avec Inès et Hugo ». */
 @Composable
 private fun tripDescription(summary: TripSummary, extra: String?): String {
     val trip = summary.trip
@@ -700,7 +700,7 @@ internal fun previewTrips(): TripsUiState.Success {
     return TripsUiState.Success(
         ongoing = emptyList(),
         upcoming = listOf(
-            TripSummary(trip("2", "La Palmyre", LocalDate.of(2027, 4, 11), LocalDate.of(2027, 4, 16)), listOf("Camille", "Inès", "Noé"), isParticipant = true),
+            TripSummary(trip("2", "La Samoure", LocalDate.of(2027, 4, 11), LocalDate.of(2027, 4, 16)), listOf("Camille", "Inès", "Noé"), isParticipant = true),
             TripSummary(trip("4", "Annecy", LocalDate.of(2027, 7, 3), LocalDate.of(2027, 7, 10)), listOf("Inès", "Noé")),
         ),
         past = listOf(TripSummary(trip("3", "Ski à Morzine", LocalDate.of(2026, 2, 13), LocalDate.of(2026, 2, 20)), listOf("Inès"))),

@@ -18,9 +18,9 @@ class TripRouteTest {
 
     @Test
     fun `every step is a line in its order with its words and photos`() {
-        val stops = listOf(stop("s1", 1, 2, "Lyon", 12), stop("s2", 2, 2, "La Palmyre", 14))
+        val stops = listOf(stop("s1", 1, 2, "Lyon", 12), stop("s2", 2, 2, "La Samoure", 14))
         val entries = routeEntries(stops, mapOf("s2" to word("s2", 3)))
-        assertEquals(listOf("Lyon", "La Palmyre"), entries.map { it.place })
+        assertEquals(listOf("Lyon", "La Samoure"), entries.map { it.place })
         assertEquals(listOf(1, 2), entries.map { it.number })
         assertEquals(0, entries[0].words)
         assertEquals(0, entries[0].photos)

@@ -250,7 +250,7 @@ private fun FormContent(
     }
 }
 
-/** « Dans le voyage · La Palmyre · 11 → 16 avril », a small white card, not a button. */
+/** « Dans le voyage · La Samoure · 11 → 16 avril », a small white card, not a button. */
 @Composable
 private fun TripReminder(trip: Trip) {
     val (from, to) = tripRangeEnds(trip, weekday = false)

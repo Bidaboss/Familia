@@ -4,7 +4,7 @@ import fr.familia.app.core.place.Place
 
 /**
  * The name a trip takes from its destination (récit 95): the first part of the address, « La
- * Palmyre » out of « La Palmyre, Les Mathes, France », at most [MAX_TRIP_TITLE] characters. The
+ * Samoure » out of « La Samoure, Les Camilles, France », at most [MAX_TRIP_TITLE] characters. The
  * member can still change it.
  */
 fun destinationName(place: Place): String {

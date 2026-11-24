@@ -15,7 +15,7 @@ class InsertSpotsTest {
 
     @Test
     fun aPlusAfterTheStartAndAfterEachElement() {
-        val line = tripTimeline(trip, listOf(step("car", StepType.Car, 10), step("bordeaux", StepType.Lodging, 10, 12), step("palmyre", StepType.Lodging, 12)))
+        val line = tripTimeline(trip, listOf(step("car", StepType.Car, 10), step("bordeaux", StepType.Lodging, 10, 12), step("samoure", StepType.Lodging, 12)))
         val spots = insertSpots(trip, line.rows)
         assertEquals(4, spots.size)
         assertNull(spots[0].after)
@@ -26,7 +26,7 @@ class InsertSpotsTest {
         // After a destination: the day it ends, and its places under it.
         assertEquals(day(12), spots[2].day)
         assertEquals("bordeaux", spots[2].destinationId)
-        assertEquals("palmyre", spots[3].destinationId)
+        assertEquals("samoure", spots[3].destinationId)
         assertEquals(day(17), spots[3].day)
     }
 
