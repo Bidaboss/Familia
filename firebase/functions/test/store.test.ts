@@ -123,7 +123,10 @@ test('removing a member deletes their answers, bags, alerts, trip documents, voi
   await db.doc('usage/ines/days/2026-11-20').set({ day: '2026-11-20', opens: 2, seconds: { home: 60 } });
   await db.doc('usage/noe/days/2026-11-20').set({ day: '2026-11-20', opens: 1, seconds: { home: 30 } });
   await db.doc('members/ines').delete();
-  await deleteMemberData(db, 'ines');
+  const folders = await deleteMemberData(db, 'ines');
+  // Other tests leave trips behind: each trip gives its two folders, for this member only.
+  assert.ok(folders.includes('trips/corse/documents/ines/') && folders.includes('trips/corse/voice/ines/'));
+  assert.ok(folders.every((f) => /^trips\/[^/]+\/(documents|voice)\/ines\/$/.test(f)));
   assert.equal((await db.doc('events/meal/rsvps/ines').get()).exists, false);
   assert.equal((await db.doc('events/later/rsvps/ines').get()).exists, false);
   assert.equal((await db.doc('events/meal/rsvps/noe').get()).exists, true);
