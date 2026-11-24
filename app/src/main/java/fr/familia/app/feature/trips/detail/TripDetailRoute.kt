@@ -96,6 +96,9 @@ fun TripDetailRoute(
         onOpenMap = onOpenMap,
         onOpenWord = onOpenWord,
         onSeePhotos = onSeePhotos,
+        cover = { success ->
+            TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
+        },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
 }

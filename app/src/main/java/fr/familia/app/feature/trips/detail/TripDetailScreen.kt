@@ -150,6 +150,8 @@ fun TripDetailScreen(
     onOpenMoney: (() -> Unit)? = null,
     /** Public Mapbox token of this APK: with it the home is the satellite map and a sheet (récit 100); blank: the drawn path. */
     satelliteToken: String = "",
+    /** The home of a planned trip (règle 10): the image of the place, or several going by. */
+    cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -211,7 +213,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney, cover)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -337,6 +339,7 @@ private fun PathContent(
     onOpenPhrases: (() -> Unit)? = null,
     onOpenSafety: (() -> Unit)? = null,
     onOpenMoney: (() -> Unit)? = null,
+    cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -350,7 +353,8 @@ private fun PathContent(
         else -> places.firstOrNull()
     }
     val listState = rememberLazyListState()
-    val notebookIndex = if (state.sendFailed) 4 else 3
+    val withCover = cover != null && state.today.isBefore(state.trip.startDate)
+    val notebookIndex = (if (state.sendFailed) 4 else 3) + (if (withCover) 1 else 0)
     // Opened from « Étapes » or « À prévoir » of the list: that part first, once.
     var opened by rememberSaveable(state.trip.id) { mutableStateOf(false) }
     LaunchedEffect(openAt) {
@@ -412,6 +416,9 @@ private fun PathContent(
         // Room at the bottom so the add button never hides the last line.
         contentPadding = PaddingValues(bottom = 96.dp),
     ) {
+        if (withCover && cover != null) {
+            item(key = "cover") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { cover(state) } }
+        }
         item(key = "strip") {
             TripDayStrip(
                 days = days,
