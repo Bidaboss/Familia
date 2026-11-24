@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -81,6 +82,8 @@ import fr.familia.app.core.model.TripLandscape
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.drawLandscape
 import fr.familia.app.feature.trips.detail.palette
+import fr.familia.app.core.place.PlacePhotos
+import fr.familia.app.feature.trips.PlaceCover
 import fr.familia.app.feature.trips.joinNames
 import fr.familia.app.feature.trips.map.GlobeHealth
 import java.time.LocalDate
@@ -108,6 +111,8 @@ fun TripsScreen(
     expensesOn: Boolean = false,
     /** Public Mapbox token of this APK; blank: no globe, the drawn landscape stays (récit 99). */
     globeToken: String = "",
+    /** The real photos of the places (règle 12); null: the satellite image, else the drawn landscape. */
+    placePhotos: PlacePhotos? = null,
 ) {
     var souvenirs by rememberSaveable { mutableStateOf(false) }
     var globeStopped by rememberSaveable { mutableStateOf(false) }
@@ -120,9 +125,9 @@ fun TripsScreen(
     val markers = if (success == null || !globeOn) {
         emptyList()
     } else if (souvenirs) {
-        success.past.mapNotNull { s -> s.place?.let { GlobeMarker(it, false) } }
+        success.past.mapNotNull { s -> s.place?.let { GlobeMarker(it, false, s.trip.id) } }
     } else {
-        (success.ongoing + success.upcoming).mapNotNull { s -> s.place?.let { GlobeMarker(it, false) } }
+        (success.ongoing + success.upcoming).mapNotNull { s -> s.place?.let { GlobeMarker(it, false, s.trip.id) } }
             .let { list -> list.mapIndexed { i, m -> if (i == 0) m.copy(highlighted = true) else m } }
     }
     // Opening a trip from the globe: the camera flies there for 2 s, then the trip opens; a second touch opens it at once.
@@ -158,6 +163,7 @@ fun TripsScreen(
             stopped = globeStopped,
             flight = flight,
             onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
+            onOpenTrip = { id -> openTrip(id) },
             modifier = Modifier.fillMaxWidth().fillMaxHeight(0.62f).align(Alignment.TopCenter),
         )
     }
@@ -212,7 +218,7 @@ fun TripsScreen(
                             mascot = true,
                         )
                         souvenirs -> Souvenirs(state, openTrip)
-                        else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn)
+                        else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn, photos = placePhotos, token = globeToken)
                     }
                 }
               }
@@ -293,6 +299,8 @@ private fun Coming(
     onOpenPart: ((String, TripPart) -> Unit)?,
     expensesOn: Boolean,
     withLandscape: Boolean = true,
+    photos: PlacePhotos? = null,
+    token: String = "",
 ) {
     val plan = tripsPathPlan(state.ongoing, state.upcoming)
     val hero = plan.hero
@@ -312,7 +320,7 @@ private fun Coming(
         item(key = "hero") {
             Box(Modifier.fillMaxWidth().background(ground).padding(horizontal = 16.dp, vertical = 8.dp)) {
                 if (hero != null) {
-                    HeroCard(hero, plan.heroOngoing, state.today, onOpenTrip, onOpenPart, expensesOn)
+                    HeroCard(hero, plan.heroOngoing, state.today, onOpenTrip, onOpenPart, expensesOn, photos, token)
                 } else {
                     Text(
                         stringResource(if (state.canCreate) R.string.trips_none_coming else R.string.trips_none_coming_child),
@@ -387,6 +395,8 @@ private fun HeroCard(
     onOpenTrip: (String) -> Unit,
     onOpenPart: ((String, TripPart) -> Unit)?,
     expensesOn: Boolean,
+    photos: PlacePhotos? = null,
+    token: String = "",
 ) {
     val trip = summary.trip
     val wait = if (ongoing) stringResource(R.string.trips_day_of, tripDayNumber(trip, today), tripLength(trip)) else waitLabel(trip, today)
@@ -400,6 +410,17 @@ private fun HeroCard(
             .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        // The photo of the place where the trip goes (règles 10, 12), with its credit; no place, no image.
+        if (summary.place != null && (photos != null || token.isNotBlank())) {
+            PlaceCover(
+                place = summary.placeName,
+                point = summary.place,
+                landscape = trip.landscape,
+                photos = photos,
+                token = token,
+                modifier = Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(18.dp)),
+            )
+        }
         // The text of the card opens the trip; the three buttons open one of its parts.
         Column(
             Modifier

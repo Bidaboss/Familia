@@ -1946,3 +1946,12 @@ Rien à publier côté Firebase (les règles des étapes ne changent pas). « AP
 3. « + » sur la première destination : elle gagne une nuit et la suivante se décale d'un jour. « Annuler » s'affiche 5 s et remet tout comme avant. Contre la date de retour, « + » est grisé avec une phrase. « − » s'arrête à une nuit.
 4. Pour qui suit le voyage sans partir : pas de − ni de +, seulement les nuits.
 5. Plus de bande des jours ni de « Programme, jour N » : « Prochaine étape » garde « Bien arrivé » à portée de main.
+
+## Voyages : le globe de la liste, ses points et la photo du prochain voyage (récit 102, partie 3 : règles 1, 2, 3, 10, 12)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Liste Voyages, onglet « À venir » : un point par voyage qui a un lieu, le prochain en noir, les suivants en jaune.
+2. Deux voyages au même endroit : un seul point avec « 2 » dedans.
+3. Appuyer sur un point : le globe s'arrête, vole vers le lieu en 2 s, puis le voyage s'ouvre. Un deuxième appui pendant le vol l'ouvre tout de suite. Avec deux voyages au même point, c'est le premier de la liste qui s'ouvre.
+4. Passer sur « Souvenirs » puis revenir : les points changent avec l'onglet (blancs à contour orange pour les souvenirs), sans recharger le globe.
+5. La carte « Prochain voyage » montre la photo du lieu avec son crédit ; sans photo, la vue satellite ; sans réseau, le paysage dessiné.

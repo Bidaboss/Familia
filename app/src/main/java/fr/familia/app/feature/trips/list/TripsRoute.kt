@@ -28,5 +28,5 @@ fun TripsRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    TripsScreen(state = state, onRetry = viewModel::retry, onOpenTrip = onOpenTrip, onAddTrip = onAddTrip, onBack = onBack, onOpenAlbums = onOpenAlbums, onOpenPart = onOpenPart, expensesOn = expensesOn, globeToken = globeToken)
+    TripsScreen(state = state, onRetry = viewModel::retry, onOpenTrip = onOpenTrip, onAddTrip = onAddTrip, onBack = onBack, onOpenAlbums = onOpenAlbums, onOpenPart = onOpenPart, expensesOn = expensesOn, globeToken = globeToken, placePhotos = container?.placePhotos)
 }
