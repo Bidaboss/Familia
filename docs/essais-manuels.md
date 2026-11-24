@@ -2424,3 +2424,15 @@ Sur un téléphone en Android 10 ou plus :
 6. « Ajouter une destination » : écran bleu clair, rond retour et titre, champ « Recherchez un lieu », onglets « Villes | Régions | Pays ». Avant de taper, les lieux où la famille est déjà allée (drapeau du pays). À partir de 3 lettres, les lieux trouvés par le téléphone (5 au plus), triés par onglet. Toucher un lieu : « Séville ajouté au voyage », retour au voyage, une nuit à partir du jour du « + ».
 7. « Ajouter un transport » : la carte reste en haut avec, par-dessus, le rond retour, la pilule « Nouvel élément » / « Voiture · Été » et l'aide ; le panneau s'ouvre à mi-hauteur avec le bandeau « Dans le voyage · … », les tuiles, et le bouton « Ajouter l'élément ». En plein écran, la barre de titre revient dans le panneau.
 8. « Ajouter un hébergement / spot / restaurant » : la recherche de lieux d'abord (inchangée), puis la même page « Nouvel élément » sur la carte, avec « Hébergement · Séville ».
+
+## Voyage : Valise, Documents et Phrases utiles au style du prototype (fiche F3)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage où l'on part, puis le bouton rond « Valise » : la page est bleu clair, même en thème sombre ; en haut, un rond blanc de retour, « Valise » en grand avec le titre du voyage dessous.
+2. Deux pilules : « Tout le monde » (sombre quand elle est choisie) et « Ma valise » (blanche, avec une pastille pêche du nombre d'objets restant, si il en reste). Les valises des enfants qui partent suivent, en onglets plus petits.
+3. « Tout le monde » : le titre « Pour tout le monde », puis une carte blanche aux angles très arrondis ; chaque ligne a une case sombre, le texte en gras et « Responsable : Lou » dessous quand quelqu'un s'en charge. En bas de la carte, « + Ajouter une ligne ».
+4. Toucher une ligne entière la coche ; TalkBack la lit comme une case à cocher.
+5. « Ma valise » : la carte blanche des objets, cases sombres, « + Ajouter un objet », « Garder comme ma liste de départ ».
+6. Bouton « Documents » : même page bleu clair ; chaque document est une ligne blanche, une icône dans un carré bleu pâle, le titre en gras, « par Sam · PDF » dessous, et un ✕ rouge pour qui peut le retirer (une confirmation est demandée). « Ajouter un document » est le grand bouton sombre fixé en bas.
+7. Une étape à l'étranger, « Phrases utiles » : « Espagne · espagnol » en titre, puis une carte blanche avec un trait entre les phrases ; chaque phrase en gras, « Bonjour · *o-la* » dessous, et un rond crème de 56 dp avec le haut-parleur qui la dit.
+8. La page d'une étape à l'étranger : la tuile « Phrases utiles en … » montre les phrases de la même façon.

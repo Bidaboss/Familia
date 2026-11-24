@@ -7,8 +7,10 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,20 +21,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Hotel
 import androidx.compose.material.icons.outlined.LocalActivity
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,8 +57,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -66,12 +72,13 @@ import fr.familia.app.core.data.TripDocument
 import fr.familia.app.core.data.TripDocumentKind
 import fr.familia.app.core.data.TripDocuments
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.ui.BackButton
-import fr.familia.app.core.ui.ClaySpacing
-import fr.familia.app.core.ui.FamiliaTopBar
+import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.feature.trips.TripPage
+import fr.familia.app.feature.trips.TripPageAction
 import fr.familia.app.feature.trips.detail.TripDetailUiState
 import fr.familia.app.feature.trips.detail.TripDetailViewModel
+import fr.familia.app.feature.trips.detail.TripPathColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -168,52 +175,63 @@ fun TripDocumentsScreen(
     onBack: () -> Unit,
 ) {
     var deleting by remember { mutableStateOf<TripDocument?>(null) }
-    Scaffold(topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.documents_title)) }, navigationIcon = { BackButton(onClick = onBack) }) }) { padding ->
+    // Fiche F3: the light blue page, the rows in white, « Ajouter un document » the full button at the bottom.
+    val action = if (allowed && !loading) {
+        TripPageAction(
+            text = stringResource(if (sending) R.string.documents_sending else R.string.documents_add),
+            onClick = onAdd,
+            enabled = !sending && state is DocumentsState.Ready,
+            busy = sending,
+        )
+    } else {
+        null
+    }
+    TripPage(title = stringResource(R.string.documents_title), onBack = onBack, action = action) {
         if (loading && allowed) {
-            LoadingState(Modifier.padding(padding))
-            return@Scaffold
+            LoadingState()
+            return@TripPage
         }
         Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(ClaySpacing.screen),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (!allowed) {
-                Text(stringResource(R.string.documents_not_allowed), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.documents_not_allowed), fontSize = 16.sp)
                 return@Column
             }
-            Text(stringResource(R.string.documents_intro), style = MaterialTheme.typography.bodyLarge)
-            Button(onClick = onAdd, enabled = !sending && state is DocumentsState.Ready, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(if (sending) R.string.documents_sending else R.string.documents_add))
-            }
-            Text(
-                stringResource(R.string.documents_limits),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Text(stringResource(R.string.documents_intro), fontSize = 15.sp, color = TripPathColors.Ink.copy(alpha = 0.8f))
+            Text(stringResource(R.string.documents_limits), fontSize = 13.sp, color = TripPathColors.Ink.copy(alpha = 0.7f))
             problem?.let { shownProblem ->
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
                     Text(
                         stringResource(problemText(shownProblem)),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge,
+                        color = DocumentRed,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f),
                     )
-                    TextButton(onClick = onDismissProblem, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.documents_ok)) }
+                    TextButton(
+                        onClick = onDismissProblem,
+                        modifier = Modifier.heightIn(min = 56.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
+                    ) { Text(stringResource(R.string.documents_ok), fontWeight = FontWeight.ExtraBold) }
                 }
             }
             when (state) {
                 DocumentsState.Loading -> Unit
-                DocumentsState.Failed -> Text(stringResource(R.string.documents_failed), style = MaterialTheme.typography.bodyLarge)
+                DocumentsState.Failed -> Text(stringResource(R.string.documents_failed), fontSize = 16.sp)
                 is DocumentsState.Ready -> {
                     if (state.documents.isEmpty()) {
-                        Text(stringResource(R.string.documents_empty), style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(R.string.documents_empty), fontSize = 16.sp)
                     }
                     TripDocumentKind.entries.forEach { kind ->
                         val ofKind = state.documents.filter { it.kind == kind }
                         if (ofKind.isNotEmpty()) {
                             Text(
                                 stringResource(kindHeading(kind)),
-                                style = MaterialTheme.typography.titleLarge,
+                                fontFamily = Fredoka,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(top = 8.dp).semantics { heading() },
                             )
                             ofKind.forEach { document ->
@@ -242,32 +260,44 @@ fun TripDocumentsScreen(
     }
 }
 
+/** The pale blue of the square behind the icon, and the red of the ✕ (fiche F3). */
+private val DocumentIconBlue = Color(0xFFEAF6FB)
+private val DocumentRed = Color(0xFFC62828)
+
+/** A white row of 72: the icon in its pale blue square, the title and its type, the red ✕ (fiche F3). */
 @Composable
 private fun DocumentRow(document: TripDocument, onOpen: () -> Unit, onDelete: (() -> Unit)?) {
     val open = stringResource(R.string.documents_open, document.title)
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 56.dp)
-                .clickable(role = Role.Button, onClickLabel = open, onClick = onOpen)
-                .padding(vertical = 8.dp),
-        ) {
-            Icon(kindIcon(document.kind), contentDescription = null, modifier = Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
-            Column {
-                Text(document.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(
-                    stringResource(R.string.documents_by, document.ownerName, document.type.extension.uppercase()),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+    Surface(shape = RoundedCornerShape(16.dp), color = Color.White, contentColor = TripPathColors.Ink, modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 72.dp)
+                    .clickable(role = Role.Button, onClickLabel = open, onClick = onOpen)
+                    .padding(start = 14.dp, top = 8.dp, bottom = 8.dp, end = if (onDelete == null) 14.dp else 4.dp),
+            ) {
+                Box(
+                    Modifier.size(36.dp).background(DocumentIconBlue, RoundedCornerShape(10.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(kindIcon(document.kind), contentDescription = null, modifier = Modifier.size(20.dp))
+                }
+                Column {
+                    Text(document.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        stringResource(R.string.documents_by, document.ownerName, document.type.extension.uppercase()),
+                        fontSize = 12.sp,
+                        color = TripPathColors.Ink.copy(alpha = 0.7f),
+                    )
+                }
             }
-        }
-        if (onDelete != null) {
-            IconButton(onClick = onDelete, modifier = Modifier.size(56.dp)) {
-                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.documents_delete_description, document.title))
+            if (onDelete != null) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.documents_delete_description, document.title), tint = DocumentRed)
+                }
             }
         }
     }

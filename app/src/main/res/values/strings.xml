@@ -1441,6 +1441,8 @@
     <string name="trip_checklist_who">Qui s\'en occupe ?</string>
     <string name="trip_checklist_nobody">Personne pour l\'instant</string>
     <string name="trip_checklist_assignee">%1$s s\'en occupe</string>
+    <string name="trip_checklist_in_charge">Responsable : %1$s</string>
+    <string name="trip_checklist_add_line">Ajouter une ligne</string>
     <string name="trip_checklist_done">Fait</string>
     <string name="trip_checklist_todo">À faire</string>
     <string name="trip_checklist_delete">Retirer de la liste</string>
@@ -3433,7 +3435,7 @@
     <string name="phrases_title">Phrases utiles</string>
     <string name="phrases_intro">Dix phrases pour les étapes hors de France. La prononciation est écrite comme on la lit, en français.</string>
     <string name="phrases_none">Aucune étape de ce voyage n\'est dans un pays avec des phrases pour l\'instant.</string>
-    <string name="phrases_language">%1$s : %2$s</string>
+    <string name="phrases_language">%1$s · %2$s</string>
     <string name="phrases_say">Écouter : %1$s</string>
     <string name="phrases_voice_missing">La voix en %1$s n\'est pas installée sur ce téléphone : le haut-parleur reviendra une fois installée.</string>
     <string name="phrases_voice_install">Installer</string>
@@ -3525,6 +3527,7 @@
         <item quantity="other">Valise, %1$d choses à faire</item>
     </plurals>
     <string name="packing_everyone">Pour tout le monde</string>
+    <string name="packing_tab_everyone">Tout le monde</string>
     <string name="packing_take">Je m\'en charge</string>
     <string name="packing_release">Je ne peux plus</string>
     <string name="packing_my_bag">Ma valise</string>
