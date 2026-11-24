@@ -58,11 +58,11 @@ fun stepTypeIcon(type: StepType): ImageVector = when (type) {
 
 /** A section title of the trip screens, read as a heading by TalkBack. */
 @Composable
-fun TripSectionTitle(text: String, modifier: Modifier = Modifier) {
+fun TripSectionTitle(text: String, modifier: Modifier = Modifier, color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary) {
     Text(
         text,
         style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.primary,
+        color = color,
         modifier = modifier.padding(top = 8.dp).semantics { heading() },
     )
 }

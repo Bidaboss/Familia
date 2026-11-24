@@ -2547,3 +2547,14 @@ Sur un téléphone en Android 10 ou plus :
 5. Toucher « Enregistrer » : retour au formulaire avec les deux dates remplies. Rouvrir, changer, puis la flèche retour : les dates d'avant restent.
 6. Même essai sur un voyage existant (« Modifier ») et sur « Départ » d'une destination : « Enregistrer » est visible et change bien la date.
 7. Le titre « Dates du voyage » et la flèche ne passent pas sous la barre d'état en haut.
+
+## Voyage : une frise plus serrée, retours E-50 et E-57
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec des destinations et des transports, puis la frise en plein écran : chaque « + » tient sur une rangée de 56 dp ; s'il y a un transport à cet endroit, sa ligne (« Voiture · … ») est sur la même rangée, à droite du « + », sans grand vide avant ni après.
+2. Entre deux destinations sans transport : un seul « + », puis la destination suivante. Le fil vertical passe toujours par les ronds.
+3. La bande jaune « n nuits sans destination » est juste sous le départ, basse (40 dp).
+4. Sous une destination sans lieux, sans photos ni notes : plus de ligne vide avec une seule icône photo. Avec des photos : la ligne des photos et son bouton d'ajout.
+5. Toucher un « + » : le menu d'ajout s'ouvre comme avant ; toucher une ligne de transport : sa page s'ouvre.
+6. Dans le panneau du voyage, les titres « Photos » et « Prochaine étape » sont en encre foncée, plus en rouge.
+7. Retour E-58 : allumer l'économiseur de batterie d'Android puis ouvrir un voyage : la bannière commence par « Économiseur de batterie d'Android activé. ». L'éteindre, batterie sous 20 % et débranchée : elle commence par « Batterie à n %. ».

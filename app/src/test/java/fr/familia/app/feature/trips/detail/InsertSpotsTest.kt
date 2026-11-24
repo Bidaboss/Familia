@@ -36,4 +36,15 @@ class InsertSpotsTest {
         assertEquals(1, spots.size)
         assertNull(spots[0].destinationId)
     }
+
+    @Test
+    fun aTransportSitsOnTheRowOfItsPlusWithNoOtherPlusAroundIt() {
+        // E-57: départ → [+ | transport] → destination → + → destination → [+ | transport] → arrivée.
+        val a = TimelineRow.Destination(step("a", StepType.Lodging, 10, 12), 1, day(10), day(12))
+        val b = TimelineRow.Destination(step("b", StepType.Lodging, 12, 14), 2, day(12), day(14))
+        val car = TimelineRow.Move(step("car", StepType.Car, 10), null)
+        val train = TimelineRow.Move(step("train", StepType.Train, 14), null)
+        val rows = listOf(car, a, b, train)
+        assertEquals(listOf(false, true, false, false), rows.indices.map { insertAfter(rows, it) })
+    }
 }

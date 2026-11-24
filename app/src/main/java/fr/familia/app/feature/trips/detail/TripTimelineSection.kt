@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -189,7 +191,8 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                 pluralStringResource(R.plurals.timeline_missing, line.missing, line.missing),
                 style = MaterialTheme.typography.bodyMedium,
                 color = TripSheetColors.OnWarning,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Warning).padding(horizontal = 12.dp, vertical = 8.dp),
+                // E-57: a band of 40 dp right under the departure.
+                modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp).clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Warning).padding(horizontal = 12.dp, vertical = 10.dp),
             )
         }
         undo?.let { (name, before) ->
@@ -213,7 +216,8 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
         }
         val spots = remember(trip, line) { insertSpots(trip, line.rows) }
         val hasDestination = line.destinations.isNotEmpty()
-        spots.firstOrNull()?.let { InsertPoint(it, actions, hasDestination) }
+        // E-57: one row of 56 dp per « + », the transport after it on the same row (no transport on a row of its own).
+        if (line.rows.firstOrNull() !is TimelineRow.Move) spots.firstOrNull()?.let { InsertPoint(it, actions, hasDestination) }
         line.rows.forEachIndexed { index, row ->
             when (row) {
                 is TimelineRow.Destination -> DestinationRow(
@@ -230,9 +234,9 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                         }
                     },
                 )
-                is TimelineRow.Move -> MoveRow(row, onOpen = { actions.onOpen(row.step.id) })
+                is TimelineRow.Move -> PlusAndMove(spots.getOrNull(index), row, actions, hasDestination)
             }
-            spots.getOrNull(index + 1)?.let { InsertPoint(it, actions, hasDestination) }
+            if (insertAfter(line.rows, index)) spots.getOrNull(index + 1)?.let { InsertPoint(it, actions, hasDestination) }
         }
         if (actions.withoutStep > 0) {
             val label = pluralStringResource(R.plurals.timeline_photos_without_step, actions.withoutStep, actions.withoutStep)
@@ -418,12 +422,13 @@ private fun DestinationRow(trip: Trip, row: TimelineRow.Destination, plusBlocked
         val places = actions.places[row.step.id].orEmpty()
         val photos = actions.photos[row.step.id].orEmpty()
         val notes = actions.voiceNotes[row.step.id].orEmpty()
-        if (places.isNotEmpty() || photos.isNotEmpty() || actions.onAddPhoto != null || notes.isNotEmpty()) {
+        // E-50: no card with only the add-photo icon; the photos are added from the page of the destination.
+        if (places.isNotEmpty() || photos.isNotEmpty() || notes.isNotEmpty()) {
             Column(
                 Modifier.padding(start = ROUND_SIZE + 8.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
                 DestinationProgramme(places, actions)
-                StepPhotoStrip(photos, name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
+                if (photos.isNotEmpty()) StepPhotoStrip(photos, name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
                 notes.forEach { note -> VoiceNoteRow(note, actions) }
             }
         }
@@ -574,6 +579,22 @@ internal fun DestinationProgramme(places: List<TripPlace>, actions: TimelineActi
  * A « + » between two blocks of the timeline (DESIGN-99 A, F2 §1): a white round of 48 dp with a
  * cream border on the line, opening the menu of F2 §2 there. Nothing for who does not go.
  */
+/**
+ * E-57: whether a lone « + » follows row [index]. A transport has its « + » on its own row, before
+ * it: after a transport, and before one, there is no other « + ».
+ */
+internal fun insertAfter(rows: List<TimelineRow>, index: Int): Boolean =
+    rows.getOrNull(index) !is TimelineRow.Move && rows.getOrNull(index + 1) !is TimelineRow.Move
+
+/** E-57: the « + » and, on the same row of 56 dp, the transport that follows it. */
+@Composable
+private fun PlusAndMove(spot: InsertSpot?, row: TimelineRow.Move, actions: TimelineActions, hasDestination: Boolean) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (spot != null && actions.onInsertStep != null) InsertPoint(spot, actions, hasDestination) else Spacer(Modifier.width(ROUND_SIZE))
+        MoveRow(row, onOpen = { actions.onOpen(row.step.id) }, Modifier.weight(1f))
+    }
+}
+
 @Composable
 private fun InsertPoint(spot: InsertSpot, actions: TimelineActions, hasDestination: Boolean) {
     if (actions.onInsertStep == null) return
@@ -611,29 +632,37 @@ private fun InsertItem(text: String, icon: androidx.compose.ui.graphics.vector.I
 }
 
 @Composable
-private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit) {
+private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val label = stepTypeLabel(row.step.type)
     val distance = row.km?.let { stringResource(R.string.timeline_km, it) }
-    Row(
-        Modifier
-            .padding(start = ROUND_SIZE + 8.dp)
+    // B of #602: the touch zone is the Box of 56 dp; the white band of 48 dp (E-57) is drawn inside it.
+    Box(
+        modifier
+            .padding(start = 4.dp)
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.75f))
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, placeName(row.step)), onClick = onOpen)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, placeName(row.step)), onClick = onOpen),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(stepTypeIcon(row.step.type), contentDescription = null, tint = Ink, modifier = Modifier.size(20.dp))
-        Text(
-            listOfNotNull(label, row.step.place.takeIf { it.isNotBlank() }, distance).joinToString(" · "),
-            style = MaterialTheme.typography.bodyMedium,
-            color = Ink,
-            modifier = Modifier.padding(start = 10.dp),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.55f))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(stepTypeIcon(row.step.type), contentDescription = null, tint = Ink, modifier = Modifier.size(20.dp))
+            Text(
+                listOfNotNull(label, row.step.place.takeIf { it.isNotBlank() }, distance).joinToString(" · "),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Ink,
+                modifier = Modifier.padding(start = 10.dp),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
