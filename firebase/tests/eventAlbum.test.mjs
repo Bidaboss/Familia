@@ -49,6 +49,8 @@ describe('event album (récit 41)', () => {
     await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'events/e1/photos/adult2_31'), photo(OTHER_ADULT, 31)));
     await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'events/e1/photos/adult1_1'), photo(ADULT, 1)));
     await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'events/e1/photos/adult2_1'), photo(OTHER_ADULT, 1, { place: 'Ajaccio' })));
+    // stepId is for the photos of a trip only (récit 104).
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'events/e1/photos/adult2_1'), photo(OTHER_ADULT, 1, { stepId: 's1' })));
   });
 
   test('the author of the photo, the author of the event or the admin principal removes it', async () => {

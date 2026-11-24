@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.CircularProgressIndicator
@@ -79,6 +80,8 @@ class TimelineActions(
     /** The photos that fall in no destination, « Sans étape », and the album they are in. */
     val withoutStep: Int = 0,
     val onSeePhotos: () -> Unit = {},
+    /** Null for who adds no photo; else the photos chosen go under the destination [stepId] (récit 104, partie 2). */
+    val onAddPhoto: ((stepId: String) -> Unit)? = null,
 )
 
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
@@ -279,33 +282,61 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
             )
         }
         DestinationProgramme(row.step.id, name, actions)
-        StepPhotoStrip(actions.photos[row.step.id].orEmpty(), name, actions.onOpenPhoto)
+        StepPhotoStrip(actions.photos[row.step.id].orEmpty(), name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
     }
 }
 
-/** The photos of a destination (règle 31): the first four, 56 dp each, and « + N » for the others; a touch opens the album on it. */
+/**
+ * The photos of a destination (règle 31): the first four, 56 dp each, each said by TalkBack and
+ * opening the album on it; « + N » opens the album on the fifth; « Ajouter une photo » files the
+ * photos chosen under this destination (récit 104, partie 2), for those who add photos.
+ */
 @Composable
-private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit) {
-    if (photos.isEmpty()) return
-    val spoken = pluralStringResource(R.plurals.timeline_photos_a11y, photos.size, photos.size, destination)
+private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit, onAdd: (() -> Unit)?) {
+    if (photos.isEmpty() && onAdd == null) return
+    val shape = RoundedCornerShape(12.dp)
     Row(
-        Modifier.fillMaxWidth().semantics { contentDescription = spoken },
+        Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         photos.take(STRIP_PHOTOS).forEach { photo ->
-            val open = stringResource(R.string.album_photo_by, photo.authorName)
             StorageImage(
                 path = photo.thumbnailPath,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.album_photo_by, photo.authorName),
                 modifier = Modifier
                     .size(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(role = Role.Button, onClickLabel = open) { onOpen(photo.id) },
+                    .clip(shape)
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.album_photo_open)) { onOpen(photo.id) },
             )
         }
         if (photos.size > STRIP_PHOTOS) {
-            Text("+ ${photos.size - STRIP_PHOTOS}", color = Deep, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp))
+            val more = photos.size - STRIP_PHOTOS
+            val spoken = pluralStringResource(R.plurals.timeline_photos_a11y, photos.size, photos.size, destination)
+            Box(
+                Modifier
+                    .size(56.dp)
+                    .clip(shape)
+                    .clickable(role = Role.Button) { onOpen(photos[STRIP_PHOTOS].id) }
+                    .semantics { contentDescription = spoken },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("+ $more", color = Deep, fontWeight = FontWeight.Bold)
+            }
+        }
+        if (onAdd != null) {
+            val add = stringResource(R.string.timeline_photo_add, destination)
+            Box(
+                Modifier
+                    .size(56.dp)
+                    .clip(shape)
+                    .border(1.dp, Deep.copy(alpha = 0.4f), shape)
+                    .clickable(role = Role.Button, onClick = onAdd)
+                    .semantics { contentDescription = add },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Outlined.AddPhotoAlternate, contentDescription = null, tint = Deep)
+            }
         }
     }
 }

@@ -402,6 +402,20 @@ describe('trip photos (récit 15)', () => {
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1)));
   });
 
+  test('a photo may name a step of this trip that exists, never another (récit 104)', async () => {
+    await storedStep('t1', 's1');
+    await storedTrip('t2', ADULT, { readerIds: EVERYONE });
+    await storedStep('t2', 'other');
+    const db = as(env, NEIGHBOUR);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1, { stepId: 's1' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_2'), photo(NEIGHBOUR, 2, { stepId: 'other' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_3'), photo(NEIGHBOUR, 3, { stepId: 'nope' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_4'), photo(NEIGHBOUR, 4, { stepId: '' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_5'), photo(NEIGHBOUR, 5, { stepId: 7 })));
+    // Nobody sees more than before: who does not follow the trip still reads nothing.
+    await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/photos/adult3_1')));
+  });
+
   test('a follower who does not take part adds no photo', async () => {
     await assertFails(setDoc(doc(as(env, KID), 'trips/t1/photos/kid1_1'), photo(KID, 1)));
   });

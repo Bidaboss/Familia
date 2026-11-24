@@ -103,6 +103,13 @@ class AlbumPhotosViewModel(
             savedState[queueKey] = ArrayList(value)
         }
 
+    /** The step each photo of [queue] was chosen from, in a trip (récit 104), kept with the queue. */
+    private var queueSteps: Map<String, String>
+        get() = savedState.get<HashMap<String, String>>("album_steps_$folder").orEmpty()
+        set(value) {
+            savedState["album_steps_$folder"] = HashMap(value)
+        }
+
     /** Photos of [queue] that wait for the album to be read (the app has just been reopened). */
     private var waiting: List<String> = queue
 
@@ -135,8 +142,12 @@ class AlbumPhotosViewModel(
      * Sends the photos chosen on the phone ([sources] are content URIs), one after the other, each
      * in a free place of this member. Beyond the places left, the extra photos are not sent.
      */
-    fun addPhotos(sources: List<String>) {
+    fun addPhotos(sources: List<String>) = addPhotos(sources, null)
+
+    /** The same, from the step [stepId] of a trip: the photos are filed under it (récit 104, règle 31). */
+    fun addPhotos(sources: List<String>, stepId: String?) {
         if (photos == null || uploader == null || sources.isEmpty()) return
+        if (stepId != null) queueSteps = queueSteps + sources.associateWith { stepId }
         val member = me
         if (member == null) {
             // The album is not read yet (the app has just been reopened on the gallery's answer).
@@ -155,6 +166,7 @@ class AlbumPhotosViewModel(
         val taken = album.filter { it.authorId == member.id }.map { it.slot }.toSet() + sends.current(folder).slots
         val chosen = sources.zip(AlbumPhoto.freeSlots(taken, maxPerMember))
         queue = (queue + chosen.map { it.first }).distinct() - sources.drop(chosen.size).toSet()
+        queueSteps = queueSteps - sources.drop(chosen.size).toSet()
         if (chosen.isEmpty()) {
             sends.setProblem(folder, PhotoProblem.TooMany)
             return
@@ -169,7 +181,10 @@ class AlbumPhotosViewModel(
                     val takenAt = upload.takenAt(source)
                     upload.upload(source, photo.photoPath, photo.thumbnailPath)
                     // The files are there: the record may wait offline, Firestore sends it later.
-                    withTimeoutOrNull(writeTimeoutMillis) { repo.addPhoto(folder, slot, member, takenAt) }
+                    val stepId = queueSteps[source]
+                    withTimeoutOrNull(writeTimeoutMillis) {
+                        if (stepId == null) repo.addPhoto(folder, slot, member, takenAt) else repo.addPhoto(folder, slot, member, takenAt, stepId)
+                    }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -183,6 +198,7 @@ class AlbumPhotosViewModel(
                     )
                 } finally {
                     queue = queue - source
+                    queueSteps = queueSteps - source
                     sends.finish(folder, slot)
                 }
             }

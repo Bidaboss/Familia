@@ -56,6 +56,11 @@ class AlbumPhotosViewModelTest {
             takenAts += takenAt
             addPhoto(folder, slot, me)
         }
+        val stepIds = mutableListOf<String?>()
+        override suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?, stepId: String?) {
+            stepIds += stepId
+            addPhoto(folder, slot, me, takenAt)
+        }
         override suspend fun deletePhoto(photo: AlbumPhoto) {
             deleted += photo.id
             photos.value = photos.value.filterNot { it.id == photo.id && it.folder == photo.folder }
@@ -174,6 +179,19 @@ class AlbumPhotosViewModelTest {
         vm.addPhotos(listOf("content://a", "content://b"))
 
         assertEquals(listOf(day, null), photos.takenAts)
+    }
+
+    @Test
+    fun `photos chosen under a destination go with its step, the others without`() = runTest {
+        val photos = FakeAlbum()
+        val vm = album("adult2", photos, FakeUploader())
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        vm.addPhotos(listOf("content://a", "content://b"), "bordeaux")
+        vm.addPhotos(listOf("content://c"))
+
+        assertEquals(listOf("bordeaux", "bordeaux"), photos.stepIds)
+        assertEquals(3, photos.takenAts.size)
     }
 
     @Test

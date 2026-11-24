@@ -600,7 +600,7 @@ service cloud.firestore {
       allow create: if isMember()
         && albumIsOpen(eventId)
         && saidComing(eventId)
-        && isValidAlbumPhoto(request.resource.data, photoId);
+        && isValidAlbumPhoto(request.resource.data, photoId, []);
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId()
             || isOwner()
@@ -2406,7 +2406,7 @@ service cloud.firestore {
       allow read: if isMember();
       allow create: if isMember()
         && canManageRecipe(recipeOf(recipeId))
-        && isValidAlbumPhoto(request.resource.data, photoId)
+        && isValidAlbumPhoto(request.resource.data, photoId, [])
         && request.resource.data.slot <= 3;
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId() || canManageRecipe(recipeOf(recipeId)));
@@ -2779,9 +2779,10 @@ service cloud.firestore {
     // trips/{tripId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg, sent before this document.
     // takenAt (récit 36, « Il y a N ans »): optional, when the photo was taken, read by the phone
     // from the EXIF of the file; never after now, never before 2001 (a clock never set).
-    function isValidAlbumPhoto(p, photoId) {
+    // more: the fields one album adds to that shape (a trip: stepId), [] for the others.
+    function isValidAlbumPhoto(p, photoId, more) {
       return p.keys().hasAll(['authorId', 'authorName', 'slot', 'createdAt'])
-        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt', 'takenAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt', 'takenAt'].concat(more))
         && (!('takenAt' in p) || (p.takenAt is timestamp
             // A day of margin: the clock of a phone may be a little ahead of the server's.
             && p.takenAt <= request.time + duration.value(1, 'd')
@@ -2793,12 +2794,21 @@ service cloud.firestore {
         && p.createdAt == request.time;
     }
 
+    // A photo of a trip may name its step (récit 104, règle 31): stepId, optional, a step of this
+    // trip that exists when the photo is added. Older photos have none and are placed by their day.
+    // A step removed later leaves its photos, which go back to being placed by their day.
+    function isValidTripPhoto(p, photoId, tripId) {
+      return isValidAlbumPhoto(p, photoId, ['stepId'])
+        && (!('stepId' in p) || (p.stepId is string && p.stepId.size() > 0 && p.stepId.size() <= 64
+            && exists(/databases/$(database)/documents/trips/$(tripId)/steps/$(p.stepId))));
+    }
+
     // trips/{tripId}/photos/{photoId}. The followers see the photos; each participant adds their own,
     // and removes them. The creator of the trip, or the admin principal, can remove any photo. A
     // photo is never edited. Deleting the trip deletes the photos and their files on the server.
     match /trips/{tripId}/photos/{photoId} {
       allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
-      allow create: if isMember() && isParticipantOf(tripId) && isValidAlbumPhoto(request.resource.data, photoId);
+      allow create: if isMember() && isParticipantOf(tripId) && isValidTripPhoto(request.resource.data, photoId, tripId);
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
     }

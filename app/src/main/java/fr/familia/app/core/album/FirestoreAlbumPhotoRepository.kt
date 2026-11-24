@@ -33,13 +33,16 @@ class FirestoreAlbumPhotoRepository(private val db: FirebaseFirestore) : AlbumPh
 
     override suspend fun addPhoto(folder: String, slot: Int, me: Member) = addPhoto(folder, slot, me, null)
 
-    override suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?) {
+    override suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?) = addPhoto(folder, slot, me, takenAt, null)
+
+    override suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?, stepId: String?) {
         val record = buildMap<String, Any> {
             put("authorId", me.id)
             put("authorName", me.firstName)
             put("slot", slot)
             put("createdAt", FieldValue.serverTimestamp())
             takenAt?.let { put("takenAt", Timestamp(it.epochSecond, 0)) }
+            stepId?.let { put("stepId", it) }
         }
         try {
             photos(folder).document(AlbumPhoto.photoId(me.id, slot)).set(record).await()
@@ -65,6 +68,7 @@ class FirestoreAlbumPhotoRepository(private val db: FirebaseFirestore) : AlbumPh
             slot = slot,
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
             takenAt = getTimestamp("takenAt")?.toDate()?.toInstant(),
+            stepId = getString("stepId"),
         )
     }
 

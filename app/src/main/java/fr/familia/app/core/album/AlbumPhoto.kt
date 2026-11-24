@@ -21,6 +21,8 @@ data class AlbumPhoto(
     val createdAt: Instant?,
     /** When it was taken, from the EXIF of the file sent; null for older photos or without EXIF. */
     val takenAt: Instant? = null,
+    /** The step of a trip it was added from (récit 104, règle 31); null for older photos and other albums. */
+    val stepId: String? = null,
 ) {
     val id: String get() = photoId(authorId, slot)
     val photoPath: String get() = "$folder/$authorId/$slot.jpg"
@@ -54,6 +56,9 @@ interface AlbumPhotoRepository {
 
     /** The same, with the moment it was taken when the file said so. */
     suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?) = addPhoto(folder, slot, me)
+
+    /** The same, added from the step [stepId] of a trip (récit 104); only a trip album has steps. */
+    suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?, stepId: String?) = addPhoto(folder, slot, me, takenAt)
 
     /** Removes the record of a photo. The caller removes its two files from Storage first. */
     suspend fun deletePhoto(photo: AlbumPhoto)

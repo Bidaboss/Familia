@@ -9,7 +9,8 @@ import java.time.ZoneId
 data class StepPhotos(val byStay: Map<String, List<AlbumPhoto>>, val withoutStep: List<AlbumPhoto>)
 
 /**
- * The gentle migration of récit 104: a photo without a step goes to the destination whose days hold
+ * A photo added from a destination goes under it (récit 104, partie 2). The gentle migration of
+ * récit 104: a photo without a step, or whose step was removed, goes to the destination whose days hold
  * the day it was taken (else the day it was added), in the time of the phone. On the day one stay
  * ends and the next begins, the photo goes to the one that begins. Nothing is written: the photos
  * keep their records, and a photo out of every destination is « Sans étape ».
@@ -19,8 +20,10 @@ fun stepPhotos(line: TripTimeline, photos: List<AlbumPhoto>, zone: ZoneId): Step
     val byStay = mutableMapOf<String, MutableList<AlbumPhoto>>()
     val without = mutableListOf<AlbumPhoto>()
     photos.sortedWith(albumPhotoOrder).forEach { photo ->
+        // Added from a destination (partie 2): under it, while it is still in the trip.
+        val chosen = photo.stepId?.let { id -> stays.firstOrNull { it.step.id == id } }
         val day = photo.shotAt?.atZone(zone)?.toLocalDate()
-        val stay = day?.let { d ->
+        val stay = chosen ?: day?.let { d ->
             stays.lastOrNull { !d.isBefore(it.start) && !d.isAfter(it.end) }
         }
         if (stay == null) without += photo else byStay.getOrPut(stay.step.id) { mutableListOf() } += photo

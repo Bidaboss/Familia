@@ -47,4 +47,14 @@ class StepPhotosTest {
         assertEquals(listOf("m_1"), result.withoutStep.map { it.id })
         assertEquals(listOf("m_2"), result.byStay.getValue("bordeaux").map { it.id })
     }
+
+    @Test
+    fun aPhotoAddedFromADestinationStaysUnderItWhateverItsDay() {
+        val chosen = photo(1, created = 11, taken = 11).copy(stepId = "palmyre")
+        val gone = photo(2, created = 11, taken = 11).copy(stepId = "removed")
+        val result = stepPhotos(line, listOf(chosen, gone), zone)
+        assertEquals(listOf("m_1"), result.byStay.getValue("palmyre").map { it.id })
+        // Its step removed, the photo goes back to its day.
+        assertEquals(listOf("m_2"), result.byStay.getValue("bordeaux").map { it.id })
+    }
 }
