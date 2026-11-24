@@ -2386,3 +2386,12 @@ Sur un téléphone en Android 10 ou plus :
 **Publier Firebase : non.**
 1. Ouvrir un voyage sur la carte satellite : le crédit « © Mapbox © OpenStreetMap » en haut à droite reste lisible sur une zone claire (ombre sombre sous le texte).
 2. Avec TalkBack (pas de carte satellite), le bouton « La carte » en bas du voyage se lit « Ouvrir la carte du voyage, avec toutes ses étapes », une seule fois.
+
+## Voyages : le globe tourne et ne laisse plus la place à l'image (E-33, E-34)
+
+**Publier Firebase : non.**
+1. Ouvrir Voyages avec au moins un voyage qui a un lieu : le globe satellite apparaît et tourne seul, lentement, d'ouest en est (un tour en 90 s), sans geste.
+2. Attendre une minute sur l'écran : le globe reste, il ne laisse jamais la place au paysage dessiné ou à la photo, même si l'imagerie arrive lentement.
+3. Faire glisser le globe du doigt : il suit le doigt et ne tourne pas dessous ; environ 3 s après avoir levé le doigt, il repart de là où il a été laissé.
+4. « Arrêter » l'arrête, « Reprendre » le relance.
+5. Mode avion avant d'ouvrir Voyages : après environ 15 s au plus, le paysage s'affiche à la place, et « Plantages » (Administration) dit pourquoi.

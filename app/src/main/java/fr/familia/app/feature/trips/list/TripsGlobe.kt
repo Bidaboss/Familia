@@ -27,6 +27,7 @@ import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.MapLoadingErrorType
 import com.mapbox.maps.MapView
 import com.mapbox.maps.RenderedQueryGeometry
 import com.mapbox.maps.RenderedQueryOptions
@@ -43,13 +44,19 @@ import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import com.mapbox.maps.plugin.gestures.OnMoveListener
+import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.gestures
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.map.GlobeHealth
 import fr.familia.app.feature.trips.map.MAP_STYLE_TIMEOUT_MS
 import fr.familia.app.feature.trips.map.MapFailureLog
+import fr.familia.app.feature.trips.map.MapUnavailable
+import fr.familia.app.feature.trips.map.mapErrorLine
+import fr.familia.app.feature.trips.map.viewErrorLine
 import fr.familia.app.feature.trips.map.mapFailureReason
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.toPoint
@@ -78,6 +85,15 @@ internal const val FLIGHT_MILLIS = 2_000L
 /** Degrees per second: one turn in 90 s (récit 99). */
 internal const val GLOBE_DEGREES_PER_SECOND = 4.0
 
+/** E-33: after a touch the globe stays where the finger left it, then turns again after this pause. */
+internal const val GLOBE_RESUME_AFTER_TOUCH_MS = 3_000L
+
+/**
+ * E-34: the globe gives up for the landscape only when its style never came. Once the style is
+ * there it is the globe that shows, even while the imagery still comes, and nothing replaces it.
+ */
+internal fun globeGivesUp(styleLoaded: Boolean): Boolean = !styleLoaded
+
 /** The longitude after [elapsedNanos] of rotation from the west to the east, kept in -180..180. */
 internal fun turnedLongitude(lng: Double, elapsedNanos: Long): Double {
     val next = lng + GLOBE_DEGREES_PER_SECOND * elapsedNanos / 1_000_000_000.0
@@ -101,7 +117,7 @@ private fun powerSaveOn(context: Context): Boolean =
  * The satellite globe of the list « Voyages » (récit 99): turns slowly from the west to the east,
  * one point per trip. It stops when the screen is not seen, in energy saving, with « réduire les
  * animations » (then it stays still) or when [stopped]. Created with the public [token]; when the
- * view or its style (3 s) cannot start, [onFailed] tells the screen, which falls back on the drawn
+ * view or its style (15 s) cannot start, [onFailed] tells the screen, which falls back on the drawn
  * landscape.
  */
 @Composable
@@ -135,7 +151,24 @@ fun TripsGlobe(
     val currentSpots = androidx.compose.runtime.rememberUpdatedState(spots)
     val currentOpen = androidx.compose.runtime.rememberUpdatedState(onOpenTrip)
     var view by remember { mutableStateOf<MapView?>(null) }
+    // The style is loaded and its layers are there: the globe shows, turns and takes its dots (E-33, E-34).
     var ready by remember { mutableStateOf(false) }
+    // Kept, or Mapbox drops the subscription once nothing holds it (E-33, E-34: ready never came).
+    val listeners = remember { arrayOfNulls<com.mapbox.common.Cancelable>(2) }
+    DisposableEffect(Unit) { onDispose { listeners.forEach { it?.cancel() } } }
+    // The last error Mapbox gave, for « Plantages ».
+    val lastError = remember { arrayOfNulls<String>(1) }
+    val gaveUp = remember { booleanArrayOf(false) }
+    val giveUp: (String?) -> Unit = { sdkError ->
+        if (!gaveUp[0]) {
+            gaveUp[0] = true
+            MapFailureLog.record(context, mapFailureReason(token, MapFailureLog.online(context), sdkError ?: lastError[0], null, timedOut = sdkError == null))
+            onFailed()
+        }
+    }
+    // A finger on the globe: it stops while the finger moves it, then turns again a little later (E-33).
+    var moving by remember { mutableStateOf(false) }
+    var touches by remember { mutableStateOf(0) }
     // À venir and Souvenirs share the globe: switching only redraws its dots.
     LaunchedEffect(view, ready, spots, souvenirs) {
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
@@ -149,10 +182,7 @@ fun TripsGlobe(
     // landscape, and the reason goes to « Plantages » (retour d'essai du 24/11).
     LaunchedEffect(Unit) {
         delay(MAP_STYLE_TIMEOUT_MS)
-        if (!ready) {
-            MapFailureLog.record(context, mapFailureReason(token, MapFailureLog.online(context), null, null, timedOut = true))
-            onFailed()
-        }
+        if (globeGivesUp(ready)) giveUp(null)
     }
     // A trip opened: the camera flies there (the globe turns, tilts, comes closer), then the screen opens the trip.
     LaunchedEffect(flight?.id, view) {
@@ -165,10 +195,13 @@ fun TripsGlobe(
         )
     }
     // The rotation: one camera move per frame, at most 30 per second, 15 when the phone struggles.
-    LaunchedEffect(view, turns, ready) {
+    LaunchedEffect(view, turns, ready, moving, touches) {
         val map = view?.mapboxMap ?: return@LaunchedEffect
-        if (!turns || !ready) return@LaunchedEffect
+        if (!turns || !ready || moving) return@LaunchedEffect
+        if (touches > 0) delay(GLOBE_RESUME_AFTER_TOUCH_MS)
+        // From where the finger left it: its longitude and its latitude.
         var lng = map.cameraState.center.longitude()
+        val lat = map.cameraState.center.latitude()
         var last = 0L
         var gap = 33_000_000L
         var slow = 0
@@ -184,7 +217,7 @@ fun TripsGlobe(
                 if (now - last < gap) return@withFrameNanos
                 val began = System.nanoTime()
                 lng = turnedLongitude(lng, now - last)
-                map.setCamera(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(lng, 0.0)).build())
+                map.setCamera(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(lng, lat)).build())
                 // Measure: when moving the camera costs more than a frame, the rate is halved.
                 if (System.nanoTime() - began > 25_000_000L) slow++ else slow = 0
                 if (slow >= 10 && gap < 66_000_000L) {
@@ -212,14 +245,26 @@ fun TripsGlobe(
                     map.mapboxMap.setCamera(
                         CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(0.6).pitch(20.0).build(),
                     )
+                    listeners[0] = map.mapboxMap.subscribeMapLoadingError { error ->
+                        lastError[0] = mapErrorLine(error.type.toString(), error.message)
+                        Log.w("TripsGlobe", "map error ${lastError[0]}")
+                        // A missing tile leaves the globe; only a style that cannot load is the end, and only before it showed.
+                        if (error.type == MapLoadingErrorType.STYLE && !ready) giveUp(lastError[0])
+                    }
                     map.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
                         runCatching {
                             configureSatelliteGlobe(style)
                             // Before the trips: its layer lies under their dots.
                             addHandAdded(style)
                             addMarkers(style)
-                            showSpots(style, spots, souvenirs)
-                        }.onFailure { onFailed() }
+                            showSpots(style, currentSpots.value, souvenirs)
+                        }.onFailure {
+                            // A layer refused: the globe stays (never the landscape over a map that shows), the reason goes to « Plantages ».
+                            Log.w("TripsGlobe", "layer refused", it)
+                            MapFailureLog.record(context, MapUnavailable.SdkError("couche ${viewErrorLine(it)}".take(60)))
+                        }
+                        ready = true
+                        GlobeHealth.markWorking(context)
                     }
                     // A touch on a dot opens its trip (with the flight); anywhere else, nothing.
                     map.gestures.addOnMapClickListener(
@@ -235,8 +280,16 @@ fun TripsGlobe(
                             false
                         },
                     )
-                    // Shown only once the picture is really drawn: a black void is worse than the landscape.
-                    map.mapboxMap.subscribeMapLoaded { ready = true; GlobeHealth.markWorking(context) }
+                    // The finger moves the globe: no rotation under it; it starts again after a pause (E-33).
+                    map.gestures.addOnMoveListener(
+                        object : OnMoveListener {
+                            override fun onMoveBegin(detector: MoveGestureDetector) { moving = true }
+                            override fun onMove(detector: MoveGestureDetector): Boolean = false
+                            override fun onMoveEnd(detector: MoveGestureDetector) { moving = false; touches++ }
+                        },
+                    )
+                    // Everything drawn: also ready, in case the style came another way.
+                    listeners[1] = map.mapboxMap.subscribeMapLoaded { ready = true; GlobeHealth.markWorking(context) }
                     view = map
                 }
             }.getOrElse {

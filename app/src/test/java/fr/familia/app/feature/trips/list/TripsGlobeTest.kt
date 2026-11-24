@@ -39,4 +39,12 @@ class TripsGlobeTest {
         assertEquals("a", spotTrip(GlobeSpot(GeoPoint(0.0, 0.0), true, listOf("a", "c"))))
         assertEquals(null, spotTrip(null))
     }
+
+    // E-34: once its style is there the globe stays, even while its imagery still comes.
+    @Test fun theGlobeGivesUpOnlyWithoutItsStyle() {
+        assertEquals(true, globeGivesUp(styleLoaded = false))
+        assertEquals(false, globeGivesUp(styleLoaded = true))
+    }
+
+    @Test fun theGlobeTurnsAgainAFewSecondsAfterATouch() = assertEquals(3_000L, GLOBE_RESUME_AFTER_TOUCH_MS)
 }
