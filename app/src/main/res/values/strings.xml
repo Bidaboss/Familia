@@ -1500,6 +1500,15 @@
     <string name="step_film_more">Autres actions du film</string>
     <string name="trip_film_help">Les films des étapes bout à bout, dans l\'ordre du trajet, chacun annoncé par le nom de l\'étape. 3 minutes au plus. Le film se fait sur ton téléphone.</string>
     <string name="trip_film_step_number">Étape %1$d</string>
+    <string name="day_film_publish">Publier le film de la journée</string>
+    <string name="day_film_publish_short">Publier</string>
+    <string name="day_film_sending">Le film du %1$s se prépare, puis part pour ceux qui suivent le voyage…</string>
+    <string name="day_film_done">Le film du %1$s est publié : ceux qui suivent le voyage le voient.</string>
+    <string name="day_film_already">Quelqu\'un a déjà publié le film du %1$s : c\'est le sien que tout le monde voit.</string>
+    <string name="day_film_failed">Le film n\'a pas pu partir. Vérifie le réseau et réessaie.</string>
+    <string name="day_film_too_big">Ce film est trop lourd pour être publié (10 Mo au plus).</string>
+    <string name="day_film_reminder">Le film du %1$s n\'est pas encore publié.</string>
+    <string name="day_film_published">Film du %1$s, par %2$s</string>
     <!-- Album of an event (récit 41). -->
     <string name="event_album_title">Photos</string>
     <string name="event_album_not_open">L\'album s\'ouvre le jour de l\'événement. Ceux qui ont dit « Je viens » pourront y mettre leurs photos.</string>
@@ -3581,6 +3590,8 @@
     <!-- Le mot de l'étape (récit 88) -->
     <string name="feed_label_word">Mot d\'étape</string>
     <string name="feed_word_where">%1$s · %2$s</string>
+    <string name="feed_label_film">Film du jour</string>
+    <string name="feed_film_text">Le film du %1$s, %2$d photos.</string>
     <plurals name="feed_word_photos">
         <item quantity="one">📷 %1$d photo</item>
         <item quantity="other">📷 %1$d photos</item>

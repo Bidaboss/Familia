@@ -71,3 +71,11 @@ fun playVideo(context: Context, file: File): Boolean = try {
 } catch (e: ActivityNotFoundException) {
     false
 }
+
+/** Plays the video at [url] (a published film, récit 108) in the video app of the phone; false when the phone has none. */
+fun playVideoUrl(context: Context, url: String): Boolean = try {
+    context.startActivity(Intent(Intent.ACTION_VIEW).apply { setDataAndType(android.net.Uri.parse(url), "video/mp4") })
+    true
+} catch (e: ActivityNotFoundException) {
+    false
+}

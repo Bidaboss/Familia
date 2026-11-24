@@ -61,6 +61,8 @@ sealed interface StepWordUiState {
         val hearts: List<Member>,
         val busy: Boolean = false,
         val sendFailed: Boolean = false,
+        /** The trip, for the film of the day (récit 108): its days and who takes part. */
+        val trip: Trip? = null,
     ) : StepWordUiState {
         val canPublish: Boolean get() = TripWord.clean(draft.text) != null && hasChanges
         val hearted: Boolean get() = word?.hearted(currentMemberId) == true
@@ -202,6 +204,7 @@ class StepWordViewModel(
             hearts = hearts,
             busy = isBusy,
             sendFailed = failed,
+            trip = source.trip,
         ).also { current = it }
     }
 }
