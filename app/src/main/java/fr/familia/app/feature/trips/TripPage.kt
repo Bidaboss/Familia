@@ -2,6 +2,17 @@ package fr.familia.app.feature.trips
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
@@ -59,6 +70,9 @@ internal fun TripPage(
     subtitle: String? = null,
     help: ScreenHelp? = null,
     action: TripPageAction? = null,
+    /** A touch on the [subtitle] (« Tout le voyage ▾ », fiche F6) opens a choice; null: the subtitle is read only. */
+    onSubtitle: (() -> Unit)? = null,
+    subtitleLabel: String? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Scaffold(
@@ -71,7 +85,12 @@ internal fun TripPage(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink, shadowElevation = 2.dp) { BackButton(onClick = onBack) }
-                Column(Modifier.weight(1f).semantics(mergeDescendants = true) { heading() }) {
+                val pick = if (onSubtitle != null && subtitle != null) {
+                    Modifier.heightIn(min = 56.dp).clickable(role = Role.Button, onClickLabel = subtitleLabel, onClick = onSubtitle)
+                } else {
+                    Modifier
+                }
+                Column(Modifier.weight(1f).then(pick).semantics(mergeDescendants = true) { heading() }, verticalArrangement = Arrangement.Center) {
                     Text(
                         title,
                         fontFamily = Fredoka,
@@ -81,7 +100,7 @@ internal fun TripPage(
                         overflow = TextOverflow.Ellipsis,
                     )
                     if (subtitle != null) {
-                        Text(subtitle, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TripPathColors.Ink.copy(alpha = 0.75f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(if (onSubtitle != null) "$subtitle ▾" else subtitle, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TripPathColors.Ink.copy(alpha = 0.75f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 if (help != null) Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink, shadowElevation = 2.dp) { HelpButton(help) }
@@ -137,4 +156,85 @@ internal fun TripPageLink(text: String, onClick: () -> Unit, modifier: Modifier 
         Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(text, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(start = 4.dp))
     }
+}
+
+/**
+ * A field of a trip page (fiche F6): its [label] above in ink, a white box of 56 dp at least edged in
+ * ink, the text in ink whatever the theme (the page is light blue in every theme).
+ */
+@Composable
+internal fun TripPageField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else 10,
+    enabled: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+) {
+    val shape = RoundedCornerShape(16.dp)
+    Column(modifier.fillMaxWidth()) {
+        Text(label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TripPathColors.Ink, modifier = Modifier.padding(bottom = 4.dp))
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            enabled = enabled,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
+            keyboardOptions = keyboardOptions,
+            textStyle = TextStyle(fontSize = 16.sp, color = TripPathColors.Ink),
+            cursorBrush = SolidColor(TripPathColors.Ink),
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+            decorationBox = { field ->
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .background(Color.White, shape)
+                        .border(1.5.dp, TripPathColors.Ink.copy(alpha = 0.35f), shape)
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    contentAlignment = Alignment.CenterStart,
+                ) { field() }
+            },
+        )
+    }
+}
+
+/**
+ * The search field of the trips (fiche F2 §3): white, 56 dp, rounded 20, the magnifier in ink and no
+ * border, whatever the theme; [label] shows inside while it is empty and is read by TalkBack.
+ */
+@Composable
+internal fun TripSearchField(label: String, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(20.dp)
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        textStyle = TextStyle(fontSize = 16.sp, color = TripPathColors.Ink),
+        cursorBrush = SolidColor(TripPathColors.Ink),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Search),
+        modifier = modifier.fillMaxWidth().semantics { contentDescription = label },
+        decorationBox = { field ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .shadow(2.dp, shape)
+                    .background(Color.White, shape)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(Icons.Outlined.Search, contentDescription = null, tint = TripPathColors.Ink)
+                Box(Modifier.weight(1f)) {
+                    if (value.isEmpty()) Text(label, fontSize = 16.sp, color = TripPathColors.Ink.copy(alpha = 0.6f))
+                    field()
+                }
+            }
+        },
+    )
 }

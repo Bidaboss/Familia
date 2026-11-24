@@ -63,4 +63,11 @@ class PlaceSearchTest {
         assertEquals("Lieu à voir", foundGenre(null, TripPlaceKind.Spot))
         assertEquals("Plage", foundGenre("beach", TripPlaceKind.Spot))
     }
+
+    @Test
+    fun `a busy server is told apart from another refusal`() {
+        assertEquals(SearchFailure.Busy, failureOfCode(429))
+        assertEquals(SearchFailure.Busy, failureOfCode(504))
+        assertEquals(SearchFailure.Other, failureOfCode(400))
+    }
 }

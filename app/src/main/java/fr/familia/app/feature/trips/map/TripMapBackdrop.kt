@@ -127,11 +127,13 @@ fun TripMapBackdrop(
     val keyboard = WindowInsets.isImeVisible
     LaunchedEffect(keyboard, mapLayout) { if (keyboard && mapLayout) level = 2 }
     // Retour first lowers the sheet; the screen's own Retour (ask before leaving) comes after it.
-    BackHandler(enabled = mapLayout && level > 0) { level -= 1 }
+    BackHandler(enabled = mapLayout && level > 0 && !header.full) { level -= 1 }
     // One layout with or without the map: [content] keeps its place, so it is not made again when the steps arrive.
     BoxWithConstraints(Modifier.fillMaxSize().background(TripPathColors.Sky)) {
         val low = maxHeight * backdropSheetShare(0)
-        val sheet by animateDpAsState(if (mapLayout) maxHeight * backdropSheetShare(level) else maxHeight, label = "backdrop-sheet")
+        // Retour E-41: a screen of its own (the search of a place) takes the whole screen, without the handle.
+        val sheeted = mapLayout && !header.full
+        val sheet by animateDpAsState(if (sheeted) maxHeight * backdropSheetShare(level) else maxHeight, label = "backdrop-sheet")
         if (mapLayout && failed) {
             MapUnavailableNotice(onRetry = { failed = false; mapTry++ }, reason = cause, modifier = Modifier.fillMaxWidth().height(maxHeight - low))
         }
@@ -155,20 +157,20 @@ fun TripMapBackdrop(
                 settingsAtTop = header.content != null,
             )
         }
-        val floating = withMap && level < 2
+        val floating = withMap && level < 2 && !header.full
         if (floating) header.content?.let { title -> Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().statusBarsPadding()) { title() } }
         Column(
             Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(sheet)
-                .clip(RoundedCornerShape(topStart = if (mapLayout) 28.dp else 0.dp, topEnd = if (mapLayout) 28.dp else 0.dp))
+                .clip(RoundedCornerShape(topStart = if (sheeted) 28.dp else 0.dp, topEnd = if (sheeted) 28.dp else 0.dp))
                 .background(TripPathColors.Sky),
         ) {
-            if (mapLayout) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
+            if (sheeted) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
             // Low or high, the sheet is far from the status bar: the bars of the screens inside do not leave room for it.
             Column(
-                Modifier.weight(1f).fillMaxWidth().then(if (mapLayout && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
+                Modifier.weight(1f).fillMaxWidth().then(if (sheeted && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
             ) {
                 CompositionLocalProvider(LocalBackdropHeader provides header, LocalBackdropHeaderFloating provides floating) { content(mapLayout) }
             }
@@ -179,6 +181,9 @@ fun TripMapBackdrop(
 /** The title a screen in the sheet puts over the map (fiche F2 §4); null: its own bar in the sheet. */
 class BackdropHeader {
     var content by mutableStateOf<(@Composable () -> Unit)?>(null)
+
+    /** True while the screen in the sheet asks for the whole screen, without the handle (retour E-41). */
+    var full by mutableStateOf(false)
 }
 
 /** The header of the [TripMapBackdrop] around, for the screen in its sheet; null outside one. */

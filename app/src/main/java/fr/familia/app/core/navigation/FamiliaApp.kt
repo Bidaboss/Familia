@@ -169,7 +169,9 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
@@ -1221,11 +1223,10 @@ fun FamiliaApp(
                             TripSafetyRoute(container = container, currentMember = currentMember, tripId = route.tripId, onBack = { navController.popBackStack() }, country = route.country)
                         }
                     }
-                    composable<TripMoneyDestination> { entry ->
+                    // Fiche F6: « Monnaie du voyage » is a sheet over the dimmed trip, the screen under it stays drawn.
+                    dialog<TripMoneyDestination>(dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { entry ->
                         val route = entry.toRoute<TripMoneyDestination>()
-                        TripScreenOverMap(container, route.tripId) {
-                            TripMoneyRoute(container = container, currentMember = currentMember, tripId = route.tripId, onBack = { navController.popBackStack() }, stepCurrency = route.currency)
-                        }
+                        TripMoneyRoute(container = container, currentMember = currentMember, tripId = route.tripId, onBack = { navController.popBackStack() }, stepCurrency = route.currency)
                     }
                     // Règle 8: « Enrichir avec une IA » pulls up over the map too, like the other screens of the trip.
                     composable<TripEnrichDestination> { entry ->

@@ -84,6 +84,9 @@ class TripMoneyTest {
         viewModel.setCurrency("THB")
         viewModel.setCurrency("EUR")
         assertEquals(listOf("t1" to "THB", "t1" to null), trips.currencies)
+        // Fiche F6: once saved, the sheet closes.
+        assertEquals(true, viewModel.saved.value)
+        assertEquals(false, viewModel.saving.value)
     }
 
     @Test

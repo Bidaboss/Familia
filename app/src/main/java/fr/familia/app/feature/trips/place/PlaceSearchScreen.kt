@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,46 +14,49 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.place.FoundPlace
 import fr.familia.app.core.place.PLACE_SEARCH_RADIUS
+import fr.familia.app.core.place.SearchFailure
 import fr.familia.app.core.place.distanceLabel
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.feature.trips.TripFormScaffold
-import fr.familia.app.feature.trips.TripTile
+import fr.familia.app.feature.trips.TripSearchField
 import fr.familia.app.feature.trips.detail.TripPathColors
+import fr.familia.app.feature.trips.map.LocalBackdropHeader
 
 /**
  * The search dedicated to each kind of place (récit 103, règle 20): a field, the places found
  * around the destination, nearest first, and « Ajouter « … » » for a name it does not know. A touch
  * on a place opens its page (règle 21). Stateless.
+ *
+ * Retours E-41 à E-46 (fiche F2 §3): a screen of its own over the map, one header (round back,
+ * title, help) and no handle; the white field of 56 dp rounded 20 with its magnifier; white lines in
+ * ink, never the red of the theme; a short line under the field and the source in small at the bottom.
  */
 @Composable
 fun PlaceSearchScreen(
@@ -67,6 +69,13 @@ fun PlaceSearchScreen(
     onBack: () -> Unit,
 ) {
     BackHandler(onBack = onBack)
+    val backdrop = LocalBackdropHeader.current
+    if (backdrop != null) {
+        DisposableEffect(backdrop) {
+            backdrop.full = true
+            onDispose { backdrop.full = false }
+        }
+    }
     TripFormScaffold(
         title = stringResource(
             when (state.kind) {
@@ -86,28 +95,16 @@ fun PlaceSearchScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            TripTile(Icons.Outlined.Search, placeKindLabel(state.kind)) {
-                val label = stringResource(R.string.place_search_field)
-                OutlinedTextField(
-                    value = state.text,
-                    onValueChange = onType,
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                    placeholder = { Text(label) },
-                    shape = RoundedCornerShape(16.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Search),
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
-                )
-                FormHint(
-                    if (destination.isEmpty()) {
-                        stringResource(R.string.place_search_hint_nowhere)
-                    } else {
-                        stringResource(R.string.place_search_hint, PLACE_SEARCH_RADIUS / 1000, destination)
-                    },
-                )
-            }
+            TripSearchField(label = stringResource(R.string.place_search_field), value = state.text, onValueChange = onType)
+            SkyHint(
+                if (destination.isEmpty()) {
+                    stringResource(R.string.place_search_hint_nowhere)
+                } else {
+                    stringResource(R.string.place_search_hint, PLACE_SEARCH_RADIUS / 1000, destination)
+                },
+            )
 
             val typed = state.text.trim()
             if (typed.isNotEmpty()) {
@@ -122,14 +119,18 @@ fun PlaceSearchScreen(
             when (val results = state.results) {
                 PlaceSearchResults.Loading -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     repeat(3) {
-                        Box(Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant))
+                        Box(Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).background(Color.White.copy(alpha = 0.6f)))
                     }
                     SkyHint(stringResource(R.string.place_search_loading))
                 }
                 PlaceSearchResults.NoPoint -> SkyHint(stringResource(R.string.place_search_no_point))
-                PlaceSearchResults.Failed -> Column {
-                    SkyHint(stringResource(R.string.place_search_failed))
-                    TextButton(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_retry)) }
+                is PlaceSearchResults.Failed -> Column {
+                    SkyHint(stringResource(failureText(results.cause)))
+                    TextButton(
+                        onClick = onRetry,
+                        colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
+                        modifier = Modifier.heightIn(min = 56.dp),
+                    ) { Text(stringResource(R.string.action_retry), fontWeight = FontWeight.ExtraBold) }
                 }
                 is PlaceSearchResults.Found -> if (results.places.isEmpty()) {
                     SkyHint(stringResource(if (typed.isEmpty()) R.string.place_search_none_around else R.string.place_search_none))
@@ -145,10 +146,22 @@ fun PlaceSearchScreen(
                     }
                 }
             }
-            SkyHint(stringResource(R.string.place_search_source))
-            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.place_search_source),
+                fontSize = 11.sp,
+                color = TripPathColors.InkSoft,
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+            )
         }
     }
+}
+
+/** Why OpenStreetMap gave nothing, in words (retour E-45). */
+private fun failureText(cause: SearchFailure): Int = when (cause) {
+    SearchFailure.Offline -> R.string.place_search_failed_offline
+    SearchFailure.Busy -> R.string.place_search_failed_busy
+    SearchFailure.Slow -> R.string.place_search_failed_slow
+    SearchFailure.Other -> R.string.place_search_failed
 }
 
 /** A line written on the sky of the trips, out of a tile: always dark, in light and dark themes alike. */
@@ -157,7 +170,7 @@ private fun SkyHint(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = TripPathColors.InkSoft)
 }
 
-/** One choice, at least 56 dp high; clickable reads its lines in one go to TalkBack. */
+/** One choice: a white line of 56 dp at least, rounded 16, in ink; clickable reads its lines in one go to TalkBack. */
 @Composable
 private fun SearchRow(icon: ImageVector, title: String, detail: String, onClick: () -> Unit) {
     Row(
@@ -165,16 +178,16 @@ private fun SearchRow(icon: ImageVector, title: String, detail: String, onClick:
             .fillMaxWidth()
             .heightIn(min = 56.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.White)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Icon(icon, contentDescription = null, tint = TripPathColors.Ink)
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-            Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = TripPathColors.Ink)
+            Text(detail, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TripPathColors.InkSoft)
         }
     }
 }
