@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.data.TripPlaceRepository
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripPlace
+import fr.familia.app.core.place.FoundPlace
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.trips.FakeTrips
 import fr.familia.app.feature.trips.TestTrips
@@ -208,5 +209,70 @@ class PlaceEditTest {
         assertEquals("€", currencySymbol("EUR"))
         assertEquals("XYZ", currencySymbol("XYZ"))
         assertEquals(LocalTime.of(16, 0), defaultHour(TripPlaceKind.Lodging))
+    }
+
+    // Règle 20: the search of each kind, and « Choisir un autre … ».
+
+    private val found = FoundPlace("U Pampasgiolu", "Restaurant", "15 rue de la Porta, Ajaccio", 41.9205, 8.7371, 1_200)
+
+    @Test
+    fun `a place chosen in the search is saved with its address and its point`() {
+        val places = FakePlaces()
+        val vm = vm(places, placeId = null, stepId = "s1", kind = TripPlaceKind.Restaurant)
+        vm.choose(found)
+        vm.update { it.copy(arriveTime = LocalTime.of(20, 30)) }
+        vm.save()
+        val place = places.saved.single().first
+        assertEquals("U Pampasgiolu", place.name)
+        assertEquals("15 rue de la Porta, Ajaccio", place.address)
+        assertEquals(41.9205, place.lat!!, 0.0)
+        assertEquals(8.7371, place.lng!!, 0.0)
+        assertEquals(LocalTime.of(20, 30), place.arriveTime)
+    }
+
+    @Test
+    fun `choosing another place keeps the hour, the note and the cost`() {
+        val places = FakePlaces(listOf(bistrot))
+        val vm = vm(places)
+        vm.choose(found)
+        vm.save()
+        val (place, isNew) = places.saved.single()
+        assertFalse(isNew)
+        assertEquals("p1", place.id)
+        assertEquals("U Pampasgiolu", place.name)
+        assertEquals(41.9205, place.lat!!, 0.0)
+        assertEquals("Table au nom de Camille", place.note)
+        assertEquals(80.0, place.cost!!, 0.001)
+    }
+
+    @Test
+    fun `a typed name has no address nor point, even after a chosen one`() {
+        val places = FakePlaces(listOf(bistrot))
+        val vm = vm(places)
+        vm.chooseTyped("  Chez Paulo ")
+        vm.save()
+        val place = places.saved.single().first
+        assertEquals("Chez Paulo", place.name)
+        assertNull(place.address)
+        assertFalse(place.hasPosition)
+    }
+
+    @Test
+    fun `the chosen place comes back with the draft`() {
+        val saved = SavedStateHandle()
+        vm(FakePlaces(), placeId = null, stepId = "s1", kind = TripPlaceKind.Restaurant, saved = saved).choose(found)
+        val again = vm(FakePlaces(), placeId = null, stepId = "s1", kind = TripPlaceKind.Restaurant, saved = saved)
+        assertEquals(PlacePick("U Pampasgiolu", "15 rue de la Porta, Ajaccio", 41.9205, 8.7371), again.editing().form.pick)
+    }
+
+    @Test
+    fun `the page gives the point of its destination to the search`() {
+        val withPoint = PlaceEditViewModel(
+            FakeTrips(steps = mapOf("t1" to listOf(TestTrips.step("s1", lat = 41.92, lng = 8.74)))),
+            FakePlaces(), FakeMembers(), "adult2", "t1", null, stepId = "s1", kind = TripPlaceKind.Spot,
+        ).editing()
+        assertEquals(41.92, withPoint.destinationLat!!, 0.0)
+        assertEquals(8.74, withPoint.destinationLng!!, 0.0)
+        assertNull(vm(placeId = null, stepId = "s1", kind = TripPlaceKind.Spot).editing().destinationLat)
     }
 }
