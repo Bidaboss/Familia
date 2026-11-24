@@ -2132,3 +2132,14 @@ Rien à publier côté Firebase. « APK de publication ».
 **Publier Firebase : non.**
 1. Ouvrir un voyage avec deux destinations proches qui ont des photos, puis dézoomer : les deux repères avec photo se fondent dans la même bulle numérotée, et aucune photo ne reste par-dessus la bulle. Zoomer : ils se séparent avec leur photo.
 2. Ouvrir un voyage avec beaucoup de destinations qui ont des photos : les photos des repères arrivent presque ensemble, et non plus l'une après l'autre.
+
+## Voyage : l'arrivée de « Modifier », comme la vidéo de référence (récit 111, partie 1 : règle 4)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui a des destinations placées, puis « Modifier » : la feuille du formulaire s'ouvre haute, puis descend ; la carte recule jusqu'à la Terre entière, puis replonge sur toutes les étapes, au-dessus de la feuille, en un seul mouvement d'environ 2,5 s.
+2. Recommencer et toucher la carte pendant le mouvement : il s'arrête là, et la carte se déplace et se zoome au doigt.
+3. Tirer la feuille vers le haut pendant l'arrivée : elle reste où on l'a mise.
+4. Depuis la modification, tourner le téléphone ou ouvrir le clavier puis le fermer : l'arrivée ne se rejoue pas.
+5. Modifier une étape : pas d'arrivée, la carte s'ouvre directement sur l'étape, comme avant.
+6. Avec « Supprimer les animations » dans les réglages d'Android, ou TalkBack : pas d'arrivée.
+7. Nouveau voyage : rien ne change (pas encore de carte au-dessus du formulaire).

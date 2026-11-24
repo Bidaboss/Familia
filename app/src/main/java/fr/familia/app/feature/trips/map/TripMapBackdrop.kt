@@ -30,6 +30,8 @@ import fr.familia.app.feature.trips.detail.SheetHandle
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.mapLabels
 import fr.familia.app.feature.trips.detail.tripTimeline
+import kotlinx.coroutines.delay
+import fr.familia.app.feature.trips.list.animationsOff
 import fr.familia.app.feature.trips.list.talkBackOn
 
 /** The share of the screen the sheet takes at each of its three heights (règle 8): low, high, whole screen. */
@@ -38,6 +40,25 @@ internal fun backdropSheetShare(level: Int): Float = when (level) {
     1 -> 0.85f
     else -> 1f
 }
+
+/**
+ * The arrival of « Modifier » (récit 111, règle 4), from the reference video: the sheet opens high
+ * then goes down, then the camera goes out to the whole globe and dives back on the steps, in one
+ * move of about 2.5 s (the prototype), stopped by a touch.
+ */
+internal object EditArrival {
+    /** The sheet stays high this long before it goes down. */
+    const val SHEET_HIGH_MS = 600L
+    /** After the map is drawn, the camera waits for the sheet to be down. */
+    const val CAMERA_WAIT_MS = 300L
+    const val OUT_MS = 1_100L
+    const val IN_MS = 1_500L
+    /** The whole Earth in the globe projection of Mapbox Standard. */
+    const val GLOBE_ZOOM = 1.0
+}
+
+/** The arrival plays for a trip changed with its map, unless the phone asks for no animation. */
+internal fun playsEditArrival(asked: Boolean, withMap: Boolean, animationsOff: Boolean): Boolean = asked && withMap && !animationsOff
 
 /** The step of [focusId] among the steps that have a point on the map; null when it has none (a new step). */
 internal fun focusIndex(placed: List<TripStep>, focusId: String?): Int? = placed.indexOfFirst { it.id == focusId }.takeIf { it >= 0 }
@@ -56,6 +77,8 @@ fun TripMapBackdrop(
     trip: Trip?,
     steps: List<TripStep>,
     focusId: String?,
+    /** « Modifier » of a trip (règle 4): the sheet high then low, the map out to the globe and back. */
+    arrival: Boolean = false,
     content: @Composable (inSheet: Boolean) -> Unit,
 ) {
     val context = LocalContext.current
@@ -63,7 +86,19 @@ fun TripMapBackdrop(
     var failed by rememberSaveable { mutableStateOf(false) }
     val allowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
     val withMap = satelliteMapUsable(token, allowed && !failed, talkBack = false) && placed.isNotEmpty()
+    val playArrival = playsEditArrival(arrival, withMap, remember { animationsOff(context) })
+    // Played once: back from a page opened here, or the screen turned, it does not come again.
+    var arrivalDone by rememberSaveable { mutableStateOf(false) }
     var level by rememberSaveable { mutableStateOf(0) }
+    // The steps arrive after the form: the sheet goes from the whole screen to high, then down.
+    LaunchedEffect(playArrival) {
+        if (!playArrival || arrivalDone) return@LaunchedEffect
+        arrivalDone = true
+        level = 1
+        delay(EditArrival.SHEET_HIGH_MS)
+        // The person already moved the sheet: it stays where they put it.
+        if (level == 1) level = 0
+    }
     var selected by rememberSaveable(focusId) { mutableStateOf<Int?>(null) }
     LaunchedEffect(placed, focusId) { if (selected == null) selected = focusIndex(placed, focusId) }
     // The keyboard open: the sheet takes the whole screen, so the field being typed stays above it.
@@ -85,7 +120,9 @@ fun TripMapBackdrop(
                 nextIndex = placed.indexOfFirst { it.arrival == null },
                 selected = selected,
                 onSelect = { selected = it },
-                intro = false,
+                intro = playArrival,
+                globeIntro = playArrival,
+                introDelayMs = EditArrival.CAMERA_WAIT_MS,
                 sheetHigh = false,
                 bottomPaddingDp = low.value.toDouble(),
                 onFailed = { GlobeHealth.markFailed(context); failed = true },

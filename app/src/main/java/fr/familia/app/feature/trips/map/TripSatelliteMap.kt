@@ -116,6 +116,10 @@ fun TripSatelliteMap(
     labels: List<String>? = null,
     /** The thumbnail of the first photo of each point (récit 110): shown in its round instead of the plain dot. */
     photoPaths: List<String?> = emptyList(),
+    /** « Modifier » (récit 111, règle 4): the arrival goes out to the whole globe, then back in on the steps. */
+    globeIntro: Boolean = false,
+    /** The time the sheet takes to go down before the camera moves (the reference video: the sheet first). */
+    introDelayMs: Long = 0L,
 ) {
     val context = LocalContext.current
     var drawn by remember { mutableStateOf(false) }
@@ -172,7 +176,18 @@ fun TripSatelliteMap(
         val map = view[0] ?: return@LaunchedEffect
         if (touched) return@LaunchedEffect
         introPlayed = true
-        map.camera.easeTo(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(points.map { it.lng }.average(), points.map { it.lat }.average())).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
+        val middle = com.mapbox.geojson.Point.fromLngLat(points.map { it.lng }.average(), points.map { it.lat }.average())
+        if (globeIntro) {
+            // Règle 4, as on the reference video: out to the whole Earth, then one dive back on all the steps.
+            delay(introDelayMs)
+            if (touched) return@LaunchedEffect
+            map.camera.easeTo(CameraOptions.Builder().center(middle).zoom(EditArrival.GLOBE_ZOOM).pitch(0.0).bearing(0.0).build(), mapAnimationOptions { duration(EditArrival.OUT_MS) })
+            delay(EditArrival.OUT_MS + 50L)
+            if (touched) return@LaunchedEffect
+            map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(EditArrival.IN_MS) })
+            return@LaunchedEffect
+        }
+        map.camera.easeTo(CameraOptions.Builder().center(middle).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
         delay(1_400L)
         if (touched) return@LaunchedEffect
         map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(2_400L) })

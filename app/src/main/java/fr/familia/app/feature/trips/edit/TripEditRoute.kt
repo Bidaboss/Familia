@@ -107,8 +107,9 @@ fun TripEditRoute(
     val coverPlace = chosen?.let(::destinationName) ?: firstStep?.place?.substringBefore(',')?.trim()
     val coverPoint = chosen?.let { GeoPoint(it.lat, it.lng) } ?: firstStep?.takeIf { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) }
     val landscape = (state as? TripEditUiState.Editing)?.form?.landscape ?: TripLandscape.Dunes
-    // Changing a trip keeps its map open above the form (règles 4, 6, 9); a new trip has no step yet: the form alone.
-    TripMapBackdrop(token = BuildConfig.MAPBOX_PUBLIC_TOKEN, trip = trip, steps = steps, focusId = null) { inSheet ->
+    // Changing a trip keeps its map open above the form (règles 4, 6, 9), and « Modifier » plays the arrival of the
+    // reference video (récit 111); a new trip has no step yet: the form alone.
+    TripMapBackdrop(token = BuildConfig.MAPBOX_PUBLIC_TOKEN, trip = trip, steps = steps, focusId = null, arrival = tripId != null) { inSheet ->
         TripEditScreen(
             state = state,
             onChange = viewModel::update,
