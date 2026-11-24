@@ -1,6 +1,7 @@
 package fr.familia.app.feature.trips.list
 
 import fr.familia.app.feature.trips.detail.SheetHandle
+import fr.familia.app.feature.trips.detail.sheetDrag
 import fr.familia.app.feature.trips.map.backdropSheetShare
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -229,7 +230,7 @@ fun TripsScreen(
               Column(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(sheet)
                     .onGloballyPositioned { sheetTop = it.positionInRoot().y }
-                    .then(if (globeOn) Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier),
+                    .then(if (globeOn) Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky).sheetDrag(level) { level = it.coerceIn(0, 2) } else Modifier),
               ) {
               if (globeOn) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
               // E-29: « À venir | Souvenirs (3) » centred just under the handle. The hand-added destinations (règle 38)

@@ -1,5 +1,8 @@
 package fr.familia.app.feature.trips.detail
 
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.power.BatterySavingBanner
@@ -441,6 +444,8 @@ private fun PathContent(
             bottomPaddingDp = lowHeight.value.toDouble(),
             onFailed = { mapCause = it.detail; mapFailed = true },
             settingsAtTop = true,
+            // E-59: in the middle, a touch on the map lowers the sheet one height.
+            onEmptyTap = { if (level == 1 && selected == null) level = 0 },
             modifier = Modifier.fillMaxSize(),
         )
     }
@@ -453,7 +458,7 @@ private fun PathContent(
         Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
-            .then(if (mapLayout) Modifier.height(sheetHeight).clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier.fillMaxSize()),
+            .then(if (mapLayout) Modifier.height(sheetHeight).clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky).sheetDrag(level) { level = it.coerceIn(0, 2) } else Modifier.fillMaxSize()),
     ) {
     if (!mapLayout) {
         TripHeader(
@@ -548,26 +553,29 @@ private fun PathContent(
 }
 
 /**
- * The handle of the sheet: a drag up or down goes one height further or back, a touch switches
- * between low and high; on the whole screen an arrow at the top left lowers it (règles 7 and 8).
+ * The handle of the sheet (règles 7 and 8, retour E-59): the whole width × 72 dp at the top of the
+ * sheet. A drag of 32 dp or a quick flick goes one height further or back; a touch goes to the next
+ * height (low → middle → whole screen, whole screen → middle); on the whole screen an arrow of
+ * 56 dp at the top left lowers it.
  */
 @Composable
 internal fun SheetHandle(level: Int, onLevel: (Int) -> Unit) {
     var dragged by remember { mutableStateOf(0f) }
-    val label = stringResource(if (level > 0) R.string.trip_sheet_lower else R.string.trip_sheet_raise)
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
+    val label = stringResource(if (level == 2) R.string.trip_sheet_lower else R.string.trip_sheet_raise)
     Box(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .heightIn(min = SHEET_HANDLE_HEIGHT)
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { dragged += it },
-                onDragStopped = {
-                    if (dragged < -40f) onLevel(level + 1) else if (dragged > 40f) onLevel(level - 1)
+                onDragStopped = { velocity ->
+                    onLevel(sheetLevelAfterDrag(level, dragged / density, velocity / density))
                     dragged = 0f
                 },
             )
-            .clickable(role = Role.Button, onClickLabel = label) { onLevel(if (level > 0) 0 else 1) },
+            .clickable(role = Role.Button, onClickLabel = label) { onLevel(sheetLevelAfterTap(level)) },
         contentAlignment = Alignment.Center,
     ) {
         // Fiche F1 §2: a grey bar of 44 × 5 dp; on the whole screen an arrow at the top left instead.
@@ -582,6 +590,54 @@ internal fun SheetHandle(level: Int, onLevel: (Int) -> Unit) {
             }
         }
     }
+}
+
+/** E-59: the zone of the handle, the whole width of the sheet. */
+internal val SHEET_HANDLE_HEIGHT = 72.dp
+
+/** E-59: a drag of this many dp, or a flick this fast (dp per second), goes to the next height. */
+internal const val SHEET_DRAG_DP = 32f
+internal const val SHEET_FLICK_DP_PER_S = 600f
+
+/** Pure rule (E-59): the height after a drag of [draggedDp] (up is negative) ending at [velocityDp] dp/s. */
+internal fun sheetLevelAfterDrag(level: Int, draggedDp: Float, velocityDp: Float): Int {
+    val up = draggedDp <= -SHEET_DRAG_DP || velocityDp <= -SHEET_FLICK_DP_PER_S
+    val down = draggedDp >= SHEET_DRAG_DP || velocityDp >= SHEET_FLICK_DP_PER_S
+    return when {
+        up && !down -> (level + 1).coerceAtMost(2)
+        down && !up -> (level - 1).coerceAtLeast(0)
+        else -> level
+    }
+}
+
+/** Pure rule (E-59): a touch on the handle goes to the next height, and back to the middle from the whole screen. */
+internal fun sheetLevelAfterTap(level: Int): Int = if (level >= 2) 1 else level + 1
+
+/**
+ * E-59: a drag anywhere in the sheet moves it once its content cannot scroll further: the list
+ * scrolls first, what is left of the drag goes to the sheet.
+ */
+internal fun Modifier.sheetDrag(level: Int, onLevel: (Int) -> Unit): Modifier = composed {
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
+    val currentLevel = androidx.compose.runtime.rememberUpdatedState(level)
+    val currentOnLevel = androidx.compose.runtime.rememberUpdatedState(onLevel)
+    val connection = remember {
+        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+            var left = 0f
+            override fun onPostScroll(consumed: Offset, available: Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): Offset {
+                if (source == androidx.compose.ui.input.nestedscroll.NestedScrollSource.UserInput) left += available.y
+                return Offset.Zero
+            }
+            override suspend fun onPreFling(available: androidx.compose.ui.unit.Velocity): androidx.compose.ui.unit.Velocity {
+                // A finger moving down drags the content down (positive y); the sheet goes down then.
+                val next = sheetLevelAfterDrag(currentLevel.value, left / density, 0f)
+                left = 0f
+                if (next != currentLevel.value) currentOnLevel.value(next)
+                return androidx.compose.ui.unit.Velocity.Zero
+            }
+        }
+    }
+    nestedScroll(connection)
 }
 
 /** « À prévoir » as before, or, with packingList (récit 62), « Pour tout le monde » then the bags. */
