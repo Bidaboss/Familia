@@ -2340,3 +2340,12 @@ Sur un téléphone en Android 10 ou plus :
 3. Basculer Satellite / Rues puis 2D / 3D plusieurs fois : la carte reste, sans « Carte indisponible ».
 4. Si une couche secondaire (nom, numéro, anneau) était encore refusée, la carte reste affichée et Administration > Plantages reçoit au lancement suivant « SdkError » avec « couche <id>: <message> ».
 5. Dans Plantages, une carte indisponible porte désormais son vrai nom (ViewFailed, Timeout, SdkError…).
+
+## Voyages : l'écran d'accueil comme le prototype (E-28 à E-32)
+
+**Publier Firebase : non.**
+1. Ouvrir l'onglet Voyages (admin ou chef de famille) : en bas à droite, une pilule jaune « + Nouveau voyage » flotte au-dessus de la liste, avec une ombre ; plus de barre sombre sur toute la largeur. La toucher ouvre la création d'un voyage. Un enfant ne la voit pas.
+2. Juste sous la poignée du panneau, centrés : « À venir » et « Souvenirs (n) » dans une pilule blanche ; l'onglet choisi est foncé, texte clair.
+3. La carte du prochain voyage : la photo remplit toute la carte (sans photo, le paysage dessiné). En haut à gauche, « ● Voyage programmé » sur fond sombre ; en haut à droite, « Dans N nuits » sur fond blanc. En bas, sur un dégradé sombre, le nom du voyage en gros, puis le mois (l'année dessous), le nombre de jours (JOURS) et les kilomètres (KILOMÈTRES, seulement à partir de deux étapes placées).
+4. Plus de boutons « Étapes », « À prévoir », « Comptes » sur la carte : la toucher n'importe où ouvre le voyage.
+5. Faire défiler jusqu'en bas : la dernière carte n'est pas cachée par le bouton jaune.
