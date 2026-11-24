@@ -132,10 +132,24 @@ fun StepFilm(
     }
 }
 
+/** The words of a film tile: those of the step by default, those of the trip for the film of the trip. */
+data class FilmTileLabels(
+    val title: Int = R.string.step_film_title,
+    val watch: Int = R.string.step_film_watch,
+    val help: Int = R.string.step_film_help,
+    val needPhotos: Int = R.string.step_film_need_photos,
+) {
+    companion object {
+        /** The film of the trip works like that of a step (règle 32, DESIGN-79 B). */
+        val Trip = FilmTileLabels(R.string.trip_film_title, R.string.trip_film_watch, R.string.trip_film_help, R.string.album_film_need_photos)
+    }
+}
+
 /**
  * « Film de l'étape » (récit 108, règle 32): the photos of the step, oldest first, 2,5 s each with
  * a slow zoom, made on the phone, without sound for now. « Voir » is the main button and plays the
  * film once it is made; « Partager » is in the menu (DESIGN-79 B), after the reminder of EXPERT-6.
+ * The film of the trip uses the same tile with [FilmTileLabels.Trip].
  */
 @Composable
 fun StepFilmTile(
@@ -148,6 +162,7 @@ fun StepFilmTile(
     onPublish: (() -> Unit)? = null,
     /** « Faire un vrai film avec une IA » in the menu (règle 33). */
     onAiFilm: (() -> Unit)? = null,
+    labels: FilmTileLabels = FilmTileLabels(),
     below: @Composable () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -164,7 +179,7 @@ fun StepFilmTile(
         }
         if (state is FilmState.Failed) playWhenReady = false
     }
-    TripTile(Icons.Outlined.Movie, stringResource(R.string.step_film_title)) {
+    TripTile(Icons.Outlined.Movie, stringResource(labels.title)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             when (state) {
                 FilmState.Idle, FilmState.Failed -> {
@@ -176,7 +191,7 @@ fun StepFilmTile(
                         ) {
                             Icon(Icons.Outlined.PlayArrow, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.step_film_watch))
+                            Text(stringResource(labels.watch))
                         }
                         if (onPublish != null || onAiFilm != null) {
                             IconButton(onClick = { menu = true }, modifier = Modifier.size(56.dp)) {
@@ -192,8 +207,8 @@ fun StepFilmTile(
                         stringResource(
                             when {
                                 state == FilmState.Failed -> R.string.album_film_failed
-                                photoCount < FILM_MIN_PHOTOS -> R.string.step_film_need_photos
-                                else -> R.string.step_film_help
+                                photoCount < FILM_MIN_PHOTOS -> labels.needPhotos
+                                else -> labels.help
                             },
                         ),
                         style = MaterialTheme.typography.bodyMedium,
@@ -215,9 +230,9 @@ fun StepFilmTile(
                         ) {
                             Icon(Icons.Outlined.PlayArrow, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.step_film_watch))
+                            Text(stringResource(labels.watch))
                         }
-                        // The rest in a menu (DESIGN-79 B): « Partager », « Publier » ; « Télécharger » comes next.
+                        // The rest in a menu (DESIGN-79 B): « Partager », « Télécharger », « Publier », the IA.
                         IconButton(onClick = { menu = true }, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.step_film_more))
                             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {

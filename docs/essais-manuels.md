@@ -2232,3 +2232,12 @@ Sur un téléphone en Android 10 ou plus :
 2. « Installer » ouvre l'écran Android des voix. Après l'installation, revenir : la ligne disparaît et les haut-parleurs apparaissent, sans quitter l'écran.
 3. Une langue dont la voix est là n'a pas la ligne. Pendant le tout premier chargement des voix, aucune ligne ne s'affiche.
 4. Sur un téléphone qui n'a pas d'écran des voix, « Installer » disparaît après le toucher et une phrase indique le chemin dans les Paramètres.
+
+## Voyage : le film du voyage comme celui d'une étape (récit 108 : règle 32, DESIGN-79 B)
+
+**Publier Firebase : non.**
+1. Dans « Voir les photos » d'un voyage, en haut : une tuile « Film du voyage » avec un seul gros bouton, « Voir le film du voyage », et à côté le menu ⋮. La phrase dessous dit comment le film est fait (films des étapes bout à bout, 3 minutes au plus).
+2. Toucher « Voir le film du voyage » : la barre « Le film se prépare… » s'affiche, puis le film se lance tout seul dès qu'il est prêt.
+3. Film prêt : « Voir le film du voyage » le relance. Le menu ⋮ propose « Partager » (avec le rappel de partage), « Télécharger » (Android 10 ou plus) et « Faire un vrai film avec une IA ».
+4. Avant que le film soit fait, le menu ⋮ propose seulement l'IA (s'il y a des photos liées à une étape).
+5. Les films d'album d'un événement et du diaporama du mois gardent leurs boutons « Faire le film », « Regarder », « Partager », sans « Télécharger » ni IA.
