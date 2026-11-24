@@ -13,12 +13,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -345,38 +342,24 @@ fun TripSatelliteMap(
         }
     }
     if (settingsOpen) {
-        // The map follows each choice at once; « Enregistrer » keeps it for next time, « Annuler » puts back what was there.
+        // The map follows each choice at once; « Enregistrer » keeps it for next time, the ✕ or a touch outside puts back what was there.
         val before = remember { MapSettings(look, tilted) }
         val cancel = {
             look = before.look
             tilted = before.tilted
             settingsOpen = false
         }
-        AlertDialog(
-            onDismissRequest = cancel,
-            title = { Text(stringResource(R.string.trip_map_settings)) },
-            text = {
-                Column {
-                    Row { 
-                        FilterChip(look == MapLook.Satellite, { look = MapLook.Satellite }, { Text(stringResource(R.string.trip_map_look_satellite)) }, Modifier.heightIn(min = 56.dp).padding(end = 8.dp))
-                        FilterChip(look == MapLook.Streets, { look = MapLook.Streets }, { Text(stringResource(R.string.trip_map_look_streets)) }, Modifier.heightIn(min = 56.dp))
-                    }
-                    Row {
-                        FilterChip(!tilted, { tilted = false }, { Text(stringResource(R.string.trip_map_mode_2d)) }, Modifier.heightIn(min = 56.dp).padding(end = 8.dp))
-                        FilterChip(tilted, { tilted = true }, { Text(stringResource(R.string.trip_map_mode_3d)) }, Modifier.heightIn(min = 56.dp))
-                    }
-                }
+        // F7 (E-56): a cream sheet over the darkened map, no dialog.
+        MapSettingsSheet(
+            look = look,
+            tilted = tilted,
+            onLook = { look = it },
+            onTilted = { tilted = it },
+            onSave = {
+                MapSettingsStore.save(context, MapSettings(look, tilted))
+                settingsOpen = false
             },
-            confirmButton = {
-                TextButton(
-                    {
-                        MapSettingsStore.save(context, MapSettings(look, tilted))
-                        settingsOpen = false
-                    },
-                    Modifier.heightIn(min = 56.dp),
-                ) { Text(stringResource(R.string.trip_map_settings_save)) }
-            },
-            dismissButton = { TextButton(cancel, Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
+            onCancel = cancel,
         )
     }
 }

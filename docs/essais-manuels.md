@@ -2558,3 +2558,12 @@ Sur un téléphone en Android 10 ou plus :
 5. Toucher un « + » : le menu d'ajout s'ouvre comme avant ; toucher une ligne de transport : sa page s'ouvre.
 6. Dans le panneau du voyage, les titres « Photos » et « Prochaine étape » sont en encre foncée, plus en rouge.
 7. Retour E-58 : allumer l'économiseur de batterie d'Android puis ouvrir un voyage : la bannière commence par « Économiseur de batterie d'Android activé. ». L'éteindre, batterie sous 20 % et débranchée : elle commence par « Batterie à n %. ».
+
+## Voyage : la feuille « Réglages de la carte », retour E-56
+
+**Publier Firebase : non.**
+1. Sur la carte d'un voyage, toucher le rond des réglages : une feuille crème monte du bas, coins arrondis, la carte assombrie dessus. Titre « Réglages de la carte » à gauche, rond blanc ✕ à droite.
+2. « Mode de vue » : deux tuiles blanches de même largeur, 2D et 3D, chacune avec un aperçu au-dessus de son nom. « Style de carte » : Satellite et Rues, pareil. La tuile choisie a un contour foncé, les autres aucun.
+3. Toucher une tuile : la carte change tout de suite derrière. « Enregistrer » (bouton foncé, texte blanc) garde le choix pour la prochaine fois.
+4. Le ✕, un toucher sur la carte assombrie ou le retour d'Android ferment la feuille et remettent la carte comme avant. Pas de bouton « Annuler » rouge.
+5. Avec TalkBack : le titre et les deux sections sont des titres ; chaque tuile dit son nom et si elle est choisie.

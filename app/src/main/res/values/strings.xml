@@ -2137,6 +2137,8 @@
     <string name="trip_map_unavailable_reason">Cause : %1$s</string>
     <string name="trip_map_retry">Réessayer</string>
     <string name="trip_map_settings_save">Enregistrer</string>
+    <string name="trip_map_view_mode">Mode de vue</string>
+    <string name="trip_map_style">Style de carte</string>
     <string name="trip_map_look_satellite">Satellite</string>
     <string name="trip_map_look_streets">Rues</string>
     <string name="trip_map_mode_2d">2D</string>
