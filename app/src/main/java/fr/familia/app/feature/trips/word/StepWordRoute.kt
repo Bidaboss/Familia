@@ -4,16 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.album.AlbumFilmViewModel
+import fr.familia.app.core.album.FilmActions
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.isOwner
+import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.events.comments.CommentsSection
-import fr.familia.app.core.model.Member
+import java.io.File
 
 /** « Le mot de l'étape » of [stepId]: closes itself once the word is published, changed or taken back. */
 @Composable
@@ -56,11 +61,23 @@ fun StepWordRoute(
             onBack = onBack,
         )
     }
+    // Récit 108, règle 32: the film of this step, made on the phone with the look of the trips.
+    val filmsDir = File(LocalContext.current.cacheDir, "films")
+    val filmViewModel: AlbumFilmViewModel = viewModel(
+        key = "step-film-$tripId-$stepId",
+        factory = viewModelFactory {
+            initializer { AlbumFilmViewModel(container?.photoStorage, container?.filmMaker, "etape-$tripId-$stepId", filmsDir, FilmStyle.Trip) { STEP_FILM_SECONDS } }
+        },
+    )
+    val film by filmViewModel.uiState.collectAsStateWithLifecycle()
     val readOnly = LocalViewAs.current.viewed != null
     val wordAuthorId = (state as? StepWordUiState.Ready)?.word?.authorId
     val ready = state as? StepWordUiState.Ready
     StepWordScreen(state, actions, onSite = {
         if (ready != null) {
+            val stepPhotos = remember(ready.album, stepId) { stepFilmPhotos(ready.album, stepId) }
+            val filmActions = remember(filmViewModel, stepPhotos) { FilmActions(onMake = { filmViewModel.make(stepPhotos) }, onCancel = filmViewModel::cancel) }
+            StepFilmTile(film, stepPhotos.size, filmActions)
             val lat = ready.step.lat
             val lng = ready.step.lng
             // Règle 45: the weather and the local time first, the anecdote at the bottom.

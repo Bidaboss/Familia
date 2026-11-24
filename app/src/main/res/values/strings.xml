@@ -1492,6 +1492,12 @@
     <string name="album_film_watch">Regarder</string>
     <string name="album_film_share">Partager</string>
     <string name="album_film_no_player">Aucune appli de ce téléphone ne lit les vidéos.</string>
+    <!-- Récit 108 : le film d'une étape. -->
+    <string name="step_film_title">Film de l\'étape</string>
+    <string name="step_film_watch">Voir le film de l\'étape</string>
+    <string name="step_film_help">Les photos de l\'étape, des plus anciennes aux plus récentes, 2,5 s chacune. Le film se fait sur ton téléphone, reste sur cet écran.</string>
+    <string name="step_film_need_photos">Il faut au moins 2 photos ajoutées depuis cette étape pour faire son film.</string>
+    <string name="step_film_more">Autres actions du film</string>
     <!-- Album of an event (récit 41). -->
     <string name="event_album_title">Photos</string>
     <string name="event_album_not_open">L\'album s\'ouvre le jour de l\'événement. Ceux qui ont dit « Je viens » pourront y mettre leurs photos.</string>

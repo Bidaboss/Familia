@@ -1,6 +1,7 @@
 package fr.familia.app.core.album
 
 import fr.familia.app.core.photo.PhotoStorage
+import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.core.video.PhotoFilmMaker
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,10 +29,12 @@ class AlbumFilmViewModelTest {
     private class FakeMaker(private val fail: Boolean = false) : PhotoFilmMaker {
         var urls: List<String> = emptyList()
         var seconds = 0.0
-        override suspend fun make(photoUrls: List<String>, secondsPerPhoto: Double, output: File) {
+        var style: FilmStyle? = null
+        override suspend fun make(photoUrls: List<String>, secondsPerPhoto: Double, output: File, style: FilmStyle) {
             if (fail) throw IOException("no encoder")
             urls = photoUrls
             seconds = secondsPerPhoto
+            this.style = style
         }
     }
 
@@ -66,5 +69,16 @@ class AlbumFilmViewModelTest {
         assertEquals(FilmState.Idle, vm.uiState.value)
         vm.make(listOf(photo("adult2", 1, 30), photo("adult2", 2, 40)))
         assertEquals(FilmState.Failed, vm.uiState.value)
+    }
+
+    @Test
+    fun `a film of a step keeps 2,5 s a photo and the look of the trips`() = runTest {
+        val maker = FakeMaker()
+        val vm = AlbumFilmViewModel(FakeStorage(), maker, "etape-t1-s1", File("films"), FilmStyle.Trip) { 2.5 }
+        vm.make(listOf(photo("adult2", 1, 30), photo("kid1", 4, 10)))
+        assertEquals(2.5, maker.seconds, 0.0)
+        assertEquals(FilmStyle.Trip, maker.style)
+        val ready = vm.uiState.value as FilmState.Ready
+        assertTrue(ready.path.endsWith("etape-t1-s1.mp4"))
     }
 }

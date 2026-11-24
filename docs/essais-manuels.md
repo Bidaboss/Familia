@@ -2156,3 +2156,14 @@ Rien à publier côté Firebase. « APK de publication ».
 7. Ouvrir le clavier dans un champ (une dépense, une note) : la feuille prend tout l'écran.
 8. Avec TalkBack, sans réseau, ou pour un voyage sans destination placée : ces écrans restent des pages classiques, comme avant.
 9. Les photos du voyage restent en plein écran (c'est une visionneuse).
+
+## Voyage : le film de l'étape sur le téléphone (récit 108, partie 1 : règle 32)
+
+**Publier Firebase : non.**
+1. Ouvrir une étape (« Le mot de l'étape ») qui a au moins 2 photos ajoutées depuis elle : la tuile « Film de l'étape » est sous le mot.
+2. « Voir le film de l'étape » : le film se prépare (barre et « Annuler »), puis se lance tout seul dans le lecteur vidéo du téléphone. Chaque photo reste environ 2,5 s, avec un zoom lent, des plus anciennes aux plus récentes, sans son.
+3. Revenir : « Voir le film de l'étape » le relance sans le refaire. Le menu ⋮ propose « Partager », après le rappel habituel.
+4. Une étape avec 0 ou 1 photo : le bouton est grisé et le texte dit qu'il faut 2 photos ajoutées depuis l'étape.
+5. Les photos d'une autre étape ou de « Voir les photos » sans étape n'entrent pas dans ce film.
+6. Le film du voyage dans « Voir les photos » et les films d'album d'un événement ne changent pas (photos fixes).
+7. Poids : un film de 15 photos (≈ 38 s) fait autour de 7 Mo (à voir dans « Partager » → taille du fichier).
