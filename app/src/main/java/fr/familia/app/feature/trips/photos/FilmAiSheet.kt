@@ -48,13 +48,13 @@ import fr.familia.app.R
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.share.ShareConsentReminder
+import fr.familia.app.core.share.openUrl
 import fr.familia.app.core.share.shareImagesWithText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.net.URL
 
 /**
  * « Faire un vrai film avec une IA » (récit 108, règle 33, prototype v75): the criteria, the prompt
@@ -175,7 +175,7 @@ private suspend fun exportAiPhotos(cacheDir: File, storage: PhotoStorage, photos
         photos.mapIndexed { i, photo ->
             val file = File(dir, "photo-${(i + 1).toString().padStart(2, '0')}.jpg")
             val url = storage.downloadUrl(photo.photoPath)
-            URL(url).openStream().use { input -> file.outputStream().use { input.copyTo(it) } }
+            openUrl(url).use { input -> file.outputStream().use { input.copyTo(it) } }
             file
         }
     }

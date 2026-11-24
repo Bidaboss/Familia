@@ -4,10 +4,12 @@ import android.content.ContentValues
 import android.content.Context
 import android.os.Build
 import android.provider.MediaStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
+import java.net.HttpURLConnection
 import java.net.URL
 
 /** Where the films go in the gallery (récit 108, règle 32): Films › Familia. */
@@ -24,7 +26,7 @@ fun canSaveVideoToGallery(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CO
 suspend fun saveVideoToGallery(context: Context, displayName: String, open: () -> InputStream): Boolean {
     if (!canSaveVideoToGallery()) return false
     return withContext(Dispatchers.IO) {
-        runCatching {
+        try {
             val resolver = context.contentResolver
             val values = ContentValues().apply {
                 put(MediaStore.Video.Media.DISPLAY_NAME, displayName)
@@ -32,7 +34,7 @@ suspend fun saveVideoToGallery(context: Context, displayName: String, open: () -
                 put(MediaStore.Video.Media.RELATIVE_PATH, GALLERY_FILMS_FOLDER)
                 put(MediaStore.Video.Media.IS_PENDING, 1)
             }
-            val uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values) ?: return@runCatching false
+            val uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values) ?: return@withContext false
             try {
                 open().use { input -> (resolver.openOutputStream(uri) ?: error("no output")).use { input.copyTo(it) } }
                 resolver.update(uri, ContentValues().apply { put(MediaStore.Video.Media.IS_PENDING, 0) }, null, null)
@@ -41,7 +43,12 @@ suspend fun saveVideoToGallery(context: Context, displayName: String, open: () -
                 resolver.delete(uri, null, null)
                 throw e
             }
-        }.getOrDefault(false)
+        } catch (e: CancellationException) {
+            // Leaving the screen is not a failure (relecture #563, C1).
+            throw e
+        } catch (e: Exception) {
+            false
+        }
     }
 }
 
@@ -51,7 +58,14 @@ suspend fun saveVideoToGallery(context: Context, file: File, displayName: String
 
 /** A film published in Storage, read from its address. */
 suspend fun saveVideoUrlToGallery(context: Context, url: String, displayName: String): Boolean =
-    saveVideoToGallery(context, displayName) { URL(url).openStream() }
+    saveVideoToGallery(context, displayName) { openUrl(url) }
+
+/** Reads [url] with time limits, so that a lost network says so instead of waiting (relecture #563, C2). */
+fun openUrl(url: String, timeoutMs: Int = 15_000): InputStream =
+    (URL(url).openConnection() as HttpURLConnection).apply {
+        connectTimeout = timeoutMs
+        readTimeout = timeoutMs
+    }.inputStream
 
 /** « familia-etape-ajaccio.mp4 »: letters and digits only, the gallery shows the rest as it likes. */
 fun galleryFilmName(vararg parts: String): String =
