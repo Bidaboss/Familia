@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.SaveAlt
@@ -55,6 +56,8 @@ fun AlbumFilmPart(
     help: String? = null,
     /** The file name in the gallery for « Télécharger » (récit 108, règle 32); null offers none, as for the albums. */
     downloadName: String? = null,
+    /** « Faire un vrai film avec une IA » (récit 108, règle 33), for the film of a trip only. */
+    onAiFilm: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var remind by rememberSaveable { mutableStateOf(false) }
@@ -136,6 +139,13 @@ fun AlbumFilmPart(
                         onDismiss = { remind = false },
                     )
                 }
+            }
+        }
+        if (onAiFilm != null) {
+            TextButton(onClick = onAiFilm, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.film_ai_open))
             }
         }
     }

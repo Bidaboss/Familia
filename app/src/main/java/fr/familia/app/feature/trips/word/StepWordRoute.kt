@@ -14,6 +14,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.isOwner
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.events.comments.CommentsSection
+import fr.familia.app.feature.trips.photos.stepAiSubject
 
 /** « Le mot de l'étape » of [stepId]: closes itself once the word is published, changed or taken back. */
 @Composable
@@ -61,7 +62,8 @@ fun StepWordRoute(
     val ready = state as? StepWordUiState.Ready
     StepWordScreen(state, actions, onSite = {
         if (ready != null) {
-            StepFilm(container, tripId, stepId, ready.album, ready.trip, currentMember.takeIf { !readOnly }, ready.step.place)
+            val aiSubject = remember(ready.step, ready.album, ready.word) { stepAiSubject(ready.step, ready.album, ready.word) }
+            StepFilm(container, tripId, stepId, ready.album, ready.trip, currentMember.takeIf { !readOnly }, ready.step.place, aiSubject)
             val lat = ready.step.lat
             val lng = ready.step.lng
             // Règle 45: the weather and the local time first, the anecdote at the bottom.
