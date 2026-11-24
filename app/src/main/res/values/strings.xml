@@ -363,7 +363,7 @@
     <string name="quick_add_title">Ajouter à %1$s</string>
     <string name="quick_add_photo">Photo</string>
     <string name="quick_add_word">Mot court</string>
-    <string name="quick_add_quiet">Rangé sous la destination du jour, sans notification.</string>
+    <string name="quick_add_quiet">Rangé sous la destination du jour. Les photos sont annoncées une seule fois, toutes ensemble.</string>
     <string name="timeline_photo_add">Ajouter des photos à %1$s</string>
     <plurals name="timeline_photos_without_step">
         <item quantity="one">%d photo sans étape</item>

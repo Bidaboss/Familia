@@ -2057,6 +2057,6 @@ Rien à publier côté Firebase. « APK de publication ».
 Rien à publier côté Firebase. « APK de publication ».
 1. Pendant un voyage dont on fait partie (aujourd'hui entre le départ et le retour), un bouton rond avec un appareil photo apparaît au-dessus de « Ajouter une étape ».
 2. Le toucher : une feuille s'ouvre, avec le titre « Ajouter à <destination du jour> » et les choix « Photo » et « Mot court ».
-3. Choisir « Photo » puis une photo : elle apparaît sous la destination du jour, et personne ne reçoit de notification.
+3. Choisir « Photo » puis une photo : elle apparaît sous la destination du jour. Aucune notification ne part tout de suite : les suiveurs en reçoivent une seule, 10 à 25 min plus tard, pour toutes les photos (#538).
 4. Choisir « Mot court » : la page « Le mot de l'étape » de la destination du jour s'ouvre.
 5. Avant le départ, après le retour, ou pour quelqu'un qui suit le voyage sans y participer : pas de bouton rond.
