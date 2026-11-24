@@ -117,8 +117,8 @@ export async function releaseBringOf(db: Firestore, memberId: string): Promise<v
 }
 
 /**
- * A member was removed (a separation, for example): their answers, bags, phones, settings and days
- * of use (PRD, récit 1 nonies) go too.
+ * A member was removed (a separation, for example): their answers, bags, alerts, documents and voice notes
+ * of trips, phones, settings and days of use (PRD, récit 1 nonies) go too.
  * The family has a few hundred events at most, so going through them all stays cheap.
  */
 export async function deleteMemberData(db: Firestore, memberId: string): Promise<void> {
@@ -131,6 +131,21 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   const trips = await db.collection('trips').select().get();
   for (const trip of trips.docs) {
     writer.delete(trip.ref.collection('bags').doc(memberId));
+    // « Prévenir ma famille » (récit 105): their last alert.
+    writer.delete(trip.ref.collection('alerts').doc(memberId));
+    // « Documents » (règle 41): their tickets and papers (a passport may be one); each file goes
+    // with its document (onTripDocumentDeleted).
+    const documents = await trip.ref.collection('documents').where('ownerId', '==', memberId).select().get();
+    documents.docs.forEach((d) => writer.delete(d.ref));
+    // « Ajout rapide » (récit 104, règle 35): their voice notes; each file goes with its note (onTripVoiceNoteDeleted).
+    const notes = await trip.ref.collection('voiceNotes').where('authorId', '==', memberId).select().get();
+    notes.docs.forEach((n) => writer.delete(n.ref));
+  }
+  // « Photos groupées » (récit 104, règle 34): their part of a burst not sent yet.
+  const bursts = await db.collection('tripPhotoBursts').select('counts').get();
+  for (const burst of bursts.docs) {
+    const counts = burst.get('counts');
+    if (counts && typeof counts === 'object' && memberId in counts) writer.update(burst.ref, { [`counts.${memberId}`]: FieldValue.delete() });
   }
   await writer.close();
   const member = db.collection('members').doc(memberId);
