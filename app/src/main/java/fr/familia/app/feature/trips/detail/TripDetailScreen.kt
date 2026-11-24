@@ -145,8 +145,6 @@ fun TripDetailScreen(
     /** « Valise » (récit 98), for those who go; the number of things left to do on the round button. */
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
-    /** « Monnaie » (récit 105): for those who go, on a trip abroad or with a currency; null elsewhere. */
-    onOpenMoney: (() -> Unit)? = null,
     /** « Documents » (récit 105, règle 41): for those who go; null for the followers. */
     onOpenDocuments: (() -> Unit)? = null,
     /** Public Mapbox token of this APK: with it the home is the satellite map and a sheet (récit 100); blank: the drawn path. */
@@ -223,7 +221,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenMoney, cover, timeline, onOpenDocuments, onOpenEnrich)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, cover, timeline, onOpenDocuments, onOpenEnrich)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -346,7 +344,6 @@ private fun PathContent(
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
     satelliteToken: String = "",
-    onOpenMoney: (() -> Unit)? = null,
     cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     timeline: TimelineActions? = null,
     onOpenDocuments: (() -> Unit)? = null,
@@ -461,7 +458,6 @@ private fun PathContent(
                     onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() && !satellite },
                     onPacking = onOpenPacking?.takeIf { state.isParticipant },
                     packingCount = packingCount,
-                    onMoney = onOpenMoney,
                     onDocuments = onOpenDocuments?.takeIf { state.isParticipant },
                 )
             }

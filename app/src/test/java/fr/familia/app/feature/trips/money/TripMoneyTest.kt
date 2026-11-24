@@ -85,4 +85,13 @@ class TripMoneyTest {
         viewModel.setCurrency("EUR")
         assertEquals(listOf("t1" to "THB", "t1" to null), trips.currencies)
     }
+
+    @Test
+    fun `the page of a step outside the euro zone shows the currency of its country`() {
+        assertEquals("MAD", stepCurrency("ma")?.code)
+        assertEquals("CHF", stepCurrency("CH")?.code)
+        assertNull(stepCurrency("ES"))
+        assertNull(stepCurrency("FR"))
+        assertNull(stepCurrency(null))
+    }
 }

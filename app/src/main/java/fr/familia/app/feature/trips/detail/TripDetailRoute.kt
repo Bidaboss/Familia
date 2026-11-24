@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.flowOf
 import fr.familia.app.feature.trips.packing.packingCount
 import fr.familia.app.feature.trips.packing.rememberPackingViewModel
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
-import fr.familia.app.feature.trips.phrases.rememberAbroadCountries
 
 /** Connects the trip view to its ViewModel. */
 @Composable
@@ -61,8 +60,6 @@ fun TripDetailRoute(
     onOpenWord: ((stepId: String) -> Unit)? = null,
     /** « Valise » (récit 98): the screen of the bags, opened from the round button. */
     onOpenPacking: (() -> Unit)? = null,
-    /** « Monnaie » (récit 105): for those who go, once a step is abroad or the trip has a currency. */
-    onOpenMoney: (() -> Unit)? = null,
     /** « Documents » (récit 105, règle 41): for those who go, never the followers. */
     onOpenDocuments: (() -> Unit)? = null,
     /** « Enrichir avec une IA » (récit 106): for those who go. */
@@ -100,7 +97,6 @@ fun TripDetailRoute(
     }
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? TripDetailUiState.Success
-    val abroad = rememberAbroadCountries(container, shown?.steps.orEmpty())
     // The photos by destination, from the day they were taken (récit 104, partie 1): nothing is written.
     val byStep = remember(shown?.trip, shown?.steps, photos.photos) {
         shown?.let { stepPhotos(tripTimeline(it.trip, it.steps), photos.photos, ZoneId.systemDefault()) } ?: StepPhotos(emptyMap(), emptyList())
@@ -153,7 +149,6 @@ fun TripDetailRoute(
         onBack = onBack,
         checklist = shownChecklist,
         onOpenPacking = onOpenPacking,
-        onOpenMoney = onOpenMoney?.takeIf { shown?.isParticipant == true && (abroad.isNotEmpty() || shown.trip.currency != null) },
         onOpenDocuments = onOpenDocuments?.takeIf { shown?.isParticipant == true && container?.tripDocumentRepository != null },
         onOpenEnrich = onOpenEnrich?.takeIf { shown?.isParticipant == true && container?.tripPlaceRepository != null },
         packingCount = packingCount,
