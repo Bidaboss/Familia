@@ -114,20 +114,24 @@ fun TripSatelliteMap(
     var settingsOpen by remember { mutableStateOf(false) }
     // A touch of the map stops the arrival at once (règle 3: a click interrupts the animation).
     var touched by remember { mutableStateOf(false) }
-    val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(1) }
+    // Règle 25: back from a page opened here, the map is where it was, and the arrival does not play again.
+    var introPlayed by rememberSaveable { mutableStateOf(false) }
+    val memory = rememberSaveable(saver = CameraMemory.Saver) { CameraMemory() }
+    val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(2) }
     val view = remember { arrayOfNulls<MapView>(1) }
     val applied = remember { arrayOf<Any?>(null, null, null, null) } // look, tilted, sheetHigh, selected
     val density = context.resources.displayMetrics.density
-    DisposableEffect(Unit) { onDispose { listener[0]?.cancel() } }
+    DisposableEffect(Unit) { onDispose { listener.forEach { it?.cancel() } } }
     LaunchedEffect(Unit) {
         delay(6_000L)
         if (!drawn) onFailed()
     }
     // The arrival: out to the continent of the trip, then in on the trip, unless the person touches the map.
     LaunchedEffect(drawn) {
-        if (!drawn || !intro) return@LaunchedEffect
+        if (!drawn || !intro || introPlayed) return@LaunchedEffect
         val map = view[0] ?: return@LaunchedEffect
         if (touched) return@LaunchedEffect
+        introPlayed = true
         map.camera.easeTo(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(points.map { it.lng }.average(), points.map { it.lat }.average())).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
         delay(1_400L)
         if (touched) return@LaunchedEffect
@@ -138,6 +142,7 @@ fun TripSatelliteMap(
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                 touched = true
+                introPlayed = true
             }
         },
     ) {
@@ -150,8 +155,12 @@ fun TripSatelliteMap(
                         view[0] = map
                         // Règle 5: nothing but the map; the compass and the scale bar go too.
                         runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
-                        map.mapboxMap.setCamera(frame(map, points, bottomPaddingDp * density, tilted))
+                        map.mapboxMap.setCamera(memory.camera?.let(::cameraOf) ?: frame(map, points, bottomPaddingDp * density, tilted))
                         listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true }
+                        listener[1] = map.mapboxMap.subscribeMapIdle {
+                            val camera = map.mapboxMap.cameraState
+                            memory.keep(camera.center.longitude(), camera.center.latitude(), camera.zoom, camera.bearing, camera.pitch)
+                        }
                         loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels)
                         applied[0] = look; applied[1] = tilted; applied[2] = sheetHigh; applied[3] = selected
                         map.gestures.addOnMapClickListener(
@@ -231,6 +240,10 @@ fun TripSatelliteMap(
         )
     }
 }
+
+/** The camera kept by [CameraMemory]: longitude, latitude, zoom, bearing, pitch. */
+private fun cameraOf(kept: DoubleArray): CameraOptions =
+    CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(kept[0], kept[1])).zoom(kept[2]).bearing(kept[3]).pitch(kept[4]).build()
 
 private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilted: Boolean = false): CameraOptions {
     val pitch = if (tilted) 60.0 else 0.0

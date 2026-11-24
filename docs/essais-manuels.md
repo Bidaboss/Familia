@@ -2080,6 +2080,16 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Changer un nombre de nuits puis attendre le bandeau : « Annuler » reste jaune sur bleu foncé.
 3. Sur la photo du haut, l'étiquette « Voyage programmé » reste jaune avec une encre foncée.
 
+## Voyage : Retour remet la carte où elle était (règle 25)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec au moins deux destinations placées : la carte satellite fait son arrivée (vers le continent, puis sur le voyage).
+2. Déplacer la carte du doigt et zoomer sur une destination, puis faire défiler la feuille jusqu'à « Le programme ».
+3. Toucher une destination ou un lieu pour ouvrir sa page, puis Retour : la carte est exactement où on l'avait laissée, l'arrivée ne se rejoue pas, et la feuille est à la même hauteur et au même endroit de la liste.
+4. Pareil après « Mot de l'étape », « Photos », « Valise », et après avoir tourné le téléphone.
+5. Quitter le voyage (Retour jusqu'à la liste) puis le rouvrir : l'arrivée se joue de nouveau, cadrée sur tout le voyage.
+6. Avec « Supprimer les animations » d'Android : pas d'arrivée, et Retour remet aussi la carte où elle était.
+
 ## Voyage : compte à rebours, nuits et jours (récit 109 : règles 15, 16 et 26)
 
 **Publier Firebase : non.**
