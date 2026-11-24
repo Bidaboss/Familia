@@ -20,7 +20,7 @@ data class StepForm(
     fun toStep(id: String, arrival: TripArrival?): TripStep = TripStep(
         id = id,
         type = type,
-        place = placeName(place),
+        place = if (type in TRANSPORT_TYPES) routePlace(place) else placeName(place),
         departDate = requireNotNull(departDate),
         departTime = departTime,
         // An arrival time alone is on the day of departure.
@@ -45,13 +45,39 @@ data class StepForm(
 
 enum class StepFormError { PlaceMissing, PlaceTooLong, DepartMissing, ArriveBeforeDepart, NoteTooLong }
 
+/** Between the two towns of a transport, as the place was always written (E-64): « Paris → Bordeaux ». */
+const val ROUTE_ARROW = " → "
+
+/**
+ * The two towns of a transport kept in [place] (E-64): « Départ de » and « Arrivée à ». The text is
+ * cut as typed, spaces kept, so a town is typed letter by letter; an old place with no arrow is the
+ * departure, « Paris->Bordeaux » or « Paris→Bordeaux » are cut too.
+ */
+fun routeParts(place: String): Pair<String, String> {
+    val exact = place.indexOf(ROUTE_ARROW)
+    if (exact >= 0) return place.substring(0, exact) to place.substring(exact + ROUTE_ARROW.length)
+    val loose = Regex("\\s*(→|->)\\s*").find(place) ?: return place to ""
+    return place.substring(0, loose.range.first) to place.substring(loose.range.last + 1)
+}
+
+/** The place of a transport from its two fields, as typed; empty when both are. */
+fun routeOf(from: String, to: String): String = if (from.isEmpty() && to.isEmpty()) "" else from + ROUTE_ARROW + to
+
+/** The place saved for a transport: each town written as the family reads it, « Paris → Bordeaux ». */
+fun routePlace(place: String): String {
+    val (from, to) = routeParts(place)
+    return listOf(placeName(from), placeName(to)).filter { it.isNotEmpty() }.joinToString(ROUTE_ARROW)
+}
+
 const val MAX_STEP_PLACE = 120
 const val MAX_STEP_NOTE = 1000
 
 /** Same limits as the security rules. */
 fun validate(form: StepForm): Set<StepFormError> = buildSet {
     val place = form.place.trim()
-    if (place.isEmpty()) add(StepFormError.PlaceMissing)
+    // E-64: a transport has two towns; one of them is enough to save, as an old step with one place.
+    val typed = if (form.type in TRANSPORT_TYPES) routeParts(form.place).toList().joinToString("").trim() else place
+    if (typed.isEmpty()) add(StepFormError.PlaceMissing)
     if (place.length > MAX_STEP_PLACE) add(StepFormError.PlaceTooLong)
     if (form.departDate == null) add(StepFormError.DepartMissing)
     val depart = form.departDate
