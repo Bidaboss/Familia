@@ -635,27 +635,34 @@ private fun InsertItem(text: String, icon: androidx.compose.ui.graphics.vector.I
 private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val label = stepTypeLabel(row.step.type)
     val distance = row.km?.let { stringResource(R.string.timeline_km, it) }
-    Row(
+    // B of #602: the touch zone is the Box of 56 dp; the white band of 48 dp (E-57) is drawn inside it.
+    Box(
         modifier
             .padding(start = 4.dp)
             .fillMaxWidth()
-            // E-57: 48 dp high, radius 16, white at 55 %, the touch zone of 56 dp kept by the row around it.
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.55f))
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, placeName(row.step)), onClick = onOpen)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .heightIn(min = 56.dp)
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, placeName(row.step)), onClick = onOpen),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(stepTypeIcon(row.step.type), contentDescription = null, tint = Ink, modifier = Modifier.size(20.dp))
-        Text(
-            listOfNotNull(label, row.step.place.takeIf { it.isNotBlank() }, distance).joinToString(" · "),
-            style = MaterialTheme.typography.bodyMedium,
-            color = Ink,
-            modifier = Modifier.padding(start = 10.dp),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.55f))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(stepTypeIcon(row.step.type), contentDescription = null, tint = Ink, modifier = Modifier.size(20.dp))
+            Text(
+                listOfNotNull(label, row.step.place.takeIf { it.isNotBlank() }, distance).joinToString(" · "),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Ink,
+                modifier = Modifier.padding(start = 10.dp),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
