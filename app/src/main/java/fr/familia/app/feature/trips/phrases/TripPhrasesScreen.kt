@@ -41,9 +41,12 @@ import fr.familia.app.feature.trips.detail.TripDetailUiState
 import fr.familia.app.feature.trips.detail.TripDetailViewModel
 import java.util.Locale
 
-/** « Phrases utiles » of [tripId] (récit 105, règle 44): one block per country abroad, read by anyone who follows the trip. */
+/**
+ * « Phrases utiles » of [tripId] (récit 105, règle 44): one block per country abroad, read by anyone who
+ * follows the trip. From the page of a step (récit 112), [country] keeps only the language of that step.
+ */
 @Composable
-fun TripPhrasesRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit) {
+fun TripPhrasesRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit, country: String? = null) {
     val detail: TripDetailViewModel = viewModel(
         key = "trip-phrases-$tripId",
         factory = viewModelFactory {
@@ -52,7 +55,8 @@ fun TripPhrasesRoute(container: AppContainer?, currentMember: Member, tripId: St
     )
     val state by detail.uiState.collectAsStateWithLifecycle()
     val steps = (state as? TripDetailUiState.Success)?.steps.orEmpty()
-    val countries = PhraseBook.abroad(rememberAbroadCountries(container, steps))
+    val abroad = PhraseBook.abroad(rememberAbroadCountries(container, steps))
+    val countries = if (country == null) abroad else PhraseBook.abroad(listOf(country))
     TripPhrasesScreen(loading = state !is TripDetailUiState.Success, countries = countries, speaker = rememberSpeaker(), onBack = onBack)
 }
 
@@ -88,17 +92,21 @@ private fun LanguageBlock(language: PhraseLanguage, codes: List<String>, speaker
         style = MaterialTheme.typography.titleLarge,
         modifier = Modifier.padding(top = 8.dp).semantics { heading() },
     )
-    PhraseBook.phrases(language).forEach { phrase ->
-        Row(Modifier.fillMaxWidth().heightIn(min = 72.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(phrase.french, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(phrase.local, style = MaterialTheme.typography.titleMedium)
-                Text(phrase.pronunciation, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
-            }
-            if (speaker != null && language in speaker.available) {
-                IconButton(onClick = { speaker.say(phrase.local, language) }, Modifier.size(56.dp)) {
-                    Icon(Icons.Outlined.Campaign, contentDescription = stringResource(R.string.phrases_say, phrase.local))
-                }
+    PhraseBook.phrases(language).forEach { phrase -> PhraseRow(phrase, language, speaker) }
+}
+
+/** A phrase in French, in the language of the country and as it is said, with its speaker when the voice is installed. */
+@Composable
+internal fun PhraseRow(phrase: Phrase, language: PhraseLanguage, speaker: Speaker?) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 72.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(phrase.french, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(phrase.local, style = MaterialTheme.typography.titleMedium)
+            Text(phrase.pronunciation, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
+        }
+        if (speaker != null && language in speaker.available) {
+            IconButton(onClick = { speaker.say(phrase.local, language) }, Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.Campaign, contentDescription = stringResource(R.string.phrases_say, phrase.local))
             }
         }
     }
