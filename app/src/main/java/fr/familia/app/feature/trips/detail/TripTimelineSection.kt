@@ -19,10 +19,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -32,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +52,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import fr.familia.app.core.data.TripVoiceNote
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.album.AlbumPhoto
@@ -58,6 +65,7 @@ import fr.familia.app.feature.trips.place.placeKindLabel
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.stepTypeIcon
+import fr.familia.app.feature.trips.voice.voiceDuration
 import fr.familia.app.feature.trips.stepTypeLabel
 import java.time.LocalDate
 import java.time.LocalTime
@@ -82,6 +90,13 @@ class TimelineActions(
     val onSeePhotos: () -> Unit = {},
     /** Null for who adds no photo; else the photos chosen go under the destination [stepId] (récit 104, partie 2). */
     val onAddPhoto: ((stepId: String) -> Unit)? = null,
+    /** The voice notes of each destination (récit 104, partie 3b), oldest first; the one playing. */
+    val voiceNotes: Map<String, List<TripVoiceNote>> = emptyMap(),
+    val playingVoiceId: String? = null,
+    val onPlayVoice: (TripVoiceNote) -> Unit = {},
+    /** Null for a note this member may not remove. */
+    val canDeleteVoice: (TripVoiceNote) -> Boolean = { false },
+    val onDeleteVoice: (TripVoiceNote) -> Unit = {},
 )
 
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
@@ -110,7 +125,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
     }
     // A white card with dark ink in every theme: the sheet behind it is the sky of the trip.
     Column(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Color.White).padding(12.dp),
+        modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(TripSheetColors.Card).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -131,7 +146,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 3.dp,
                         color = Deep,
-                        trackColor = Color(0xFFDCE3E8),
+                        trackColor = TripSheetColors.Track,
                     )
                     Text(
                         stringResource(R.string.timeline_planned, line.planned, line.total),
@@ -147,8 +162,8 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
             Text(
                 pluralStringResource(R.plurals.timeline_missing, line.missing, line.missing),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF3D2E00),
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFE9A8)).padding(horizontal = 12.dp, vertical = 8.dp),
+                color = TripSheetColors.OnWarning,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Warning).padding(horizontal = 12.dp, vertical = 8.dp),
             )
         }
         undo?.let { (name, before) ->
@@ -158,7 +173,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
             ) {
                 Text(stringResource(R.string.timeline_changed, name), color = Color.White, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 TextButton(onClick = { actions.onUndo(before); undo = null }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.timeline_undo), color = Color(0xFFFFD84A), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.timeline_undo), color = TripSheetColors.Highlight, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -216,13 +231,13 @@ private fun EndRow(text: String, day: LocalDate, trailing: @Composable () -> Uni
 private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, actions: TimelineActions, blocked: NightsBlock?, onChange: (Int) -> Unit) {
     val name = placeName(row.step)
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color(0xFFF3F6F8)).padding(12.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(TripSheetColors.Panel).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // The number is the one of the round on the map (règle 7).
             Box(
-                Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF111111)).border(3.dp, Color.White, CircleShape),
+                Modifier.size(40.dp).clip(CircleShape).background(Ink).border(3.dp, Color.White, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(row.number.toString(), color = Color.White, fontWeight = FontWeight.Bold)
@@ -283,6 +298,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
         }
         DestinationProgramme(row.step.id, name, actions)
         StepPhotoStrip(actions.photos[row.step.id].orEmpty(), name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
+        actions.voiceNotes[row.step.id].orEmpty().forEach { note -> VoiceNoteRow(note, actions) }
     }
 }
 
@@ -342,6 +358,47 @@ private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen
 }
 
 private const val STRIP_PHOTOS = 4
+
+/** « Note vocale de Lou, 0:42 »: listen or stop (56 dp), and remove it for its author or who manages the trip. */
+@Composable
+private fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
+    val playing = actions.playingVoiceId == note.id
+    var confirm by rememberSaveable(note.id) { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = { actions.onPlayVoice(note) }, modifier = Modifier.size(56.dp)) {
+            Icon(
+                if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                contentDescription = stringResource(if (playing) R.string.voice_stop_playing else R.string.voice_play),
+                tint = Deep,
+            )
+        }
+        Text(
+            stringResource(R.string.voice_note_by, note.authorName, voiceDuration(note.seconds)),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Deep,
+            modifier = Modifier.weight(1f),
+        )
+        if (actions.canDeleteVoice(note)) {
+            IconButton(onClick = { confirm = true }, modifier = Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.voice_delete), tint = InkSoft)
+            }
+        }
+    }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(R.string.voice_delete_confirm)) },
+            confirmButton = {
+                TextButton(onClick = { confirm = false; actions.onDeleteVoice(note) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.voice_delete_yes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
 
 /**
  * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each
@@ -412,16 +469,14 @@ private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit) {
     }
 }
 
-private val Ink = Color(0xFF111111)
-private val InkSoft = Color(0xFF3A4A52)
-
-/** The dark blue of the rounds, the « Annuler » band and the « + » of the section. */
-private val Deep = Color(0xFF17333F)
+private val Ink = TripSheetColors.Ink
+private val InkSoft = TripSheetColors.InkSoft
+private val Deep = TripSheetColors.Deep
 
 @Composable
 private fun nightsButtonColors() = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
     containerColor = Color.White,
     contentColor = Ink,
-    disabledContainerColor = Color(0xFFE6EBEE),
-    disabledContentColor = Color(0xFF4F5B63),
+    disabledContainerColor = TripSheetColors.Disabled,
+    disabledContentColor = TripSheetColors.OnDisabled,
 )

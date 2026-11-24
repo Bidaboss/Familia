@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
+import java.util.Locale
 
 /** `members/{memberId}/travelPlaces/{placeId}` (récit 107). The date is « yyyy-MM-dd », as for the trips. */
 class FirestoreTravelPlaceRepository(private val db: FirebaseFirestore) : TravelPlaceRepository {
@@ -35,7 +36,7 @@ class FirestoreTravelPlaceRepository(private val db: FirebaseFirestore) : Travel
         val data = mapOf(
             "name" to place.name.trim().take(TravelPlace.MAX_NAME),
             "country" to place.country?.trim()?.take(TravelPlace.MAX_COUNTRY)?.ifEmpty { null },
-            "countryCode" to place.countryCode?.uppercase(java.util.Locale.ROOT)?.takeIf { it.length == 2 },
+            "countryCode" to place.countryCode?.uppercase(Locale.ROOT)?.takeIf { it.length == 2 },
             "lat" to place.lat,
             "lng" to place.lng,
             "date" to place.date.toString(),

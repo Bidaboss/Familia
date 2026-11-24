@@ -23,10 +23,18 @@ fun stepPhotos(line: TripTimeline, photos: List<AlbumPhoto>, zone: ZoneId): Step
         // Added from a destination (partie 2): under it, while it is still in the trip.
         val chosen = photo.stepId?.let { id -> stays.firstOrNull { it.step.id == id } }
         val day = photo.shotAt?.atZone(zone)?.toLocalDate()
-        val stay = chosen ?: day?.let { d ->
-            stays.lastOrNull { !d.isBefore(it.start) && !d.isAfter(it.end) }
-        }
+        val stay = chosen ?: day?.let { stayOn(line, it) }
         if (stay == null) without += photo else byStay.getOrPut(stay.step.id) { mutableListOf() } += photo
     }
     return StepPhotos(byStay, without)
 }
+
+/**
+ * The destination of [today] during the trip, where « ajout rapide » files what is added (récit 104,
+ * règle 35, DESIGN-90 A): on the day of a move, the one that begins. Null out of every destination.
+ */
+fun currentStay(line: TripTimeline, today: java.time.LocalDate): TimelineRow.Destination? = stayOn(line, today)
+
+/** The destination whose days hold [day]; on the day of a move, the one that begins. */
+fun stayOn(line: TripTimeline, day: java.time.LocalDate): TimelineRow.Destination? =
+    line.destinations.lastOrNull { !day.isBefore(it.start) && !day.isAfter(it.end) }
