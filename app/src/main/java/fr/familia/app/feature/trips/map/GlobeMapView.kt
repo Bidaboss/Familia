@@ -125,3 +125,24 @@ internal fun configureSatelliteGlobe(style: Style, look: GlobeLook = GlobeLook.S
     val whole = runCatching { style.setStyleAtmosphere(Value.valueOf(sky)) }.getOrNull()?.isValue == true
     if (!whole) runCatching { sky.forEach { (key, value) -> style.setStyleAtmosphereProperty(key, value) } }
 }
+
+/** E-66: the config keys of Standard (Satellite) that write on the globe or draw lines on it. */
+internal val GLOBE_HIDDEN_CONFIG = listOf(
+    "showPlaceLabels", "showRoadLabels", "showPointOfInterestLabels", "showTransitLabels",
+    "showAdminBoundaries", "showRoadsAndTransit", "showPedestrianRoads",
+)
+
+/** E-66: the layers a classic style may have that are not imagery: names, borders, roads. */
+internal fun isWritingOrLine(type: String): Boolean = type == "symbol" || type == "line"
+
+/**
+ * E-66: the globe of « Voyages » is a clean Earth, nothing written, no border, no road. Called
+ * before the app adds its own layers (the dots of the trips), so only the style's are removed.
+ * The names in French stay on the map of a trip, which does not call this.
+ */
+internal fun cleanGlobe(style: Style) {
+    GLOBE_HIDDEN_CONFIG.forEach { key -> runCatching { style.setStyleImportConfigProperty("basemap", key, Value.valueOf(false)) } }
+    runCatching {
+        style.styleLayers.filter { isWritingOrLine(it.type) }.forEach { layer -> runCatching { style.removeStyleLayer(layer.id) } }
+    }
+}
