@@ -1930,6 +1930,14 @@ Rien à publier côté Firebase. « APK de publication ».
 4. Toucher un repère : la carte zoome sur l'étape et écrit son nom. Retour : la carte revient sur tout le voyage.
 5. Feuille : glisser vers le haut deux fois, elle prend tout l'écran avec une flèche en haut à gauche ; la flèche ou un glissé vers le bas la redescend. Retour la redescend aussi.
 6. Plus de bouton « Carnet » ni de tuile « Jour par jour » ; le titre de la liste du jour devient « Programme, jour N ».
+## Voyage : vraies photos du lieu, plus de choix du paysage (récit 102, partie 1 : règles 10, 12, 13, 14)
+
+Rien à publier côté Firebase. « APK de publication » (le réseau est nécessaire pour les photos).
+1. Nouveau voyage : choisir « La Rochelle » puis Continuer. En haut du formulaire, une vraie photo de La Rochelle, avec « Photo : auteur, licence, Wikimedia Commons » dans le coin. Plus de tuile « Le paysage ».
+2. Un lieu sans photo sur Wikipédia : la vue satellite du lieu ; sans réseau : le paysage dessiné, jamais un trou.
+3. Sous les dates : « 5 nuitées » (ou « Aller-retour dans la journée »). Sous le nom : « Il deviendra le nom du voyage… Tu pourras le changer plus tard. »
+4. Modifier un voyage existant : la photo du lieu de sa première étape.
+5. Ouvrir un voyage pas encore commencé : en haut de la feuille, les images des lieux défilent toutes les 4 s (jusqu'à 5), avec « Voyage programmé », le nom, le mois, les jours et les kilomètres ; le bouton pause les arrête. Animations du téléphone coupées : pas de défilement.
 
 ## Voyage : page d'un hébergement, d'un restaurant ou d'un spot (récit 103, partie « lieux » 1 : règles 19, 21, 24, 26)
 

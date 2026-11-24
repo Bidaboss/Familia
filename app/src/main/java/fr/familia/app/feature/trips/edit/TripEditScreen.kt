@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.Landscape
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -114,6 +113,8 @@ fun TripEditScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onBack: () -> Unit,
+    /** The image of the place (règle 12): a real photo, else satellite, else the drawn landscape; null: the drawing. */
+    cover: (@Composable (Modifier) -> Unit)? = null,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val editing = state as? TripEditUiState.Editing
@@ -147,7 +148,7 @@ fun TripEditScreen(
                     body = stringResource(R.string.trip_unavailable_body),
                 )
             }
-            is TripEditUiState.Editing -> FormContent(state, onChange, onDelete)
+            is TripEditUiState.Editing -> FormContent(state, onChange, onDelete, cover)
         }
     }
 }
@@ -157,6 +158,7 @@ private fun FormContent(
     state: TripEditUiState.Editing,
     onChange: ((TripForm) -> TripForm) -> Unit,
     onDelete: () -> Unit,
+    cover: (@Composable (Modifier) -> Unit)?,
 ) {
     val form = state.form
     val errors = state.errors
@@ -175,7 +177,7 @@ private fun FormContent(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        PreviewBanner(form)
+        PreviewBanner(form, cover)
 
         TripTile(Icons.Outlined.CardTravel, stringResource(R.string.trip_tile_trip), Modifier.part(TripPart.Trip)) {
             FormLabel(stringResource(R.string.trip_field_title))
@@ -192,13 +194,19 @@ private fun FormContent(
             val titleError = errorMessage(errors, TripFormError.TitleMissing, TripFormError.TitleTooLong)
             FormHint(titleError ?: stringResource(R.string.trip_title_hint), isError = titleError != null)
             DateBoxes(form, onChange)
+            val start = form.startDate
+            val end = form.endDate
+            if (start != null && end != null && end >= start) {
+                // « 5 nuitées » under the dates, as on the prototype (règle 13).
+                val nights = java.time.temporal.ChronoUnit.DAYS.between(start, end).toInt()
+                Text(
+                    if (nights == 0) stringResource(R.string.trip_form_no_night) else pluralStringResource(R.plurals.trip_form_nights, nights, nights),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             errorMessage(errors, TripFormError.StartMissing, TripFormError.EndMissing, TripFormError.EndBeforeStart)
                 ?.let { FormHint(it, isError = true) }
-        }
-
-        TripTile(Icons.Outlined.Landscape, stringResource(R.string.trip_tile_landscape)) {
-            LandscapeChoice(form.landscape, onPick = { landscape -> onChange { it.copy(landscape = landscape) } })
-            FormHint(stringResource(R.string.trip_landscape_hint))
         }
 
         TripTile(Icons.Outlined.Groups, stringResource(R.string.trip_field_participants), Modifier.part(TripPart.Who)) {
@@ -229,11 +237,11 @@ private fun FormContent(
     }
 }
 
-/** The chosen landscape, with a white label that fills in while the name and the dates are typed. */
+/** The image of the place (règle 12), with a white label that fills in while the name and the dates are typed. */
 @Composable
-private fun PreviewBanner(form: TripForm) {
-    Box(Modifier.fillMaxWidth().height(150.dp)) {
-        MiniLandscape(form.landscape, Modifier.fillMaxSize())
+private fun PreviewBanner(form: TripForm, cover: (@Composable (Modifier) -> Unit)?) {
+    Box(Modifier.fillMaxWidth().height(180.dp)) {
+        if (cover != null) cover(Modifier.fillMaxSize()) else MiniLandscape(form.landscape, Modifier.fillMaxSize())
         Column(
             Modifier
                 .align(Alignment.BottomStart)
@@ -294,69 +302,6 @@ private fun DateBoxes(form: TripForm, onChange: ((TripForm) -> TripForm) -> Unit
     }
 }
 
-@Composable
-internal fun landscapeName(landscape: TripLandscape): String = stringResource(
-    when (landscape) {
-        TripLandscape.Dunes -> R.string.trip_landscape_dunes
-        TripLandscape.Sea -> R.string.trip_landscape_sea
-        TripLandscape.Mountain -> R.string.trip_landscape_mountain
-        TripLandscape.Country -> R.string.trip_landscape_country
-        TripLandscape.City -> R.string.trip_landscape_city
-        TripLandscape.Snow -> R.string.trip_landscape_snow
-    },
-)
-
-/** The six landscapes in thumbnails, three by row (two with a big font), as a radio group. */
-@Composable
-private fun LandscapeChoice(selected: TripLandscape, onPick: (TripLandscape) -> Unit) {
-    val columns = if (LocalDensity.current.fontScale >= 1.3f) 2 else 3
-    Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        TripLandscape.entries.chunked(columns).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { landscape ->
-                    val chosen = landscape == selected
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .selectable(selected = chosen, role = Role.RadioButton, onClick = { onPick(landscape) })
-                            .padding(2.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Box {
-                            val ring = if (chosen) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(16.dp)) else Modifier
-                            MiniLandscape(landscape, ring.padding(if (chosen) 3.dp else 0.dp).fillMaxWidth().height(64.dp))
-                            if (chosen) {
-                                Box(
-                                    Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(6.dp)
-                                        .size(22.dp)
-                                        .clip(CircleShape)
-                                        .background(TripPathColors.Ink),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-                                }
-                            }
-                        }
-                        Text(
-                            landscapeName(landscape),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2,
-                        )
-                    }
-                }
-                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
-            }
-        }
-    }
-}
-
-/** « Qui part ? »: per household, a « Tout le foyer » box, then the faces of its members. */
 @Composable
 private fun HouseholdFaces(groups: List<PickGroup>, selected: Set<String>, locked: Set<String>, onChange: (Set<String>) -> Unit) {
     val all = stringResource(R.string.trip_household_all)

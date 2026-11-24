@@ -29,6 +29,8 @@ import fr.familia.app.core.place.WIKIPEDIA_HOST
 import fr.familia.app.core.place.WikimediaPlaceArticles
 import fr.familia.app.core.place.OpenMeteoWeather
 import fr.familia.app.core.place.PlaceWeather
+import fr.familia.app.core.place.PlacePhotos
+import fr.familia.app.core.place.WikimediaPlacePhotos
 import fr.familia.app.core.usage.UsageTracker
 import fr.familia.app.core.video.Media3PhotoFilmMaker
 import fr.familia.app.core.video.PhotoFilmMaker
@@ -80,6 +82,9 @@ interface AppContainer {
 
     /** The weather and the local time of a destination (récit 105, règle 45). */
     val placeWeather: PlaceWeather? get() = null
+
+    /** The photo of the place of a trip (règle 12, PRODUIT-153), from Wikimedia Commons. */
+    val placePhotos: PlacePhotos? get() = null
 
     /** « Autour de l'étape » (récit 96): restaurants and sites around the place of a step. */
     val nearbyPlaces: NearbyPlaces? get() = null
@@ -315,6 +320,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val placeArticles: PlaceArticles? by lazy { WikimediaPlaceArticles() }
     override val placeAnecdotes: PlaceArticles? by lazy { WikimediaPlaceArticles(WIKIPEDIA_HOST) }
     override val placeWeather: PlaceWeather? by lazy { OpenMeteoWeather() }
+    override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
     override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }
 
