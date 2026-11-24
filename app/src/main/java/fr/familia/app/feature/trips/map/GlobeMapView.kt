@@ -56,9 +56,10 @@ fun GlobeMapView(
                 MapboxOptions.accessToken = token
                 MapView(context).also { view ->
                     view.mapboxMap.setCamera(command.target.toOptions())
-                    view.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
+                    // E-49: the classic Satellite, with the imagery in its own colours, as the globe of the list.
+                    view.mapboxMap.loadStyle(GlobeLook.LIST_DEFAULT.styleUri) { style ->
                         runCatching {
-                            configureSatelliteGlobe(style)
+                            configureSatelliteGlobe(style, GlobeLook.LIST_DEFAULT)
                             style.addSource(geoJsonSource(TRAIL_ALL) { geometry(trail(points, points.size - 1)) })
                             style.addSource(geoJsonSource(TRAIL_DONE) { geometry(trail(points, 0)) })
                             style.addSource(geoJsonSource(STEPS) { featureCollection(com.mapbox.geojson.FeatureCollection.fromFeatures(points.map { com.mapbox.geojson.Feature.fromGeometry(it.toPoint()) })) })

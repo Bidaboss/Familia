@@ -66,6 +66,7 @@ import fr.familia.app.feature.trips.map.mapFailureReason
 import fr.familia.app.feature.trips.map.GlobeLook
 import fr.familia.app.feature.trips.map.GlobeLookStore
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
+import fr.familia.app.feature.trips.map.recordTileError
 import fr.familia.app.feature.trips.map.toPoint
 import kotlinx.coroutines.delay
 
@@ -266,6 +267,7 @@ fun TripsGlobe(
                     listeners[0] = map.mapboxMap.subscribeMapLoadingError { error ->
                         lastError[0] = mapErrorLine(error.type.toString(), error.message)
                         Log.w("TripsGlobe", "map error ${lastError[0]}")
+                        recordTileError(context, "TripsGlobe", error.type.toString(), error.sourceId, error.message)
                         // A missing tile leaves the globe; only a style that cannot load is the end, and only before it showed.
                         if (error.type == MapLoadingErrorType.STYLE && !ready) giveUp(lastError[0])
                     }

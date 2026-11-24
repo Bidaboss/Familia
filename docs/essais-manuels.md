@@ -2532,3 +2532,6 @@ Sur un téléphone en Android 10 ou plus :
 4. Les points des voyages, leurs noms et le toucher d'un point qui ouvre le voyage marchent dans les trois variantes.
 5. La carte d'un voyage et le globe d'une nouvelle destination ne changent pas (Standard Satellite).
 6. Dire au fil design la variante retenue : elle devient celle de tout le monde, et l'appui long sera retiré.
+7. Carte d'un voyage, look Satellite (retour E-49) : la vraie imagerie en couleurs, avec les routes et les noms par-dessus (plus de fond gris-rose ni d'eau ardoise). Les noms sont en français (« Afrique », « Amérique du Sud », retour E-54).
+8. Dézoomer au maximum la carte d'un voyage (retour E-53) : le globe entier reste au-dessus du panneau, centré dans la partie visible, avec une petite marge. Monter puis descendre le panneau : le centre suit.
+9. Si l'imagerie manque encore : « Plantages » montre une ligne « Carte … : SOURCE … » qui dit quelle source est refusée et pourquoi (jeton, quota, réseau).
