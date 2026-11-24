@@ -2089,3 +2089,11 @@ Rien à publier côté Firebase. « APK de publication ».
 4. Pareil après « Mot de l'étape », « Photos », « Valise », et après avoir tourné le téléphone.
 5. Quitter le voyage (Retour jusqu'à la liste) puis le rouvrir : l'arrivée se joue de nouveau, cadrée sur tout le voyage.
 6. Avec « Supprimer les animations » d'Android : pas d'arrivée, et Retour remet aussi la carte où elle était.
+
+## Voyage : réglages de carte enregistrés (récit 110, partie 1 : règle 5 et section 9)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec la carte satellite, toucher le bouton discret en bas à droite : « Satellite / Rues » et « 2D / 3D », puis « Annuler » et « Enregistrer ». Il n'y a ni Lire, ni Terrain, ni Hiver, ni profil altimétrique (décision 155).
+2. Choisir « Rues » et « 3D » : la carte change tout de suite. Toucher « Annuler » : elle revient comme avant.
+3. Choisir de nouveau « Rues » et « 3D », puis « Enregistrer ». Quitter le voyage, en ouvrir un autre : il s'ouvre en Rues 3D. Le choix reste aussi après avoir fermé l'appli.
+4. Toucher en dehors de la fenêtre revient au même qu'« Annuler ».

@@ -1997,7 +1997,7 @@
     <string name="globe_resume">Reprendre</string>
     <string name="trip_map_open">La carte</string>
     <string name="trip_map_settings">Réglages de la carte</string>
-    <string name="trip_map_settings_done">Fermer</string>
+    <string name="trip_map_settings_save">Enregistrer</string>
     <string name="trip_map_look_satellite">Satellite</string>
     <string name="trip_map_look_streets">Rues</string>
     <string name="trip_map_mode_2d">2D</string>
