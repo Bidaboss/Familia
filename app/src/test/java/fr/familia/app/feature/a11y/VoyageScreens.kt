@@ -207,7 +207,7 @@ internal object VoyageScreens {
             fr.familia.app.feature.trips.enrich.TripEnrichScreen(
                 false, true, previewTripDetail().steps, "Prompt", fr.familia.app.feature.trips.enrich.EnrichUiState(), {}, {}, {}, {}, {}, {},
             )
-        }
+        },
         screen("enrich, an answer refused") {
             fr.familia.app.feature.trips.enrich.TripEnrichScreen(
                 false, true, previewTripDetail().steps, "Prompt",
@@ -215,7 +215,7 @@ internal object VoyageScreens {
                 {}, {}, {}, {}, {}, {},
                 startStep = fr.familia.app.feature.trips.enrich.EnrichStep.Paste,
             )
-        }
+        },
         screen("enrich, the check") {
             val reading = fr.familia.app.feature.trips.enrich.EnrichReading.Read(
                 listOf(
@@ -231,7 +231,7 @@ internal object VoyageScreens {
                 fr.familia.app.feature.trips.enrich.EnrichUiState(answer = "{}", reading = reading, ticked = fr.familia.app.feature.trips.enrich.allKeys(reading)),
                 {}, {}, {}, {}, {}, {},
             )
-        }
+        },
         screen("the currency of a trip") {
             fr.familia.app.feature.trips.money.TripMoneyScreen(
                 loading = false,
@@ -243,7 +243,7 @@ internal object VoyageScreens {
                 onRetry = {},
                 onBack = {},
             )
-        }
+        },
         screen("the currency of a trip, for who does not manage it") {
             fr.familia.app.feature.trips.money.TripMoneyScreen(
                 loading = false,
@@ -255,7 +255,7 @@ internal object VoyageScreens {
                 onRetry = {},
                 onBack = {},
             )
-        }
+        },
         // Fiche F3: the bags are always on the light blue page of « Valise ».
         screen("À emporter") { androidx.compose.foundation.layout.Box(Modifier.background(TripPathColors.Sky)) {
             PackingBags(
