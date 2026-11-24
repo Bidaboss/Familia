@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import fr.familia.app.core.place.distanceMeters
 
 /** The key of a line of the preview: a new destination, or a place under a destination. */
 fun destinationKey(d: Int): String = "d$d"
@@ -73,7 +74,11 @@ class TripEnrichViewModel(
         _state.value = _state.value.copy(answer = text.take(TripEnrich.MAX_CHARS + 1), reading = null, ticked = emptySet(), added = null)
     }
 
+    /** The points of the destinations of the trip, read with the answer: a place is placed near its own. */
+    private var anchors: Map<String, Pair<Double, Double>> = emptyMap()
+
     fun read(trip: Trip, steps: List<TripStep>) {
+        anchors = steps.mapNotNull { s -> if (s.lat != null && s.lng != null) s.id to (s.lat to s.lng) else null }.toMap()
         val current = _state.value
         val reading = readEnrichAnswer(current.answer, trip, steps, current.target)
         _state.value = current.copy(reading = reading, ticked = (reading as? EnrichReading.Read)?.let(::allKeys).orEmpty(), saveFailed = false)
@@ -97,6 +102,7 @@ class TripEnrichViewModel(
             var added = 0
             var failed = false
             reading.destinations.forEachIndexed { d, destination ->
+                var anchor: Pair<Double, Double>? = null
                 val stepId = if (destination.isNew) {
                     if (destinationKey(d) !in current.ticked) return@forEachIndexed
                     val id = stepRepo.newStepId(tripId)
@@ -106,21 +112,25 @@ class TripEnrichViewModel(
                         return@forEachIndexed
                     }
                     added++
+                    if (stay.lat != null && stay.lng != null) anchor = stay.lat to stay.lng
                     id
                 } else {
-                    destination.existingStepId ?: return@forEachIndexed
+                    val id = destination.existingStepId ?: return@forEachIndexed
+                    anchor = anchors[id]
+                    id
                 }
                 destination.places.forEachIndexed { p, place ->
                     if (placeKey(d, p) !in current.ticked) return@forEachIndexed
+                    val point = placePosition(place, destination.city, anchor)
                     val written = TripPlace(
                         id = placeRepo.newPlaceId(tripId),
                         stepId = stepId,
                         kind = place.kind,
                         name = place.name,
                         address = place.address,
-                        // Never a point given by the AI: the place is placed by hand, from its page.
-                        lat = null,
-                        lng = null,
+                        // Never a point given by the AI: the phone looks for it (règle 29), else by hand from its page.
+                        lat = point?.first,
+                        lng = point?.second,
                         arriveTime = place.arriveTime,
                         note = place.note,
                         cost = place.cost,
@@ -145,6 +155,25 @@ class TripEnrichViewModel(
         return if (found == null) step else step.copy(lat = found.lat, lng = found.lng)
     }
 
+    /**
+     * The point of a place of the answer (récit 112, règle 29), found by the phone from its address, or
+     * its name, and the city: kept only within [PLACE_RADIUS_METERS] of its destination, so a place of
+     * the same name elsewhere is never put on the map. None without the point of the destination.
+     */
+    private suspend fun placePosition(place: ProposedPlace, city: String, anchor: Pair<Double, Double>?): Pair<Double, Double>? {
+        val finder = locator ?: return null
+        val near = anchor ?: return null
+        val query = listOf(place.address ?: place.name, city).joinToString(", ")
+        val found = try {
+            withTimeoutOrNull(GEOCODE_MILLIS) { finder.find(query) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        } ?: return null
+        return (found.lat to found.lng).takeIf { nearEnough(it, near) }
+    }
+
     /** True once the write is accepted, or still pending after the timeout (queued offline). */
     private suspend fun write(block: suspend () -> Unit): Boolean = try {
         withTimeoutOrNull(writeTimeoutMillis) { block() }
@@ -157,5 +186,12 @@ class TripEnrichViewModel(
 
     companion object {
         const val GEOCODE_MILLIS = 3_000L
+
+        /** How far from its destination a place found by the phone may be. */
+        const val PLACE_RADIUS_METERS = 50_000
     }
 }
+
+/** True when [point] is within [TripEnrichViewModel.PLACE_RADIUS_METERS] of [destination]. */
+internal fun nearEnough(point: Pair<Double, Double>, destination: Pair<Double, Double>): Boolean =
+    distanceMeters(point.first, point.second, destination.first, destination.second) <= TripEnrichViewModel.PLACE_RADIUS_METERS
