@@ -72,6 +72,9 @@ fun TripDetailRoute(
     onInsertStep: (kind: fr.familia.app.feature.trips.step.StepAddKind, day: java.time.LocalDate) -> Unit = { _, _ -> onAddStep() },
     /** The album of the trip opened on one photo (récit 104). */
     onOpenPhoto: (photoId: String) -> Unit = { onSeePhotos() },
+    /** « Phrases utiles » and « Monnaie » from the page of a destination abroad (fiche F5). */
+    onOpenPhrases: ((country: String) -> Unit)? = null,
+    onOpenMoney: ((String) -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -140,7 +143,69 @@ fun TripDetailRoute(
             onVoice = voiceRepo?.let { { voiceStep = id } },
         ).takeIf { it.onPhoto != null || it.onWord != null || it.onVoice != null }
     }
-    TripDetailScreen(
+    // Fiche F5: a destination touched in « Le trajet » opens its page over the map; a transport its form.
+    var pageStay by rememberSaveable { mutableStateOf<String?>(null) }
+    val timeline = TimelineActions(
+        onOpen = { id ->
+            val isStay = shown?.let { success -> tripTimeline(success.trip, success.steps).destinations.any { it.step.id == id } } == true
+            if (isStay) pageStay = id else onEditStep(id)
+        },
+        onNights = if (shown?.isParticipant == true) viewModel::changeNights else null,
+        onUndo = viewModel::restoreSteps,
+        places = remember(places) { placesByStep(places) },
+        onOpenPlace = onOpenPlace,
+        onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
+        onInsertStep = if (shown?.isParticipant == true) onInsertStep else null,
+        onEnrich = onOpenEnrich?.takeIf { shown?.isParticipant == true && container?.tripPlaceRepository != null },
+        photos = byStep.byStay,
+        onOpenPhoto = onOpenPhoto,
+        withoutStep = byStep.withoutStep.size,
+        onSeePhotos = onSeePhotos,
+        onAddPhoto = addPhoto,
+        voiceNotes = remember(voiceNotes) { voiceNotes.groupBy { it.stepId } },
+        playingVoiceId = voicePlayer.playingId,
+        onPlayVoice = { note ->
+            if (voicePlayer.playingId == note.id) {
+                voicePlayer.stop()
+            } else {
+                scope.launch { voiceRepo?.playUrl(tripId, note)?.let { url -> voicePlayer.play(note, url) } }
+            }
+        },
+        canDeleteVoice = { note -> note.authorId == currentMember.id || shown?.canManage == true },
+        onDeleteVoice = { note ->
+            if (voicePlayer.playingId == note.id) voicePlayer.stop()
+            scope.launch { runCatching { voiceRepo?.delete(tripId, note) } }
+        },
+        placePhotos = container?.placePhotos,
+    )
+    val page = pageStay
+    if (page != null && shown != null) {
+        androidx.activity.compose.BackHandler { pageStay = null }
+        fr.familia.app.feature.trips.map.TripMapBackdrop(
+            token = fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN,
+            trip = shown.trip,
+            steps = shown.steps,
+            focusId = page,
+            startLevel = 1,
+        ) { inSheet ->
+            DestinationPage(
+                container = container,
+                success = shown,
+                stayId = page,
+                actions = timeline,
+                links = DestinationLinks(
+                    onEdit = onEditStep,
+                    onAllAbout = onOpenWord,
+                    onOpenPhrases = onOpenPhrases,
+                    onOpenMoney = onOpenMoney,
+                ),
+                onSelect = { pageStay = it },
+                onBack = { pageStay = null },
+                inSheet = inSheet,
+                quickAdd = quickAdd?.takeIf { stay?.step?.id == page },
+            )
+        }
+    } else TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
         onEditTrip = onEditTrip,
@@ -164,36 +229,7 @@ fun TripDetailRoute(
         onOpenWord = onOpenWord,
         onSeePhotos = onSeePhotos,
         // « Le trajet »: those who go change the nights (règle 16), the others read them.
-        timeline = TimelineActions(
-            onOpen = onEditStep,
-            onNights = if (shown?.isParticipant == true) viewModel::changeNights else null,
-            onUndo = viewModel::restoreSteps,
-            places = remember(places) { placesByStep(places) },
-            onOpenPlace = onOpenPlace,
-            onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
-            onInsertStep = if (shown?.isParticipant == true) onInsertStep else null,
-            onEnrich = onOpenEnrich?.takeIf { shown?.isParticipant == true && container?.tripPlaceRepository != null },
-            photos = byStep.byStay,
-            onOpenPhoto = onOpenPhoto,
-            withoutStep = byStep.withoutStep.size,
-            onSeePhotos = onSeePhotos,
-            onAddPhoto = addPhoto,
-            voiceNotes = remember(voiceNotes) { voiceNotes.groupBy { it.stepId } },
-            playingVoiceId = voicePlayer.playingId,
-            onPlayVoice = { note ->
-                if (voicePlayer.playingId == note.id) {
-                    voicePlayer.stop()
-                } else {
-                    scope.launch { voiceRepo?.playUrl(tripId, note)?.let { url -> voicePlayer.play(note, url) } }
-                }
-            },
-            canDeleteVoice = { note -> note.authorId == currentMember.id || shown?.canManage == true },
-            placePhotos = container?.placePhotos,
-            onDeleteVoice = { note ->
-                if (voicePlayer.playingId == note.id) voicePlayer.stop()
-                scope.launch { runCatching { voiceRepo?.delete(tripId, note) } }
-            },
-        ),
+        timeline = timeline,
         quickAdd = quickAdd,
         cover = { success ->
             TripCoverCarousel(success.trip, success.steps, container?.placePhotos, today = success.today)

@@ -451,7 +451,7 @@ private fun NightsButton(sign: String, description: String, enabled: Boolean, on
  * photos chosen under this destination (récit 104, partie 2), for those who add photos.
  */
 @Composable
-private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit, onAdd: (() -> Unit)?) {
+internal fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit, onAdd: (() -> Unit)?) {
     if (photos.isEmpty() && onAdd == null) return
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -504,7 +504,7 @@ private const val STRIP_PHOTOS = 4
 
 /** « Note vocale de Lou, 0:42 »: listen or stop (56 dp), and remove it for its author or who manages the trip. */
 @Composable
-private fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
+internal fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
     val playing = actions.playingVoiceId == note.id
     var confirm by rememberSaveable(note.id) { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -548,7 +548,7 @@ private fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
  * opening its page (règle 19). They are added by the « + » after the destination (F2 §2).
  */
 @Composable
-private fun DestinationProgramme(places: List<TripPlace>, actions: TimelineActions) {
+internal fun DestinationProgramme(places: List<TripPlace>, actions: TimelineActions) {
     places.forEach { place ->
         val kind = placeKindLabel(place.kind)
         Row(

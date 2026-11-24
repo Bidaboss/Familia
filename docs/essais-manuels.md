@@ -2451,3 +2451,17 @@ Sur un téléphone en Android 10 ou plus :
 9. « Effacer les dates » vide tout ; « Enregistrer » reste gris tant que la fin n'est pas choisie, puis remplit les deux cases du formulaire.
 10. TalkBack sur un jour : « samedi 2 août 2027, début du voyage ».
 11. Carnet de baroudeur : le titre, le rang, le grand chiffre, « PASSEPORT », « CONTINENTS » et les noms des tampons sont dans la police arrondie.
+
+## Voyage : la page d'une destination sur la carte (fiche F5)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage et toucher une destination de « Le trajet » : la carte se zoome sur elle, un panneau bleu clair monte à mi-hauteur ; en haut, le rond de retour, la pilule « Séville » avec les voyageurs dessous, l'aide. Toucher un transport ouvre toujours son formulaire.
+2. Dans la carte blanche : le nom en grand, « 7 nuits », la météo et l'heure sur place (vraies ; rien sans réseau), puis « ARRIVÉE » et « DÉPART » dans deux cases, et une phrase d'aide.
+3. Toucher « Départ » : le calendrier crème « Départ de Séville » ; seuls les jours après l'arrivée et jusqu'au dernier possible se touchent. Choisir 2 jours plus tard et « Enregistrer » : les nuits changent et les étapes suivantes se décalent, comme avec le + de la frise. Trop loin : « au retour » est dit.
+4. Le crayon à droite du nom ouvre le formulaire de la destination.
+5. Hors de France : la carte « Phrases utiles » juste dessous, et la monnaie hors zone euro.
+6. HÉBERGEMENT, RESTAURANTS, SPOTS : les lieux programmés (toucher ouvre leur page) et « + Ajouter » sous chacun. Pour qui suit sans partir : ni « + Ajouter », ni Départ touchable, ni crayon.
+7. Plus bas : les photos de la destination et ses notes vocales, l'anecdote Wikipédia, et « Tout savoir sur Séville » qui ouvre « Le mot de l'étape ».
+8. En bas, la barre blanche des destinations (si plusieurs) : la destination ouverte en bleu foncé avec son numéro jaune ; en toucher une autre change la page et la carte.
+9. Pendant le voyage, sur la destination du jour, le rond appareil photo (ajout rapide) au-dessus de la barre.
+10. Le retour d'Android ferme la page et revient au voyage.

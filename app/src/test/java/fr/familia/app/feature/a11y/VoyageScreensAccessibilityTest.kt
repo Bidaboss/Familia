@@ -51,6 +51,9 @@ class VoyageScreensAccessibilityTest {
     fun `where are you going`() = compose.checkAccessibility(VoyageScreens.screen("where are you going"))
 
     @Test
+    fun `the page of a destination`() = compose.checkAccessibility(VoyageScreens.screen("the page of a destination"))
+
+    @Test
     fun `À emporter`() = compose.checkAccessibility(VoyageScreens.screen("À emporter"))
 
     @Test

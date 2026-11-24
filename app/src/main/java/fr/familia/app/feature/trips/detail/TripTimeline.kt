@@ -72,18 +72,19 @@ sealed interface NightsChange {
 }
 
 /**
- * One night more or less at [stay] (DESIGN-68 A): its end moves by one day, and every step after it
+ * [delta] nights more or less at [stay] (DESIGN-68 A; the departure chosen on the page of a destination,
+ * fiche F5): its end moves by that many days, and every step after it
  * moves the same way, so the rest of the trip keeps its length. Never past the return of the trip,
  * never under one night (to have none, the stay is removed).
  */
 fun changeNights(trip: Trip, steps: List<TripStep>, stay: TripStep, delta: Int): NightsChange {
-    require(delta == 1 || delta == -1)
+    require(delta != 0)
     val destination = tripTimeline(trip, steps).destinations.firstOrNull { it.step.id == stay.id }
         ?: return NightsChange.Blocked(NightsBlock.OneNight)
-    if (delta < 0 && destination.nights <= 1) return NightsChange.Blocked(NightsBlock.OneNight)
+    if (delta < 0 && destination.nights + delta < 1) return NightsChange.Blocked(NightsBlock.OneNight)
     val after = steps.filter { it.id != stay.id && it.departDate >= destination.end }
     val lastDay = (after.map { it.arriveDate ?: it.departDate } + destination.end).max()
-    if (delta > 0 && lastDay.plusDays(1) > trip.endDate) return NightsChange.Blocked(NightsBlock.AtReturn)
+    if (delta > 0 && lastDay.plusDays(delta.toLong()) > trip.endDate) return NightsChange.Blocked(NightsBlock.AtReturn)
     val days = delta.toLong()
     val moved = after.map { it.copy(departDate = it.departDate.plusDays(days), arriveDate = it.arriveDate?.plusDays(days)) }
     val changedStay = stay.copy(arriveDate = destination.end.plusDays(days))
@@ -97,4 +98,15 @@ fun changeNights(trip: Trip, steps: List<TripStep>, stay: TripStep, delta: Int):
 fun mapLabels(placed: List<TripStep>, line: TripTimeline): List<String> {
     val numbers = line.destinations.associate { it.step.id to it.number.toString() }
     return placed.map { step -> if (step.arrival != null) "✓" else numbers[step.id].orEmpty() }
+}
+
+/**
+ * The last day [stay] may end on (fiche F5, « Départ »): the steps after it move with it, and the
+ * last of them stays on or before the return of the trip.
+ */
+fun latestDeparture(trip: Trip, steps: List<TripStep>, stay: TripStep): java.time.LocalDate? {
+    val destination = tripTimeline(trip, steps).destinations.firstOrNull { it.step.id == stay.id } ?: return null
+    val after = steps.filter { it.id != stay.id && it.departDate >= destination.end }
+    val lastDay = (after.map { it.arriveDate ?: it.departDate } + destination.end).max()
+    return destination.end.plusDays(ChronoUnit.DAYS.between(lastDay, trip.endDate).coerceAtLeast(0))
 }

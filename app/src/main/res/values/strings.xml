@@ -1404,6 +1404,25 @@
         <item quantity="many">Dans %d nuits</item>
         <item quantity="other">Dans %d nuits</item>
     </plurals>
+    <plurals name="destination_nights">
+        <item quantity="one">%1$d nuit</item>
+        <item quantity="many">%1$d nuits</item>
+        <item quantity="other">%1$d nuits</item>
+    </plurals>
+    <string name="destination_edit">Modifier %1$s</string>
+    <string name="destination_arrival">Arrivée</string>
+    <string name="destination_departure">Départ</string>
+    <string name="destination_departure_a11y">Départ : %1$s. Toucher pour changer les nuits.</string>
+    <string name="destination_departure_title">Départ de %1$s</string>
+    <string name="destination_arrival_first">Le début suit les dates du voyage : touche-les en haut pour les changer.</string>
+    <string name="destination_arrival_follows">L\'arrivée suit l\'étape d\'avant ; le départ change les nuits et décale la suite.</string>
+    <string name="destination_lodging">Hébergement</string>
+    <string name="destination_restaurants">Restaurants</string>
+    <string name="destination_spots">Spots</string>
+    <string name="destination_add">Ajouter</string>
+    <string name="destination_add_a11y">Ajouter : %1$s</string>
+    <string name="destination_all_about">Tout savoir sur %1$s</string>
+    <string name="destination_bar_a11y">Destination %1$d : %2$s</string>
     <string name="trip_dates_title">Dates du voyage</string>
     <string name="trip_dates_start">Date de début</string>
     <string name="trip_dates_end">Date de fin</string>

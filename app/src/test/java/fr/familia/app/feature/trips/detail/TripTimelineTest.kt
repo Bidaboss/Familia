@@ -55,6 +55,17 @@ class TripTimelineTest {
     }
 
     @Test
+    fun aDepartureChosenOnThePageMovesByMoreThanOneNight() {
+        val withEnd = listOf(bordeaux, palmyre.copy(arriveDate = day(15)))
+        assertEquals(day(14), latestDeparture(trip, withEnd, bordeaux))
+        val two = changeNights(trip, withEnd, bordeaux, 2) as NightsChange.Steps
+        assertEquals(day(14), two.changed.first { it.id == "bordeaux" }.arriveDate)
+        assertEquals(day(17), two.changed.first { it.id == "palmyre" }.arriveDate)
+        assertEquals(NightsChange.Blocked(NightsBlock.AtReturn), changeNights(trip, withEnd, bordeaux, 3))
+        assertEquals(NightsChange.Blocked(NightsBlock.OneNight), changeNights(trip, withEnd, bordeaux, -2))
+    }
+
+    @Test
     fun neverPastTheReturnNorUnderOneNight() {
         assertEquals(NightsChange.Blocked(NightsBlock.AtReturn), changeNights(trip, steps, palmyre, 1))
         val short = step("short", StepType.Lodging, 10, 11)
