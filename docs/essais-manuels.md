@@ -2598,3 +2598,16 @@ Sur un téléphone en Android 10 ou plus :
 4. Feuille au milieu, liste tout en haut : glisser vers le bas au milieu de la liste fait descendre la feuille. Liste défilée : elle défile d'abord, puis la feuille descend au geste suivant.
 5. Feuille au milieu : toucher la carte hors des ronds fait descendre la feuille d'un cran. Toucher un rond ouvre toujours son étape.
 6. Même chose sur « Voyages » (globe) et sur la page d'une destination.
+
+## Voyage : départ et arrivée d'un trajet en deux champs, retour E-64
+
+**Publier Firebase : non.**
+1. Dans un voyage, « + » puis « Transport » : sous « Où ? », deux champs l'un sous l'autre, « Départ de » (exemple gris « Paris ») puis « Arrivée à » (exemple « Bordeaux »), et l'aide « Les deux villes du trajet. ».
+2. Les champs vides ont un bord crème, pas rouge. Toucher un champ : bord bleu foncé. Le rouge n'apparaît qu'après « Ajouter » avec les deux champs vides (« Indique le lieu. »).
+3. Taper « lyon » puis « camilles », ajouter : l'étape s'appelle « Lyon → Camilles » dans le trajet. La rouvrir : « Lyon » et « Camilles » reviennent chacun dans son champ.
+4. Une ville seule suffit : « Départ de » rempli et « Arrivée à » vide, l'étape s'enregistre avec ce seul nom.
+5. Une ancienne étape avec un seul lieu : il s'affiche dans « Départ de ».
+6. Les quatre tuiles Vol, Train, Bus, Voiture tiennent sur une seule ligne, bord crème, la tuile choisie avec un bord foncé épais. En très grand texte : deux par ligne.
+7. « + » puis « Destination » : un seul champ « Lieu » (exemple « Nom du lieu »).
+8. Toucher un champ pour que le clavier monte : la feuille prend tout l'écran avec UNE seule en-tête (rond retour, titre, « ? »), sans poignée à flèche au-dessus. Retour : la feuille redescend, puis un second retour quitte.
+9. Avec un voyage au nom long, le bandeau « Dans le voyage · … » s'affiche en entier, sur deux lignes si besoin.

@@ -2182,7 +2182,12 @@
     <string name="trip_map_empty_body">Les étapes dont le lieu est trouvé apparaissent ici, reliées dans l\'ordre.</string>
     <string name="trip_step_tile_type">Quel type d\'étape ?</string>
     <string name="trip_step_tile_where">Où ?</string>
-    <string name="trip_step_place_hint">D\'où à où : « Paris → Bordeaux »</string>
+    <string name="trip_step_place_hint">Les deux villes du trajet.</string>
+    <string name="trip_step_route_from">Départ de</string>
+    <string name="trip_step_route_to">Arrivée à</string>
+    <string name="trip_step_route_from_example">Paris</string>
+    <string name="trip_step_route_to_example">Bordeaux</string>
+    <string name="trip_step_place_example">Nom du lieu</string>
     <string name="trip_step_place_hint_lodging">Une ville, une région ou un pays : « La Samoure », « Toscane »</string>
     <string name="trip_step_tile_when">Quand ?</string>
     <string name="trip_step_day">Jour</string>

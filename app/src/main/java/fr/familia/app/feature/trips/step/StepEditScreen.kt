@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,7 +55,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
@@ -180,24 +180,45 @@ private fun FormContent(
                 icon = ::stepTypeIcon,
                 selectedColor = TripFormColors.IconBackground,
                 selectedContentColor = TripPathColors.Ink,
+                // E-64 (b): the four ways on one line (two by two in big text), cream edges, the chosen one dark.
+                columns = if (LocalDensity.current.fontScale >= 1.3f) 2 else state.typeOptions.size.coerceAtMost(4),
+                edgeColor = FieldCream,
+                selectedEdge = 3.dp,
             )
         }
 
         TripTile(Icons.Outlined.Place, stringResource(R.string.trip_step_tile_where), Modifier.part(StepPart.Where)) {
-            val label = stringResource(R.string.trip_step_field_place)
-            FormLabel(label)
-            OutlinedTextField(
-                value = form.place,
-                onValueChange = { value -> onChange { it.copy(place = value) } },
-                isError = StepFormError.PlaceMissing in errors || StepFormError.PlaceTooLong in errors,
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
-            )
             val placeError = errorMessage(errors, StepFormError.PlaceMissing, StepFormError.PlaceTooLong)
-            val hint = if (form.type == StepType.Lodging) R.string.trip_step_place_hint_lodging else R.string.trip_step_place_hint
-            FormHint(placeError ?: stringResource(hint), isError = placeError != null)
+            if (form.type in TRANSPORT_TYPES) {
+                // E-64: two fields, « Départ de » then « Arrivée à », kept as « Paris → Bordeaux ».
+                val (from, to) = routeParts(form.place)
+                PlaceField(
+                    label = stringResource(R.string.trip_step_route_from),
+                    example = stringResource(R.string.trip_step_route_from_example),
+                    value = from,
+                    onValue = { value -> onChange { it.copy(place = routeOf(value, routeParts(it.place).second)) } },
+                    isError = placeError != null,
+                )
+                PlaceField(
+                    label = stringResource(R.string.trip_step_route_to),
+                    example = stringResource(R.string.trip_step_route_to_example),
+                    value = to,
+                    onValue = { value -> onChange { it.copy(place = routeOf(routeParts(it.place).first, value)) } },
+                    isError = StepFormError.PlaceTooLong in errors,
+                )
+                FormHint(placeError ?: stringResource(R.string.trip_step_place_hint), isError = placeError != null)
+            } else {
+                PlaceField(
+                    label = stringResource(R.string.trip_step_field_place),
+                    example = stringResource(R.string.trip_step_place_example),
+                    value = form.place,
+                    onValue = { value -> onChange { it.copy(place = value) } },
+                    isError = placeError != null,
+                )
+                if (form.type == StepType.Lodging || placeError != null) {
+                    FormHint(placeError ?: stringResource(R.string.trip_step_place_hint_lodging), isError = placeError != null)
+                }
+            }
         }
 
         TripTile(Icons.Outlined.Schedule, stringResource(R.string.trip_step_tile_when), Modifier.part(StepPart.When)) {
@@ -229,6 +250,7 @@ private fun FormContent(
                 value = form.note,
                 onValueChange = { value -> onChange { it.copy(note = value) } },
                 isError = StepFormError.NoteTooLong in errors,
+                colors = tripFieldColors(),
                 // Several lines, said by the hint, but never a field taller than 6 lines: it scrolls (règle 26).
                 minLines = 3,
                 maxLines = 6,
@@ -250,6 +272,40 @@ private fun FormContent(
     }
 }
 
+/** The cream edge of a field at rest, and its dark blue edge while typed (E-64 a): red only after a refused save. */
+private val FieldCream = Color(0xFFE6D9C6)
+private val FieldFocus = Color(0xFF1F3B4D)
+
+@Composable
+private fun tripFieldColors() = OutlinedTextFieldDefaults.colors(
+    unfocusedBorderColor = FieldCream,
+    focusedBorderColor = FieldFocus,
+    cursorColor = FieldFocus,
+    focusedLabelColor = FieldFocus,
+    unfocusedContainerColor = Color.White,
+    focusedContainerColor = Color.White,
+    errorContainerColor = Color.White,
+    focusedTextColor = TripPathColors.Ink,
+    unfocusedTextColor = TripPathColors.Ink,
+)
+
+/** A place field of 56 dp, its label above and a grey example inside. */
+@Composable
+private fun PlaceField(label: String, example: String, value: String, onValue: (String) -> Unit, isError: Boolean) {
+    FormLabel(label)
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValue,
+        isError = isError,
+        singleLine = true,
+        placeholder = { Text(example) },
+        shape = RoundedCornerShape(16.dp),
+        colors = tripFieldColors(),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).semantics { contentDescription = label },
+    )
+}
+
 /** « Dans le voyage · La Samoure · 11 → 16 avril », a small white card, not a button. */
 @Composable
 private fun TripReminder(trip: Trip) {
@@ -261,8 +317,7 @@ private fun TripReminder(trip: Trip) {
         style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
         fontWeight = FontWeight.Bold,
         color = Color(0xFF5B6770),
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
+        // E-64 (d): the whole line, never cut, however long the name of the trip.
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 40.dp)
@@ -365,7 +420,7 @@ private fun errorMessage(errors: Set<StepFormError>, vararg kinds: StepFormError
 internal fun previewStepEditState(isNew: Boolean = false, errors: Set<StepFormError> = emptySet()): StepEditUiState.Editing = StepEditUiState.Editing(
     form = StepForm(
         type = StepType.Flight,
-        place = if (errors.isEmpty()) "Ajaccio" else "",
+        place = if (errors.isEmpty()) "Lyon → Ajaccio" else "",
         departDate = LocalDate.of(2027, 8, 2),
         departTime = LocalTime.of(8, 15),
         arriveDate = LocalDate.of(2027, 8, 2),

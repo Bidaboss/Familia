@@ -169,7 +169,10 @@ fun TripMapBackdrop(
                 .background(TripPathColors.Sky)
                 .then(if (sheeted) Modifier.sheetDrag(level) { level = it.coerceIn(0, 2) } else Modifier),
         ) {
-            if (sheeted) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
+            // E-64 (c): at the whole screen, a screen with its own title shows only its bar (one header);
+            // Retour lowers the sheet first, as before.
+            val ownBar = level == 2 && header.content != null
+            if (sheeted && !ownBar) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
             // Low or high, the sheet is far from the status bar: the bars of the screens inside do not leave room for it.
             Column(
                 Modifier.weight(1f).fillMaxWidth().then(if (sheeted && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
