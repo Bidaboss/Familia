@@ -44,6 +44,14 @@ interface TripRepository {
      */
     suspend fun saveStep(tripId: String, step: TripStep, isNew: Boolean, remindAt: Instant?)
 
+    /**
+     * Existing steps whose dates moved together (« Le trajet », one night more or less, règle 16),
+     * each with its new reminder. Written at once where the store allows it.
+     */
+    suspend fun moveSteps(tripId: String, moved: List<TripStep>, remindAts: Map<String, Instant?>) {
+        moved.forEach { saveStep(tripId, it, isNew = false, remindAt = remindAts[it.id]) }
+    }
+
     suspend fun deleteStep(tripId: String, stepId: String)
 
     /** « Bien arrivé » by [me], for everyone of the trip. The reminder is cancelled. */

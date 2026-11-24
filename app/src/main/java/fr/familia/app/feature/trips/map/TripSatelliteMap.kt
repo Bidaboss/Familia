@@ -104,6 +104,8 @@ fun TripSatelliteMap(
     modifier: Modifier = Modifier,
     /** The arrival of règle 4: out to Europe, then back in on the place; false for who asked for no animation. */
     intro: Boolean = true,
+    /** The text of each round (« Le trajet » numbers the destinations); null: the departure without number, then 1 to n. */
+    labels: List<String>? = null,
 ) {
     val context = LocalContext.current
     var drawn by remember { mutableStateOf(false) }
@@ -150,7 +152,7 @@ fun TripSatelliteMap(
                         runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
                         map.mapboxMap.setCamera(frame(map, points, bottomPaddingDp * density, tilted))
                         listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true }
-                        loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed)
+                        loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels)
                         applied[0] = look; applied[1] = tilted; applied[2] = sheetHigh; applied[3] = selected
                         map.gestures.addOnMapClickListener(
                             OnMapClickListener { point ->
@@ -183,7 +185,7 @@ fun TripSatelliteMap(
                 val padding = bottomPaddingDp * density
                 if (applied[0] != look) {
                     applied[0] = look
-                    loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed)
+                    loadLook(map, look, points, names, arrived, nextIndex, selected, onFailed, labels)
                 }
                 if (applied[1] != tilted || applied[2] != sheetHigh || applied[3] != selected) {
                     val target = when {
@@ -238,20 +240,20 @@ private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilte
 }
 
 /** Loads the look of the map, then draws the steps on it (again after a change of look: the style forgets them). */
-private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: () -> Unit) {
+private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: () -> Unit, labels: List<String>?) {
     val satellite = look == MapLook.Satellite
     view.mapboxMap.loadStyle(if (satellite) Style.STANDARD_SATELLITE else Style.STANDARD) { style ->
         runCatching {
             if (satellite) configureSatelliteGlobe(style)
-            drawSteps(style, points, names, arrived, next, selected, trail = if (satellite) "#FFFFFF" else "#333333")
+            drawSteps(style, points, names, arrived, next, selected, trail = if (satellite) "#FFFFFF" else "#333333", labels = labels)
         }.onFailure { onFailed() }
     }
 }
 
-private fun feature(points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, i: Int) =
+private fun feature(points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, i: Int, labels: List<String>? = null) =
     Feature.fromGeometry(points[i].toPoint()).also {
         it.addNumberProperty("i", i)
-        it.addStringProperty("n", stepNumberLabel(i, arrived.getOrElse(i) { false }))
+        it.addStringProperty("n", labels?.getOrNull(i) ?: stepNumberLabel(i, arrived.getOrElse(i) { false }))
         it.addStringProperty("name", names.getOrElse(i) { "" })
         it.addNumberProperty("done", if (arrived.getOrElse(i) { false }) 1 else 0)
     }
@@ -261,7 +263,7 @@ private fun showSelected(style: Style, points: List<GeoPoint>, names: List<Strin
     style.getSourceAs<GeoJsonSource>("home-selected")?.featureCollection(FeatureCollection.fromFeatures(features))
 }
 
-private fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, nextIndex: Int, selected: Int?, trail: String) {
+private fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, nextIndex: Int, selected: Int?, trail: String, labels: List<String>?) {
     if (points.size >= 2) {
         style.addSource(geoJsonSource("home-trail") { geometry(LineString.fromLngLats(points.map { it.toPoint() })) })
         style.addLayer(lineLayer("home-trail-line", "home-trail") { lineColor(trail); lineWidth(3.0); lineDasharray(listOf(2.0, 2.0)) })
@@ -270,13 +272,13 @@ private fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>,
     // The close steps gather in one round with their number, and come apart when the map is zoomed (règle 7, PRODUIT 23/11).
     style.addSource(
         geoJsonSource("home-steps") {
-            featureCollection(FeatureCollection.fromFeatures(others.map { feature(points, names, arrived, it) }))
+            featureCollection(FeatureCollection.fromFeatures(others.map { feature(points, names, arrived, it, labels) }))
             cluster(true)
             clusterRadius(28L)
             clusterMaxZoom(11L)
         },
     )
-    style.addSource(geoJsonSource("home-next") { featureCollection(FeatureCollection.fromFeatures(points.indices.filter { it == nextIndex }.map { feature(points, names, arrived, it) })) })
+    style.addSource(geoJsonSource("home-next") { featureCollection(FeatureCollection.fromFeatures(points.indices.filter { it == nextIndex }.map { feature(points, names, arrived, it, labels) })) })
     style.addSource(geoJsonSource("home-selected") { featureCollection(FeatureCollection.fromFeatures(emptyList())) })
     val single = Expression.not(Expression.has("point_count"))
     val notDone = Expression.eq(Expression.get("done"), Expression.literal(0.0))

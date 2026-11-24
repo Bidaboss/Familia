@@ -124,6 +124,34 @@ class TripDetailViewModel(
         write { repo.clearArrival(tripId, stepId) }
     }
 
+    /**
+     * « Le trajet » (règle 16): one night more ([delta] = 1) or less (-1) at the stay [stayId], the
+     * steps after it moving along. Gives the steps as they were, for « Annuler », or why it cannot.
+     */
+    fun changeNights(stayId: String, delta: Int): NightsChange {
+        val shown = uiState.value as? TripDetailUiState.Success ?: return NightsChange.Blocked(NightsBlock.OneNight)
+        val stay = shown.steps.firstOrNull { it.id == stayId } ?: return NightsChange.Blocked(NightsBlock.OneNight)
+        val change = changeNights(shown.trip, shown.steps, stay, delta)
+        if (change is NightsChange.Steps) {
+            val before = change.changed.mapNotNull { moved -> shown.steps.firstOrNull { it.id == moved.id } }
+            moveSteps(change.changed)
+            return NightsChange.Steps(before)
+        }
+        return change
+    }
+
+    /** « Annuler » after a change of nights: the steps go back to [steps]. */
+    fun restoreSteps(steps: List<TripStep>) = moveSteps(steps)
+
+    private fun moveSteps(steps: List<TripStep>) {
+        val repo = trips ?: return
+        val now = java.time.Instant.now()
+        val zone = java.time.ZoneId.systemDefault()
+        // The reminders of the moved transports move with them (règle 46).
+        val reminders = steps.associate { it.id to fr.familia.app.feature.trips.reminderTime(it, zone, now) }
+        write { repo.moveSteps(tripId, steps, reminders) }
+    }
+
     /** Adds a line to the checklist, maybe in the charge of a participant. Blank labels are ignored. */
     fun addItem(label: String, assigneeId: String?) {
         val repo = trips ?: return

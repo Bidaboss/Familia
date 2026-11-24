@@ -3,6 +3,7 @@ package fr.familia.app.feature.trips.list
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import fr.familia.app.feature.trips.map.GeoPoint
 import org.junit.Test
 
 class TripsGlobeTest {
@@ -16,5 +17,26 @@ class TripsGlobeTest {
         assertFalse(globeTurns(started = true, stoppedByMember = true, powerSave = false, animationsOff = false))
         assertFalse(globeTurns(started = true, stoppedByMember = false, powerSave = true, animationsOff = false))
         assertFalse(globeTurns(started = true, stoppedByMember = false, powerSave = false, animationsOff = true))
+    }
+
+    @Test fun tripsAtTheSamePlaceShareOneDot() {
+        val palmyre = GeoPoint(45.6886, -1.1874)
+        val spots = globeSpots(
+            listOf(
+                GlobeMarker(palmyre, highlighted = true, tripId = "a"),
+                GlobeMarker(GeoPoint(43.7696, 11.2558), highlighted = false, tripId = "b"),
+                GlobeMarker(GeoPoint(45.6889, -1.1871), highlighted = false, tripId = "c"),
+            ),
+        )
+        assertEquals(2, spots.size)
+        assertEquals(listOf("a", "c"), spots[0].tripIds)
+        assertTrue(spots[0].highlighted)
+        assertEquals(listOf("b"), spots[1].tripIds)
+        assertFalse(spots[1].highlighted)
+    }
+
+    @Test fun aTouchOpensTheFirstTripOfTheDot() {
+        assertEquals("a", spotTrip(GlobeSpot(GeoPoint(0.0, 0.0), true, listOf("a", "c"))))
+        assertEquals(null, spotTrip(null))
     }
 }

@@ -24,11 +24,15 @@ import fr.familia.app.core.photo.StoragePhotoUploader
 import fr.familia.app.core.place.AndroidPlaceLocator
 import fr.familia.app.core.place.NearbyPlaces
 import fr.familia.app.core.place.OverpassNearbyPlaces
+import fr.familia.app.core.place.OverpassPlaceSearch
+import fr.familia.app.core.place.PlaceSearch
 import fr.familia.app.core.place.PlaceArticles
 import fr.familia.app.core.place.WIKIPEDIA_HOST
 import fr.familia.app.core.place.WikimediaPlaceArticles
 import fr.familia.app.core.place.OpenMeteoWeather
 import fr.familia.app.core.place.PlaceWeather
+import fr.familia.app.core.place.PlacePhotos
+import fr.familia.app.core.place.WikimediaPlacePhotos
 import fr.familia.app.core.usage.UsageTracker
 import fr.familia.app.core.video.Media3PhotoFilmMaker
 import fr.familia.app.core.video.PhotoFilmMaker
@@ -69,6 +73,9 @@ interface AppContainer {
     /** « Le mot de l'étape » (récit 88). */
     val tripWordRepository: TripWordRepository? get() = null
 
+    /** The accommodations, restaurants and spots of the destinations (récit 103). */
+    val tripPlaceRepository: TripPlaceRepository? get() = null
+
     /** « À savoir sur… » (récit 96): a short article about the place of a step. */
     val placeArticles: PlaceArticles? get() = null
 
@@ -78,8 +85,14 @@ interface AppContainer {
     /** The weather and the local time of a destination (récit 105, règle 45). */
     val placeWeather: PlaceWeather? get() = null
 
+    /** The photo of the place of a trip (règle 12, PRODUIT-153), from Wikimedia Commons. */
+    val placePhotos: PlacePhotos? get() = null
+
     /** « Autour de l'étape » (récit 96): restaurants and sites around the place of a step. */
     val nearbyPlaces: NearbyPlaces? get() = null
+
+    /** The search of a place of a trip by kind (récit 103, règle 20); null in tests and previews. */
+    val placeSearch: PlaceSearch? get() = null
 
     /** « Monnaie » (récit 105): the exchange rates from the euro, with their date. */
     val exchangeRates: ExchangeRates? get() = null
@@ -200,6 +213,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it, sendJournal) } }
     override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
     override val tripWordRepository: TripWordRepository? by lazy { firestore?.let { FirestoreTripWordRepository(it) } }
+    override val tripPlaceRepository: TripPlaceRepository? by lazy { firestore?.let { FirestoreTripPlaceRepository(it) } }
 
     /** The accounts of a trip (récit 16 bis). */
     override val expenseRepository: ExpenseRepository? by lazy { firestore?.let { FirestoreExpenseRepository(it) } }
@@ -318,7 +332,9 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val placeArticles: PlaceArticles? by lazy { WikimediaPlaceArticles() }
     override val placeAnecdotes: PlaceArticles? by lazy { WikimediaPlaceArticles(WIKIPEDIA_HOST) }
     override val placeWeather: PlaceWeather? by lazy { OpenMeteoWeather() }
+    override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
+    override val placeSearch: PlaceSearch? by lazy { OverpassPlaceSearch() }
     override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }
 
     override val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }

@@ -17,6 +17,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.TripPlaceKind
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 import fr.familia.app.feature.trips.packing.packingCount
 import fr.familia.app.feature.trips.packing.rememberPackingViewModel
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
@@ -53,6 +56,10 @@ fun TripDetailRoute(
     onOpenMoney: (() -> Unit)? = null,
     /** « Documents » (récit 105, règle 41): for those who go, never the followers. */
     onOpenDocuments: (() -> Unit)? = null,
+    /** The page of a place programmed under a destination (récit 103, règle 19). */
+    onOpenPlace: (placeId: String) -> Unit = {},
+    /** A new accommodation, restaurant or spot under the destination [stepId] (règle 20). */
+    onAddPlace: (stepId: String, kind: TripPlaceKind) -> Unit = { _, _ -> },
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -74,6 +81,12 @@ fun TripDetailRoute(
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? TripDetailUiState.Success
     val abroad = rememberAbroadCountries(container, shown?.steps.orEmpty())
+    // The places programmed under the destinations (règle 18); none when they cannot be read.
+    val places by remember(container, tripId) {
+        container?.tripPlaceRepository?.observePlaces(tripId)
+            ?.catch { e -> if (e is kotlinx.coroutines.CancellationException) throw e else emit(emptyList()) }
+            ?: flowOf(emptyList())
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
     TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -99,6 +112,18 @@ fun TripDetailRoute(
         onOpenMap = onOpenMap,
         onOpenWord = onOpenWord,
         onSeePhotos = onSeePhotos,
+        // « Le trajet »: those who go change the nights (règle 16), the others read them.
+        timeline = TimelineActions(
+            onOpen = onEditStep,
+            onNights = if (shown?.isParticipant == true) viewModel::changeNights else null,
+            onUndo = viewModel::restoreSteps,
+            places = remember(places) { placesByStep(places) },
+            onOpenPlace = onOpenPlace,
+            onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
+        ),
+        cover = { success ->
+            TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
+        },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
 }

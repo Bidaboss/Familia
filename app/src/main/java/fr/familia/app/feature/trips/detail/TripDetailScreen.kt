@@ -152,6 +152,10 @@ fun TripDetailScreen(
     onOpenDocuments: (() -> Unit)? = null,
     /** Public Mapbox token of this APK: with it the home is the satellite map and a sheet (récit 100); blank: the drawn path. */
     satelliteToken: String = "",
+    /** The home of a planned trip (règle 10): the image of the place, or several going by. */
+    cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
+    /** « Le trajet » (règle 16): open a step, − / + on the nights; null: open only. */
+    timeline: TimelineActions? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -213,7 +217,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney, onOpenDocuments)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney, cover, timeline, onOpenDocuments)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -339,11 +343,13 @@ private fun PathContent(
     onOpenPhrases: (() -> Unit)? = null,
     onOpenSafety: (() -> Unit)? = null,
     onOpenMoney: (() -> Unit)? = null,
+    cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
+    timeline: TimelineActions? = null,
     onOpenDocuments: (() -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
-    var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
-    val chosen = chosenEpoch?.let(LocalDate::ofEpochDay)?.takeIf { it in days } ?: TripDays.firstShown(days, state.today)
+    // The day of the card: today during the trip, else its first day (no strip of days any more: « Le trajet » shows them all).
+    val chosen = TripDays.firstShown(days, state.today)
     val number = days.indexOf(chosen) + 1
     val daySteps = TripDays.stepsOf(state.steps, chosen, days)
     val places = daySteps.map { it.place }.distinct()
@@ -353,7 +359,11 @@ private fun PathContent(
         else -> places.firstOrNull()
     }
     val listState = rememberLazyListState()
-    val notebookIndex = if (state.sendFailed) 4 else 3
+    val withCover = cover != null && state.today.isBefore(state.trip.startDate)
+    // « Bien arrivé » stays at hand: the next step not arrived yet, for those who go.
+    val nextStep = remember(state.steps) { state.steps.filter { it.arrival == null }.minWithOrNull(compareBy({ it.departDate }, { it.departTime })) }
+    val showNext = nextStep != null && state.isParticipant
+    val notebookIndex = (if (withCover) 1 else 0) + 1 + (if (state.sendFailed) 1 else 0) + (if (showNext) 2 else 0)
     // Opened from « Étapes » or « À prévoir » of the list: that part first, once.
     var opened by rememberSaveable(state.trip.id) { mutableStateOf(false) }
     LaunchedEffect(openAt) {
@@ -392,6 +402,7 @@ private fun PathContent(
             points = placed.map { GeoPoint(it.lat!!, it.lng!!) },
             names = placed.map { it.place },
             arrived = placed.map { it.arrival != null },
+            labels = remember(state.steps) { mapLabels(placed, tripTimeline(state.trip, state.steps)) },
             nextIndex = next,
             selected = selected,
             onSelect = { selected = it },
@@ -415,14 +426,8 @@ private fun PathContent(
         // Room at the bottom so the add button never hides the last line.
         contentPadding = PaddingValues(bottom = 96.dp),
     ) {
-        item(key = "strip") {
-            TripDayStrip(
-                days = days,
-                chosen = chosen,
-                today = state.today,
-                onChoose = { chosenEpoch = it.toEpochDay() },
-                modifier = Modifier.background(state.trip.landscape.palette.sky).padding(bottom = 8.dp),
-            )
+        if (withCover && cover != null) {
+            item(key = "cover") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { cover(state) } }
         }
         if (!satellite) item(key = "path") { TripPathIllustration(days, chosen, state.today, label, landscape = state.trip.landscape) }
         item(key = "day") {
@@ -455,35 +460,27 @@ private fun PathContent(
                 )
             }
         }
-        item(key = "notebook-title") {
-            TripSectionTitle(stringResource(R.string.trip_notebook_day, number), Modifier.padding(horizontal = ClaySpacing.screen))
-        }
-        if (daySteps.isEmpty()) {
-            item(key = "no-steps") {
-                val empty = when {
-                    state.steps.isNotEmpty() -> R.string.trip_day_no_steps
-                    state.isParticipant -> R.string.trip_no_steps_participant
-                    else -> R.string.trip_no_steps
-                }
-                Text(
-                    stringResource(empty),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        if (showNext && nextStep != null) {
+            item(key = "next-title") {
+                TripSectionTitle(stringResource(R.string.timeline_next), Modifier.padding(horizontal = ClaySpacing.screen))
+            }
+            item(key = "next-${nextStep.id}") {
+                StepCard(
+                    step = nextStep,
+                    today = state.today,
+                    isParticipant = state.isParticipant,
+                    onEdit = { onEditStep(nextStep.id) },
+                    onArrived = { onArrived(nextStep.id) },
+                    onClearArrival = { onClearArrival(nextStep.id) },
+                    onOpenWord = onOpenWord?.let { open -> { open(nextStep.id) } },
+                    modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = ClaySpacing.between / 2),
                 )
             }
         }
-        items(daySteps, key = { "step-${it.id}" }) { step ->
-            StepCard(
-                step = step,
-                today = state.today,
-                isParticipant = state.isParticipant,
-                onEdit = { onEditStep(step.id) },
-                onArrived = { onArrived(step.id) },
-                onClearArrival = { onClearArrival(step.id) },
-                onOpenWord = onOpenWord?.let { open -> { open(step.id) } },
-                modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = ClaySpacing.between / 2),
-            )
+        item(key = "timeline") {
+            Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
+                TripTimelineSection(state.trip, state.steps, timeline ?: TimelineActions(onOpen = onEditStep))
+            }
         }
         tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
             item(key = "figures") { TripFiguresTile(figures, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }

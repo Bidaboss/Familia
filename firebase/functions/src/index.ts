@@ -68,6 +68,7 @@ import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './
 import { dropBags, leftTheTrip, sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
+import { deleteStepPlaces } from './tripPlaces';
 
 initializeApp();
 
@@ -918,3 +919,8 @@ export const calendarFeed = onRequest({ cors: false }, async (req, res) => {
   }
 });
 
+
+// The accommodations, restaurants and spots of a destination (récit 103) go with it.
+export const onStepDeletedPlaces = onDocumentDeleted('trips/{tripId}/steps/{stepId}', async (event) => {
+  await deleteStepPlaces(getFirestore(), event.params.tripId, event.params.stepId);
+});

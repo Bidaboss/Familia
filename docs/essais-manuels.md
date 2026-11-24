@@ -1930,3 +1930,60 @@ Rien à publier côté Firebase. « APK de publication ».
 4. Toucher un repère : la carte zoome sur l'étape et écrit son nom. Retour : la carte revient sur tout le voyage.
 5. Feuille : glisser vers le haut deux fois, elle prend tout l'écran avec une flèche en haut à gauche ; la flèche ou un glissé vers le bas la redescend. Retour la redescend aussi.
 6. Plus de bouton « Carnet » ni de tuile « Jour par jour » ; le titre de la liste du jour devient « Programme, jour N ».
+## Voyage : vraies photos du lieu, plus de choix du paysage (récit 102, partie 1 : règles 10, 12, 13, 14)
+
+Rien à publier côté Firebase. « APK de publication » (le réseau est nécessaire pour les photos).
+1. Nouveau voyage : choisir « La Rochelle » puis Continuer. En haut du formulaire, une vraie photo de La Rochelle, avec « Photo : auteur, licence, Wikimedia Commons » dans le coin. Plus de tuile « Le paysage ».
+2. Un lieu sans photo sur Wikipédia : la vue satellite du lieu ; sans réseau : le paysage dessiné, jamais un trou.
+3. Sous les dates : « 5 nuitées » (ou « Aller-retour dans la journée »). Sous le nom : « Il deviendra le nom du voyage… Tu pourras le changer plus tard. »
+4. Modifier un voyage existant : la photo du lieu de sa première étape.
+5. Ouvrir un voyage pas encore commencé : en haut de la feuille, les images des lieux défilent toutes les 4 s (jusqu'à 5), avec « Voyage programmé », le nom, le mois, les jours et les kilomètres ; le bouton pause les arrête. Animations du téléphone coupées : pas de défilement.
+## Voyage : « Le trajet », les destinations et leurs nuits − / + (récit 102, partie 2 : règles 7, 15, 16, 18, 23)
+
+Rien à publier côté Firebase (les règles des étapes ne changent pas). « APK de publication ».
+1. Ouvrir un voyage avec deux étapes « Destination » (l'ancien type « Hébergement ») : la feuille montre « Le trajet », de « Le voyage commence » à « Le voyage se termine », avec « 7/7 nuits planifiées ». Les destinations sont numérotées 1, 2… avec leurs dates et « N nuitées », et les transports se placent entre elles avec « ≈ N km à vol d'oiseau ».
+2. Sur la carte, les ronds portent les mêmes numéros que les destinations du trajet. Un transport n'a pas de numéro, une étape arrivée a une coche.
+3. « + » sur la première destination : elle gagne une nuit et la suivante se décale d'un jour. « Annuler » s'affiche 5 s et remet tout comme avant. Contre la date de retour, « + » est grisé avec une phrase. « − » s'arrête à une nuit.
+4. Pour qui suit le voyage sans partir : pas de − ni de +, seulement les nuits.
+5. Plus de bande des jours ni de « Programme, jour N » : « Prochaine étape » garde « Bien arrivé » à portée de main.
+
+
+## Voyage : page d'un hébergement, d'un restaurant ou d'un spot (récit 103, partie « lieux » 1 : règles 19, 21, 24, 26)
+
+« Publier Firebase » (nouvelles règles et une fonction), puis « APK de publication ». La page s'ouvre depuis le panneau d'une destination quand le fil voyage l'aura branché ; avant, rien ne change à l'écran.
+1. Panneau d'une destination, « Ajouter » sous Restaurants : la page « Ton restaurant » avec Nom, Heure d'arrivée au restaurant, Notes (plusieurs lignes, compteur sur 600), Coût dans la monnaie du voyage, « Voir sur Tripadvisor ». Le bouton du bas dit « Ajouter au voyage ».
+2. Enregistrer sans nom : « Écris le nom du lieu. ». Coût « beaucoup » : « Écris un montant, par exemple 80 ou 12,50. ».
+3. Rouvrir le restaurant depuis le panneau : « Modifier ton restaurant », l'heure et la note sont là ; changer l'heure puis Retour : « Quitter sans enregistrer ? ».
+4. En bas de la page : « Supprimer ce restaurant », avec confirmation. Il disparaît du panneau.
+5. Un membre qui suit le voyage sans partir : la page se lit, sans champ ni bouton.
+6. Supprimer la destination : ses hébergements, restaurants et spots disparaissent aussi.
+
+## Voyage : recherches dédiées à chaque type de lieu (récit 103, partie « lieux » 2 : règle 20)
+
+Seulement « APK de publication » (ni règle ni serveur changés). Il faut une destination placée sur la carte, dans un voyage où l'on part.
+1. Panneau d'une destination, « + Restaurant » : « Trouver un restaurant » s'ouvre, avec les restaurants nommés à moins de 10 km, les plus proches d'abord (type, distance, adresse quand OpenStreetMap la connaît). Même chose pour « + Hébergement » (hôtels, gîtes, campings…) et « + Spot » (musées, plages, points de vue…).
+2. Taper « pizza » : la liste se met à jour un court instant après la dernière lettre. La ligne « Ajouter « pizza » » est en haut.
+3. Toucher un restaurant de la liste : la page « Ton restaurant » s'ouvre avec son nom et son adresse ; ajouter une heure et enregistrer : il apparaît dans le panneau de la destination.
+4. Toucher « Ajouter « Chez Paulo » » : la page s'ouvre avec ce nom, sans adresse.
+5. Rouvrir un restaurant enregistré : « Choisir un autre restaurant » rouvre la recherche ; en choisir un autre : le nom et l'adresse changent, l'heure, les notes et le coût restent. Retour depuis la recherche : on revient sur la page, sans rien changer.
+6. Retour depuis la recherche avant d'avoir choisi : on revient au voyage.
+7. Mode avion : « OpenStreetMap ne répond pas… » avec « Réessayer » ; « Ajouter « … » » marche toujours.
+8. Une destination sans point sur la carte : seul « Ajouter « … » » est proposé, avec une phrase qui l'explique.
+
+## Voyages : le globe de la liste, ses points et la photo du prochain voyage (récit 102, partie 3 : règles 1, 2, 3, 10, 12)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Liste Voyages, onglet « À venir » : un point par voyage qui a un lieu, le prochain en noir, les suivants en jaune.
+2. Deux voyages au même endroit : un seul point avec « 2 » dedans.
+3. Appuyer sur un point : le globe s'arrête, vole vers le lieu en 2 s, puis le voyage s'ouvre. Un deuxième appui pendant le vol l'ouvre tout de suite. Avec deux voyages au même point, c'est le premier de la liste qui s'ouvre.
+4. Passer sur « Souvenirs » puis revenir : les points changent avec l'onglet (blancs à contour orange pour les souvenirs), sans recharger le globe.
+5. La carte « Prochain voyage » montre la photo du lieu avec son crédit ; sans photo, la vue satellite ; sans réseau, le paysage dessiné.
+
+## Voyage : le programme sous chaque destination du trajet (récit 103, panneaux 1 : règles 18, 19, 20)
+
+Rien à publier côté Firebase (les lieux et leurs règles sont arrivés avec #524). « APK de publication ».
+1. Ouvrir un voyage dont on fait partie, section « Le trajet » : sous chaque destination, trois boutons « + Hébergement », « + Restaurant » et « + Spot ».
+2. « + Restaurant » ouvre la page « Ton restaurant » de cette destination. Après l'enregistrement, le restaurant apparaît sous la destination, en plus petit, avec son heure.
+3. L'ordre sous une destination : d'abord l'hébergement, puis les restaurants et les spots, chacun par heure.
+4. Un appui sur un lieu ouvre sa page (modifier l'heure ou la note, le supprimer).
+5. Pour qui suit le voyage sans partir : les lieux sont visibles, sans les boutons « + ».

@@ -965,6 +965,22 @@ Les numéros d'urgence de l'écran « Sécurité » sont une table fixe dans l'a
 
 Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus, envoyé avant le document qui le nomme et jamais remplacé. Seuls les participants (`participantIds`) lisent l'un et l'autre, jamais ceux qui suivent le voyage : un passeport peut en être un. Rien n'est modifié. Le propriétaire, le créateur du voyage ou l'admin principal supprime le document ; Storage ne laisse supprimer le fichier qu'au propriétaire et au créateur (limite de deux lectures) ; `onTripDocumentDeleted` efface de toute façon le fichier d'un document retiré, par l'admin ou par une suppression interrompue. Le téléphone ouvre un document dans le dossier de cache `documents/`, vidé à chaque visite de l'écran. Absent de « Voir comme ». La suppression du voyage efface les documents et le dossier. Tests : `firebase/tests/trips.test.mjs`, `firebase/tests/storage.test.mjs` et `firebase/functions/test/trips.test.ts`.
 
+### `trips/{tripId}/places/{placeId}` (récit 103, hébergements, restaurants et spots d'une destination)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `stepId` | texte | La destination (une étape du voyage) sous laquelle le lieu est programmé ; ne change jamais |
+| `kind` | texte | `lodging` (hébergement), `restaurant` ou `spot` |
+| `name` | texte | 1 à 120 caractères |
+| `address` | texte ou null | L'adresse trouvée par une recherche, 200 caractères au plus |
+| `lat`, `lng` | nombres ou null | Le point du lieu, tous deux ou aucun |
+| `arriveTime` | texte ou null | Heure d'arrivée « HH:mm », facultative (règle 21) |
+| `note` | texte ou null | Notes sur plusieurs lignes, 600 caractères au plus |
+| `cost` | nombre ou null | Coût pour le groupe, dans la monnaie du voyage, de 0 à 1 000 000 (budget, règle 40) |
+| `updatedAt` | horodatage | Heure du serveur |
+
+Droits : ceux qui suivent le voyage (`readerIds`) lisent, les participants ajoutent, modifient et suppriment, sous une destination qui existe ; l'admin principal peut aussi supprimer. Un nom changé retire l'adresse et le point (c'est un autre lieu). `onStepDeletedPlaces` supprime les lieux d'une destination supprimée ; la suppression du voyage les emporte tous. Tests : `firebase/tests/tripPlaces.test.mjs` et `firebase/functions/test/tripPlaces.test.ts`.
+
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
