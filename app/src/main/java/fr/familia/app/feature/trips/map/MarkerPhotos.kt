@@ -25,6 +25,9 @@ object MarkerPhotos {
     const val SIZE_DP = 36
     const val NEXT_SIZE_DP = 48
 
+    /** How many photos load at the same time. */
+    const val AT_ONCE = 4
+
     /** The picture of [url] as a marker of [sizeDp] dp, or null when it cannot be loaded. */
     suspend fun load(context: Context, url: String, sizeDp: Int, label: String, next: Boolean): Bitmap? {
         val density = context.resources.displayMetrics.density

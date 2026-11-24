@@ -2126,3 +2126,9 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Chercher « La Palmyre » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
 3. « Continuer » mène à la suite de la création, comme avant, avec le nom du voyage déjà rempli.
 4. Avec TalkBack, sans réseau, ou si le globe a échoué récemment : le formulaire reste seul, sans globe, et tout marche pareil.
+
+## Voyage : repères avec photo, regroupement et chargement (retours C1 et C2 de #547)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec deux destinations proches qui ont des photos, puis dézoomer : les deux repères avec photo se fondent dans la même bulle numérotée, et aucune photo ne reste par-dessus la bulle. Zoomer : ils se séparent avec leur photo.
+2. Ouvrir un voyage avec beaucoup de destinations qui ont des photos : les photos des repères arrivent presque ensemble, et non plus l'une après l'autre.

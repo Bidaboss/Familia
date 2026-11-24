@@ -66,6 +66,10 @@ import com.mapbox.maps.plugin.scalebar.scalebar
 import fr.familia.app.R
 import fr.familia.app.core.photo.LocalPhotoStorage
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.delay
 
 /** What the satellite home of a trip needs to know about the map (récit 100). */
@@ -135,18 +139,26 @@ fun TripSatelliteMap(
     LaunchedEffect(photoPaths, labels, nextIndex, arrived, storage) {
         photoMarkers.keys.retainAll { photoPaths.getOrNull(it) != null }
         val files = storage ?: return@LaunchedEffect
-        photoPaths.forEachIndexed { i, path ->
-            if (path == null) return@forEachIndexed
-            val url = try {
-                files.downloadUrl(path)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                files.knownUrl(path)
-            } ?: return@forEachIndexed
-            val label = labels?.getOrNull(i) ?: stepNumberLabel(i, arrived.getOrElse(i) { false })
-            val next = i == nextIndex
-            MarkerPhotos.load(context, url, if (next) MarkerPhotos.NEXT_SIZE_DP else MarkerPhotos.SIZE_DP, label, next)?.let { photoMarkers[i] = it }
+        // A few at a time (relecture #547, C2): each round shows as soon as its photo is there.
+        val gate = Semaphore(MarkerPhotos.AT_ONCE)
+        coroutineScope {
+            photoPaths.forEachIndexed { i, path ->
+                if (path == null) return@forEachIndexed
+                launch {
+                    gate.withPermit {
+                        val url = try {
+                            files.downloadUrl(path)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            files.knownUrl(path)
+                        } ?: return@withPermit
+                        val label = labels?.getOrNull(i) ?: stepNumberLabel(i, arrived.getOrElse(i) { false })
+                        val next = i == nextIndex
+                        MarkerPhotos.load(context, url, if (next) MarkerPhotos.NEXT_SIZE_DP else MarkerPhotos.SIZE_DP, label, next)?.let { photoMarkers[i] = it }
+                    }
+                }
+            }
         }
     }
     DisposableEffect(Unit) { onDispose { listener.forEach { it?.cancel() } } }
@@ -315,35 +327,26 @@ private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names
 }
 
 /**
- * Puts the photo rounds (récit 110) over the plain dots: the others gather and come apart as the
- * plain rounds do (same clusters), the next step on its own. Called again when a photo arrives.
+ * Puts the photo rounds (récit 110) over the plain dots. The photo is a property of the same points
+ * (« img » on home-steps and home-next), so a photo round gathers into the same bubble as its plain
+ * round and comes apart with it (relecture #547, C1). Called again when a photo arrives.
  */
 private fun showPhotos(style: Style, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, nextIndex: Int, labels: List<String>?, photos: Map<Int, Bitmap>) {
     photos.forEach { (i, bitmap) -> style.addImage("step-photo-$i", bitmap) }
-    fun withPhoto(indices: List<Int>) = FeatureCollection.fromFeatures(
-        indices.filter { it in photos.keys && points.getOrNull(it) != null }.map { i ->
-            feature(points, names, arrived, i, labels).also { it.addStringProperty("img", "step-photo-$i") }
+    fun collection(indices: List<Int>) = FeatureCollection.fromFeatures(
+        indices.map { i -> feature(points, names, arrived, i, labels).also { if (i in photos.keys) it.addStringProperty("img", "step-photo-$i") } },
+    )
+    style.getSourceAs<GeoJsonSource>("home-steps")?.featureCollection(collection(points.indices.filter { it != nextIndex }))
+    style.getSourceAs<GeoJsonSource>("home-next")?.featureCollection(collection(points.indices.filter { it == nextIndex }))
+    if (style.styleLayerExists("home-photo-icons")) return
+    val withPhoto = Expression.has("img")
+    style.addLayer(
+        symbolLayer("home-photo-icons", "home-steps") {
+            filter(Expression.all(Expression.not(Expression.has("point_count")), withPhoto))
+            iconImage(get("img")); iconAllowOverlap(true); iconIgnorePlacement(true)
         },
     )
-    val others = withPhoto(points.indices.filter { it != nextIndex })
-    val next = withPhoto(points.indices.filter { it == nextIndex })
-    val existing = style.getSourceAs<GeoJsonSource>("home-photos")
-    if (existing != null) {
-        existing.featureCollection(others)
-        style.getSourceAs<GeoJsonSource>("home-next-photo")?.featureCollection(next)
-        return
-    }
-    style.addSource(
-        geoJsonSource("home-photos") {
-            featureCollection(others)
-            cluster(true)
-            clusterRadius(28L)
-            clusterMaxZoom(11L)
-        },
-    )
-    style.addSource(geoJsonSource("home-next-photo") { featureCollection(next) })
-    style.addLayer(symbolLayer("home-photo-icons", "home-photos") { filter(Expression.not(Expression.has("point_count"))); iconImage(get("img")); iconAllowOverlap(true); iconIgnorePlacement(true) })
-    style.addLayer(symbolLayer("home-next-photo-icon", "home-next-photo") { iconImage(get("img")); iconAllowOverlap(true); iconIgnorePlacement(true) })
+    style.addLayer(symbolLayer("home-next-photo-icon", "home-next") { filter(withPhoto); iconImage(get("img")); iconAllowOverlap(true); iconIgnorePlacement(true) })
 }
 
 private fun feature(points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, i: Int, labels: List<String>? = null) =
