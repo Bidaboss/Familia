@@ -125,7 +125,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
     }
     // A white card with dark ink in every theme: the sheet behind it is the sky of the trip.
     Column(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Color.White).padding(12.dp),
+        modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(TripSheetColors.Card).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -146,7 +146,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 3.dp,
                         color = Deep,
-                        trackColor = Color(0xFFDCE3E8),
+                        trackColor = TripSheetColors.Track,
                     )
                     Text(
                         stringResource(R.string.timeline_planned, line.planned, line.total),
@@ -162,8 +162,8 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
             Text(
                 pluralStringResource(R.plurals.timeline_missing, line.missing, line.missing),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF3D2E00),
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFE9A8)).padding(horizontal = 12.dp, vertical = 8.dp),
+                color = TripSheetColors.OnWarning,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Warning).padding(horizontal = 12.dp, vertical = 8.dp),
             )
         }
         undo?.let { (name, before) ->
@@ -173,7 +173,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
             ) {
                 Text(stringResource(R.string.timeline_changed, name), color = Color.White, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 TextButton(onClick = { actions.onUndo(before); undo = null }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.timeline_undo), color = Color(0xFFFFD84A), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.timeline_undo), color = TripSheetColors.Highlight, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -231,13 +231,13 @@ private fun EndRow(text: String, day: LocalDate, trailing: @Composable () -> Uni
 private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, actions: TimelineActions, blocked: NightsBlock?, onChange: (Int) -> Unit) {
     val name = placeName(row.step)
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color(0xFFF3F6F8)).padding(12.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(TripSheetColors.Panel).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // The number is the one of the round on the map (règle 7).
             Box(
-                Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF111111)).border(3.dp, Color.White, CircleShape),
+                Modifier.size(40.dp).clip(CircleShape).background(Ink).border(3.dp, Color.White, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(row.number.toString(), color = Color.White, fontWeight = FontWeight.Bold)
@@ -469,16 +469,14 @@ private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit) {
     }
 }
 
-private val Ink = Color(0xFF111111)
-private val InkSoft = Color(0xFF3A4A52)
-
-/** The dark blue of the rounds, the « Annuler » band and the « + » of the section. */
-private val Deep = Color(0xFF17333F)
+private val Ink = TripSheetColors.Ink
+private val InkSoft = TripSheetColors.InkSoft
+private val Deep = TripSheetColors.Deep
 
 @Composable
 private fun nightsButtonColors() = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
     containerColor = Color.White,
     contentColor = Ink,
-    disabledContainerColor = Color(0xFFE6EBEE),
-    disabledContentColor = Color(0xFF4F5B63),
+    disabledContainerColor = TripSheetColors.Disabled,
+    disabledContentColor = TripSheetColors.OnDisabled,
 )
