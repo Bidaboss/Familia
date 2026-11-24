@@ -48,6 +48,7 @@ import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.place.PlacePhotos
 import fr.familia.app.feature.trips.PlaceCover
 import fr.familia.app.feature.trips.list.animationsOff
+import fr.familia.app.feature.trips.list.talkBackOn
 import fr.familia.app.feature.trips.list.tripLength
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.map.GeoPoint
@@ -71,7 +72,7 @@ private const val SLIDE_MILLIS = 4_000L
 
 /**
  * The home of a planned trip (règle 10): the image of the main place, or several images that go by
- * every 4 s (stopped with « Pause », or when the phone asks for no animation), « Voyage
+ * every 4 s (stopped with « Pause », when the phone asks for no animation, or with TalkBack so the page does not change under the reading), « Voyage
  * programmé », the name of the trip, its month, its days and its kilometres.
  */
 @Composable
@@ -85,7 +86,7 @@ fun TripCoverCarousel(
     val places = coverPlaces(trip, steps)
     val pager = rememberPagerState { places.size }
     val context = LocalContext.current
-    var paused by rememberSaveable { mutableStateOf(animationsOff(context)) }
+    var paused by rememberSaveable { mutableStateOf(animationsOff(context) || talkBackOn(context)) }
     LaunchedEffect(paused, places.size) {
         if (paused || places.size < 2) return@LaunchedEffect
         while (true) {
@@ -102,7 +103,12 @@ fun TripCoverCarousel(
                     contentDescription = context.getString(R.string.trip_cover_slide, page + 1, places.size, place.name)
                 },
             ) {
-                PlaceCover(place.name, place.point, trip.landscape, photos, token, Modifier.fillMaxSize())
+                PlaceCover(
+                    place.name, place.point, trip.landscape, photos, token, Modifier.fillMaxSize(),
+                    // Under « Voyage programmé », away from the pause button and the title: the licence asks for it to be read.
+                    creditAlignment = Alignment.TopStart,
+                    creditTop = 46.dp,
+                )
             }
         }
         Text(

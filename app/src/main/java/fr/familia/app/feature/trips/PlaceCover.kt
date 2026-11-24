@@ -64,6 +64,9 @@ fun PlaceCover(
     token: String,
     modifier: Modifier = Modifier,
     showCredit: Boolean = true,
+    /** Where the credit goes: top right alone, top left under the label of the carousel (its pause button is top right). */
+    creditAlignment: Alignment = Alignment.TopEnd,
+    creditTop: androidx.compose.ui.unit.Dp = 6.dp,
 ) {
     val satellite = remember(point, token) { satelliteStillUrl(point, token) }
     var layer by remember(place, point) { mutableStateOf<CoverLayer?>(null) }
@@ -91,8 +94,8 @@ fun PlaceCover(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(6.dp)
+                            .align(creditAlignment)
+                            .padding(start = 6.dp, end = 6.dp, top = creditTop, bottom = 6.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color.Black.copy(alpha = 0.55f))
                             .padding(horizontal = 6.dp, vertical = 2.dp),
