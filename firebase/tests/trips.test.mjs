@@ -419,6 +419,12 @@ describe('trip photos (récit 15)', () => {
     await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/photos/adult3_1')));
   });
 
+  test('the photos waiting to be told belong to the server only (récit 104)', async () => {
+    await assertFails(getDoc(doc(as(env, ADULT), 'tripPhotoBursts/t1')));
+    await assertFails(setDoc(doc(as(env, ADULT), 'tripPhotoBursts/t1'), { counts: {} }));
+    await assertFails(getDoc(doc(as(env, ADMIN), 'tripPhotoBursts/t1')));
+  });
+
   test('a follower who does not take part adds no photo', async () => {
     await assertFails(setDoc(doc(as(env, KID), 'trips/t1/photos/kid1_1'), photo(KID, 1)));
   });

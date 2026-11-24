@@ -2813,6 +2813,12 @@ service cloud.firestore {
         && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
     }
 
+    // tripPhotoBursts/{tripId} (récit 104, règle 34): the photos of a trip waiting to be told as one
+    // notice. Only the functions read and write it; no phone ever does.
+    match /tripPhotoBursts/{tripId} {
+      allow read, write: if false;
+    }
+
     // --- Capsule temporelle (PRD, récit 39) -------------------------------------------------------
     //
     // capsules/{capsuleId}: a text and up to 3 photos for chosen members, sealed until openAt (one

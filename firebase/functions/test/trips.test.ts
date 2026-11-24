@@ -8,7 +8,7 @@ import { Member, Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
   ALERT_GAP_MS, alertNotice, arrivalNotice, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, joinNames, notifyAlert, notifyArrival,
-  sendArrivalReminders, StepData, TripData, tripDocumentFile, withApp,
+  addTripPhotoToBurst, PHOTO_BURSTS, photoBurstDue, sendArrivalReminders, sendTripPhotoDigests, StepData, TripData, tripDocumentFile, withApp,
 } from '../src/trips';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
@@ -215,5 +215,93 @@ describe('file of a removed document', () => {
     assert.equal(tripDocumentFile('t1', 'd1', { ownerId: '../x', file: 'd1.pdf' }), null);
     assert.equal(tripDocumentFile('t1', 'd1', { ownerId: 'adult1' }), null);
     assert.equal(tripDocumentFile('t1', 'd1', undefined), null);
+  });
+});
+
+describe('photos groupées (récit 104, règle 34)', () => {
+  const t0 = new Date('2027-07-11T14:00:00Z');
+  const plus = (ms: number) => new Date(t0.getTime() + ms);
+
+  beforeEach(async () => {
+    for (const c of ['members', 'trips', PHOTO_BURSTS, 'notifyLog', 'burstQueue']) await db.recursiveDelete(db.collection(c));
+    const batch = db.batch();
+    batch.set(db.doc('members/lou'), member('Lou', 'adult', 'uid-lou'));
+    batch.set(db.doc('members/sam'), member('Sam'));
+    batch.set(db.doc('members/noe'), member('Noé', 'childWithoutApp'));
+    batch.set(db.doc('members/ines'), member('Inès'));
+    batch.set(db.doc('members/max'), member('Max'));
+    batch.set(db.doc('members/zoe'), member('Zoé'));
+    for (const id of ['lou', 'sam', 'ines', 'max', 'zoe']) batch.set(db.doc(`members/${id}/devices/token-${id}`), { updatedAt: new Date() });
+    batch.set(db.doc('trips/t1'), corse);
+    await batch.commit();
+  });
+
+  test('a burst waits 10 min of calm, never more than 45 min after its first photo', () => {
+    assert.equal(photoBurstDue(t0, t0).getTime(), plus(10 * 60000).getTime());
+    assert.equal(photoBurstDue(t0, plus(40 * 60000)).getTime(), plus(45 * 60000).getTime());
+  });
+
+  test('no notice per photo: the burst goes once, 10 min after the last, to the followers only', async () => {
+    const { sent, send } = fakeSender();
+    await addTripPhotoToBurst(db, 't1', 'lou', t0);
+    await addTripPhotoToBurst(db, 't1', 'lou', plus(5 * 60000));
+    // 10 min after the first photo, the second one still holds it.
+    assert.equal(await sendTripPhotoDigests(db, send, plus(11 * 60000)), 0);
+    assert.equal(await sendTripPhotoDigests(db, send, plus(16 * 60000)), 3);
+    // Zoé does not follow the trip; Lou, the only author, is not told of their own photos.
+    assert.deepEqual(sent.map((s) => s.token).sort(), ['token-ines', 'token-max', 'token-sam']);
+    assert.equal(sent[0].notice.title, 'Corse : 2 nouvelles photos');
+    assert.equal(sent[0].notice.body, 'Par Lou.');
+    assert.equal(sent[0].notice.tripId, 't1');
+    assert.equal((await db.collection(PHOTO_BURSTS).doc('t1').get()).exists, false);
+    assert.equal(await sendTripPhotoDigests(db, send, plus(60 * 60000)), 0);
+  });
+
+  test('a long send still goes 45 min after its first photo', async () => {
+    const { sent, send } = fakeSender();
+    for (let minute = 0; minute <= 44; minute += 4) await addTripPhotoToBurst(db, 't1', 'lou', plus(minute * 60000));
+    assert.equal(await sendTripPhotoDigests(db, send, plus(46 * 60000)), 3);
+    assert.equal(sent[0].notice.title, 'Corse : 12 nouvelles photos');
+  });
+
+  test('with several authors, every follower is told, the authors too', async () => {
+    const { sent, send } = fakeSender();
+    await addTripPhotoToBurst(db, 't1', 'lou', t0);
+    await addTripPhotoToBurst(db, 't1', 'sam', t0);
+    assert.equal(await sendTripPhotoDigests(db, send, plus(20 * 60000)), 4);
+    assert.equal(sent[0].notice.body, 'Par Lou et Sam.');
+  });
+
+  test('a photo that comes while sending is kept for the next burst', async () => {
+    const { sent, send: base } = fakeSender();
+    let once = false;
+    const send: Sender = async (token, notice) => {
+      if (!once) {
+        once = true;
+        await addTripPhotoToBurst(db, 't1', 'sam', plus(20 * 60000));
+      }
+      return base(token, notice);
+    };
+    await addTripPhotoToBurst(db, 't1', 'lou', t0);
+    await sendTripPhotoDigests(db, send, plus(20 * 60000));
+    const left = await db.collection(PHOTO_BURSTS).doc('t1').get();
+    assert.deepEqual(left.get('counts'), { sam: 1 });
+    sent.length = 0;
+    await sendTripPhotoDigests(db, base, plus(31 * 60000));
+    assert.equal(sent[0].notice.title, 'Corse : une nouvelle photo');
+    assert.equal(sent[0].notice.body, 'Par Sam.');
+  });
+
+  test('a removed trip tells nobody, and takes its burst with it', async () => {
+    const { sent, send } = fakeSender();
+    await addTripPhotoToBurst(db, 't1', 'lou', t0);
+    await db.doc('trips/t1').delete();
+    assert.equal(await sendTripPhotoDigests(db, send, plus(20 * 60000)), 0);
+    assert.equal(sent.length, 0);
+    assert.equal((await db.collection(PHOTO_BURSTS).doc('t1').get()).exists, false);
+    await db.doc('trips/t1').set(corse);
+    await addTripPhotoToBurst(db, 't1', 'lou', t0);
+    await deleteTripContents(db, 't1');
+    assert.equal((await db.collection(PHOTO_BURSTS).doc('t1').get()).exists, false);
   });
 });

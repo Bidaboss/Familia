@@ -2042,3 +2042,12 @@ Rien à publier côté Firebase. « APK de publication ».
 ## Voyage : l'étape d'une photo est un identifiant simple (suite du récit 104, partie 2)
 
 **Publier Firebase : oui** (firestore.rules). Rien ne change à l'écran : ajouter des photos depuis une destination marche comme avant.
+
+
+## Voyage : les photos annoncées en une seule notification (récit 104, partie 4 : règle 34)
+
+**Publier Firebase : oui** (une nouvelle fonction, `onTripPhotoCreated`, et firestore.rules), avant l'APK.
+1. Avec deux téléphones : sur le premier, ajouter 3 photos à un voyage que le second suit. Aucune notification n'arrive tout de suite.
+2. Entre 10 et 25 min après la dernière photo, le second reçoit une seule notification « <voyage> : 3 nouvelles photos », « Par <prénom>. ». La toucher ouvre le voyage.
+3. L'auteur, quand il est seul, ne reçoit rien. Un membre qui ne suit pas le voyage ne reçoit rien non plus.
+4. En ajoutant une photo toutes les 5 min, la notification part quand même au plus tard 45 à 60 min après la première.
