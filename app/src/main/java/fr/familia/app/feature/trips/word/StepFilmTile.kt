@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Movie
@@ -60,6 +61,8 @@ import fr.familia.app.core.share.rememberFilmDownload
 import fr.familia.app.core.share.shareVideo
 import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.feature.trips.TripTile
+import fr.familia.app.feature.trips.photos.FilmAiSheet
+import fr.familia.app.feature.trips.photos.FilmAiSubject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import java.io.File
@@ -85,7 +88,11 @@ fun StepFilm(
     me: Member? = null,
     /** The name of the step, for the file saved in the gallery. */
     place: String? = null,
+    /** The step, its photos and its word, for « Faire un vrai film avec une IA » (règle 33). */
+    aiSubject: FilmAiSubject? = null,
 ) {
+    var aiOpen by rememberSaveable { mutableStateOf(false) }
+    if (aiOpen && aiSubject != null) FilmAiSheet(aiSubject, container?.photoStorage) { aiOpen = false }
     val filmsDir = File(LocalContext.current.cacheDir, "films")
     val filmViewModel: AlbumFilmViewModel = viewModel(
         key = "step-film-$tripId-$stepId",
@@ -113,7 +120,7 @@ fun StepFilm(
     val day = if (canPublish && trip != null) dayToPublish(stepPhotos, films, stepId, trip, today) else null
     val publish: (LocalDate) -> Unit = { d -> if (me != null) publisher.publish(me, d, stepPhotos) }
     val repository = container?.tripFilmRepository
-    StepFilmTile(film, stepPhotos.size, actions, downloadName = galleryFilmName("etape", place ?: stepId), onPublish = day?.takeIf { publishing !is DayFilmState.Working }?.let { d -> { publish(d) } }) {
+    StepFilmTile(film, stepPhotos.size, actions, downloadName = galleryFilmName("etape", place ?: stepId), onAiFilm = aiSubject?.takeIf { it.photos.isNotEmpty() }?.let { { aiOpen = true } }, onPublish = day?.takeIf { publishing !is DayFilmState.Working }?.let { d -> { publish(d) } }) {
         DayFilmsPart(
             state = publishing,
             published = stepFilms(films, stepId),
@@ -139,6 +146,8 @@ fun StepFilmTile(
     downloadName: String? = null,
     /** « Publier le film de la journée » in the menu, for a participant with a day to publish (PRD 156). */
     onPublish: (() -> Unit)? = null,
+    /** « Faire un vrai film avec une IA » in the menu (règle 33). */
+    onAiFilm: (() -> Unit)? = null,
     below: @Composable () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -169,11 +178,12 @@ fun StepFilmTile(
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.step_film_watch))
                         }
-                        if (onPublish != null) {
+                        if (onPublish != null || onAiFilm != null) {
                             IconButton(onClick = { menu = true }, modifier = Modifier.size(56.dp)) {
                                 Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.step_film_more))
                                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                    PublishItem { menu = false; onPublish() }
+                                    if (onPublish != null) PublishItem { menu = false; onPublish() }
+                                    if (onAiFilm != null) AiFilmItem { menu = false; onAiFilm() }
                                 }
                             }
                         }
@@ -226,6 +236,7 @@ fun StepFilmTile(
                                     )
                                 }
                                 if (onPublish != null) PublishItem { menu = false; onPublish() }
+                                if (onAiFilm != null) AiFilmItem { menu = false; onAiFilm() }
                             }
                         }
                     }
@@ -255,6 +266,16 @@ private fun PublishItem(onClick: () -> Unit) {
     DropdownMenuItem(
         text = { Text(stringResource(R.string.day_film_publish)) },
         leadingIcon = { Icon(Icons.Outlined.DynamicFeed, contentDescription = null) },
+        onClick = onClick,
+        modifier = Modifier.heightIn(min = 56.dp),
+    )
+}
+
+@Composable
+private fun AiFilmItem(onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.film_ai_open)) },
+        leadingIcon = { Icon(Icons.Outlined.AutoAwesome, contentDescription = null) },
         onClick = onClick,
         modifier = Modifier.heightIn(min = 56.dp),
     )

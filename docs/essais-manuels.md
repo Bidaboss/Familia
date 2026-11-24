@@ -2214,3 +2214,13 @@ Sur un téléphone en Android 10 ou plus :
 4. Sans réseau, le film publié dit « Le film n'a pas pu être enregistré… ». Les films faits sur le téléphone s'enregistrent quand même.
 5. Les films d'album d'un événement n'ont pas « Télécharger » (seulement les films de voyage, règle 32).
 6. Sur Android 8 ou 9, « Télécharger » n'apparaît pas : « Partager » reste, avec son rappel.
+
+## Voyage : faire un vrai film avec une IA (récit 108, partie 6 : règle 33)
+
+**Publier Firebase : non.**
+1. Dans une étape qui a des photos, sous « Film de l'étape », ouvrir le menu ⋮ puis « Faire un vrai film avec une IA ». Une feuille s'ouvre : 8 ambiances (Souvenir, Road trip, Cinéma, Carnet de voyage, Drôle, Documentaire, Fête de famille, Zen & nature), avec une phrase qui décrit celle choisie ; puis 3 durées (30 s, 1 min, 2 min) et deux interrupteurs, « Musique » (allumé) et « Voix off des commentaires » (éteint).
+2. Changer une ambiance, une durée ou un interrupteur : l'aperçu du prompt suit aussitôt. Il cite la destination, le nombre de photos et le mot de l'étape.
+3. « Copier le prompt » affiche « Prompt copié… ». Le coller dans une IA donne le texte complet.
+4. « Exporter vers une IA (photos + commentaires + prompt) » montre d'abord le rappel de partage. Après « Continuer », les photos se préparent (barre), puis le partage Android s'ouvre avec les photos (20 au plus) et le prompt en texte.
+5. Dans « Voir les photos » du voyage, sous le film, « Faire un vrai film avec une IA » fait de même pour tout le voyage : une séquence par destination, dans l'ordre du trajet.
+6. Sans photo liée à une étape, l'entrée n'apparaît pas. Sans réseau, l'export dit « Les photos n'ont pas pu être préparées… ».
