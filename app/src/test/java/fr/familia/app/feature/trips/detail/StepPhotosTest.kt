@@ -57,4 +57,13 @@ class StepPhotosTest {
         // Its step removed, the photo goes back to its day.
         assertEquals(listOf("m_2"), result.byStay.getValue("bordeaux").map { it.id })
     }
+
+    @Test
+    fun theQuickAddGoesUnderTheDestinationOfTheDay() {
+        assertEquals("bordeaux", currentStay(line, day(11))?.step?.id)
+        // The day of a move: the destination that begins.
+        assertEquals("palmyre", currentStay(line, day(12))?.step?.id)
+        assertEquals(null, currentStay(line, day(9)))
+        assertEquals(null, currentStay(line, day(18)))
+    }
 }

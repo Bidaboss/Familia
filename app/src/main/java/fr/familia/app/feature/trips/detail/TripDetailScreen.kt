@@ -156,6 +156,8 @@ fun TripDetailScreen(
     cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     /** « Le trajet » (règle 16): open a step, − / + on the nights; null: open only. */
     timeline: TimelineActions? = null,
+    /** « Ajout rapide » (récit 104, règle 35): during the trip, for those who go; null elsewhere. */
+    quickAdd: QuickAdd? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -189,12 +191,15 @@ fun TripDetailScreen(
         },
         floatingActionButton = {
             if (success?.isParticipant == true) {
-                ExtendedFloatingActionButton(
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    quickAdd?.let { QuickAddButton(it) }
+                    ExtendedFloatingActionButton(
                     onClick = onAddStep,
                     // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
                     icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.trip_add_step)) },
                     text = { Text(stringResource(R.string.trip_add_step)) },
                 )
+                }
             }
         },
     ) { padding ->
