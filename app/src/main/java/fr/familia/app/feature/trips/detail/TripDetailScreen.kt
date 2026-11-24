@@ -46,6 +46,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
@@ -158,6 +159,8 @@ fun TripDetailScreen(
     timeline: TimelineActions? = null,
     /** « Ajout rapide » (récit 104, règle 35): during the trip, for those who go; null elsewhere. */
     quickAdd: QuickAdd? = null,
+    /** « Enrichir avec une IA » (récit 106, règle 30): a small button under the trip, for those who go; null elsewhere. */
+    onOpenEnrich: (() -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -222,7 +225,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney, cover, timeline, onOpenDocuments)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney, cover, timeline, onOpenDocuments, onOpenEnrich)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -351,6 +354,7 @@ private fun PathContent(
     cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     timeline: TimelineActions? = null,
     onOpenDocuments: (() -> Unit)? = null,
+    onOpenEnrich: (() -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     // The day of the card: today during the trip, else its first day (no strip of days any more: « Le trajet » shows them all).
@@ -493,6 +497,18 @@ private fun PathContent(
         item(key = "timeline") {
             Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
                 TripTimelineSection(state.trip, state.steps, timeline ?: TimelineActions(onOpen = onEditStep))
+            }
+        }
+        if (onOpenEnrich != null && state.isParticipant) {
+            item(key = "enrich") {
+                // A small, readable button, only on the trip (règle 30).
+                TextButton(
+                    onClick = onOpenEnrich,
+                    modifier = Modifier.padding(horizontal = ClaySpacing.screen).heightIn(min = 56.dp),
+                ) {
+                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+                    Text(stringResource(R.string.enrich_round_label), modifier = Modifier.padding(start = 8.dp))
+                }
             }
         }
         tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->

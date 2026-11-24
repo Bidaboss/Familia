@@ -1,6 +1,6 @@
 # Film d'étape et film du voyage : étude technique (récit 108, règles 32 à 34)
 
-Étude courte, sans code, pour que Kévin décide. Elle s'appuie sur ce qui est déjà dans l'appli (24/11/2026).
+Étude courte, sans code, pour que l'admin décide. Elle s'appuie sur ce qui est déjà dans l'appli (24/11/2026).
 
 ## 1. Ce qui existe déjà
 
@@ -64,18 +64,19 @@ Le film va dans le dossier Films de la galerie (`MediaStore`). Il n'y a besoin d
 
 ## 7. Exporter vers une IA (règle 33)
 
-Ce n'est pas de l'encodage : c'est un prompt à copier, selon les critères de Kévin et une ambiance choisie (« road trip », « carnet doux », « souvenirs d'enfance »…), plus les photos ou le film à partager vers l'appli d'IA de son choix. Ça peut venir après les films, dans une PR à part.
+Ce n'est pas de l'encodage : c'est un prompt à copier, selon les critères de l'admin et une ambiance choisie (« road trip », « carnet doux », « souvenirs d'enfance »…), plus les photos ou le film à partager vers l'appli d'IA de son choix. Ça peut venir après les films, dans une PR à part.
 
 ## 8. Découpage proposé (une PR à la fois)
 
 1. Film d'étape sur le téléphone, « Voir » et partager (façon A, aucun serveur).
 2. Film du voyage fait des films d'étape, avec les titres.
 3. Publication sur le fil (façon B) : Storage, Firestore, règles, suppression, une notification. PR mixte, avec renfort, **Publier Firebase : oui**.
+   Deux conditions dès la conception (relecture de #554) : une règle Storage qui borne `contentType` et taille, et un seul film publié par étape et par jour, avec un identifiant de document déterministe `{étape}_{date}`. Ainsi, deux participants qui publient en même temps ne produisent pas deux annonces.
 4. Télécharger dans la galerie.
-5. Son : notes vocales ou musique, selon le choix de Kévin.
+5. Son : notes vocales ou musique, selon le choix de l'admin.
 6. Export vers une IA (règle 33).
 
-## 9. Ce que Kévin doit trancher
+## 9. Ce que l'admin doit trancher
 
 1. **Stockage** : B, le film envoyé une fois et vu par tous (proposé), ou A, chaque téléphone le refait (aucun serveur, mais lent et parfois différent) ?
 2. **Publication** : un bouton « Publier le film de la journée » avec un rappel discret le lendemain (proposé), ou publication automatique à l'ouverture de l'appli par un participant le lendemain ?

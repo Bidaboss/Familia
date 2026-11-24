@@ -305,6 +305,7 @@ import fr.familia.app.feature.trips.TripPhrasesDestination
 import fr.familia.app.feature.trips.TripSafetyDestination
 import fr.familia.app.feature.trips.TripMoneyDestination
 import fr.familia.app.feature.trips.TripDocumentsDestination
+import fr.familia.app.feature.trips.TripEnrichDestination
 import fr.familia.app.feature.trips.TripPlaceAddDestination
 import fr.familia.app.feature.trips.TripPlaceDestination
 import fr.familia.app.feature.trips.place.PlaceEditRoute
@@ -313,11 +314,13 @@ import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.safety.TripSafetyRoute
 import fr.familia.app.feature.trips.money.TripMoneyRoute
 import fr.familia.app.feature.trips.documents.TripDocumentsRoute
+import fr.familia.app.feature.trips.enrich.TripEnrichRoute
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripWordDestination
 import fr.familia.app.feature.trips.word.StepWordRoute
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.map.TripMapRoute
+import fr.familia.app.feature.trips.map.TripScreenOverMap
 import fr.familia.app.feature.trips.TripsDestination
 import fr.familia.app.feature.trips.carnet.CarnetRoute
 import fr.familia.app.feature.trips.carnet.TripCarnetDestination
@@ -1189,6 +1192,7 @@ fun FamiliaApp(
                             onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
                             onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             onOpenDocuments = { navController.navigate(TripDocumentsDestination(tripId)) },
+                            onOpenEnrich = { navController.navigate(TripEnrichDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
                             onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
@@ -1204,38 +1208,41 @@ fun FamiliaApp(
                     composable<TripPackingDestination> { entry ->
                         val route = entry.toRoute<TripPackingDestination>()
                         // Règle 8 (récit 111): the screens of a trip pull up over its map, like its home.
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, route.tripId) {
+                        TripScreenOverMap(container, route.tripId) {
                             TripPackingRoute(container = container, currentMember = currentMember, tripId = route.tripId, open = route.open, onBack = { navController.popBackStack() })
                         }
                     }
                     composable<TripPhrasesDestination> { entry ->
                         val tripId = entry.toRoute<TripPhrasesDestination>().tripId
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, tripId) {
+                        TripScreenOverMap(container, tripId) {
                             TripPhrasesRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
                     }
                     composable<TripSafetyDestination> { entry ->
                         val tripId = entry.toRoute<TripSafetyDestination>().tripId
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, tripId) {
+                        TripScreenOverMap(container, tripId) {
                             TripSafetyRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
                     }
                     composable<TripMoneyDestination> { entry ->
                         val tripId = entry.toRoute<TripMoneyDestination>().tripId
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, tripId) {
+                        TripScreenOverMap(container, tripId) {
                             TripMoneyRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
+                    }
+                    composable<TripEnrichDestination> { entry ->
+                        TripEnrichRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripEnrichDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     // Récit 103: the page of an accommodation, a restaurant or a spot of a destination.
                     composable<TripPlaceDestination> { entry ->
                         val route = entry.toRoute<TripPlaceDestination>()
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, route.tripId) {
+                        TripScreenOverMap(container, route.tripId) {
                             PlaceEditRoute(container, currentMember, route.tripId, route.placeId, onDone = { navController.popBackStack() })
                         }
                     }
                     composable<TripPlaceAddDestination> { entry ->
                         val route = entry.toRoute<TripPlaceAddDestination>()
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, route.tripId, focusId = route.stepId) {
+                        TripScreenOverMap(container, route.tripId, focusId = route.stepId) {
                             PlaceEditRoute(
                                 container = container,
                                 currentMember = currentMember,
@@ -1253,7 +1260,7 @@ fun FamiliaApp(
                     }
                     composable<TripDocumentsDestination> { entry ->
                         val tripId = entry.toRoute<TripDocumentsDestination>().tripId
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, tripId) {
+                        TripScreenOverMap(container, tripId) {
                             TripDocumentsRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
                     }
@@ -1275,7 +1282,7 @@ fun FamiliaApp(
                     }
                     composable<TripWordDestination> { entry ->
                         val route = entry.toRoute<TripWordDestination>()
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, route.tripId, focusId = route.stepId) {
+                        TripScreenOverMap(container, route.tripId, focusId = route.stepId) {
                             StepWordRoute(
                                 container = container,
                                 currentMember = currentMember,
@@ -1288,7 +1295,7 @@ fun FamiliaApp(
                     }
                     composable<TripExpensesDestination> { entry ->
                         val tripId = entry.toRoute<TripExpensesDestination>().tripId
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, tripId) {
+                        TripScreenOverMap(container, tripId) {
                             ExpensesRoute(
                                 container = container,
                                 currentMember = currentMember,
@@ -1302,7 +1309,7 @@ fun FamiliaApp(
                     }
                     composable<TripExpenseEditDestination> { entry ->
                         val route = entry.toRoute<TripExpenseEditDestination>()
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, route.tripId) {
+                        TripScreenOverMap(container, route.tripId) {
                             ExpenseEditRoute(
                                 container = container,
                                 currentMember = currentMember,
@@ -1315,7 +1322,7 @@ fun FamiliaApp(
                     }
                     composable<TripExpenseHistoryDestination> { entry ->
                         val route = entry.toRoute<TripExpenseHistoryDestination>()
-                        fr.familia.app.feature.trips.map.TripScreenOverMap(container, route.tripId) {
+                        TripScreenOverMap(container, route.tripId) {
                             ExpenseHistoryRoute(container = container, tripId = route.tripId, expenseId = route.expenseId, onBack = { navController.popBackStack() })
                         }
                     }
