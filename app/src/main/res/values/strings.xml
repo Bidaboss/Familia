@@ -2099,6 +2099,7 @@
     <string name="trip_step_in_trip">Dans le voyage · %1$s · %2$s</string>
     <string name="trip_step_type_flight">Vol</string>
     <string name="trip_step_type_train">Train</string>
+    <string name="trip_step_type_bus">Bus</string>
     <string name="trip_step_type_car">Voiture</string>
     <string name="trip_step_type_lodging">Destination</string>
     <string name="trip_step_type_activity">Activité</string>

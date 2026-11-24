@@ -872,7 +872,7 @@ Droits : seul un membre de `readerIds` lit le voyage. L'appli le cherche avec `r
 
 | Champ | Type | Description |
 |---|---|---|
-| `type` | texte | `flight`, `train`, `car`, `lodging` ou `activity` |
+| `type` | texte | `flight`, `train`, `bus` (récit 112), `car`, `lodging` ou `activity` |
 | `place` | texte | Le lieu, de 1 à 120 caractères |
 | `departDate`, `departTime` | texte | Le départ, `AAAA-MM-JJ`, et son heure `HH:MM` ou `null` |
 | `arriveDate`, `arriveTime` | texte ou `null` | L'arrivée prévue, au plus tôt le jour du départ |
