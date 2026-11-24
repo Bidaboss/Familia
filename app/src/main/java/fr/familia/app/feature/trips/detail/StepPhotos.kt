@@ -30,3 +30,10 @@ fun stepPhotos(line: TripTimeline, photos: List<AlbumPhoto>, zone: ZoneId): Step
     }
     return StepPhotos(byStay, without)
 }
+
+/**
+ * The destination of [today] during the trip, where « ajout rapide » files what is added (récit 104,
+ * règle 35, DESIGN-90 A): on the day of a move, the one that begins. Null out of every destination.
+ */
+fun currentStay(line: TripTimeline, today: java.time.LocalDate): TimelineRow.Destination? =
+    line.destinations.lastOrNull { !today.isBefore(it.start) && !today.isAfter(it.end) }

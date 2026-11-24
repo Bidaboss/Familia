@@ -109,6 +109,26 @@ fun TripDetailRoute(
             ?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) }
             ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(initialValue = emptyList())
+    val addPhoto: ((String) -> Unit)? = if (photos.canAdd && photos.placesLeft > 0) {
+        { stepId ->
+            photoStep = stepId
+            stepPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+    } else {
+        null
+    }
+    // « Ajout rapide » (récit 104, règle 35): during the trip, under the destination of the day.
+    val stay = remember(shown?.trip, shown?.steps, shown?.today) {
+        shown?.takeIf { it.isParticipant }?.let { currentStay(tripTimeline(it.trip, it.steps), it.today) }
+    }
+    val quickAdd = stay?.let { today ->
+        val id = today.step.id
+        QuickAdd(
+            destination = placeName(today.step),
+            onPhoto = addPhoto?.let { add -> { add(id) } },
+            onWord = onOpenWord?.let { word -> { word(id) } },
+        ).takeIf { it.onPhoto != null || it.onWord != null }
+    }
     TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -146,15 +166,9 @@ fun TripDetailRoute(
             onOpenPhoto = onOpenPhoto,
             withoutStep = byStep.withoutStep.size,
             onSeePhotos = onSeePhotos,
-            onAddPhoto = if (photos.canAdd && photos.placesLeft > 0) {
-                { stepId ->
-                    photoStep = stepId
-                    stepPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }
-            } else {
-                null
-            },
+            onAddPhoto = addPhoto,
         ),
+        quickAdd = quickAdd,
         cover = { success ->
             TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
         },
