@@ -408,6 +408,8 @@ private fun PathContent(
             names = placed.map { it.place },
             arrived = placed.map { it.arrival != null },
             labels = remember(state.steps) { mapLabels(placed, tripTimeline(state.trip, state.steps)) },
+            // The first photo of each destination in its round (récit 110, règle 7): only photos this person can see.
+            photoPaths = remember(placed, timeline?.photos) { fr.familia.app.feature.trips.map.markerPhotoPaths(placed.map { it.id }, timeline?.photos.orEmpty()) },
             nextIndex = next,
             selected = selected,
             onSelect = { selected = it },

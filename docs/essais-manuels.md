@@ -2099,3 +2099,14 @@ Rien à publier côté Firebase. « APK de publication ».
 4. Même voyage, pour quelqu'un qui le suit sans partir : pas de carte la veille. Aucune notification ne part.
 5. Nouveau voyage avec un départ passé (l'an dernier) : sous les dates, « Combien de jours ? » avec − et +. « + » avance la date de retour d'un jour, et « − » s'arrête à 1 jour. Avec un départ aujourd'hui ou plus tard, cette ligne n'apparaît pas.
 6. Modifier une étape, champ « Une note » : l'aide dit « Plusieurs lignes possibles : … ». Le champ grandit jusqu'à 6 lignes, puis il défile au lieu de grandir encore.
+
+## Voyage : la photo de l'étape dans son repère (récit 110, partie 2 : règle 7)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec la carte satellite, dont une destination a déjà des photos : son repère rond montre la première photo de la destination, avec un anneau blanc et le numéro de l'étape dans un petit rond foncé (✓ une fois « Bien arrivé »).
+2. La prochaine étape a un rond plus grand, avec un anneau jaune.
+3. Une destination sans photo garde le rond foncé numéroté.
+4. Ajouter la première photo d'une destination : son repère prend la photo sans quitter l'écran.
+5. Dézoomer : les repères proches se regroupent en un rond avec leur nombre, photos comprises, puis se séparent au zoom.
+6. Toucher un repère avec photo : il est choisi comme un repère simple.
+7. Sans réseau, ou si une photo ne se charge pas : le rond simple reste, la carte ne bascule pas sur le dessin.
