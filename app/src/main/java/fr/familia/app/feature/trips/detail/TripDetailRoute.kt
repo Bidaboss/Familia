@@ -18,6 +18,7 @@ import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.TripPlaceKind
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import fr.familia.app.feature.trips.packing.packingCount
@@ -82,7 +83,7 @@ fun TripDetailRoute(
     // The places programmed under the destinations (règle 18); none when they cannot be read.
     val places by remember(container, tripId) {
         container?.tripPlaceRepository?.observePlaces(tripId)
-            ?.catch { e -> if (e is kotlinx.coroutines.CancellationException) throw e else emit(emptyList()) }
+            ?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) }
             ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(initialValue = emptyList())
     TripDetailScreen(

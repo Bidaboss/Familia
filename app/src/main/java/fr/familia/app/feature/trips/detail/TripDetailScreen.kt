@@ -437,7 +437,8 @@ private fun PathContent(
                     photoCount = photos.photos.size,
                     onPhotos = onSeePhotos,
                     onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
-                    onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() },
+                    // The satellite map is already open above the sheet (règle 23): « La carte » stays only for the fallback (TalkBack, no map).
+                    onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() && !satellite },
                     onPacking = onOpenPacking?.takeIf { state.isParticipant },
                     packingCount = packingCount,
                     onPhrases = onOpenPhrases,

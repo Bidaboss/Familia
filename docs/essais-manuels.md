@@ -1987,3 +1987,11 @@ Rien à publier côté Firebase (les lieux et leurs règles sont arrivés avec #
 3. L'ordre sous une destination : d'abord l'hébergement, puis les restaurants et les spots, chacun par heure.
 4. Un appui sur un lieu ouvre sa page (modifier l'heure ou la note, le supprimer).
 5. Pour qui suit le voyage sans partir : les lieux sont visibles, sans les boutons « + ».
+
+## Voyage : plus de bouton « La carte » sous la carte satellite, et retouches du trajet (récit 103 : règle 23)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir un voyage avec la carte satellite : la carte du jour n'a plus le bouton rond « La carte », puisque la carte est déjà ouverte au-dessus.
+2. Avec TalkBack, ou sans carte satellite : le bouton « La carte » est toujours là et ouvre l'ancienne carte.
+3. Dans « Le trajet », un restaurant avec une heure s'écrit « Restaurant · 12 h 30 », comme les autres heures de l'appli.
+4. Avec un texte très grand ou un petit écran : « + Hébergement », « + Restaurant » et « + Spot » passent à la ligne sans être coupés.
