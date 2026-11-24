@@ -2514,3 +2514,11 @@ Sur un téléphone en Android 10 ou plus :
 3. Couper le réseau, vider le cache de l'appli puis ouvrir un voyage : le paysage dessiné s'affiche, sans erreur ni écran vide. Remettre le réseau et rouvrir : la photo revient.
 4. « À savoir sur… » d'une destination et son anecdote s'affichent comme avant.
 5. Pour qui suit les journaux (Logcat, filtre « PlaceCover ») : quand une photo ne s'affiche pas, une ligne dit son adresse et la cause, puis la photo suivante des environs est essayée une fois avant le dessin.
+
+## Voyage : un voyageur retiré ne lit plus les documents des autres
+
+**Publier Firebase : oui** (règles Storage, fonction `onTripParticipantsChanged`).
+1. Sur un voyage où Lou et Sam partent, Lou partage un document avec Sam. Sam le voit et l'ouvre.
+2. Le créateur retire Sam des voyageurs. Sam ne voit plus le document de Lou ; sur le téléphone de Lou, le document n'affiche plus le visage de Sam.
+3. Les documents que Sam avait ajoutés restent à Sam (ils suivent la suppression habituelle).
+4. Remettre Sam dans le voyage : le document de Lou ne revient pas tout seul ; Lou le partage à nouveau avec « Partager… ».

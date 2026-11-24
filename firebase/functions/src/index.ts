@@ -63,7 +63,7 @@ import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type Birt
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
 import { eraseTurns } from './turns';
-import { shareOldDocuments } from './documentsShared';
+import { shareOldDocuments, unshareDocuments } from './documentsShared';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
@@ -693,10 +693,12 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
 });
 
 // « Ma valise » (récit 62): a participant taken off the trip leaves their bag behind. It goes,
-// so it never comes back to them nor stays in the database for nothing.
+// so it never comes back to them nor stays in the database for nothing. The documents of the trip
+// stop being shared with them too (relecture de la 598), except their own.
 export const onTripParticipantsChanged = onDocumentUpdated('trips/{tripId}', async (event) => {
   const gone = leftTheTrip(event.data?.before.get('participantIds'), event.data?.after.get('participantIds'));
   await dropBags(getFirestore(), event.params.tripId, gone);
+  await unshareDocuments(getFirestore(), event.params.tripId, gone);
 });
 
 // Les comptes du voyage (récit 16 bis) live out of the trip: they go with it.

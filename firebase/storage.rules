@@ -130,7 +130,9 @@ service firebase.storage {
     match /trips/{tripId}/documents/{ownerId}/{fileName} {
       allow read: if isMember()
         && fileName.matches('^[A-Za-z0-9]{1,40}[.](pdf|jpg|png)$')
-        && myMemberId() in tripDocumentData(tripId, fileName).sharedWith;
+        && myMemberId() in tripDocumentData(tripId, fileName).sharedWith
+        // The document named by the file is the one of its owner (relecture de la 598).
+        && tripDocumentData(tripId, fileName).ownerId == ownerId;
       allow create: if isMember()
         && resource == null
         && ownerId == myMemberId()
