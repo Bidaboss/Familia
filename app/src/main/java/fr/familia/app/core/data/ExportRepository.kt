@@ -33,6 +33,11 @@ data class FamilyData(
     val trips: List<ExportDocument> = emptyList(),
     val tripSteps: List<ExportTripChild> = emptyList(),
     val tripItems: List<ExportTripChild> = emptyList(),
+    /**
+     * Carnet de baroudeur (récits 107 et 112): the destinations the admin principal added by hand.
+     * Those of the others are private: only their member reads them.
+     */
+    val travelPlaces: List<ExportDocument> = emptyList(),
 )
 
 /** A step or an item of the trip [tripId]. */

@@ -26,13 +26,16 @@ data class TripEditDestination(val tripId: String? = null)
 @Serializable
 data class TripStepEditDestination(val tripId: String, val stepId: String? = null, val place: String? = null)
 
-/** « Phrases utiles » of [tripId] (récit 105): ten phrases of the language of each country abroad. */
+/**
+ * « Phrases utiles » of [tripId] (récit 105): ten phrases of the language of each country abroad, or
+ * of [country] only when opened from the page of a step (récit 112, règle 44).
+ */
 @Serializable
-data class TripPhrasesDestination(val tripId: String)
+data class TripPhrasesDestination(val tripId: String, val country: String? = null)
 
-/** « Sécurité » (récit 105, règle 43). */
+/** « Sécurité » (récit 105, règle 43), of [country] only when opened from the page of a step (récit 112). */
 @Serializable
-data class TripSafetyDestination(val tripId: String)
+data class TripSafetyDestination(val tripId: String, val country: String? = null)
 
 /** « Monnaie » (récit 105, règle 42). */
 @Serializable

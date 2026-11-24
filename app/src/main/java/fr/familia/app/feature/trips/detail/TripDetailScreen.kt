@@ -143,10 +143,6 @@ fun TripDetailScreen(
     /** « Valise » (récit 98), for those who go; the number of things left to do on the round button. */
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
-    /** « Phrases utiles » (récit 105): offered when a step is abroad, in a language of the table; null elsewhere. */
-    onOpenPhrases: (() -> Unit)? = null,
-    /** « Sécurité » (récit 105): offered when a step is in a country of the table of numbers; null elsewhere. */
-    onOpenSafety: (() -> Unit)? = null,
     /** « Monnaie » (récit 105): for those who go, on a trip abroad or with a currency; null elsewhere. */
     onOpenMoney: (() -> Unit)? = null,
     /** « Documents » (récit 105, règle 41): for those who go; null for the followers. */
@@ -225,7 +221,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney, cover, timeline, onOpenDocuments, onOpenEnrich)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenMoney, cover, timeline, onOpenDocuments, onOpenEnrich)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -348,8 +344,6 @@ private fun PathContent(
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
     satelliteToken: String = "",
-    onOpenPhrases: (() -> Unit)? = null,
-    onOpenSafety: (() -> Unit)? = null,
     onOpenMoney: (() -> Unit)? = null,
     cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     timeline: TimelineActions? = null,
@@ -460,8 +454,6 @@ private fun PathContent(
                     onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() && !satellite },
                     onPacking = onOpenPacking?.takeIf { state.isParticipant },
                     packingCount = packingCount,
-                    onPhrases = onOpenPhrases,
-                    onSafety = onOpenSafety,
                     onMoney = onOpenMoney,
                     onDocuments = onOpenDocuments?.takeIf { state.isParticipant },
                 )

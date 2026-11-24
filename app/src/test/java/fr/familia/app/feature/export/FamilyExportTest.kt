@@ -44,6 +44,7 @@ class FamilyExportTest {
             ExportTripChild("t1", "s1", mapOf("place" to "Rennes")),
         ),
         tripItems = listOf(ExportTripChild("t1", "i1", mapOf("label" to "Crème solaire"))),
+        travelPlaces = listOf(ExportDocument("p1", mapOf("name" to "Lisbonne", "date" to "2019-05-02", "days" to 4L))),
     )
 
     private val json = Json.parseToJsonElement(familyExportJson(data, Instant.parse("2026-11-14T10:00:00Z"), "1.2.0")).jsonObject
@@ -74,6 +75,7 @@ class FamilyExportTest {
         assertEquals(listOf("s1", "s2"), steps.map { it.getValue("id").jsonPrimitive.content })
         assertTrue(steps.all { it.getValue("tripId").jsonPrimitive.content == "t1" })
         assertEquals("Crème solaire", json.getValue("tripItems").jsonArray.single().jsonObject.getValue("label").jsonPrimitive.content)
+        assertEquals("Lisbonne", json.getValue("travelPlaces").jsonArray.single().jsonObject.getValue("name").jsonPrimitive.content)
     }
 
     @Test
