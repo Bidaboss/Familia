@@ -33,6 +33,10 @@ data class TripStepEditDestination(
     val day: String? = null,
 )
 
+/** « Ajouter une destination » (fiche F2 §3): a place added to [tripId] from [day] (ISO), one night. */
+@Serializable
+data class TripAddDestinationDestination(val tripId: String, val day: String)
+
 /**
  * « Phrases utiles » of [tripId] (récit 105): ten phrases of the language of each country abroad, or
  * of [country] only when opened from the page of a step (récit 112, règle 44).
