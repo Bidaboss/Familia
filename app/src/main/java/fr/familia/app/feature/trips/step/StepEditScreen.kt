@@ -203,6 +203,7 @@ private fun FormContent(
                 onDay = { day -> onChange { it.copy(departDate = day, arriveDate = it.arriveDate?.takeIf { a -> a >= day }) } },
                 time = form.departTime,
                 onTime = { time -> onChange { it.copy(departTime = time) } },
+                clearDescription = stringResource(R.string.trip_step_clear_depart_time),
             )
             errorMessage(errors, StepFormError.DepartMissing)?.let { FormHint(it, isError = true) }
             FormLabel(stringResource(R.string.trip_step_field_arrive))
@@ -212,6 +213,7 @@ private fun FormContent(
                 time = form.arriveTime,
                 onTime = { time -> onChange { it.copy(arriveTime = time) } },
                 initial = form.departDate,
+                clearDescription = stringResource(R.string.trip_step_clear_arrive_time),
             )
             errorMessage(errors, StepFormError.ArriveBeforeDepart)?.let { FormHint(it, isError = true) }
             ReminderBand()
@@ -270,7 +272,15 @@ private fun TripReminder(trip: Trip) {
  * « Sans heure » link clears an hour once one is set.
  */
 @Composable
-private fun DayAndTime(day: LocalDate?, onDay: (LocalDate) -> Unit, time: LocalTime?, onTime: (LocalTime?) -> Unit, initial: LocalDate? = null) {
+private fun DayAndTime(
+    day: LocalDate?,
+    onDay: (LocalDate) -> Unit,
+    time: LocalTime?,
+    onTime: (LocalTime?) -> Unit,
+    initial: LocalDate? = null,
+    /** What TalkBack says on the « Sans heure » link: which hour it clears (C1 of #590). */
+    clearDescription: String? = null,
+) {
     val dayLabel = stringResource(R.string.trip_step_day)
     val timeLabel = stringResource(R.string.trip_step_time)
     Column {
@@ -288,7 +298,8 @@ private fun DayAndTime(day: LocalDate?, onDay: (LocalDate) -> Unit, time: LocalT
         if (time != null) {
             TextButton(
                 onClick = { onTime(null) },
-                modifier = Modifier.align(Alignment.End).heightIn(min = 56.dp),
+                modifier = Modifier.align(Alignment.End).heightIn(min = 56.dp)
+                    .then(if (clearDescription != null) Modifier.semantics { contentDescription = clearDescription } else Modifier),
             ) { Text(stringResource(R.string.event_no_time)) }
         }
     }

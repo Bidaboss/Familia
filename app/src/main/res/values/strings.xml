@@ -2124,6 +2124,8 @@
     <string name="trip_step_tile_when">Quand ?</string>
     <string name="trip_step_day">Jour</string>
     <string name="trip_step_time">Heure</string>
+    <string name="trip_step_clear_depart_time">Retirer l\'heure de départ</string>
+    <string name="trip_step_clear_arrive_time">Retirer l\'heure d\'arrivée</string>
     <string name="trip_step_tile_note">Une note</string>
     <string name="trip_step_note_hint">Plusieurs lignes possibles : numéro de train, de vol, voiture, quai…</string>
     <string name="trip_step_add">Ajouter l\'étape</string>

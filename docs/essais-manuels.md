@@ -2395,3 +2395,9 @@ Sur un téléphone en Android 10 ou plus :
 3. Faire glisser le globe du doigt : il suit le doigt et ne tourne pas dessous ; environ 3 s après avoir levé le doigt, il repart de là où il a été laissé.
 4. « Arrêter » l'arrête, « Reprendre » le relance.
 5. Mode avion avant d'ouvrir Voyages : après environ 15 s au plus, le paysage s'affiche à la place, et « Plantages » (Administration) dit pourquoi.
+
+## Voyage : TalkBack dit quelle heure « Sans heure » retire (C1 de #590)
+
+**Publier Firebase : non.**
+1. Modifier une étape, choisir une heure de départ et une heure d'arrivée : deux petits liens « Sans heure ».
+2. Avec TalkBack, le premier se lit « Retirer l'heure de départ », le second « Retirer l'heure d'arrivée » ; chacun n'efface que la sienne.
