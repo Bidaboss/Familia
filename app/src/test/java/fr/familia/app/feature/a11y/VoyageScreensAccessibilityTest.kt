@@ -39,6 +39,9 @@ class VoyageScreensAccessibilityTest {
     fun `a trip`() = compose.checkAccessibility(VoyageScreens.screen("a trip"))
 
     @Test
+    fun `a trip, the path of the fiche F1`() = compose.checkAccessibility(VoyageScreens.screen("a trip, the path of the fiche F1"))
+
+    @Test
     fun `a trip, for who does not take part`() = compose.checkAccessibility(VoyageScreens.screen("a trip, for who does not take part"))
 
     @Test

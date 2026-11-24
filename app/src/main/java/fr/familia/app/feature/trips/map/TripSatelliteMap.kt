@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
@@ -112,6 +114,8 @@ fun TripSatelliteMap(
     /** The map gave up; its reason, short, goes under « Carte indisponible » (retour d'essai du 24/11). */
     onFailed: (MapUnavailable) -> Unit,
     modifier: Modifier = Modifier,
+    /** Fiche F1 §3: the round « couches » button at the top right, under the bubble, instead of above the sheet. */
+    settingsAtTop: Boolean = false,
     /** The arrival of règle 4: out to Europe, then back in on the place; false for who asked for no animation. */
     intro: Boolean = true,
     /** The text of each round (« Le trajet » numbers the destinations); null: the departure without number, then 1 to n. */
@@ -306,12 +310,27 @@ fun TripSatelliteMap(
                 }
             },
         )
-        // The only control: discreet, at the bottom right of the map, above the sheet.
-        FilledTonalIconButton(
-            onClick = { settingsOpen = true },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = (bottomPaddingDp + 12.0).dp).size(56.dp),
-        ) {
-            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.trip_map_settings))
+        if (settingsAtTop) {
+            // Fiche F1 §3: a white round with the layers, at the top right under the bubble.
+            androidx.compose.material3.Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.95f),
+                contentColor = androidx.compose.ui.graphics.Color(0xFF1E1B18),
+                shadowElevation = 3.dp,
+                modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 116.dp, end = 12.dp),
+            ) {
+                androidx.compose.material3.IconButton(onClick = { settingsOpen = true }, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.Outlined.Layers, contentDescription = stringResource(R.string.trip_map_settings))
+                }
+            }
+        } else {
+            // The only control: discreet, at the bottom right of the map, above the sheet.
+            FilledTonalIconButton(
+                onClick = { settingsOpen = true },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = (bottomPaddingDp + 12.0).dp).size(56.dp),
+            ) {
+                Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.trip_map_settings))
+            }
         }
     }
     if (settingsOpen) {

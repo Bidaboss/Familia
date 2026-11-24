@@ -195,7 +195,7 @@ fun TripDetailRoute(
         ),
         quickAdd = quickAdd,
         cover = { success ->
-            TripCoverCarousel(success.trip, success.steps, container?.placePhotos)
+            TripCoverCarousel(success.trip, success.steps, container?.placePhotos, today = success.today)
         },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )

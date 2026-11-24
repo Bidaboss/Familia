@@ -2359,3 +2359,16 @@ Sur un téléphone en Android 10 ou plus :
 4. Ajouter une étape en tapant « la ciotat » : le clavier met une majuscule à chaque mot, et l'étape s'enregistre « La Ciotat ». « saint-jean-de-luz » devient « Saint-Jean-de-Luz ».
 5. Une ancienne étape « La ciotat » s'affiche « La Ciotat » dans la carte du jour.
 6. Nouveau voyage, taper « La R » : des propositions apparaissent ; effacer jusqu'à « La » : les propositions disparaissent (remarque C de #583).
+
+## Voyage : l'écran d'un voyage selon la fiche F1
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec au moins une étape placée : la carte satellite remplit l'écran, jusque sous la barre d'état. Par-dessus, en haut : le rond « Retour », une pilule blanche avec le nom du voyage (police arrondie, petit crayon pour qui peut modifier) et « Camille, Inès et 1 autre » dessous, puis les ronds « Partager » (si le partage est permis) et « ? ».
+2. Sous la barre, la bulle blanche « Départ dans N nuits » (la veille « Demain, c'est le départ », le jour même « C'est le jour J », pendant le voyage « Jour 2 sur 6 », rien après). À droite, en petit, « © Mapbox © OpenStreetMap ». Plus de carte blanche « N nuits avant le départ » dans le panneau.
+3. Le rond blanc des couches de carte est en haut à droite, sous la bulle ; il ouvre les réglages de carte comme avant.
+4. Le panneau s'ouvre au milieu (environ la moitié de l'écran). Glisser vers le bas : il descend à environ un cinquième ; vers le haut : il prend tout l'écran, la barre du haut disparaît, une flèche ↓ en haut à gauche le fait redescendre. La poignée est une barre grise fine.
+5. En tête du panneau, la grande carte photo (210 dp, angles arrondis) : « ● Voyage programmé » (« En cours » pendant, « Terminé » après), le bouton pause si plusieurs photos, le nom du lieu de la photo dans une petite pastille, le nom du voyage en gros, puis le mois (l'année dessous), les JOURS et les KILOMÈTRES, et les points du diaporama en bas à droite.
+6. Dessous : « Du lun. 2 au lun. 9 août 2027 · 8 jours » avec un crayon (il ouvre la modification du voyage pour qui peut), les ronds de ceux qui partent puis leurs prénoms, et la pilule pêche « Enrichir le voyage avec une IA » (pour ceux qui partent).
+7. Plein écran, après « Le trajet » : les boutons blancs « Comptes », « Valise » (avec le nombre de choses à faire), « Documents », sur deux colonnes.
+8. Pendant le voyage, pour ceux qui partent : le bouton d'ajout rapide est un rond blanc avec l'appareil photo.
+9. Avec TalkBack (pas de carte) : la même barre du haut et la bulle s'affichent en haut de l'écran, au-dessus du contenu ; « La carte » est dans les boutons du bas.

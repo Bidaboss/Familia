@@ -163,6 +163,15 @@ internal object VoyageScreens {
         },
         screen("the word of a step, with no word yet, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = false, isParticipant = false), StepWordActions()) },
         screen("the map of a trip, with no step placed") { TripMapScreen(previewTripDetail(), {}, {}, {}) },
+        // Fiche F1: the path with its header, the big photo card, the dates, who goes, the AI pill and the tools.
+        screen("a trip, the path of the fiche F1") {
+            TripDetailScreen(
+                previewTripDetail(), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenExpenses = {},
+                illustrated = true,
+                cover = { success -> fr.familia.app.feature.trips.detail.TripCoverCarousel(success.trip, success.steps, null, today = success.today) },
+                onOpenEnrich = {}, onOpenPacking = {}, packingCount = 2, onOpenDocuments = {}, onShare = {},
+            )
+        },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },
         screen("À emporter") {
             PackingBags(

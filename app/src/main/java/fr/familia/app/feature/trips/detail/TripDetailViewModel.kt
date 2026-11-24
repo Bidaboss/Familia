@@ -58,6 +58,8 @@ sealed interface TripDetailUiState {
          * hidden from someone, must never reach them through a family group.
          */
         val canShare: Boolean = false,
+        /** Those who go, for their rounds under the photo (fiche F1). */
+        val people: List<fr.familia.app.core.model.Member> = emptyList(),
     ) : TripDetailUiState
 }
 
@@ -240,6 +242,7 @@ class TripDetailViewModel(
                 .map { ItemAssignee(it.id, it.firstName) }
                 .sortedBy { it.name.lowercase() },
             canShare = family.members.all { it.id in trip.readerIds },
+            people = trip.participantIds.mapNotNull { id -> family.members.firstOrNull { it.id == id } },
         )
     }
 }
