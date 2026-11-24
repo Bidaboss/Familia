@@ -369,8 +369,8 @@ private fun PathContent(
     }
     val listState = rememberLazyListState()
     val withCover = cover != null && state.today.isBefore(state.trip.startDate)
-    // « Bien arrivé » stays at hand: the next step not arrived yet, for those who go.
-    val nextStep = remember(state.steps) { state.steps.filter { it.arrival == null }.minWithOrNull(compareBy({ it.departDate }, { it.departTime })) }
+    // « Bien arrivé » stays at hand on the day of the step only (DESIGN-102 A), for those who go.
+    val nextStep = remember(state.steps, state.today) { StepArrivalDay.stepOfToday(state.steps, state.today) }
     val showNext = nextStep != null && state.isParticipant
     val notebookIndex = (if (withCover) 1 else 0) + 1 + (if (state.sendFailed) 1 else 0) + (if (showNext) 2 else 0)
     // Opened from « Étapes » or « À prévoir » of the list: that part first, once.
@@ -682,8 +682,11 @@ private fun StepCard(
         step.note?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
         Spacer(Modifier.height(8.dp))
         val arrival = step.arrival
+        // Not the day of the step (DESIGN-102 A): no « Bien arrivé » weeks before the departure.
         if (arrival != null) {
             ArrivedRow(arrival, today, isParticipant, onClearArrival)
+        } else if (!StepArrivalDay.isOpen(step, today)) {
+            Unit
         } else if (isParticipant) {
             FilledTonalButton(onClick = onArrived, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Icon(Icons.Outlined.CheckCircle, contentDescription = null)
@@ -694,7 +697,7 @@ private fun StepCard(
             Text(stringResource(R.string.trip_not_arrived), style = MaterialTheme.typography.bodyMedium, color = variant)
         }
         // The word of the step (récit 88): written by a participant, read by the followers.
-        if (onOpenWord != null) {
+        if (onOpenWord != null && StepArrivalDay.hasStarted(step, today)) {
             TextButton(onClick = onOpenWord, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.word_title)) }
         }
     }
