@@ -498,7 +498,7 @@ private fun PathContent(
         }
         if (showNext && nextStep != null) {
             item(key = "next-title") {
-                TripSectionTitle(stringResource(R.string.timeline_next), Modifier.padding(horizontal = ClaySpacing.screen))
+                TripSectionTitle(stringResource(R.string.timeline_next), Modifier.padding(horizontal = ClaySpacing.screen), color = TripSheetColors.Ink)
             }
             item(key = "next-${nextStep.id}") {
                 StepCard(
@@ -533,7 +533,8 @@ private fun PathContent(
             TripToolsGrid(tools, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp))
         }
         item(key = "photos-title") {
-            TripSectionTitle(stringResource(R.string.trip_photos), Modifier.padding(horizontal = ClaySpacing.screen))
+            // E-50: on the cream sheet, the title in dark ink, never the red of the theme.
+            TripSectionTitle(stringResource(R.string.trip_photos), Modifier.padding(horizontal = ClaySpacing.screen), color = TripSheetColors.Ink)
         }
         item(key = "photos") {
             val empty = if (photos.canAdd) R.string.trip_photos_empty_participant else R.string.trip_photos_empty
