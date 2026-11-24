@@ -249,7 +249,7 @@ fun TripSatelliteMap(
                             val camera = map.mapboxMap.cameraState
                             memory.keep(camera.center.longitude(), camera.center.latitude(), camera.zoom, camera.bearing, camera.pitch)
                         }
-                        loadLook(map, look, points, names, arrived, nextIndex, selected, { fail(it, false) }, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, photoMarkers.toMap()) }
+                        loadLook(map, look, points, names, arrived, nextIndex, selected, { fail(it, false) }, labels, onRefused = { MapFailureLog.record(context, MapUnavailable.SdkError("couche $it".take(60))) }) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, photoMarkers.toMap()) }
                         applied[0] = look; applied[1] = tilted; applied[2] = sheetHigh; applied[3] = selected; applied[4] = photoMarkers.toMap()
                         map.gestures.addOnMapClickListener(
                             OnMapClickListener { point ->
@@ -285,7 +285,7 @@ fun TripSatelliteMap(
                     applied[0] = look
                     restyling[0] = true
                     applied[4] = shownPhotos
-                    loadLook(map, look, points, names, arrived, nextIndex, selected, { fail(it, false) }, labels) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) }
+                    loadLook(map, look, points, names, arrived, nextIndex, selected, { fail(it, false) }, labels, onRefused = { MapFailureLog.record(context, MapUnavailable.SdkError("couche $it".take(60))) }) { style -> showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) }
                 } else if (applied[4] != shownPhotos) {
                     applied[4] = shownPhotos
                     map.mapboxMap.getStyle()?.let { style -> runCatching { showPhotos(style, points, names, arrived, nextIndex, labels, shownPhotos) } }
@@ -370,12 +370,18 @@ private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilte
 }
 
 /** Loads the look of the map, then draws the steps on it (again after a change of look: the style forgets them). */
-private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: (Throwable) -> Unit, labels: List<String>?, afterDraw: (Style) -> Unit = {}) {
+/** The layers without which there is no map of the trip: the rounds of the steps and their sources. */
+internal val ESSENTIAL_LAYERS = listOf("home-steps", "home-next", "home-steps-dots", "home-done-dots", "home-next-dot")
+
+private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: (Throwable) -> Unit, labels: List<String>?, onRefused: (String) -> Unit = {}, afterDraw: (Style) -> Unit = {}) {
     val satellite = look == MapLook.Satellite
     view.mapboxMap.loadStyle(if (satellite) Style.STANDARD_SATELLITE else Style.STANDARD) { style ->
         runCatching {
             if (satellite) configureSatelliteGlobe(style)
-            drawSteps(style, points, names, arrived, next, selected, trail = if (satellite) "#FFFFFF" else "#333333", labels = labels)
+            val refused = drawSteps(style, points, names, arrived, next, selected, trail = if (satellite) "#FFFFFF" else "#333333", labels = labels)
+            // Only the rounds are the map of the trip: a refused name, number or ring leaves it (and says so).
+            if (refused.isNotEmpty()) onRefused(refused.first())
+            if (refused.any { line -> ESSENTIAL_LAYERS.any { line.startsWith("$it:") } }) throw IllegalStateException(refused.joinToString(" ; "))
         }.onFailure { onFailed(it) }
         // The photos are an extra: a failure there leaves the plain rounds.
         runCatching { afterDraw(style) }
@@ -418,14 +424,30 @@ private fun showSelected(style: Style, points: List<GeoPoint>, names: List<Strin
     style.getSourceAs<GeoJsonSource>("home-selected")?.featureCollection(FeatureCollection.fromFeatures(features))
 }
 
-private fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, nextIndex: Int, selected: Int?, trail: String, labels: List<String>?) {
+/**
+ * Draws the steps; returns the layers Mapbox refused, « id: message » (retour d'essai du 24/11:
+ * one refused layer used to cut the whole map). Each source and layer goes on its own, again
+ * after a first try on the same style (a look changed, photos come).
+ */
+internal fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, nextIndex: Int, selected: Int?, trail: String, labels: List<String>?): List<String> {
+    val refused = mutableListOf<String>()
+    fun addSource(source: com.mapbox.maps.extension.style.sources.Source) {
+        runCatching { if (!style.styleSourceExists(source.sourceId)) style.addSource(source) }
+            .onFailure { refused += "${source.sourceId}: ${it.message}" }
+    }
+    fun addLayer(layer: com.mapbox.maps.extension.style.layers.Layer) {
+        runCatching {
+            if (style.styleLayerExists(layer.layerId)) style.removeStyleLayer(layer.layerId)
+            style.addLayer(layer)
+        }.onFailure { refused += "${layer.layerId}: ${it.message}" }
+    }
     if (points.size >= 2) {
-        style.addSource(geoJsonSource("home-trail") { geometry(LineString.fromLngLats(points.map { it.toPoint() })) })
-        style.addLayer(lineLayer("home-trail-line", "home-trail") { lineColor(trail); lineWidth(3.0); lineDasharray(listOf(2.0, 2.0)) })
+        addSource(geoJsonSource("home-trail") { geometry(LineString.fromLngLats(points.map { it.toPoint() })) })
+        addLayer(lineLayer("home-trail-line", "home-trail") { lineColor(trail); lineWidth(3.0); lineDasharray(listOf(2.0, 2.0)) })
     }
     val others = points.indices.filter { it != nextIndex }
     // The close steps gather in one round with their number, and come apart when the map is zoomed (règle 7, PRODUIT 23/11).
-    style.addSource(
+    addSource(
         geoJsonSource("home-steps") {
             featureCollection(FeatureCollection.fromFeatures(others.map { feature(points, names, arrived, it, labels) }))
             cluster(true)
@@ -433,30 +455,31 @@ private fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>,
             clusterMaxZoom(11L)
         },
     )
-    style.addSource(geoJsonSource("home-next") { featureCollection(FeatureCollection.fromFeatures(points.indices.filter { it == nextIndex }.map { feature(points, names, arrived, it, labels) })) })
-    style.addSource(geoJsonSource("home-selected") { featureCollection(FeatureCollection.fromFeatures(emptyList())) })
+    addSource(geoJsonSource("home-next") { featureCollection(FeatureCollection.fromFeatures(points.indices.filter { it == nextIndex }.map { feature(points, names, arrived, it, labels) })) })
+    addSource(geoJsonSource("home-selected") { featureCollection(FeatureCollection.fromFeatures(emptyList())) })
     val single = Expression.not(Expression.has("point_count"))
     val notDone = Expression.eq(Expression.get("done"), Expression.literal(0.0))
     val done = Expression.eq(Expression.get("done"), Expression.literal(1.0))
-    style.addLayer(circleLayer("home-cluster", "home-steps") { filter(Expression.has("point_count")); circleRadius(18.0); circleColor("#111111"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
-    style.addLayer(symbolLayer("home-cluster-count", "home-steps") { filter(Expression.has("point_count")); textField(get("point_count_abbreviated")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
-    style.addLayer(circleLayer("home-steps-dots", "home-steps") { filter(Expression.all(single, notDone)); circleRadius(13.0); circleColor("#111111"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
-    style.addLayer(circleLayer("home-done-dots", "home-steps") { filter(Expression.all(single, done)); circleRadius(13.0); circleColor("#2E7D32"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
-    style.addLayer(circleLayer("home-next-dot", "home-next") { circleRadius(18.0); circleColor("#FFD84A"); circleStrokeColor("#111111"); circleStrokeWidth(4.0) })
-    style.addLayer(circleLayer("home-selected-ring", "home-selected") { circleRadius(24.0); circleColor("#00000000"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(4.0) })
+    addLayer(circleLayer("home-cluster", "home-steps") { filter(Expression.has("point_count")); circleRadius(18.0); circleColor("#111111"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
+    addLayer(symbolLayer("home-cluster-count", "home-steps") { filter(Expression.has("point_count")); textField(get("point_count_abbreviated")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
+    addLayer(circleLayer("home-steps-dots", "home-steps") { filter(Expression.all(single, notDone)); circleRadius(13.0); circleColor("#111111"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
+    addLayer(circleLayer("home-done-dots", "home-steps") { filter(Expression.all(single, done)); circleRadius(13.0); circleColor("#2E7D32"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
+    addLayer(circleLayer("home-next-dot", "home-next") { circleRadius(18.0); circleColor("#FFD84A"); circleStrokeColor("#111111"); circleStrokeWidth(4.0) })
+    addLayer(circleLayer("home-selected-ring", "home-selected") { circleRadius(24.0); circleColor("#000000"); circleOpacity(0.0); circleStrokeColor("#FFFFFF"); circleStrokeWidth(4.0) })
     // The number in the round (none for the departure), a tick once arrived.
-    style.addLayer(symbolLayer("home-steps-numbers", "home-steps") { filter(single); textField(get("n")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
-    style.addLayer(symbolLayer("home-next-number", "home-next") { textField(get("n")); textSize(15.0); textColor("#111111"); textAllowOverlap(true) })
+    addLayer(symbolLayer("home-steps-numbers", "home-steps") { filter(single); textField(get("n")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
+    addLayer(symbolLayer("home-next-number", "home-next") { textField(get("n")); textSize(15.0); textColor("#111111"); textAllowOverlap(true) })
     // The place is written under the next step and the chosen one only.
-    style.addLayer(
+    addLayer(
         symbolLayer("home-next-name", "home-next") {
             textField(get("name")); textSize(14.0); textColor("#111111"); textHaloColor("#FFD84A"); textHaloWidth(2.5); textOffset(listOf(0.0, 2.2))
         },
     )
-    style.addLayer(
+    addLayer(
         symbolLayer("home-selected-name", "home-selected") {
             textField(get("name")); textSize(14.0); textColor("#111111"); textHaloColor("#FFFFFF"); textHaloWidth(2.5); textOffset(listOf(0.0, 2.4))
         },
     )
-    showSelected(style, points, names, selected)
+    runCatching { showSelected(style, points, names, selected) }
+    return refused
 }

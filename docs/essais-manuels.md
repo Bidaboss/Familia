@@ -2331,3 +2331,12 @@ Sur un téléphone en Android 10 ou plus :
 4. Toucher une proposition puis « Continuer » : le voyage prend le nom « La Rochelle », avec sa majuscule.
 5. Deux lettres seulement : pas de proposition, l'indication reste. « Chercher » marche toujours.
 6. Sans réseau : « Aucun lieu trouvé », comme avant.
+
+## Voyage : une couche refusée par Mapbox ne coupe plus la carte (plantage du 24/11 16 h 47)
+
+**Publier Firebase : non.** « APK de publication » (R8 et carte satellite).
+1. Ouvrir le voyage La Palmyre : la carte satellite s'affiche avec ses ronds numérotés et le chemin en pointillé.
+2. Toucher un rond : un anneau blanc l'entoure, sans disque noir dedans.
+3. Basculer Satellite / Rues puis 2D / 3D plusieurs fois : la carte reste, sans « Carte indisponible ».
+4. Si une couche secondaire (nom, numéro, anneau) était encore refusée, la carte reste affichée et Administration > Plantages reçoit au lancement suivant « SdkError » avec « couche <id>: <message> ».
+5. Dans Plantages, une carte indisponible porte désormais son vrai nom (ViewFailed, Timeout, SdkError…).

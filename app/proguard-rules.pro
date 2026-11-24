@@ -21,3 +21,8 @@
 # Components named in the manifest are kept by AAPT; the messaging service is kept again for
 # safety, since a lost push service fails silently.
 -keep class fr.familia.app.core.notifications.FamiliaMessagingService { *; }
+
+# « Plantages » reads the reason of a map failure from its class name (MapUnavailable$Timeout, …):
+# keep each one whole, so R8 neither renames nor merges them (24/11: a ViewFailed came as Timeout).
+-keep class fr.familia.app.feature.trips.map.MapUnavailable { *; }
+-keep class fr.familia.app.feature.trips.map.MapUnavailable$* { *; }
