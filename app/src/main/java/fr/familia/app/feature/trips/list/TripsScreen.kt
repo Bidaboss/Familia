@@ -48,6 +48,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -113,6 +115,8 @@ fun TripsScreen(
     globeToken: String = "",
     /** The real photos of the places (règle 12); null: the satellite image, else the drawn landscape. */
     placePhotos: PlacePhotos? = null,
+    /** « Carnet de baroudeur » (récit 107); null: no button. */
+    onOpenCarnet: (() -> Unit)? = null,
 ) {
     var souvenirs by rememberSaveable { mutableStateOf(false) }
     var globeStopped by rememberSaveable { mutableStateOf(false) }
@@ -173,7 +177,7 @@ fun TripsScreen(
             contentColor = TripPathColors.Ink,
             topBar = {
                 Column(Modifier.background(skyColor).statusBarsPadding()) {
-                    TripsTopBar(onBack, onDark = dark)
+                    TripsTopBar(onBack, onDark = dark, onOpenCarnet = onOpenCarnet)
                     if (success != null && !success.isEmpty) {
                         TripsSwitch(souvenirs, success.past.size, onChoose = { souvenirs = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     }
@@ -230,7 +234,13 @@ fun TripsScreen(
 
 /** The round « Retour », « Voyages » (or [title]) in the title font, the round « ? ». */
 @Composable
-internal fun TripsTopBar(onBack: (() -> Unit)?, title: String = stringResource(R.string.trips_title), help: ScreenHelp = ScreenHelp.Trips, onDark: Boolean = false) {
+internal fun TripsTopBar(
+    onBack: (() -> Unit)?,
+    title: String = stringResource(R.string.trips_title),
+    help: ScreenHelp = ScreenHelp.Trips,
+    onDark: Boolean = false,
+    onOpenCarnet: (() -> Unit)? = null,
+) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -244,6 +254,14 @@ internal fun TripsTopBar(onBack: (() -> Unit)?, title: String = stringResource(R
             color = if (onDark) Color.White else TripPathColors.Ink,
             modifier = Modifier.weight(1f).padding(start = 8.dp).semantics { heading() },
         )
+        // « Carnet de baroudeur » (récit 107): the round button left of « ? », as in the prototype.
+        if (onOpenCarnet != null) {
+            Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) {
+                IconButton(onClick = onOpenCarnet, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.Outlined.BarChart, contentDescription = stringResource(R.string.carnet_open))
+                }
+            }
+        }
         Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { HelpButton(help) }
     }
 }
