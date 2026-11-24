@@ -2,7 +2,14 @@ package fr.familia.app.feature.trips.place
 
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripPlace
+import fr.familia.app.core.place.FoundPlace
 import java.time.LocalTime
+
+/**
+ * Where a place is, as chosen in a search (règle 20) or as saved: its name then, its address and
+ * its point. It stays true only while the typed name is still [name].
+ */
+data class PlacePick(val name: String, val address: String? = null, val lat: Double? = null, val lng: Double? = null)
 
 /** What is being typed on the page of a place (récit 103, règle 21): its name, the hour, a note, a cost. */
 data class PlaceForm(
@@ -11,24 +18,32 @@ data class PlaceForm(
     val note: String = "",
     /** As typed: « 80 », « 12,50 »; empty for none. */
     val cost: String = "",
+    /** The place chosen in the search, or the saved one; null when the name was only typed. */
+    val pick: PlacePick? = null,
 ) {
-    /** The place to save under [stepId]; the address and the point stay those of [before]. */
-    fun toPlace(id: String, stepId: String, kind: TripPlaceKind, before: TripPlace?): TripPlace {
-        val sameName = before != null && before.name == name.trim()
+    /** The place to save under [stepId], with the address and the point of [pick] when its name is still the one typed. */
+    fun toPlace(id: String, stepId: String, kind: TripPlaceKind): TripPlace {
+        // A new name is another place: its old address and point would lie.
+        val where = pick?.takeIf { it.name == name.trim() }
         return TripPlace(
             id = id,
             stepId = stepId,
             kind = kind,
             name = name.trim(),
-            // A new name is another place: its old address and point would lie.
-            address = before?.address?.takeIf { sameName },
-            lat = before?.lat?.takeIf { sameName },
-            lng = before?.lng?.takeIf { sameName },
+            address = where?.address,
+            lat = where?.lat?.takeIf { where.lng != null },
+            lng = where?.lng?.takeIf { where.lat != null },
             arriveTime = arriveTime,
             note = note.trim().ifEmpty { null },
             cost = parseCost(cost),
         )
     }
+
+    /** [found] in place of the name and the location; the hour, the note and the cost stay. */
+    fun choose(found: FoundPlace): PlaceForm = copy(
+        name = found.name.take(MAX_PLACE_NAME),
+        pick = PlacePick(found.name.take(MAX_PLACE_NAME), found.address, found.lat, found.lng),
+    )
 
     companion object {
         fun from(place: TripPlace) = PlaceForm(
@@ -36,6 +51,7 @@ data class PlaceForm(
             arriveTime = place.arriveTime,
             note = place.note.orEmpty(),
             cost = place.cost?.let(::costText).orEmpty(),
+            pick = PlacePick(place.name, place.address, place.lat, place.lng),
         )
     }
 }

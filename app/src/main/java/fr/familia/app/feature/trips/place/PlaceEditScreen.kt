@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -100,6 +102,8 @@ fun PlaceEditScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onBack: () -> Unit,
+    /** Opens the search of its kind again (« Choisir un autre … », règle 19); null hides the button. */
+    onSearch: (() -> Unit)? = null,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val editing = state as? PlaceEditUiState.Editing
@@ -133,7 +137,7 @@ fun PlaceEditScreen(
                     body = stringResource(R.string.place_unavailable_body),
                 )
             }
-            is PlaceEditUiState.Editing -> FormContent(state, onChange, onDelete)
+            is PlaceEditUiState.Editing -> FormContent(state, onChange, onDelete, onSearch)
         }
     }
 }
@@ -163,6 +167,7 @@ private fun FormContent(
     state: PlaceEditUiState.Editing,
     onChange: ((PlaceForm) -> PlaceForm) -> Unit,
     onDelete: () -> Unit,
+    onSearch: (() -> Unit)?,
 ) {
     val form = state.form
     val errors = state.errors
@@ -188,8 +193,25 @@ private fun FormContent(
                 )
                 val nameError = errorMessage(errors, PlaceFormError.NameMissing, PlaceFormError.NameTooLong)
                 FormHint(nameError ?: stringResource(R.string.place_name_hint), isError = nameError != null)
+                form.pick?.takeIf { it.name == form.name.trim() }?.address?.let { FormHint(it) }
+                if (onSearch != null) {
+                    TextButton(onClick = onSearch, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Icon(Icons.Outlined.Search, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            stringResource(
+                                when (state.kind) {
+                                    TripPlaceKind.Lodging -> R.string.place_choose_other_lodging
+                                    TripPlaceKind.Restaurant -> R.string.place_choose_other_restaurant
+                                    TripPlaceKind.Spot -> R.string.place_choose_other_spot
+                                },
+                            ),
+                        )
+                    }
+                }
             } else {
                 Text(form.name, style = MaterialTheme.typography.titleMedium)
+                form.pick?.address?.let { FormHint(it) }
             }
             if (state.destination.isNotEmpty()) FormHint(stringResource(R.string.place_in_destination, state.destination))
         }

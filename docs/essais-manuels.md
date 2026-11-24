@@ -1948,3 +1948,15 @@ Rien à publier côté Firebase. « APK de publication » (le réseau est néces
 4. En bas de la page : « Supprimer ce restaurant », avec confirmation. Il disparaît du panneau.
 5. Un membre qui suit le voyage sans partir : la page se lit, sans champ ni bouton.
 6. Supprimer la destination : ses hébergements, restaurants et spots disparaissent aussi.
+
+## Voyage : recherches dédiées à chaque type de lieu (récit 103, partie « lieux » 2 : règle 20)
+
+Seulement « APK de publication » (ni règle ni serveur changés). Il faut une destination placée sur la carte, dans un voyage où l'on part.
+1. Panneau d'une destination, « + Restaurant » : « Trouver un restaurant » s'ouvre, avec les restaurants nommés à moins de 10 km, les plus proches d'abord (type, distance, adresse quand OpenStreetMap la connaît). Même chose pour « + Hébergement » (hôtels, gîtes, campings…) et « + Spot » (musées, plages, points de vue…).
+2. Taper « pizza » : la liste se met à jour un court instant après la dernière lettre. La ligne « Ajouter « pizza » » est en haut.
+3. Toucher un restaurant de la liste : la page « Ton restaurant » s'ouvre avec son nom et son adresse ; ajouter une heure et enregistrer : il apparaît dans le panneau de la destination.
+4. Toucher « Ajouter « Chez Paulo » » : la page s'ouvre avec ce nom, sans adresse.
+5. Rouvrir un restaurant enregistré : « Choisir un autre restaurant » rouvre la recherche ; en choisir un autre : le nom et l'adresse changent, l'heure, les notes et le coût restent. Retour depuis la recherche : on revient sur la page, sans rien changer.
+6. Retour depuis la recherche avant d'avoir choisi : on revient au voyage.
+7. Mode avion : « OpenStreetMap ne répond pas… » avec « Réessayer » ; « Ajouter « … » » marche toujours.
+8. Une destination sans point sur la carte : seul « Ajouter « … » » est proposé, avec une phrase qui l'explique.
