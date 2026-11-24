@@ -1182,6 +1182,8 @@ fun FamiliaApp(
                             onOpenEnrich = { navController.navigate(TripEnrichDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
+                            onOpenPhrases = { country -> navController.navigate(TripPhrasesDestination(tripId, country)) },
+                            onOpenMoney = { currency -> navController.navigate(TripMoneyDestination(tripId, currency)) },
                             onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
                             onInsertStep = { kind, day ->
                                 // Fiche F2 §3: a destination is chosen in its own screen and added in one touch; a transport keeps the form.

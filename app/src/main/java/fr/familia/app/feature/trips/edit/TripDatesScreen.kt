@@ -120,15 +120,32 @@ private val spokenDay = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.F
  * start to the end highlighted. Past days stay touchable, paler: a trip already done is allowed.
  */
 @Composable
-fun TripDatesDialog(start: LocalDate?, end: LocalDate?, onSave: (LocalDate, LocalDate) -> Unit, onDismiss: () -> Unit) {
+fun TripDatesDialog(
+    start: LocalDate?,
+    end: LocalDate?,
+    onSave: (LocalDate, LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+    /** Only the end is chosen, between the day after [start] and [latest] (« Départ » of a destination, fiche F5). */
+    fixedStart: Boolean = false,
+    latest: LocalDate? = null,
+    title: String? = null,
+) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        TripDatesScreen(start, end, onSave, onDismiss)
+        TripDatesScreen(start, end, onSave, onDismiss, fixedStart, latest, title)
     }
 }
 
 /** Stateless but for the days being chosen. */
 @Composable
-fun TripDatesScreen(start: LocalDate?, end: LocalDate?, onSave: (LocalDate, LocalDate) -> Unit, onBack: () -> Unit) {
+fun TripDatesScreen(
+    start: LocalDate?,
+    end: LocalDate?,
+    onSave: (LocalDate, LocalDate) -> Unit,
+    onBack: () -> Unit,
+    fixedStart: Boolean = false,
+    latest: LocalDate? = null,
+    title: String? = null,
+) {
     var range by rememberSaveable(stateSaver = DateRangeSaver) { mutableStateOf(DateRange(start, end)) }
     val today = remember { familyToday() }
     val opensOn = YearMonth.from(start ?: today)
@@ -146,7 +163,7 @@ fun TripDatesScreen(start: LocalDate?, end: LocalDate?, onSave: (LocalDate, Loca
                 ) {
                     Surface(shape = CircleShape, color = Color.White, contentColor = Ink, shadowElevation = 2.dp) { BackButton(onClick = onBack) }
                     Text(
-                        stringResource(R.string.trip_dates_title),
+                        title ?: stringResource(R.string.trip_dates_title),
                         fontFamily = Fredoka,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
@@ -184,7 +201,13 @@ fun TripDatesScreen(start: LocalDate?, end: LocalDate?, onSave: (LocalDate, Loca
                         is CalendarLine.Week -> Row(Modifier.fillMaxWidth()) {
                             line.days.forEach { day ->
                                 Box(Modifier.weight(1f).height(56.dp)) {
-                                    if (day != null) DayCell(day, range, past = day < today, onPick = { range = pickDay(range, day) })
+                                    if (day != null) {
+                                        val fixed = range.start
+                                        val open = !fixedStart || (fixed != null && day > fixed && (latest == null || day <= latest))
+                                        DayCell(day, range, past = day < today || !open, enabled = open, onPick = {
+                                            range = if (fixedStart) DateRange(fixed, day) else pickDay(range, day)
+                                        })
+                                    }
                                 }
                             }
                         }
@@ -195,7 +218,7 @@ fun TripDatesScreen(start: LocalDate?, end: LocalDate?, onSave: (LocalDate, Loca
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(
                         onClick = { range = DateRange(null, null) },
-                        enabled = range.start != null,
+                        enabled = range.start != null && !fixedStart,
                         modifier = Modifier.heightIn(min = 56.dp),
                         colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF1F3B4D)),
                     ) {
@@ -258,7 +281,7 @@ private fun HeaderDay(label: String, day: LocalDate?, modifier: Modifier, align:
 
 /** A day of 56 high: dark round at the start and the end, the sand band between, paler in the past. */
 @Composable
-private fun DayCell(day: LocalDate, range: DateRange, past: Boolean, onPick: () -> Unit) {
+private fun DayCell(day: LocalDate, range: DateRange, past: Boolean, enabled: Boolean, onPick: () -> Unit) {
     val start = range.start
     val end = range.end
     val isStart = day == start
@@ -275,7 +298,7 @@ private fun DayCell(day: LocalDate, range: DateRange, past: Boolean, onPick: () 
     Box(
         Modifier
             .fillMaxSize()
-            .clickable(role = Role.Button, onClick = onPick)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onPick)
             .semantics(mergeDescendants = true) { contentDescription = described },
         contentAlignment = Alignment.Center,
     ) {

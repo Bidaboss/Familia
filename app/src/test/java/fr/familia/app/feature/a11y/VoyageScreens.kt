@@ -186,6 +186,22 @@ internal object VoyageScreens {
         screen("where are you going") {
             TripDestinationScreen("Ajac", DestinationSearch.Idle, null, {}, {}, {}, {}, {}, {})
         },
+        // Fiche F5: the page of a destination, for who goes (departure, « + Ajouter »).
+        screen("the page of a destination") {
+            fr.familia.app.feature.trips.detail.DestinationPage(
+                container = null,
+                success = previewTripDetail(),
+                stayId = "s2",
+                actions = fr.familia.app.feature.trips.detail.TimelineActions(
+                    onNights = { _, _ -> fr.familia.app.feature.trips.detail.NightsChange.Blocked(fr.familia.app.feature.trips.detail.NightsBlock.OneNight) },
+                    onAddPlace = { _, _ -> },
+                ),
+                links = fr.familia.app.feature.trips.detail.DestinationLinks(onEdit = {}, onAllAbout = {}, onOpenPhrases = null, onOpenMoney = null),
+                onSelect = {},
+                onBack = {},
+                inSheet = false,
+            )
+        },
         // Fiche F3: the bags are always on the light blue page of « Valise ».
         screen("À emporter") { androidx.compose.foundation.layout.Box(Modifier.background(TripPathColors.Sky)) {
             PackingBags(
