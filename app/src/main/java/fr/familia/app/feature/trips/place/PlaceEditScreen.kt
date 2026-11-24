@@ -273,7 +273,7 @@ private fun FormContent(
     }
 }
 
-/** « Voir sur Tripadvisor » (Kévin, 23/11): a search with the name and the town, our icon, never their logo. */
+/** « Voir sur Tripadvisor » (demande du 23/11): a search with the name and the town, our icon, never their logo. */
 @Composable
 private fun TripadvisorLink(name: String, destination: String) {
     val query = listOf(name.trim(), destination).filter { it.isNotEmpty() }.joinToString(" ")
