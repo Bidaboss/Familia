@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -62,16 +63,16 @@ import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.toPoint
 import kotlinx.coroutines.delay
 
-/** One point of the globe of the list: where a trip goes. [highlighted]: the next trip, in black. */
-data class GlobeMarker(val point: GeoPoint, val highlighted: Boolean, val tripId: String = "")
+/** One point of the globe of the list: where a trip goes. [highlighted]: the next trip, a bigger dot. [name]: its label (E-38). */
+data class GlobeMarker(val point: GeoPoint, val highlighted: Boolean, val tripId: String = "", val name: String = "")
 
 /** One dot drawn on the globe: the trips that go to the same place (about 1 km) share it, with their number. */
-data class GlobeSpot(val point: GeoPoint, val highlighted: Boolean, val tripIds: List<String>)
+data class GlobeSpot(val point: GeoPoint, val highlighted: Boolean, val tripIds: List<String>, val name: String = "")
 
 /** Groups the trips going to the same place into one dot (spec liste-voyages-globe : « un seul point avec leur nombre »), in the order of [markers]. */
 internal fun globeSpots(markers: List<GlobeMarker>): List<GlobeSpot> =
     markers.groupBy { Math.round(it.point.lat * 100) to Math.round(it.point.lng * 100) }.values.map { same ->
-        GlobeSpot(same.first().point, same.any { it.highlighted }, same.map { it.tripId })
+        GlobeSpot(same.first().point, same.any { it.highlighted }, same.map { it.tripId }, same.firstOrNull { it.name.isNotBlank() }?.name.orEmpty())
     }
 
 /** The trip a touch on [spot] opens: the next one when it is there, else the first in the list. */
@@ -81,6 +82,9 @@ internal fun spotTrip(spot: GlobeSpot?): String? = spot?.tripIds?.firstOrNull()
 data class GlobeFlight(val id: Int, val tripId: String, val point: GeoPoint)
 
 internal const val FLIGHT_MILLIS = 2_000L
+
+/** E-40: the zoom of the globe of the list, about 80 % of the width of a phone as in the prototype. */
+internal const val GLOBE_LIST_ZOOM = 1.0
 
 /** Degrees per second: one turn in 90 s (récit 99). */
 internal const val GLOBE_DEGREES_PER_SECOND = 4.0
@@ -133,6 +137,10 @@ fun TripsGlobe(
     onOpenTrip: (String) -> Unit = {},
     /** The destinations added by hand to the carnet (récit 107, règle 38): a simple mark in Souvenirs, no line, no touch. */
     handAdded: List<GeoPoint> = emptyList(),
+    /** How big the globe is: [GLOBE_LIST_ZOOM] on the list, smaller in a short frame. */
+    zoom: Double = GLOBE_LIST_ZOOM,
+    /** The accent yellow of the app (the pill of the bottom bar): the dots of the coming trips (E-38). */
+    accent: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFFF2C14E),
 ) {
     val context = LocalContext.current
     val started = LocalLifecycleOwner.current.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
@@ -172,7 +180,7 @@ fun TripsGlobe(
     // À venir and Souvenirs share the globe: switching only redraws its dots.
     LaunchedEffect(view, ready, spots, souvenirs) {
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
-        if (ready) showSpots(style, spots, souvenirs)
+        if (ready) showSpots(style, spots, souvenirs, context)
     }
     LaunchedEffect(view, ready, handAdded, souvenirs) {
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
@@ -243,7 +251,7 @@ fun TripsGlobe(
                     // Règle 5 (E-25): nothing but the globe, no scale over « Voyages », no compass.
                     runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
                     map.mapboxMap.setCamera(
-                        CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(0.6).pitch(20.0).build(),
+                        CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(zoom).pitch(20.0).build(),
                     )
                     listeners[0] = map.mapboxMap.subscribeMapLoadingError { error ->
                         lastError[0] = mapErrorLine(error.type.toString(), error.message)
@@ -256,8 +264,8 @@ fun TripsGlobe(
                             configureSatelliteGlobe(style)
                             // Before the trips: its layer lies under their dots.
                             addHandAdded(style)
-                            addMarkers(style)
-                            showSpots(style, currentSpots.value, souvenirs)
+                            addMarkers(style, accentHex(accent))
+                            showSpots(style, currentSpots.value, souvenirs, context)
                         }.onFailure {
                             // A layer refused: the globe stays (never the landscape over a map that shows), the reason goes to « Plantages ».
                             Log.w("TripsGlobe", "layer refused", it)
@@ -309,29 +317,76 @@ private fun spotFeature(spot: GlobeSpot, index: Int): Feature =
     Feature.fromGeometry(spot.point.toPoint()).also {
         it.addNumberProperty("i", index)
         it.addStringProperty("count", if (spot.tripIds.size > 1) spot.tripIds.size.toString() else "")
+        if (spot.name.isNotBlank()) it.addStringProperty("label", labelImageId(spot.name))
     }
 
-/** The dots of the tab shown: the next trip in black, the following ones yellow, the past ones white with an orange ring. */
-private fun showSpots(style: Style, spots: List<GlobeSpot>, souvenirs: Boolean) {
+/** « #F2C14E » for a Mapbox layer. */
+internal fun accentHex(color: androidx.compose.ui.graphics.Color): String =
+    String.format(java.util.Locale.ROOT, "#%06X", color.toArgb() and 0xFFFFFF)
+
+/** The image id of the label of a place (E-38): one per name, kept in the style. */
+internal fun labelImageId(name: String): String = "trip-label-" + Integer.toHexString(name.hashCode())
+
+/**
+ * The dots of the tab shown (E-38, prototype): the coming trips in the accent yellow, the next one
+ * bigger; the past ones white with an orange ring. Under each dot, a white rounded label with the name.
+ */
+private fun showSpots(style: Style, spots: List<GlobeSpot>, souvenirs: Boolean, context: Context) {
     fun collection(keep: (GlobeSpot) -> Boolean) =
         FeatureCollection.fromFeatures(spots.mapIndexedNotNull { i, spot -> if (keep(spot)) spotFeature(spot, i) else null })
+    spots.map { it.name }.filter { it.isNotBlank() }.distinct().forEach { name ->
+        val id = labelImageId(name)
+        if (!style.hasStyleImage(id)) style.addImage(id, labelBitmap(context, name))
+    }
     style.getSourceAs<GeoJsonSource>("trips-other")?.featureCollection(collection { !souvenirs && !it.highlighted })
     style.getSourceAs<GeoJsonSource>("trips-next")?.featureCollection(collection { !souvenirs && it.highlighted })
     style.getSourceAs<GeoJsonSource>("trips-past")?.featureCollection(collection { souvenirs })
 }
 
-private fun addMarkers(style: Style) {
+/** A white rounded label with the name of the place, dark bold text, as the prototype. */
+private fun labelBitmap(context: Context, name: String): android.graphics.Bitmap {
+    val density = context.resources.displayMetrics.density
+    val text = name.take(28)
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF17333F.toInt()
+        textSize = 12f * context.resources.configuration.fontScale.coerceAtMost(1.3f) * density
+        typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+    }
+    val padX = 8f * density
+    val padY = 4f * density
+    val width = (paint.measureText(text) + 2 * padX).toInt().coerceAtLeast(1)
+    val height = (paint.fontMetrics.let { it.descent - it.ascent } + 2 * padY).toInt().coerceAtLeast(1)
+    val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    val back = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE }
+    canvas.drawRoundRect(0f, 0f, width.toFloat(), height.toFloat(), height / 2f, height / 2f, back)
+    canvas.drawText(text, padX, padY - paint.fontMetrics.ascent, paint)
+    return bitmap
+}
+
+private fun addMarkers(style: Style, accent: String) {
     val empty = FeatureCollection.fromFeatures(emptyList())
     style.addSource(geoJsonSource("trips-other") { featureCollection(empty) })
     style.addSource(geoJsonSource("trips-next") { featureCollection(empty) })
     style.addSource(geoJsonSource("trips-past") { featureCollection(empty) })
-    style.addLayer(circleLayer("trips-other-dots", "trips-other") { circleRadius(9.0); circleColor("#FFD84A"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(2.0) })
+    // The labels first: they lie under the dots.
+    listOf("trips-other", "trips-next", "trips-past").forEach { source ->
+        style.addLayer(
+            symbolLayer("$source-labels", source) {
+                iconImage(get("label"))
+                iconAnchor(com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor.TOP)
+                iconOffset(listOf(0.0, 16.0))
+                iconAllowOverlap(false)
+            },
+        )
+    }
+    style.addLayer(circleLayer("trips-other-dots", "trips-other") { circleRadius(9.0); circleColor(accent); circleStrokeColor("#FFFFFF"); circleStrokeWidth(2.0) })
     style.addLayer(circleLayer("trips-past-dots", "trips-past") { circleRadius(9.0); circleColor("#FFFFFF"); circleStrokeColor("#E8833A"); circleStrokeWidth(2.0) })
-    style.addLayer(circleLayer("trips-next-dots", "trips-next") { circleRadius(11.0); circleColor("#111111"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
+    style.addLayer(circleLayer("trips-next-dots", "trips-next") { circleRadius(12.0); circleColor(accent); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
     // Several trips at the same place: their number in the dot.
     style.addLayer(symbolLayer("trips-other-count", "trips-other") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
     style.addLayer(symbolLayer("trips-past-count", "trips-past") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
-    style.addLayer(symbolLayer("trips-next-count", "trips-next") { textField(get("count")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
+    style.addLayer(symbolLayer("trips-next-count", "trips-next") { textField(get("count")); textSize(13.0); textColor("#111111"); textAllowOverlap(true) })
 }
 
 /*

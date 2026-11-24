@@ -34,11 +34,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -72,6 +70,8 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -138,9 +138,9 @@ fun TripsScreen(
     val markers = if (success == null || !globeOn) {
         emptyList()
     } else if (souvenirs) {
-        success.past.mapNotNull { s -> s.place?.let { GlobeMarker(it, false, s.trip.id) } }
+        success.past.mapNotNull { s -> s.place?.let { GlobeMarker(it, false, s.trip.id, s.placeName.orEmpty()) } }
     } else {
-        (success.ongoing + success.upcoming).mapNotNull { s -> s.place?.let { GlobeMarker(it, false, s.trip.id) } }
+        (success.ongoing + success.upcoming).mapNotNull { s -> s.place?.let { GlobeMarker(it, false, s.trip.id, s.placeName.orEmpty()) } }
             .let { list -> list.mapIndexed { i, m -> if (i == 0) m.copy(highlighted = true) else m } }
     }
     // Opening a trip from the globe: the camera flies there for 2 s, then the trip opens; a second touch opens it at once.
@@ -183,6 +183,7 @@ fun TripsScreen(
             flight = flight,
             onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
             onOpenTrip = { id -> openTrip(id) },
+            accent = fr.familia.app.core.theme.LocalClayStyle.current.tabPill,
             modifier = Modifier.fillMaxWidth().fillMaxHeight(globeShare).align(Alignment.TopCenter),
         )
     }
@@ -206,11 +207,11 @@ fun TripsScreen(
                   label = "trips-sheet",
               )
               if (globeOn && level < 2) {
-                OutlinedButton(
-                    onClick = { globeStopped = !globeStopped },
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = sheet + 12.dp).heightIn(min = 56.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
-                ) { Text(stringResource(if (globeStopped) R.string.globe_list_resume else R.string.globe_list_stop)) }
+                GlobeAnimSwitch(
+                    on = !globeStopped,
+                    onToggle = { globeStopped = !globeStopped },
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 8.dp, bottom = sheet + 4.dp),
+                )
               }
               Column(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(sheet)
@@ -313,7 +314,7 @@ private fun TripsSwitch(souvenirs: Boolean, pastCount: Int, onChoose: (Boolean) 
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    if (past && pastCount > 0) "$label ($pastCount)" else label,
+                    if (past) "$label ($pastCount)" else label,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (chosen) Color.White else TripPathColors.Ink,
@@ -324,13 +325,42 @@ private fun TripsSwitch(souvenirs: Boolean, pastCount: Int, onChoose: (Boolean) 
     }
 }
 
-/** « + Nouveau voyage » (E-28): the accent yellow pill, 56 dp high, dark bold text, with its shadow. */
+/**
+ * The small dark « Anim » box at the bottom right of the globe (E-39, prototype): it stops and starts
+ * the rotation (an animation longer than 5 s can always be stopped). 56 dp to touch.
+ */
+@Composable
+private fun GlobeAnimSwitch(on: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val description = stringResource(R.string.globe_list_anim_description)
+    val state = stringResource(if (on) R.string.globe_list_anim_on else R.string.globe_list_anim_off)
+    Box(
+        modifier
+            .size(56.dp)
+            .toggleable(value = on, role = Role.Switch, onValueChange = { onToggle() })
+            .semantics { contentDescription = description; stateDescription = state },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            stringResource(R.string.globe_list_anim),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = if (on) 1f else 0.6f),
+            textDecoration = if (on) null else androidx.compose.ui.text.style.TextDecoration.LineThrough,
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xD917333F))
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+        )
+    }
+}
+
+/** « + Nouveau voyage » (E-28, E-37): the accent yellow of the bottom bar's pill, 56 dp high, dark bold text, with its shadow. */
 @Composable
 private fun NewTripButton(onClick: () -> Unit) {
     androidx.compose.material3.ExtendedFloatingActionButton(
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        containerColor = TripPathColors.Sun,
+        containerColor = fr.familia.app.core.theme.LocalClayStyle.current.tabPill,
         contentColor = TripPathColors.Ink,
         modifier = Modifier.heightIn(min = 56.dp),
     ) {
@@ -361,7 +391,8 @@ private fun Coming(
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
         val landscape = hero?.trip?.landscape ?: TripLandscape.Dunes
-        val ground = landscape.palette.near
+        // E-36: over the globe there is no landscape, so no sand band under the cards either.
+        val ground = if (withLandscape) landscape.palette.near else Color.Transparent
         if (withLandscape) item(key = "landscape") { TripsLandscape(goal, stringResource(R.string.day_today), landscape = landscape) }
         item(key = "hero") {
             Box(Modifier.fillMaxWidth().background(ground).padding(horizontal = 16.dp, vertical = 8.dp)) {

@@ -97,6 +97,7 @@ fun TripDestinationScreen(
                     markers = chosen?.let { listOf(GlobeMarker(GeoPoint(it.lat, it.lng), highlighted = true)) }.orEmpty(),
                     souvenirs = false,
                     stopped = false,
+                    zoom = 0.6,
                     flight = flight,
                     onFailed = {
                         GlobeHealth.markFailed(context)

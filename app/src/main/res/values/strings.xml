@@ -2062,8 +2062,10 @@
     <string name="globe_replay">Rejouer le survol</string>
     <string name="trip_sheet_raise">Voir tout le voyage</string>
     <string name="trip_sheet_lower">Revenir à la carte</string>
-    <string name="globe_list_stop">Arrêter</string>
-    <string name="globe_list_resume">Reprendre</string>
+    <string name="globe_list_anim">Anim</string>
+    <string name="globe_list_anim_description">Animation du globe</string>
+    <string name="globe_list_anim_on">activée</string>
+    <string name="globe_list_anim_off">désactivée</string>
     <string name="globe_see_map">Voir la carte</string>
     <string name="globe_step">Étape %1$d sur %2$d</string>
     <string name="globe_previous">Précédent</string>
