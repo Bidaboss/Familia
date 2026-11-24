@@ -2019,3 +2019,12 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Toucher le champ du lieu ou du commentaire : le clavier s'ouvre, la feuille prend tout l'écran et le champ reste visible au-dessus du clavier.
 3. Fermer le clavier puis appuyer sur la flèche : la feuille redescend et la carte réapparaît.
 4. Modifier un voyage avec des étapes placées : sous la carte, la feuille commence directement par le nom et les dates. L'image du lieu n'est plus répétée, puisque la carte la montre déjà.
+
+## Voyage : les photos rangées sous chaque destination (récit 104, partie 1 : règle 31)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir un voyage qui a des photos et des destinations datées : sous chaque destination, une bande de petites photos montre celles prises pendant ses jours (au plus 4, puis « + N »).
+2. Toucher une petite photo : elle s'ouvre en grand dans les photos du voyage.
+3. Une photo prise un jour de changement de destination va sous celle qui commence ce jour-là.
+4. Les photos prises hors des jours des destinations restent visibles : un bouton « N photos sans étape » ouvre les photos du voyage.
+5. Rien n'est réécrit : les photos gardent leur fiche, et personne ne voit plus de photos qu'avant.

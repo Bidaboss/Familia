@@ -18,6 +18,7 @@ import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.TripPlaceKind
+import java.time.ZoneId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -61,6 +62,8 @@ fun TripDetailRoute(
     onOpenPlace: (placeId: String) -> Unit = {},
     /** A new accommodation, restaurant or spot under the destination [stepId] (règle 20). */
     onAddPlace: (stepId: String, kind: TripPlaceKind) -> Unit = { _, _ -> },
+    /** The album of the trip opened on one photo (récit 104). */
+    onOpenPhoto: (photoId: String) -> Unit = { onSeePhotos() },
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -82,6 +85,10 @@ fun TripDetailRoute(
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? TripDetailUiState.Success
     val abroad = rememberAbroadCountries(container, shown?.steps.orEmpty())
+    // The photos by destination, from the day they were taken (récit 104, partie 1): nothing is written.
+    val byStep = remember(shown?.trip, shown?.steps, photos.photos) {
+        shown?.let { stepPhotos(tripTimeline(it.trip, it.steps), photos.photos, ZoneId.systemDefault()) } ?: StepPhotos(emptyMap(), emptyList())
+    }
     // The places programmed under the destinations (règle 18); none when they cannot be read.
     val places by remember(container, tripId) {
         container?.tripPlaceRepository?.observePlaces(tripId)
@@ -121,6 +128,10 @@ fun TripDetailRoute(
             places = remember(places) { placesByStep(places) },
             onOpenPlace = onOpenPlace,
             onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
+            photos = byStep.byStay,
+            onOpenPhoto = onOpenPhoto,
+            withoutStep = byStep.withoutStep.size,
+            onSeePhotos = onSeePhotos,
         ),
         cover = { success ->
             TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
