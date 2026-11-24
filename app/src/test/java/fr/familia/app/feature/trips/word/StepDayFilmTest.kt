@@ -141,7 +141,7 @@ class StepDayFilmTest {
     }
 
     @Test
-    fun `someone was first: their film stays and it is said`() = runTest {
+    fun `someone was first, their film stays and it is said`() = runTest {
         val vm = DayFilmPublisher(FakeStorage(), FakeMaker(), FakeFilms(FilmPublication.AlreadyThere), "t1", "s1", folder.newFolder("films"))
         vm.publish(lou, day(12), listOf(photo(12), photo(12)))
         assertEquals(DayFilmState.Done(day(12), alreadyThere = true), vm.uiState.value)
