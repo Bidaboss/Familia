@@ -1424,6 +1424,12 @@
     <string name="trip_day_spoken">Jour %1$d, %2$s</string>
     <string name="trip_day_title">Jour %1$d : %2$s</string>
     <string name="trip_day_today_place">Aujourd\'hui, %1$s</string>
+    <plurals name="trip_people_more">
+        <item quantity="one">%1$s et %2$d autre</item>
+        <item quantity="many">%1$s et %2$d autres</item>
+        <item quantity="other">%1$s et %2$d autres</item>
+    </plurals>
+    <string name="trip_edit_a11y">Modifier le voyage</string>
     <plurals name="trip_photo_count">
         <item quantity="one">%d photo</item>
         <item quantity="many">%d photos</item>

@@ -2349,3 +2349,12 @@ Sur un téléphone en Android 10 ou plus :
 3. La carte du prochain voyage : la photo remplit toute la carte (sans photo, le paysage dessiné). En haut à gauche, « ● Voyage programmé » sur fond sombre ; en haut à droite, « Dans N nuits » sur fond blanc. En bas, sur un dégradé sombre, le nom du voyage en gros, puis le mois (l'année dessous), le nombre de jours (JOURS) et les kilomètres (KILOMÈTRES, seulement à partir de deux étapes placées).
 4. Plus de boutons « Étapes », « À prévoir », « Comptes » sur la carte : la toucher n'importe où ouvre le voyage.
 5. Faire défiler jusqu'en bas : la dernière carte n'est pas cachée par le bouton jaune.
+
+## Voyage : l'en-tête tient sur une ligne et les lieux prennent leurs majuscules (E-4, E-6)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage à quatre participants ou plus : sous le titre, deux prénoms puis « et 2 autres » (par exemple), sans « … ». Avec TalkBack, tous les prénoms sont lus.
+2. Un voyage à deux : les deux prénoms, « X et Y ».
+3. En haut à droite, un crayon remplace le mot « Modifier » (pour l'admin ou un chef de famille qui gère le voyage) ; il ouvre la modification du voyage.
+4. Ajouter une étape en tapant « la rochelle » : le clavier met une majuscule à chaque mot, et l'étape s'enregistre « La Rochelle ». « saint-jean-de-luz » devient « Saint-Jean-de-Luz ».
+5. Une ancienne étape « La rochelle » s'affiche « La Rochelle » dans la carte du jour.

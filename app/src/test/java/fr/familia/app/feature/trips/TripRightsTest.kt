@@ -102,4 +102,11 @@ class TripRightsTest {
         assertEquals("Lou, Noé et Sam", joinNames(listOf("Lou", "Noé", "Sam")))
         assertEquals(listOf("Adult1", "Adult2"), firstNames(listOf("adult1", "gone", "adult2"), family))
     }
+
+    @Test
+    fun `the line under the title shows two names and how many others`() {
+        assertEquals(listOf("Lou", "Sam") to 0, headNames(listOf("Lou", "Sam")))
+        assertEquals(listOf("Lou") to 0, headNames(listOf("Lou")))
+        assertEquals(listOf("Lou", "Sam") to 2, headNames(listOf("Lou", "Sam", "Noé", "Inès")))
+    }
 }

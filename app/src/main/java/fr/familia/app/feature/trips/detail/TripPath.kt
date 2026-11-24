@@ -1,5 +1,6 @@
 package fr.familia.app.feature.trips.detail
 
+import fr.familia.app.feature.trips.step.placeName
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -243,7 +244,7 @@ fun TripDayCard(
     val title = if (places.isEmpty()) {
         stringResource(R.string.trip_day_title, number, frenchDate(day, "EEEE d MMMM"))
     } else {
-        stringResource(R.string.trip_day_title, number, places.joinToString(", "))
+        stringResource(R.string.trip_day_title, number, places.joinToString(", ") { placeName(it) })
     }
     Column(
         modifier
