@@ -117,9 +117,26 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         db.collection(TRIPS).document(id).delete().await()
     }
 
+    override suspend fun moveSteps(tripId: String, moved: List<TripStep>, remindAts: Map<String, Instant?>) {
+        if (moved.isEmpty()) return
+        // One batch: the line never shows half of the trip moved.
+        val batch = db.batch()
+        moved.forEach { step -> batch.update(steps(tripId).document(step.id), stepFields(step, remindAts[step.id])) }
+        batch.commit().await()
+    }
+
     override suspend fun saveStep(tripId: String, step: TripStep, isNew: Boolean, remindAt: Instant?) {
         val ref = steps(tripId).document(step.id)
-        val fields = mapOf(
+        val fields = stepFields(step, remindAt)
+        if (isNew) {
+            ref.set(fields + mapOf("arrivedAt" to null, "arrivedBy" to null, "arrivedByName" to null)).await()
+        } else {
+            ref.update(fields).await()
+        }
+    }
+
+    private fun stepFields(step: TripStep, remindAt: Instant?): Map<String, Any?> =
+        mapOf(
             "type" to step.type.firestoreValue,
             "place" to step.place,
             "departDate" to step.departDate.toString(),
@@ -132,12 +149,6 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
             "remindAt" to remindAt?.let { Timestamp(Date.from(it)) },
             "updatedAt" to FieldValue.serverTimestamp(),
         )
-        if (isNew) {
-            ref.set(fields + mapOf("arrivedAt" to null, "arrivedBy" to null, "arrivedByName" to null)).await()
-        } else {
-            ref.update(fields).await()
-        }
-    }
 
     override suspend fun deleteStep(tripId: String, stepId: String) {
         steps(tripId).document(stepId).delete().await()

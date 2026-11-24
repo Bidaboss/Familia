@@ -1938,6 +1938,15 @@ Rien à publier côté Firebase. « APK de publication » (le réseau est néces
 3. Sous les dates : « 5 nuitées » (ou « Aller-retour dans la journée »). Sous le nom : « Il deviendra le nom du voyage… Tu pourras le changer plus tard. »
 4. Modifier un voyage existant : la photo du lieu de sa première étape.
 5. Ouvrir un voyage pas encore commencé : en haut de la feuille, les images des lieux défilent toutes les 4 s (jusqu'à 5), avec « Voyage programmé », le nom, le mois, les jours et les kilomètres ; le bouton pause les arrête. Animations du téléphone coupées : pas de défilement.
+## Voyage : « Le trajet », les destinations et leurs nuits − / + (récit 102, partie 2 : règles 7, 15, 16, 18, 23)
+
+Rien à publier côté Firebase (les règles des étapes ne changent pas). « APK de publication ».
+1. Ouvrir un voyage avec deux étapes « Destination » (l'ancien type « Hébergement ») : la feuille montre « Le trajet », de « Le voyage commence » à « Le voyage se termine », avec « 7/7 nuits planifiées ». Les destinations sont numérotées 1, 2… avec leurs dates et « N nuitées », et les transports se placent entre elles avec « ≈ N km à vol d'oiseau ».
+2. Sur la carte, les ronds portent les mêmes numéros que les destinations du trajet. Un transport n'a pas de numéro, une étape arrivée a une coche.
+3. « + » sur la première destination : elle gagne une nuit et la suivante se décale d'un jour. « Annuler » s'affiche 5 s et remet tout comme avant. Contre la date de retour, « + » est grisé avec une phrase. « − » s'arrête à une nuit.
+4. Pour qui suit le voyage sans partir : pas de − ni de +, seulement les nuits.
+5. Plus de bande des jours ni de « Programme, jour N » : « Prochaine étape » garde « Bien arrivé » à portée de main.
+
 
 ## Voyage : page d'un hébergement, d'un restaurant ou d'un spot (récit 103, partie « lieux » 1 : règles 19, 21, 24, 26)
 
