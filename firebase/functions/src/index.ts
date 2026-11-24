@@ -11,6 +11,7 @@ import {
   onDocumentUpdatedWithAuthContext, onDocumentWritten, onDocumentWrittenWithAuthContext,
 } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { sendDepartureReminders } from './departures';
 import { onRequest } from 'firebase-functions/v2/https';
 import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
 import { RECURRING_EVENTS, ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
@@ -816,6 +817,13 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
     console.error('burstQueue', e);
   }
   await sendArrivalReminders(getFirestore(), send, new Date());
+  // And the departures of a flight, a train or a bus, the day before and the morning (récit 112,
+  // règle 46). A failure waits for the next run.
+  try {
+    await sendDepartureReminders(getFirestore(), send, new Date());
+  } catch (e) {
+    console.error('departures', e);
+  }
   // And the reminders each one asked for on an event (récit 56). A failure waits for the next run.
   try {
     await sendMyReminders(getFirestore(), send, new Date());

@@ -220,6 +220,8 @@ describe('steps (récit 11)', () => {
     await storedTrip('t1', ADULT);
     const db = as(env, ADULT);
     await assertFails(setDoc(doc(db, 'trips/t1/steps/a'), step({ type: 'boat' })));
+    // « Bus » (récit 112, règle 46), reminded like a flight or a train.
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/steps/bus'), step({ type: 'bus' })));
     await assertFails(setDoc(doc(db, 'trips/t1/steps/b'), step({ place: '' })));
     await assertFails(setDoc(doc(db, 'trips/t1/steps/c'), step({ arriveDate: '2027-07-09' })));
     await assertFails(setDoc(doc(db, 'trips/t1/steps/d'), step({ departTime: '8h15' })));

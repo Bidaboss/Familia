@@ -53,6 +53,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
 import java.util.Locale
 import androidx.compose.ui.unit.sp
+import fr.familia.app.core.power.BatterySavingBanner
+import fr.familia.app.core.power.rememberBatterySaving
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.carnet.flagOf
 import fr.familia.app.core.model.TravelPlace
@@ -132,7 +134,9 @@ fun TripsScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val success = state as? TripsUiState.Success
     val globeAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
-    val globeOn = globeToken.isNotBlank() && globeAllowed && !globeFailed && success?.isEmpty == false
+    // Règle 46: no globe while the battery is saved (under 20 % unplugged, or Android's saver).
+    val saving = rememberBatterySaving()
+    val globeOn = globeToken.isNotBlank() && globeAllowed && !globeFailed && !saving && success?.isEmpty == false
     val markers = if (success == null || !globeOn) {
         emptyList()
     } else if (souvenirs) {
@@ -197,6 +201,7 @@ fun TripsScreen(
             },
         ) { padding ->
             Column(Modifier.padding(padding).fillMaxSize()) {
+              if (saving) BatterySavingBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
               if (globeOn) {
                 Box(Modifier.weight(0.4f).fillMaxWidth()) {
                     OutlinedButton(

@@ -44,6 +44,8 @@ enum class TripLandscape(val key: String) {
 enum class StepType(val firestoreValue: String) {
     Flight("flight"),
     Train("train"),
+    /** « Bus » (récit 112, règle 46): reminded the day before and the morning, like a flight or a train. */
+    Bus("bus"),
     Car("car"),
     Lodging("lodging"),
     Activity("activity"),

@@ -46,6 +46,7 @@ import fr.familia.app.R
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.place.PlacePhotos
+import fr.familia.app.core.power.rememberBatterySaving
 import fr.familia.app.feature.trips.PlaceCover
 import fr.familia.app.feature.trips.list.animationsOff
 import fr.familia.app.feature.trips.list.talkBackOn
@@ -87,8 +88,10 @@ fun TripCoverCarousel(
     val pager = rememberPagerState { places.size }
     val context = LocalContext.current
     var paused by rememberSaveable { mutableStateOf(animationsOff(context) || talkBackOn(context)) }
-    LaunchedEffect(paused, places.size) {
-        if (paused || places.size < 2) return@LaunchedEffect
+    // Règle 46: the carousel stops turning by itself while the battery is saved.
+    val saving = rememberBatterySaving()
+    LaunchedEffect(paused, saving, places.size) {
+        if (paused || saving || places.size < 2) return@LaunchedEffect
         while (true) {
             delay(SLIDE_MILLIS)
             pager.animateScrollToPage((pager.currentPage + 1) % places.size)

@@ -2520,7 +2520,7 @@ service cloud.firestore {
         && s.keys().hasOnly(['type', 'place', 'departDate', 'departTime', 'arriveDate', 'arriveTime', 'note',
                              'remindAt', 'arrivedAt', 'arrivedBy', 'arrivedByName', 'updatedAt', 'lat', 'lng'])
         && isValidStepPosition(s)
-        && s.type in ['flight', 'train', 'car', 'lodging', 'activity']
+        && s.type in ['flight', 'train', 'bus', 'car', 'lodging', 'activity']
         && s.place is string && s.place.size() > 0 && s.place.size() <= 120
         && isDay(s.departDate)
         && (s.departTime == null || isClockTime(s.departTime))
