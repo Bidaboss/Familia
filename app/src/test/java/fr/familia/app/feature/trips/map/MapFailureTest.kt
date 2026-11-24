@@ -41,4 +41,11 @@ class MapFailureTest {
 
     @Test fun screenLineFitsTheRules() =
         assertTrue(mapFailureScreen("x".repeat(100), MapUnavailable.Timeout("délai 15 s")).length <= 80)
+
+    @Test fun theTokenOfAnAddressNeverLeaves() {
+        val line = mapErrorLine("STYLE", "401 https://api.mapbox.com/s?access_token=pk.abc&x=1")
+        assertTrue("pk.abc" !in line)
+        assertTrue(line.startsWith("STYLE: 401"))
+        assertTrue(line.length <= 50)
+    }
 }
