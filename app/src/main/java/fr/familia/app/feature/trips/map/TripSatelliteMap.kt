@@ -219,10 +219,21 @@ fun TripSatelliteMap(
             map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(EditArrival.IN_MS) })
             return@LaunchedEffect
         }
-        map.camera.easeTo(CameraOptions.Builder().center(middle).zoom(3.2).build(), mapAnimationOptions { duration(EditArrival.HOME_OUT_MS) })
-        delay(EditArrival.HOME_OUT_MS + 100L)
+        // E-61: the whole globe first turns towards the trip (fast, then slower), then the dive on the steps.
+        map.mapboxMap.setCamera(
+            CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(spinStartLongitude(middle.longitude()), middle.latitude()))
+                .zoom(EditArrival.GLOBE_ZOOM).pitch(0.0).bearing(0.0).build(),
+        )
+        map.camera.easeTo(
+            CameraOptions.Builder().center(middle).zoom(EditArrival.GLOBE_ZOOM).build(),
+            mapAnimationOptions { duration(EditArrival.ARRIVAL_SPIN_MS); interpolator(android.view.animation.DecelerateInterpolator(1.5f)) },
+        )
+        delay(EditArrival.ARRIVAL_SPIN_MS + 50L)
         if (touched) return@LaunchedEffect
-        map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(EditArrival.HOME_IN_MS) })
+        map.camera.flyTo(
+            frame(map, points, bottomPaddingDp * density, tilted),
+            mapAnimationOptions { duration(EditArrival.ARRIVAL_ZOOM_MS); interpolator(android.view.animation.DecelerateInterpolator(1.5f)) },
+        )
     }
     Box(
         modifier.pointerInput(Unit) {
@@ -249,7 +260,7 @@ fun TripSatelliteMap(
                         applied[5] = bottomPaddingDp
                         // The style is there: the map shows, even while the last tiles still come (slow phone, slow network).
                         listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true; GlobeHealth.markWorking(context) }
-                        listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; restyling[0] = false; GlobeHealth.markWorking(context) }
+                        listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; restyling[0] = false; GlobeHealth.markWorking(context); fr.familia.app.feature.trips.TripOpenTiming.reached("carte") }
                         listener[3] = map.mapboxMap.subscribeMapLoadingError { error ->
                             lastError[0] = mapErrorLine(error.type.toString(), error.message)
                             recordTileError(context, "TripSatelliteMap", error.type.toString(), error.sourceId, error.message)

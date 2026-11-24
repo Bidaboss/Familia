@@ -65,6 +65,14 @@ internal object EditArrival {
     /** The arrival of the page of a trip (règle 3): out to the continent, then in on the steps, about 6 s. */
     const val HOME_OUT_MS = 2_600L
     const val HOME_IN_MS = 3_400L
+    /**
+     * E-61: the arrival in a trip: the whole globe turns this many degrees towards it (fast, then
+     * slower), then the camera dives on the steps; about 6 s in all (DESIGN-101 B), stopped by a touch.
+     * Under 180: the camera always turns the short way, so the turn goes the same way every time.
+     */
+    const val ARRIVAL_SPIN_MS = 2_500L
+    const val ARRIVAL_SPIN_DEGREES = 170.0
+    const val ARRIVAL_ZOOM_MS = 3_200L
     /** The whole Earth in the globe projection of Mapbox Standard. */
     const val GLOBE_ZOOM = 1.0
 }

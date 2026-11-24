@@ -89,7 +89,7 @@ internal fun globeSpots(markers: List<GlobeMarker>): List<GlobeSpot> =
 /** The trip a touch on [spot] opens: the next one when it is there, else the first in the list. */
 internal fun spotTrip(spot: GlobeSpot?): String? = spot?.tripIds?.firstOrNull()
 
-/** The flight to a trip the member opened: the camera goes there in [FLIGHT_MILLIS], then the trip opens. */
+/** The flight to a trip the member opened: the camera goes there in [FLIGHT_MILLIS]; the trip opens after [OPEN_AFTER_FLIGHT_MILLIS]. */
 data class GlobeFlight(val id: Int, val tripId: String, val point: GeoPoint)
 
 /**
@@ -111,7 +111,9 @@ internal fun globeNeedsImagery(styleUri: String): Boolean = styleUri == Style.SA
 /** Pure rule: the style is there but no image of it came in time, and the drawn Earth was not taken yet. */
 internal fun globeFallsBack(imageryCame: Boolean, styleReady: Boolean, fellBack: Boolean): Boolean = styleReady && !imageryCame && !fellBack
 
-internal const val FLIGHT_MILLIS = 2_000L
+/** E-60: the flight is short (it was 2 s), and the trip opens while it goes on behind. */
+internal const val FLIGHT_MILLIS = 900L
+internal const val OPEN_AFTER_FLIGHT_MILLIS = 350L
 
 /** E-40 then E-48: the zoom of the globe of the list, about 85 % of the width of a phone (the variant kept may change it). */
 internal val GLOBE_LIST_ZOOM: Double get() = GlobeLook.LIST_DEFAULT.listZoom

@@ -2611,3 +2611,11 @@ Sur un téléphone en Android 10 ou plus :
 7. « + » puis « Destination » : un seul champ « Lieu » (exemple « Nom du lieu »).
 8. Toucher un champ pour que le clavier monte : la feuille prend tout l'écran avec UNE seule en-tête (rond retour, titre, « ? »), sans poignée à flèche au-dessus. Retour : la feuille redescend, puis un second retour quitte.
 9. Avec un voyage au nom long, le bandeau « Dans le voyage · … » s'affiche en entier, sur deux lignes si besoin.
+
+## Voyage : un voyage qui s'ouvre tout de suite, et un globe qui tourne avant de plonger, retours E-60 et E-61
+
+**Publier Firebase : non.**
+1. Sur « Voyages », toucher un point du globe ou un voyage de la liste : l'écran du voyage s'ouvre en moins d'une demi-seconde (le globe commence à voler vers lui, puis le voyage le recouvre).
+2. À l'ouverture d'un voyage : la feuille et le titre sont là tout de suite ; derrière, le globe entier tourne d'environ un demi-tour vers le voyage (vite, puis plus doucement), puis plonge sur les étapes ; le tout en 6 s environ.
+3. Toucher la carte pendant ce mouvement : il s'arrête là où il est.
+4. Pour les chiffres (Logcat, filtre « TripOpen ») : « écran : n ms après le toucher » puis « carte : n ms après le toucher ».
