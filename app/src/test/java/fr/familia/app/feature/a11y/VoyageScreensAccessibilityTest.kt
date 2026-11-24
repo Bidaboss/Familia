@@ -54,6 +54,21 @@ class VoyageScreensAccessibilityTest {
     fun `the page of a destination`() = compose.checkAccessibility(VoyageScreens.screen("the page of a destination"))
 
     @Test
+    fun `enrich with an AI`() = compose.checkAccessibility(VoyageScreens.screen("enrich with an AI"))
+
+    @Test
+    fun `enrich, an answer refused`() = compose.checkAccessibility(VoyageScreens.screen("enrich, an answer refused"))
+
+    @Test
+    fun `enrich, the check`() = compose.checkAccessibility(VoyageScreens.screen("enrich, the check"))
+
+    @Test
+    fun `the currency of a trip`() = compose.checkAccessibility(VoyageScreens.screen("the currency of a trip"))
+
+    @Test
+    fun `the currency of a trip, for who does not manage it`() = compose.checkAccessibility(VoyageScreens.screen("the currency of a trip, for who does not manage it"))
+
+    @Test
     fun `À emporter`() = compose.checkAccessibility(VoyageScreens.screen("À emporter"))
 
     @Test

@@ -2465,3 +2465,20 @@ Sur un téléphone en Android 10 ou plus :
 8. En bas, la barre blanche des destinations (si plusieurs) : la destination ouverte en bleu foncé avec son numéro jaune ; en toucher une autre change la page et la carte.
 9. Pendant le voyage, sur la destination du jour, le rond appareil photo (ajout rapide) au-dessus de la barre.
 10. Le retour d'Android ferme la page et revient au voyage.
+
+## Voyage : « Enrichir avec une IA » en trois étapes, la feuille « Monnaie du voyage » (fiche F6)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage où l'on part, « Enrichir le voyage avec une IA » : page bleu clair, rond retour, « Enrichir avec une IA » et dessous « Tout le voyage ▾ ». En haut, « 1 Copier — 2 Coller — 3 Valider », le 1 en rond sombre.
+2. Toucher « Tout le voyage ▾ » : la liste « Pour » (tout le voyage ou une destination). En choisir une : le sous-titre devient son nom et le prompt ne parle que d'elle.
+3. Carte blanche bordée de bleu : « Copie le prompt », une phrase d'aide, le gros bouton sombre « Copier le prompt » : « Prompt copié » s'affiche.
+4. « Voir ou personnaliser le prompt » déplie le prompt dans un champ : le modifier puis « Copier le prompt » copie la version modifiée. En quittant l'écran, la modification est oubliée.
+5. « J'ai la réponse de l'IA › » passe à l'étape 2 : un champ « Réponse de l'IA » et « Analyser » en bas. Coller « bonjour » puis « Analyser » : on reste à l'étape 2, le message rouge dit que ce n'est pas le format demandé.
+6. Coller une vraie réponse puis « Analyser » : étape 3, les propositions dans une carte blanche, toutes cochées (cases sombres) ; « Laissé de côté » dit pourquoi un élément manque. Le bas dit « Ajouter la sélection (n) » et suit les cases.
+7. « Ajouter la sélection » : « n éléments ajoutés au voyage. » ; les lieux apparaissent sur la page des destinations.
+8. Toucher « 1 Copier » ou « 2 Coller » ramène à l'étape ; « 3 Valider » ne se touche qu'une fois une réponse lue. Pour qui suit sans partir : la phrase « Seuls ceux qui partent enrichissent le voyage. ».
+9. Depuis un voyage, « Monnaie » (ou « Convertir » d'une destination hors zone euro) : le voyage reste dessous, assombri ; une feuille crème arrondie monte du bas avec « Monnaie du voyage » et un rond blanc ✕.
+10. Pour qui gère le voyage : « Rechercher une monnaie (nom ou code) » puis des pilules (la monnaie actuelle en sombre, celles des pays du voyage, puis les plus courantes). Taper « dir » ou « mad » : le dirham. En toucher une : son taux du jour et le convertisseur s'affichent tout de suite.
+11. « Enregistrer » (gris tant que rien ne change) : la feuille se ferme et la monnaie du voyage a changé. Sans réseau : elle se ferme aussi et la monnaie part au retour du réseau.
+12. Le taux n'est jamais tapé : « 1 € = … » avec sa date et sa source, touchable. Pour qui suit sans gérer : la monnaie, son taux et le convertisseur, sans pilules ni « Enregistrer ».
+13. Toucher la partie assombrie, le ✕ ou le retour d'Android ferme la feuille.

@@ -3499,15 +3499,12 @@
     <string name="safety_alert_offline">Pas de réseau : le message partira dès que le téléphone se reconnecte.</string>
     <string name="safety_alert_failed">Le message n\'est pas parti. Réessaie, ou appelle directement.</string>
     <string name="safety_alert_ok">D\'accord</string>
-    <string name="money_title">Monnaie</string>
     <string name="money_step_title">Monnaie : %1$s (%2$s)</string>
     <string name="money_step_open">Convertir</string>
     <string name="money_from_expenses">Monnaie du voyage et taux du jour</string>
     <string name="money_step_heading">Monnaie de l\'étape</string>
     <string name="money_currency_heading">Monnaie du voyage</string>
     <string name="money_currency_value">%1$s (%2$s)</string>
-    <string name="money_change">Changer la monnaie</string>
-    <string name="money_suggest">Choisir : %1$s (%2$s)</string>
     <string name="money_save_failed">La monnaie n\'a pas été enregistrée. Réessaie.</string>
     <string name="money_in_euro">Le voyage est en euros : rien à convertir.</string>
     <string name="money_rate_heading">Taux du jour</string>
@@ -3520,10 +3517,11 @@
     <string name="money_convert_heading">Convertir</string>
     <string name="money_amount_in">Montant en %1$s</string>
     <string name="money_convert_hint">Tape un montant dans l\'un des deux champs : l\'autre se calcule.</string>
-    <string name="money_pick_title">Monnaie du voyage</string>
-    <string name="money_search">Rechercher (nom ou code)</string>
     <string name="money_search_none">Aucune monnaie ne correspond à « %1$s ».</string>
     <string name="money_close">Fermer</string>
+    <string name="money_sheet_intro">La monnaie du pays où vous partez. Le taux du jour se lit tout seul, avec sa date, pour convertir en euros.</string>
+    <string name="money_sheet_search">Rechercher une monnaie (nom ou code)</string>
+    <string name="money_save">Enregistrer</string>
 
     <!-- « Documents » d'un voyage (récit 105, règle 41) -->
     <string name="documents_title">Documents</string>
@@ -3846,18 +3844,18 @@
     <!-- « Enrichir avec une IA » (récit 106, règles 27 à 30) -->
     <string name="enrich_round_label">Enrichir avec une IA</string>
     <string name="enrich_title">Enrichir avec une IA</string>
-    <string name="enrich_intro">Copiez la demande dans l\'IA de votre choix, puis collez ici sa réponse. Rien n\'est ajouté avant que vous l\'ayez vu et coché.</string>
+    <string name="enrich_intro">L\'IA propose, tu valides : rien n\'est ajouté sans ton accord.</string>
     <string name="enrich_not_allowed">Seuls ceux qui partent enrichissent le voyage.</string>
     <string name="enrich_for">Pour</string>
     <string name="enrich_for_trip">Tout le voyage</string>
     <string name="enrich_for_destination">%1$s seulement</string>
-    <string name="enrich_step_copy">1. Copiez la demande</string>
-    <string name="enrich_copy">Copier la demande</string>
-    <string name="enrich_copied">Demande copiée. Collez-la dans votre IA.</string>
-    <string name="enrich_step_paste">2. Collez la réponse de l\'IA</string>
+    <string name="enrich_step_copy">Copier</string>
+    <string name="enrich_copy">Copier le prompt</string>
+    <string name="enrich_copied">Prompt copié. Colle-le dans l\'IA de ton choix.</string>
+    <string name="enrich_step_paste">Coller</string>
     <string name="enrich_answer">Réponse de l\'IA</string>
-    <string name="enrich_read">Lire la réponse</string>
-    <string name="enrich_step_check">3. Vérifiez et cochez</string>
+    <string name="enrich_read">Analyser</string>
+    <string name="enrich_step_check">Valider</string>
     <string name="enrich_new_destination">Nouvelle destination : %1$s</string>
     <string name="enrich_dates">Du %1$s au %2$s</string>
     <string name="enrich_place">%1$s · %2$s</string>
@@ -3873,20 +3871,27 @@
     <string name="enrich_skip_name">Un élément sans nom.</string>
     <string name="enrich_skip_kind">« %1$s » : ni hébergement, ni restaurant, ni spot.</string>
     <string name="enrich_skip_too_many">%1$s éléments de plus que la limite.</string>
-    <string name="enrich_refused_empty">Collez d\'abord la réponse de l\'IA.</string>
-    <string name="enrich_refused_too_long">Cette réponse est trop longue. Demandez à l\'IA une réponse plus courte.</string>
-    <string name="enrich_refused_not_json">Cette réponse n\'est pas au format demandé. Recopiez la demande telle quelle dans l\'IA, puis collez sa réponse entière.</string>
+    <string name="enrich_refused_empty">Colle d\'abord la réponse de l\'IA.</string>
+    <string name="enrich_refused_too_long">Cette réponse est trop longue. Demande à l\'IA une réponse plus courte.</string>
+    <string name="enrich_refused_not_json">Cette réponse n\'est pas au format demandé. Recopie le prompt tel quel dans l\'IA, puis colle sa réponse entière.</string>
     <string name="enrich_refused_nothing">Rien à ajouter dans cette réponse.</string>
     <string name="enrich_adding">Ajout en cours…</string>
-    <string name="enrich_save_failed">Une partie n\'a pas pu être ajoutée. Vérifiez la connexion et le voyage.</string>
+    <string name="enrich_save_failed">Une partie n\'a pas pu être ajoutée. Vérifie la connexion et le voyage.</string>
     <plurals name="enrich_add">
-        <item quantity="one">Ajouter %1$d élément</item>
-        <item quantity="many">Ajouter %1$d éléments</item>
-        <item quantity="other">Ajouter %1$d éléments</item>
+        <item quantity="one">Ajouter la sélection (%1$d)</item>
+        <item quantity="many">Ajouter la sélection (%1$d)</item>
+        <item quantity="other">Ajouter la sélection (%1$d)</item>
     </plurals>
     <plurals name="enrich_added">
         <item quantity="one">%1$d élément ajouté au voyage.</item>
         <item quantity="many">%1$d éléments ajoutés au voyage.</item>
         <item quantity="other">%1$d éléments ajoutés au voyage.</item>
     </plurals>
+    <!-- Fiche F6 : les trois étapes d'« Enrichir avec une IA » -->
+    <string name="enrich_for_change">changer la destination du prompt</string>
+    <string name="enrich_copy_title">Copie le prompt</string>
+    <string name="enrich_copy_hint">Il contient ton voyage. Colle-le dans l\'IA de ton choix, puis reviens avec sa réponse.</string>
+    <string name="enrich_show_prompt">Voir ou personnaliser le prompt</string>
+    <string name="enrich_prompt_label">Le prompt, à modifier si tu veux</string>
+    <string name="enrich_have_answer">J\'ai la réponse de l\'IA</string>
 </resources>

@@ -202,6 +202,60 @@ internal object VoyageScreens {
                 inSheet = false,
             )
         },
+        // Fiche F6: « Enrichir avec une IA » in three steps, and the sheet « Monnaie du voyage ».
+        screen("enrich with an AI") {
+            fr.familia.app.feature.trips.enrich.TripEnrichScreen(
+                false, true, previewTripDetail().steps, "Prompt", fr.familia.app.feature.trips.enrich.EnrichUiState(), {}, {}, {}, {}, {}, {},
+            )
+        }
+        screen("enrich, an answer refused") {
+            fr.familia.app.feature.trips.enrich.TripEnrichScreen(
+                false, true, previewTripDetail().steps, "Prompt",
+                fr.familia.app.feature.trips.enrich.EnrichUiState(answer = "bonjour", reading = fr.familia.app.feature.trips.enrich.EnrichReading.Refused.NotJson),
+                {}, {}, {}, {}, {}, {},
+                startStep = fr.familia.app.feature.trips.enrich.EnrichStep.Paste,
+            )
+        }
+        screen("enrich, the check") {
+            val reading = fr.familia.app.feature.trips.enrich.EnrichReading.Read(
+                listOf(
+                    fr.familia.app.feature.trips.enrich.ProposedDestination(
+                        "Bastia", null, LocalDate.of(2027, 8, 5), LocalDate.of(2027, 8, 7),
+                        listOf(fr.familia.app.feature.trips.enrich.ProposedPlace(fr.familia.app.core.model.TripPlaceKind.Restaurant, "Chez Inès", "Le port", null, null, null)),
+                    ),
+                ),
+                listOf(fr.familia.app.feature.trips.enrich.Skipped("Musée", fr.familia.app.feature.trips.enrich.SkipReason.Link)),
+            )
+            fr.familia.app.feature.trips.enrich.TripEnrichScreen(
+                false, true, previewTripDetail().steps, "Prompt",
+                fr.familia.app.feature.trips.enrich.EnrichUiState(answer = "{}", reading = reading, ticked = fr.familia.app.feature.trips.enrich.allKeys(reading)),
+                {}, {}, {}, {}, {}, {},
+            )
+        }
+        screen("the currency of a trip") {
+            fr.familia.app.feature.trips.money.TripMoneyScreen(
+                loading = false,
+                currency = fr.familia.app.core.money.Currencies.of("MAD"),
+                suggestions = emptyList(),
+                rates = fr.familia.app.feature.trips.money.RatesState.Ready(fr.familia.app.core.money.RatesTable(mapOf("MAD" to 10.9), LocalDate.of(2026, 11, 23))),
+                saveFailed = false,
+                onChange = {},
+                onRetry = {},
+                onBack = {},
+            )
+        }
+        screen("the currency of a trip, for who does not manage it") {
+            fr.familia.app.feature.trips.money.TripMoneyScreen(
+                loading = false,
+                currency = fr.familia.app.core.money.Currencies.of("MAD"),
+                suggestions = emptyList(),
+                rates = fr.familia.app.feature.trips.money.RatesState.Unavailable,
+                saveFailed = false,
+                onChange = null,
+                onRetry = {},
+                onBack = {},
+            )
+        }
         // Fiche F3: the bags are always on the light blue page of « Valise ».
         screen("À emporter") { androidx.compose.foundation.layout.Box(Modifier.background(TripPathColors.Sky)) {
             PackingBags(
