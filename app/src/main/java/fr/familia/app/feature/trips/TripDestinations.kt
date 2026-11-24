@@ -46,7 +46,7 @@ data class TripSafetyDestination(val tripId: String, val country: String? = null
 
 /** « Monnaie » (récit 105, règle 42). */
 @Serializable
-data class TripMoneyDestination(val tripId: String)
+data class TripMoneyDestination(val tripId: String, val currency: String? = null)
 
 /** « Documents » (récit 105, règle 41). */
 @Serializable

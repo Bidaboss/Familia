@@ -3417,6 +3417,7 @@
     <string name="money_step_title">Monnaie : %1$s (%2$s)</string>
     <string name="money_step_open">Convertir</string>
     <string name="money_from_expenses">Monnaie du voyage et taux du jour</string>
+    <string name="money_step_heading">Monnaie de l\'étape</string>
     <string name="money_currency_heading">Monnaie du voyage</string>
     <string name="money_currency_value">%1$s (%2$s)</string>
     <string name="money_change">Changer la monnaie</string>

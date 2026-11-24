@@ -33,7 +33,7 @@ fun StepWordRoute(
     /** « Sécurité » of the country of the step, with « Prévenir ma famille » (récit 112, règle 43). */
     onOpenSafety: ((country: String) -> Unit)? = null,
     /** « Monnaie » of the trip, from a step outside the euro zone (récit 112, règle 42). */
-    onOpenMoney: (() -> Unit)? = null,
+    onOpenMoney: ((String) -> Unit)? = null,
 ) {
     val viewModel: StepWordViewModel = viewModel(
         key = "step-word-$tripId-$stepId",

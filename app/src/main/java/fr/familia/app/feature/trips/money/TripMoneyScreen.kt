@@ -58,9 +58,12 @@ import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/** The currency of the step to show above the one of the trip: none when it is the same, or the euro. */
+fun stepOnlyCurrency(step: TripCurrency?, trip: TripCurrency): TripCurrency? = step?.takeIf { it != trip && it != Currencies.EURO }
+
 /** « Monnaie » of [tripId] (récit 105, règle 42): the currency of the trip, the rate of the day and a converter. */
 @Composable
-fun TripMoneyRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit) {
+fun TripMoneyRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit, stepCurrency: String? = null) {
     val detail: TripDetailViewModel = viewModel(
         key = "trip-money-$tripId",
         factory = viewModelFactory {
@@ -80,6 +83,7 @@ fun TripMoneyRoute(container: AppContainer?, currentMember: Member, tripId: Stri
         loading = shown == null,
         currency = Currencies.of(shown?.trip?.currency),
         suggestions = Currencies.ofCountries(countries),
+        stepCurrency = stepCurrency?.let(Currencies::of),
         rates = rates,
         saveFailed = saveFailed,
         onChange = if (shown?.canManage == true && container != null) money::setCurrency else null,
@@ -88,7 +92,11 @@ fun TripMoneyRoute(container: AppContainer?, currentMember: Member, tripId: Stri
     )
 }
 
-/** Stateless. [onChange] is null for someone who cannot change the currency of the trip. */
+/**
+ * Stateless. [onChange] is null for someone who cannot change the currency of the trip. [stepCurrency],
+ * when « Convertir » comes from a step whose currency is not the one of the trip (a trip in GBP, a step
+ * in Switzerland), comes first with its own rate and converter (retour C1 de #574).
+ */
 @Composable
 fun TripMoneyScreen(
     loading: Boolean,
@@ -99,7 +107,9 @@ fun TripMoneyScreen(
     onChange: ((String) -> Unit)?,
     onRetry: () -> Unit,
     onBack: () -> Unit,
+    stepCurrency: TripCurrency? = null,
 ) {
+    val stepOnly = stepOnlyCurrency(stepCurrency, currency)
     var picking by rememberSaveable { mutableStateOf(false) }
     Scaffold(topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.money_title)) }, navigationIcon = { BackButton(onClick = onBack) }) }) { padding ->
         if (loading) {
@@ -110,7 +120,16 @@ fun TripMoneyScreen(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(ClaySpacing.screen),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.money_currency_heading), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            if (stepOnly != null) {
+                Text(stringResource(R.string.money_step_heading), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+                Text(stringResource(R.string.money_currency_value, stepOnly.name, stepOnly.code), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                RateBlock(stepOnly, rates, onRetry)
+            }
+            Text(
+                stringResource(R.string.money_currency_heading),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = if (stepOnly != null) 16.dp else 0.dp).semantics { heading() },
+            )
             Text(stringResource(R.string.money_currency_value, currency.name, currency.code), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             if (onChange != null) {
                 TextButton(onClick = { picking = true }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.money_change)) }
@@ -125,7 +144,7 @@ fun TripMoneyScreen(
             }
             if (saveFailed) Text(stringResource(R.string.money_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
             if (currency == Currencies.EURO) {
-                Text(stringResource(R.string.money_in_euro), style = MaterialTheme.typography.bodyLarge)
+                if (stepOnly == null) Text(stringResource(R.string.money_in_euro), style = MaterialTheme.typography.bodyLarge)
             } else {
                 RateBlock(currency, rates, onRetry)
             }
