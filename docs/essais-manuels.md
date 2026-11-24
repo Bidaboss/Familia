@@ -2118,3 +2118,9 @@ Rien à publier côté Firebase. « APK de publication ».
 5. Dézoomer : les repères proches se regroupent en un rond avec leur nombre, photos comprises, puis se séparent au zoom.
 6. Toucher un repère avec photo : il est choisi comme un repère simple.
 7. Sans réseau, ou si une photo ne se charge pas : le rond simple reste, la carte ne bascule pas sur le dessin.
+
+## Voyage : repères avec photo, regroupement et chargement (retours C1 et C2 de #547)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec deux destinations proches qui ont des photos, puis dézoomer : les deux repères avec photo se fondent dans la même bulle numérotée, et aucune photo ne reste par-dessus la bulle. Zoomer : ils se séparent avec leur photo.
+2. Ouvrir un voyage avec beaucoup de destinations qui ont des photos : les photos des repères arrivent presque ensemble, et non plus l'une après l'autre.
