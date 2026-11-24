@@ -2152,7 +2152,7 @@ Rien à publier côté Firebase. « APK de publication ».
 3. Pareil pour « Documents », « Phrases utiles », « Sécurité », « Monnaie », « Comptes » (la liste, une dépense, son historique), la page d'un hébergement, d'un restaurant ou d'un spot, et « Le mot de l'étape ».
 4. Depuis « Le mot de l'étape » et l'ajout d'un lieu à une destination : la carte choisit cette destination.
 5. La carte se déplace et se zoome au doigt ; pas de bouton + / −, seulement le réglage discret en bas à droite.
-6. Feuille basse ou haute : le titre de l'écran n'a pas de vide au-dessus de lui. Plein écran : il passe sous la barre d'état sans la chevaucher.
+6. Feuille basse ou haute : le titre de l’écran n’a pas de vide au-dessus de lui. Plein écran : le titre est sous la barre d’état, sans la chevaucher.
 7. Ouvrir le clavier dans un champ (une dépense, une note) : la feuille prend tout l'écran.
 8. Avec TalkBack, sans réseau, ou pour un voyage sans destination placée : ces écrans restent des pages classiques, comme avant.
 9. Les photos du voyage restent en plein écran (c'est une visionneuse).

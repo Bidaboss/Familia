@@ -46,7 +46,7 @@ internal fun backdropSheetShare(level: Int): Float = when (level) {
 /**
  * The arrival of « Modifier » (récit 111, règle 4), from the reference video: the sheet opens high
  * then goes down, then the camera goes out to the whole globe and dives back on the steps, in one
- * move of about 2.5 s (the prototype), stopped by a touch.
+ * move of about 2.9 s of camera (300 + 1 100 + 1 500 ms, close to the 2.5 s of the prototype), stopped by a touch.
  */
 internal object EditArrival {
     /** The sheet stays high this long before it goes down. */
