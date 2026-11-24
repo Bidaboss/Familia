@@ -2089,3 +2089,13 @@ Rien à publier côté Firebase. « APK de publication ».
 4. Pareil après « Mot de l'étape », « Photos », « Valise », et après avoir tourné le téléphone.
 5. Quitter le voyage (Retour jusqu'à la liste) puis le rouvrir : l'arrivée se joue de nouveau, cadrée sur tout le voyage.
 6. Avec « Supprimer les animations » d'Android : pas d'arrivée, et Retour remet aussi la carte où elle était.
+
+## Voyage : compte à rebours, nuits et jours (récit 109 : règles 15, 16 et 26)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui part dans 4 jours : sous la photo, une carte blanche dit « 4 nuits avant le départ ». La veille, elle dit « Demain, c'est le départ », le jour même « C'est le jour J », puis « Jour 2 sur 6 » pendant le voyage. Une fois le voyage fini, plus de carte.
+2. Liste Voyages : la pastille d'un voyage à venir dit « Dans 4 nuits » (et non plus « Dans 4 jours »), puis « Demain » et « Aujourd'hui ».
+3. Accueil, la veille du départ, pour quelqu'un qui part : la carte « Demain, départ pour <première destination> » avec « Valise » et « Voir le trajet ». « Valise » ouvre la valise du voyage, « Voir le trajet » ouvre le voyage. Le jour J : « C'est le jour J : départ pour … ». Le lendemain, la carte « En ce moment » reprend sa place. Sans destination placée, la carte dit le nom du voyage.
+4. Même voyage, pour quelqu'un qui le suit sans partir : pas de carte la veille. Aucune notification ne part.
+5. Nouveau voyage avec un départ passé (l'an dernier) : sous les dates, « Combien de jours ? » avec − et +. « + » avance la date de retour d'un jour, et « − » s'arrête à 1 jour. Avec un départ aujourd'hui ou plus tard, cette ligne n'apparaît pas.
+6. Modifier une étape, champ « Une note » : l'aide dit « Plusieurs lignes possibles : … ». Le champ grandit jusqu'à 6 lignes, puis il défile au lieu de grandir encore.

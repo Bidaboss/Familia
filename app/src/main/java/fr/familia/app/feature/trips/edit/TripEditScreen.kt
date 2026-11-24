@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -199,6 +201,8 @@ private fun FormContent(
             val titleError = errorMessage(errors, TripFormError.TitleMissing, TripFormError.TitleTooLong)
             FormHint(titleError ?: stringResource(R.string.trip_title_hint), isError = titleError != null)
             DateBoxes(form, onChange)
+            // A past trip: « Combien de jours ? » instead of searching the return in the calendar (règle 15).
+            if (startsInPast(form, remember { java.time.LocalDate.now() })) PastDays(form, onChange)
             val start = form.startDate
             val end = form.endDate
             if (start != null && end != null && end >= start) {
@@ -304,6 +308,39 @@ private fun DateBoxes(form: TripForm, onChange: ((TripForm) -> TripForm) -> Unit
             start(Modifier.weight(1f))
             end(Modifier.weight(1f))
         }
+    }
+}
+
+/** « Combien de jours ? » − 6 jours +, for a trip already done; it moves the return date. */
+@Composable
+private fun PastDays(form: TripForm, onChange: ((TripForm) -> TripForm) -> Unit) {
+    val days = formDays(form) ?: 1
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.trip_past_days_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val less = stringResource(R.string.trip_past_days_less)
+            OutlinedButton(
+                onClick = { onChange { withDays(it, days - 1) } },
+                enabled = days > 1,
+                modifier = Modifier.size(56.dp).semantics { contentDescription = less },
+                contentPadding = PaddingValues(0.dp),
+            ) { Text("−", style = MaterialTheme.typography.titleLarge) }
+            Text(
+                pluralStringResource(R.plurals.trips_days, days, days),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.width(96.dp),
+                textAlign = TextAlign.Center,
+            )
+            val more = stringResource(R.string.trip_past_days_more)
+            OutlinedButton(
+                onClick = { onChange { withDays(it, days + 1) } },
+                enabled = days < MAX_PAST_TRIP_DAYS,
+                modifier = Modifier.size(56.dp).semantics { contentDescription = more },
+                contentPadding = PaddingValues(0.dp),
+            ) { Text("+", style = MaterialTheme.typography.titleLarge) }
+        }
+        FormHint(stringResource(R.string.trip_past_days_hint), isError = false)
     }
 }
 
