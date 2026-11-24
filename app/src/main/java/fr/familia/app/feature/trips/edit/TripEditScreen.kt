@@ -115,6 +115,8 @@ fun TripEditScreen(
     onBack: () -> Unit,
     /** The image of the place (règle 12): a real photo, else satellite, else the drawn landscape; null: the drawing. */
     cover: (@Composable (Modifier) -> Unit)? = null,
+    /** The form sits in the sheet under the map of the trip (règle 4). */
+    inSheet: Boolean = false,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val editing = state as? TripEditUiState.Editing
@@ -138,6 +140,7 @@ fun TripEditScreen(
         action = editing?.let { stringResource(if (it.isNew) R.string.trip_create else R.string.member_save) },
         busy = editing?.isSaving == true,
         onAction = onSave,
+        inSheet = inSheet,
     ) {
         when (state) {
             TripEditUiState.Loading, is TripEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))

@@ -2004,3 +2004,10 @@ Rien à publier côté Firebase. « APK de publication ».
 3. Tirer la poignée vers le haut : la feuille monte à 85 %, puis prend tout l'écran avec une flèche en haut à gauche. Retour, la flèche ou un glissement vers le bas la redescendent.
 4. Changer un champ puis Retour : « Quitter sans enregistrer ? » s'affiche toujours.
 5. Avec TalkBack, ou sans carte : le formulaire seul, comme avant.
+
+## Voyage : la carte reste ouverte au-dessus de la modification du voyage (récit 103 : règles 4, 6, 9)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir un voyage qui a des étapes placées, puis « Modifier » : la carte satellite du voyage est en haut, et le formulaire (nom, dates, qui part) est dans la feuille du bas.
+2. La carte se déplace et se zoome. La feuille se tire vers le haut et redescend avec Retour ou la flèche.
+3. Créer un nouveau voyage : il n'y a pas encore d'étape, donc le formulaire s'affiche seul, comme avant.
