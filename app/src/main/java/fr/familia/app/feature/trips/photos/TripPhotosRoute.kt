@@ -18,7 +18,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
-import fr.familia.app.core.album.AlbumFilmPart
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumScreen
 import fr.familia.app.core.album.AlbumSends
@@ -30,6 +29,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.share.galleryFilmName
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.feature.trips.word.FilmTileLabels
+import fr.familia.app.feature.trips.word.StepFilmTile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -101,11 +102,12 @@ fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: Str
         actionsBar = { HelpButton(ScreenHelp.TripDetail) },
         top = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                AlbumFilmPart(
+                // Like the film of a step (règle 32, DESIGN-79 B): « Voir » first, the rest in the menu.
+                StepFilmTile(
                     film,
                     if (plan == null) 0 else state.photos.size,
                     filmActions,
-                    help = stringResource(R.string.trip_film_help),
+                    labels = FilmTileLabels.Trip,
                     downloadName = galleryFilmName("voyage", trip?.title ?: tripId),
                     // Règle 33: the prompt for an AI, from the steps that have photos.
                     onAiFilm = aiSubject?.takeIf { it.photos.isNotEmpty() }?.let { { aiOpen = true } },
