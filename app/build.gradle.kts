@@ -151,11 +151,46 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
+// The Android images that Robolectric runs the tests on (one big jar per Android version, about
+// 140 MB each). By itself, Robolectric downloads them from Maven Central at every CI run, outside
+// of Gradle and of its cache, and Maven Central often answers « 429 Too Many Requests » to the
+// shared GitHub machines (CI of #545, 24/11). On the CI they now come through Gradle instead:
+// from the Google mirror first, retried on failure, and kept in the Gradle cache of main.
+// One line per Android version Robolectric opens: @Config(sdk = [30]), [31, 34], and 35, the
+// newest one, which Robolectric always reads too (CI of #552). A test on another version fails on
+// the CI with « Path is not a file: …/android-all-instrumented-… »: add its line here. The versions
+// come from DefaultSdkProvider of Robolectric (libs.versions.toml), to update with it.
+// One configuration per version: in a single one, Gradle would keep only the highest version.
+val robolectricAndroidAll = listOf(
+    "11-robolectric-6757853-i7", // Android 11, sdk 30
+    "12-robolectric-7732740-i7", // Android 12, sdk 31
+    "14-robolectric-10818077-i7", // Android 14, sdk 34
+    "15-robolectric-12650502-i7", // Android 15, sdk 35
+).map { version ->
+    configurations.create("robolectricAndroidAll$version".replace(Regex("[^A-Za-z0-9]"), "")) {
+        isTransitive = false
+        dependencies.add(project.dependencies.create("org.robolectric:android-all-instrumented:$version"))
+    }
+}
+val robolectricJarsDir = layout.buildDirectory.dir("robolectric-android-all")
+val copyRobolectricJars by tasks.registering(Sync::class) {
+    from(robolectricAndroidAll)
+    into(robolectricJarsDir)
+}
+
 // A failing test prints its message in the CI log (which screen, which button), not only its line:
 // the reports of the CI cannot be downloaded from here.
 tasks.withType<Test>().configureEach {
     testLogging {
         exceptionFormat = TestExceptionFormat.FULL
         showStackTraces = false
+    }
+    // On a computer, Robolectric keeps downloading by itself (once, into ~/.m2), but from the
+    // Google mirror. On the CI, it reads only the jars fetched by Gradle above.
+    systemProperty("robolectric.dependency.repo.url", "https://maven-central.storage-download.googleapis.com/maven2")
+    if (System.getenv("CI") == "true") {
+        dependsOn(copyRobolectricJars)
+        systemProperty("robolectric.offline", "true")
+        systemProperty("robolectric.dependency.dir", robolectricJarsDir.get().asFile.absolutePath)
     }
 }

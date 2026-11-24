@@ -54,6 +54,8 @@ jobs:
           echo "android=$android" >> "$GITHUB_OUTPUT"
           echo "firebase=$firebase" >> "$GITHUB_OUTPUT"
 
+  # Each Gradle call goes through scripts/gradle-reessai.sh: a failure due only to the network
+  # (« 429 » of Maven Central, a cut download) is run once more after a minute, a real one is not.
   # The Android checks run as three jobs side by side instead of one after the other (23/11): the
   # pull request waits for the longest one (about 8 min) instead of their sum (about 20 min).
   # Each job restores the same Gradle cache from main, so none of them starts from scratch.
@@ -74,7 +76,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Unit tests and screenshots
-        run: ./gradlew recordRoborazziDebug
+        run: scripts/gradle-reessai.sh recordRoborazziDebug
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
@@ -110,7 +112,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Android lint
-        run: ./gradlew lintDebug
+        run: scripts/gradle-reessai.sh lintDebug
 
       - name: Upload lint report
         if: always()
@@ -157,7 +159,7 @@ jobs:
       # code, and « APK de publication » still runs it before the family gets an APK.
       - name: Build debug APK and release APK with R8 (unsigned)
         run: |
-          ./gradlew assembleDebug assembleRelease -x lintVitalRelease
+          scripts/gradle-reessai.sh assembleDebug assembleRelease -x lintVitalRelease
           {
             echo "### Taille des APK"
             for apk in app/build/outputs/apk/debug/*.apk app/build/outputs/apk/release/*.apk; do
