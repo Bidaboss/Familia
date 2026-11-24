@@ -291,3 +291,71 @@ export async function sendTripPhotoDigests(db: Firestore, send: Sender, now: Dat
   }
   return sent;
 }
+
+// --- Film de la journée (récit 108, règle 32, PRD 156 et 157) --------------------------------------
+//
+// A participant publishes the film of a step for a day: trips/{tripId}/films/{stepId}_{yyyymmdd},
+// its file sent before at trips/{tripId}/films/{authorId}/{filmId}.mp4. One notice to the followers
+// of the trip with the app (readerIds only: never for a trip hidden from someone), the author left
+// out, through notify() and its cap. The photos waiting in the burst are told by the film: the
+// burst goes, so the same day never rings twice. No schedule: the record itself starts it.
+
+export interface FilmData {
+  authorId?: unknown;
+  authorName?: unknown;
+  stepId?: unknown;
+  day?: unknown;
+}
+
+const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** The file of a film, at its own place only, named after its record; null for anything else. */
+export function filmFile(tripId: string, filmId: string, data: FilmData | undefined): string | null {
+  if (!data || typeof data.authorId !== 'string' || !SAFE_ID.test(data.authorId)) return null;
+  if (!/^[A-Za-z0-9_-]{1,64}_[0-9]{8}$/.test(filmId)) return null;
+  return `trips/${tripId}/films/${data.authorId}/${filmId}.mp4`;
+}
+
+const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+/** « 12 juillet » from « 2027-07-12 »; the text as it is when it is not a day. */
+export function filmDay(day: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
+  if (!match) return day;
+  const month = MONTHS[Number(match[2]) - 1];
+  return month ? `${Number(match[3])} ${month}` : day;
+}
+
+/** « Corse : le film du 12 juillet », « Ajaccio, par Lou. Touche pour le voir. » */
+export function filmNotice(tripId: string, trip: TripData, place: string | null, day: string, authorName: string | null): Notice {
+  const where = place ? `${place.split(',')[0].trim()}, ` : '';
+  const who = authorName ? `par ${authorName}` : 'par un participant';
+  return { channel: 'trips', title: `${trip.title} : le film du ${filmDay(day)}`, body: `${where}${who}. Touche pour le voir.`, tripId };
+}
+
+/** A film was published: the followers are told once, and the photos waiting to be told go with it. */
+export async function notifyFilm(db: Firestore, send: Sender, tripId: string, data: FilmData | undefined): Promise<number> {
+  if (!data || typeof data.authorId !== 'string' || typeof data.stepId !== 'string' || typeof data.day !== 'string') return 0;
+  const tripDoc = await db.collection('trips').doc(tripId).get();
+  if (!tripDoc.exists) return 0;
+  const trip = tripDoc.data() as TripData;
+  // The film tells what the photos of the day would have told.
+  await db.collection(PHOTO_BURSTS).doc(tripId).delete();
+  const members = await loadMembers(db);
+  const recipients = withApp(members, trip.readerIds ?? [], data.authorId);
+  if (recipients.length === 0) return 0;
+  const step = SAFE_ID.test(data.stepId) ? await db.collection('trips').doc(tripId).collection('steps').doc(data.stepId).get() : null;
+  const place = step?.exists && typeof step.get('place') === 'string' ? (step.get('place') as string) : null;
+  const author = members.find((m) => m.id === data.authorId)?.firstName ?? (typeof data.authorName === 'string' ? data.authorName : null);
+  return notify(db, send, recipients, filmNotice(tripId, trip, place, data.day, author));
+}
+
+/** The films of a deleted step go with it; their files follow (onTripFilmDeleted). */
+export async function deleteStepFilms(db: Firestore, tripId: string, stepId: string): Promise<number> {
+  const films = await db.collection('trips').doc(tripId).collection('films').where('stepId', '==', stepId).get();
+  if (films.empty) return 0;
+  const writer = db.bulkWriter();
+  films.docs.forEach((d) => void writer.delete(d.ref));
+  await writer.close();
+  return films.size;
+}

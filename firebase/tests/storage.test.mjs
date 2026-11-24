@@ -645,3 +645,39 @@ describe('trip voice notes folder (récit 104, règle 35)', () => {
     await assertSucceeds(deleteObject(ref(storage, file('adult3', 'v107.m4a'))));
   });
 });
+
+describe('trip films folder (récit 108, règle 32)', () => {
+  // ADULT created the trip and takes part with adult3; admin1 follows it without going.
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'trips/t1'), {
+        title: 'Corse', startDate: '2027-07-10', endDate: '2027-07-20',
+        participantIds: ['adult1', 'adult3'], readerIds: ['admin1', 'adult1', 'adult3'],
+        creatorId: 'adult1', creatorName: 'adult1', createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+  });
+  const file = (author, name) => `trips/t1/films/${author}/${name}`;
+  const mp4 = { contentType: 'video/mp4' };
+
+  test('a participant sends a film of 10 MB at most in their folder, and the followers watch', async () => {
+    const storage = storageAs(NEIGHBOUR);
+    await assertSucceeds(uploadString(ref(storage, file('adult3', 's1_20270712.mp4')), 'x'.repeat(10 * 1024 * 1024), 'raw', mp4));
+    await assertSucceeds(getBytes(ref(storageAs(ADMIN), file('adult3', 's1_20270712.mp4'))));
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file('adult3', 's1_20270712.mp4'))));
+  });
+
+  test('never too big, never another type or name, never for someone else, never by a follower, never replaced', async () => {
+    const storage = storageAs(NEIGHBOUR);
+    await assertFails(uploadString(ref(storage, file('adult3', 's1_20270713.mp4')), 'x'.repeat(10 * 1024 * 1024 + 1), 'raw', mp4));
+    await assertFails(uploadString(ref(storage, file('adult3', 's1_20270714.mp4')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult3', 's1.mp4')), 'x', 'raw', mp4));
+    await assertFails(uploadString(ref(storage, file('adult3', 's1_20270715.mov')), 'x', 'raw', mp4));
+    await assertFails(uploadString(ref(storage, file('adult1', 's1_20270716.mp4')), 'x', 'raw', mp4));
+    await assertFails(uploadString(ref(storageAs(ADMIN), file('admin1', 's1_20270717.mp4')), 'x', 'raw', mp4));
+    await uploadString(ref(storage, file('adult3', 's1_20270718.mp4')), 'x', 'raw', mp4);
+    await assertFails(uploadString(ref(storage, file('adult3', 's1_20270718.mp4')), 'y', 'raw', mp4));
+    await assertFails(deleteObject(ref(storageAs(ADULT), file('adult3', 's1_20270718.mp4'))));
+    await assertSucceeds(deleteObject(ref(storage, file('adult3', 's1_20270718.mp4'))));
+  });
+});

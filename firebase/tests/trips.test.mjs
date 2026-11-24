@@ -398,6 +398,54 @@ describe('trip voice notes (récit 104, règle 35)', () => {
   });
 });
 
+describe('film de la journée (récit 108, règle 32)', () => {
+  beforeEach(async () => {
+    // ADULT and adult3 take part; everyone but OTHER_ADULT follows.
+    await storedTrip('t1', ADULT, { readerIds: EVERYONE.filter((id) => id !== 'adult2') });
+    await storedStep('t1', 's1');
+  });
+
+  const film = (author, overrides = {}) => ({
+    authorId: author.memberId, authorName: author.memberId, stepId: 's1', day: '2027-07-12', seconds: 30, photoCount: 12,
+    createdAt: serverTimestamp(), ...overrides,
+  });
+
+  test('a participant publishes the film of a step for a day, and the followers watch it', async () => {
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/films/s1_20270712'), film(NEIGHBOUR)));
+    await assertSucceeds(getDoc(doc(as(env, KID), 'trips/t1/films/s1_20270712')));
+    await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/films/s1_20270712')));
+    await assertFails(setDoc(doc(as(env, KID), 'trips/t1/films/s1_20270713'), film(KID, { day: '2027-07-13' })));
+  });
+
+  test('one film a step and a day: a second one is refused, never edited', async () => {
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/films/s1_20270712'), film(NEIGHBOUR));
+    await assertFails(setDoc(doc(as(env, ADULT), 'trips/t1/films/s1_20270712'), film(ADULT)));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { seconds: 40 })));
+  });
+
+  test('its id is its step and its day, in their own name, with bounded numbers, nothing more', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270713'), film(NEIGHBOUR)));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/x_20270712'), film(NEIGHBOUR)));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/nope_20270712'), film(NEIGHBOUR, { stepId: 'nope' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_2027712'), film(NEIGHBOUR, { day: '2027-7-12' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(ADULT)));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { seconds: 301 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { seconds: 2.5 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { photoCount: 1 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { url: 'https://example.com' })));
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/films/s1_20270712'), film(NEIGHBOUR, { seconds: 300, photoCount: 300 })));
+  });
+
+  test('the author or the creator of the trip removes a film, nobody else', async () => {
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/films/s1_20270712'), film(NEIGHBOUR));
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/films/s1_20270713'), film(NEIGHBOUR, { day: '2027-07-13' }));
+    await assertFails(deleteDoc(doc(as(env, KID), 'trips/t1/films/s1_20270712')));
+    await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/films/s1_20270712')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t1/films/s1_20270713')));
+  });
+});
+
 describe('trip photos (récit 15)', () => {
   beforeEach(async () => {
     // ADULT and adult3 take part; everyone but OTHER_ADULT follows.
