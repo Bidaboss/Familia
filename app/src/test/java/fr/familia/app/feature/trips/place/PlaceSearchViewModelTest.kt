@@ -34,7 +34,7 @@ class PlaceSearchViewModelTest {
     private fun vm(search: FakeSearch?, lat: Double? = 41.92, lng: Double? = 8.74, saved: SavedStateHandle = SavedStateHandle()) =
         PlaceSearchViewModel(search, TripPlaceKind.Restaurant, lat, lng, waitMillis = 600, savedState = saved)
 
-    private fun wait() {
+    private fun passTheWait() {
         dispatcher.scheduler.advanceTimeBy(601)
         dispatcher.scheduler.runCurrent()
     }
@@ -54,7 +54,7 @@ class PlaceSearchViewModelTest {
         vm.type("bis")
         vm.type("bistrot")
         assertEquals(PlaceSearchResults.Loading, vm.uiState.value.results)
-        wait()
+        passTheWait()
         assertEquals(listOf("", "bistrot"), search.asked.map { it.second })
         assertEquals(PlaceSearchResults.Found(listOf(port)), vm.uiState.value.results)
     }
@@ -64,9 +64,9 @@ class PlaceSearchViewModelTest {
         val search = FakeSearch(listOf(port))
         val vm = vm(search)
         vm.type("port")
-        wait()
+        passTheWait()
         vm.type("port ")
-        wait()
+        passTheWait()
         assertEquals(listOf("", "port"), search.asked.map { it.second })
         assertEquals("port ", vm.uiState.value.text)
     }
