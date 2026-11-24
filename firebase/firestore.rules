@@ -2799,7 +2799,7 @@ service cloud.firestore {
     // A step removed later leaves its photos, which go back to being placed by their day.
     function isValidTripPhoto(p, photoId, tripId) {
       return isValidAlbumPhoto(p, photoId, ['stepId'])
-        && (!('stepId' in p) || (p.stepId is string && p.stepId.size() > 0 && p.stepId.size() <= 64
+        && (!('stepId' in p) || (p.stepId is string && p.stepId.matches('^[A-Za-z0-9_-]{1,64}$')
             && exists(/databases/$(database)/documents/trips/$(tripId)/steps/$(p.stepId))));
     }
 

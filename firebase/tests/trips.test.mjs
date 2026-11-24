@@ -412,6 +412,9 @@ describe('trip photos (récit 15)', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_3'), photo(NEIGHBOUR, 3, { stepId: 'nope' })));
     await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_4'), photo(NEIGHBOUR, 4, { stepId: '' })));
     await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_5'), photo(NEIGHBOUR, 5, { stepId: 7 })));
+    // A path would make exists() look at a document under the step.
+    await storedStep('t1', 's1/x/y');
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_6'), photo(NEIGHBOUR, 6, { stepId: 's1/x/y' })));
     // Nobody sees more than before: who does not follow the trip still reads nothing.
     await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/photos/adult3_1')));
   });

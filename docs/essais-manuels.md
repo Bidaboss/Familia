@@ -2039,6 +2039,11 @@ Rien à publier côté Firebase. « APK de publication ».
 5. Supprimer la destination : ses photos restent et reviennent sous la destination de leur jour, ou dans « photos sans étape ».
 6. Un membre qui suit le voyage sans y participer ne voit pas le carré d'ajout ; un membre qui ne suit pas le voyage ne voit toujours aucune photo.
 
+## Voyage : l'étape d'une photo est un identifiant simple (suite du récit 104, partie 2)
+
+**Publier Firebase : oui** (firestore.rules). Rien ne change à l'écran : ajouter des photos depuis une destination marche comme avant.
+
+
 ## Voyage : les photos annoncées en une seule notification (récit 104, partie 4 : règle 34)
 
 **Publier Firebase : oui** (une nouvelle fonction, `onTripPhotoCreated`, et firestore.rules), avant l'APK.
