@@ -2578,12 +2578,22 @@ service cloud.firestore {
 
     // « Documents » (récit 105, règle 41): trips/{tripId}/documents/{docId}, a ticket, a booking or
     // a paper (a passport may be one), its file in Storage at trips/{tripId}/documents/{ownerId}/{file}.
-    // Only those who go read them: never the followers, never the album. The owner adds their own,
-    // after sending the file; nothing is ever edited. The owner, the creator of the trip or the
-    // admin principal removes one. Deleting the trip removes them on the server.
-    function isValidTripDocument(d, docId) {
-      return d.keys().hasAll(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'createdAt'])
-        && d.keys().hasOnly(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'createdAt'])
+    // Never the followers, never the album. Private by default (DESIGN-105, décision de l'admin du 24/11): sharedWith
+    // lists who reads it, always its owner, only those who go, and one of them reads it only while
+    // they still go. The app asks only for the documents shared with the reader (array-contains),
+    // which these rules can prove. The owner adds their own, after sending the file; then only its
+    // sharing changes. The owner, the creator of the trip or the admin principal removes one.
+    // Deleting the trip removes them on the server.
+    function isValidSharedWith(list, tripId, ownerId) {
+      return list is list && list.size() >= 1 && list.size() <= 40
+        && list.toSet().size() == list.size()
+        && ownerId in list
+        && tripOf(tripId).participantIds.hasAll(list);
+    }
+
+    function isValidTripDocument(d, docId, tripId) {
+      return d.keys().hasAll(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'sharedWith', 'createdAt'])
+        && d.keys().hasOnly(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'sharedWith', 'createdAt'])
         && d.ownerId == myMemberId()
         && d.ownerName == me().firstName
         && d.title is string && d.title.size() > 0 && d.title.size() <= 80
@@ -2592,12 +2602,19 @@ service cloud.firestore {
             || (d.contentType == 'image/jpeg' && d.file == docId + '.jpg')
             || (d.contentType == 'image/png' && d.file == docId + '.png'))
         && d.size is int && d.size > 0 && d.size <= 5 * 1024 * 1024
+        && isValidSharedWith(d.sharedWith, tripId, d.ownerId)
         && d.createdAt == request.time;
     }
 
     match /trips/{tripId}/documents/{docId} {
-      allow read: if isMember() && isParticipantOf(tripId);
-      allow create: if isMember() && isParticipantOf(tripId) && isValidTripDocument(request.resource.data, docId);
+      allow read: if isMember() && myMemberId() in resource.data.sharedWith && isParticipantOf(tripId);
+      allow create: if isMember() && isParticipantOf(tripId) && isValidTripDocument(request.resource.data, docId, tripId);
+      // « Partager… »: the owner, still going, changes who reads it, and nothing else.
+      allow update: if isMember()
+        && resource.data.ownerId == myMemberId()
+        && isParticipantOf(tripId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith'])
+        && isValidSharedWith(request.resource.data.sharedWith, tripId, resource.data.ownerId);
       allow delete: if isMember()
         && (resource.data.ownerId == myMemberId() || tripOf(tripId).creatorId == myMemberId() || isOwner());
     }

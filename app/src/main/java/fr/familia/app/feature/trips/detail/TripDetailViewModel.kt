@@ -60,6 +60,8 @@ sealed interface TripDetailUiState {
         val canShare: Boolean = false,
         /** Those who go, for their rounds under the photo (fiche F1). */
         val people: List<fr.familia.app.core.model.Member> = emptyList(),
+        /** The households, to pick travellers by household (« Documents » shared, DESIGN-105). */
+        val households: List<fr.familia.app.core.model.Household> = emptyList(),
     ) : TripDetailUiState
 }
 
@@ -243,6 +245,7 @@ class TripDetailViewModel(
                 .sortedBy { it.name.lowercase() },
             canShare = family.members.all { it.id in trip.readerIds },
             people = trip.participantIds.mapNotNull { id -> family.members.firstOrNull { it.id == id } },
+            households = family.households,
         )
     }
 }

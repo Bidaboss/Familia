@@ -67,6 +67,7 @@ class VoyageScreensAccessibilityTest {
 
     @Test
     fun `the currency of a trip, for who does not manage it`() = compose.checkAccessibility(VoyageScreens.screen("the currency of a trip, for who does not manage it"))
+    fun `the documents of a trip`() = compose.checkAccessibility(VoyageScreens.screen("the documents of a trip"))
 
     @Test
     fun `À emporter`() = compose.checkAccessibility(VoyageScreens.screen("À emporter"))

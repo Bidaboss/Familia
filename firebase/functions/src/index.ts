@@ -63,6 +63,7 @@ import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type Birt
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
 import { eraseTurns } from './turns';
+import { shareOldDocuments } from './documentsShared';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
@@ -797,6 +798,13 @@ export const onPresentationWritten = onDocumentWritten('config/presentation', as
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
+  // DESIGN-105: the documents written before « Privé / Partagé » stay shared with those who go,
+  // once, at the first run after the rules are published (then a single read of the marker).
+  try {
+    await shareOldDocuments(getFirestore(), new Date());
+  } catch (e) {
+    console.error('documentsShared', e);
+  }
   // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
   // for the next run and never stops the rest.
   try {

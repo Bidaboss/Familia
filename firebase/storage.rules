@@ -109,10 +109,12 @@ service firebase.storage {
     }
 
     // « Documents » (récit 105, règle 41): trips/{tripId}/documents/{ownerId}/{docId}.pdf|jpg|png,
-    // 5 MB at most. Only those who go read them (never the followers). The owner sends their own
-    // file once, before the document that names it; it is never replaced. The owner or the creator
-    // of the trip removes it (the admin principal removes the record, and the file goes with the
-    // trip: see LIMIT above). Deleting the trip removes the whole folder trips/{tripId}/.
+    // 5 MB at most. Read by those its Firestore document is shared with (sharedWith, DESIGN-105):
+    // only that document is read on the way (see LIMIT above), so « still going » is checked by
+    // Firestore, which lists the documents. The owner sends their own file once, before the document
+    // that names it; it is never replaced. The owner or the creator of the trip removes it (the admin
+    // principal removes the record, and the file goes with the trip). Deleting the trip removes the
+    // whole folder trips/{tripId}/.
     function isTripDocumentFile(fileName) {
       return request.resource.size > 0 && request.resource.size <= 5 * 1024 * 1024
         && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]pdf$') && request.resource.contentType == 'application/pdf')
@@ -120,8 +122,15 @@ service firebase.storage {
             || (fileName.matches('^[A-Za-z0-9]{1,40}[.]png$') && request.resource.contentType == 'image/png'));
     }
 
+    // The Firestore document that names [fileName] (« d1.pdf » is trips/{tripId}/documents/d1).
+    function tripDocumentData(tripId, fileName) {
+      return firestore.get(docPath('trips/' + tripId + '/documents/' + fileName.split('[.]')[0])).data;
+    }
+
     match /trips/{tripId}/documents/{ownerId}/{fileName} {
-      allow read: if isMember() && myMemberId() in tripData(tripId).participantIds;
+      allow read: if isMember()
+        && fileName.matches('^[A-Za-z0-9]{1,40}[.](pdf|jpg|png)$')
+        && myMemberId() in tripDocumentData(tripId, fileName).sharedWith;
       allow create: if isMember()
         && resource == null
         && ownerId == myMemberId()
