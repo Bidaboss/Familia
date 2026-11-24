@@ -17,9 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Euro
-import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.Luggage
-import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -240,10 +238,6 @@ fun TripDayCard(
     /** « Valise » (récit 98): the round button under the menus, for those who go. */
     onPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
-    /** « Phrases » (récit 105): the round button of a trip with a step abroad, for anyone who reads it. */
-    onPhrases: (() -> Unit)? = null,
-    /** « Sécurité » (récit 105): the round button of a trip with a step in a country of the table of numbers. */
-    onSafety: (() -> Unit)? = null,
     /** « Monnaie » (récit 105): the currency of the trip and the rate of the day, for those who go. */
     onMoney: (() -> Unit)? = null,
     /** « Documents » (récit 105, règle 41): tickets, bookings and papers, for those who go. */
@@ -274,7 +268,7 @@ fun TripDayCard(
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
         }
         // Then the tools, for those who go: two round buttons with their word under them.
-        if (onExpenses != null || onPacking != null || onPhrases != null || onSafety != null || onMoney != null || onDocuments != null) {
+        if (onExpenses != null || onPacking != null || onMoney != null || onDocuments != null) {
             // Up to four rounds: they go on a second line rather than out of the card.
             FlowRow(
                 Modifier.fillMaxWidth(),
@@ -284,17 +278,11 @@ fun TripDayCard(
                 if (onExpenses != null) {
                     ToolRound(Icons.Outlined.Payments, stringResource(R.string.trip_expenses_short), stringResource(R.string.expenses_open), onExpenses)
                 }
-                if (onPhrases != null) {
-                    ToolRound(Icons.Outlined.QuestionAnswer, stringResource(R.string.phrases_round_label), stringResource(R.string.phrases_round_description), onPhrases)
-                }
                 if (onMoney != null) {
                     ToolRound(Icons.Outlined.Euro, stringResource(R.string.money_round_label), stringResource(R.string.money_round_description), onMoney)
                 }
                 if (onDocuments != null) {
                     ToolRound(Icons.Outlined.Description, stringResource(R.string.documents_round_label), stringResource(R.string.documents_round_description), onDocuments)
-                }
-                if (onSafety != null) {
-                    ToolRound(Icons.Outlined.HealthAndSafety, stringResource(R.string.safety_round_label), stringResource(R.string.safety_round_description), onSafety)
                 }
                 if (onPacking != null) {
                     val description = if (packingCount == 0) stringResource(R.string.packing_round_ready) else pluralStringResource(R.plurals.packing_round_todo, packingCount, packingCount)

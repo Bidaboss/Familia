@@ -55,10 +55,10 @@ import java.util.Locale
 /**
  * « Sécurité » of [tripId] (récit 105, règle 43): the emergency numbers of each country abroad,
  * never for France, read by anyone who follows the trip. « Prévenir ma famille » is for those who
- * go.
+ * go. From the page of a step (récit 112), [country] keeps only the numbers of that step.
  */
 @Composable
-fun TripSafetyRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit) {
+fun TripSafetyRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit, country: String? = null) {
     val detail: TripDetailViewModel = viewModel(
         key = "trip-safety-$tripId",
         factory = viewModelFactory {
@@ -72,7 +72,8 @@ fun TripSafetyRoute(container: AppContainer?, currentMember: Member, tripId: Str
     val state by detail.uiState.collectAsStateWithLifecycle()
     val alert by safety.alert.collectAsStateWithLifecycle()
     val shown = state as? TripDetailUiState.Success
-    val countries = EmergencyNumbers.abroad(rememberAbroadCountries(container, shown?.steps.orEmpty()))
+    val abroad = EmergencyNumbers.abroad(rememberAbroadCountries(container, shown?.steps.orEmpty()))
+    val countries = if (country == null) abroad else EmergencyNumbers.abroad(listOf(country))
     val goes = shown?.trip?.participantIds?.contains(currentMember.id) == true
     TripSafetyScreen(
         loading = shown == null,
@@ -161,11 +162,15 @@ private fun AlertBlock(alert: AlertState, onAsk: () -> Unit, onDismissAlert: () 
     }
 }
 
+/** The name of a country in French, « Espagne » for ES. */
+internal fun frenchCountryName(code: String): String =
+    Locale("", code).getDisplayCountry(Locale.FRANCE).replaceFirstChar { it.titlecase(Locale.FRANCE) }
+
+/** The numbers of a country, each one opening the dialer; [titled] false inside a tile that names it. */
 @Composable
-private fun CountryBlock(code: String) {
+internal fun CountryBlock(code: String, titled: Boolean = true) {
     val context = LocalContext.current
-    val name = Locale("", code).getDisplayCountry(Locale.FRANCE).replaceFirstChar { it.titlecase(Locale.FRANCE) }
-    Text(name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
+    if (titled) Text(frenchCountryName(code), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
     EmergencyNumbers.of(code).forEach { line ->
         val description = stringResource(R.string.safety_call, line.kind.label, line.number)
         Row(
