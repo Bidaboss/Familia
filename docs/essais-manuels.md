@@ -2203,3 +2203,24 @@ Il faut deux téléphones : un participant du voyage (A) et quelqu'un qui le sui
 5. Deux participants qui publient le même jour la même étape : le second lit « Quelqu'un a déjà publié le film du … » et rien de lui ne reste dans Storage.
 6. Un voyage surprise ou caché à quelqu'un : pas de carte dans le fil, pas de notification.
 7. Film du voyage dans « Voir les photos » : après avoir fait le film, ajouter une photo puis revenir : « Faire le film » le refait (retour C2 de #557).
+
+## Voyage : télécharger un film dans la galerie (récit 108, partie 4 : règle 32)
+
+**Publier Firebase : non.**
+Sur un téléphone en Android 10 ou plus :
+1. Film d'une étape : « Voir le film de l'étape », puis le menu ⋮ → « Télécharger ». La ligne « Film enregistré dans la galerie… » s'affiche. Dans Galerie (ou Google Photos) → dossier Familia des films, le film y est, nommé d'après l'étape.
+2. Film publié d'une étape : à droite de « Film du …, par … », le bouton d'enregistrement (TalkBack lit « Télécharger le film du … ») le copie dans la galerie, depuis le réseau.
+3. Film du voyage (« Voir les photos » → « Faire le film ») : sous « Partager », « Télécharger » fait de même.
+4. Sans réseau, le film publié dit « Le film n'a pas pu être enregistré… ». Les films faits sur le téléphone s'enregistrent quand même.
+5. Les films d'album d'un événement n'ont pas « Télécharger » (seulement les films de voyage, règle 32).
+6. Sur Android 8 ou 9, « Télécharger » n'apparaît pas : « Partager » reste, avec son rappel.
+
+## Voyage : faire un vrai film avec une IA (récit 108, partie 6 : règle 33)
+
+**Publier Firebase : non.**
+1. Dans une étape qui a des photos, sous « Film de l'étape », ouvrir le menu ⋮ puis « Faire un vrai film avec une IA ». Une feuille s'ouvre : 8 ambiances (Souvenir, Road trip, Cinéma, Carnet de voyage, Drôle, Documentaire, Fête de famille, Zen & nature), avec une phrase qui décrit celle choisie ; puis 3 durées (30 s, 1 min, 2 min) et deux interrupteurs, « Musique » (allumé) et « Voix off des commentaires » (éteint).
+2. Changer une ambiance, une durée ou un interrupteur : l'aperçu du prompt suit aussitôt. Il cite la destination, le nombre de photos et le mot de l'étape.
+3. « Copier le prompt » affiche « Prompt copié… ». Le coller dans une IA donne le texte complet.
+4. « Exporter vers une IA (photos + commentaires + prompt) » montre d'abord le rappel de partage. Après « Continuer », les photos se préparent (barre), puis le partage Android s'ouvre avec les photos (20 au plus) et le prompt en texte.
+5. Dans « Voir les photos » du voyage, sous le film, « Faire un vrai film avec une IA » fait de même pour tout le voyage : une séquence par destination, dans l'ordre du trajet.
+6. Sans photo liée à une étape, l'entrée n'apparaît pas. Sans réseau, l'export dit « Les photos n'ont pas pu être préparées… ».

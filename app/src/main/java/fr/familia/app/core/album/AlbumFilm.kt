@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -28,8 +30,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.share.FilmDownloadLine
+import fr.familia.app.core.share.FilmSource
 import fr.familia.app.core.share.ShareConsentReminder
 import fr.familia.app.core.share.playVideo
+import fr.familia.app.core.share.rememberFilmDownload
 import fr.familia.app.core.share.shareVideo
 import java.io.File
 
@@ -44,10 +49,20 @@ data class FilmActions(
  * reminder of EXPERT-6 first.
  */
 @Composable
-fun AlbumFilmPart(state: FilmState, photoCount: Int, actions: FilmActions, help: String? = null) {
+fun AlbumFilmPart(
+    state: FilmState,
+    photoCount: Int,
+    actions: FilmActions,
+    help: String? = null,
+    /** The file name in the gallery for « Télécharger » (récit 108, règle 32); null offers none, as for the albums. */
+    downloadName: String? = null,
+    /** « Faire un vrai film avec une IA » (récit 108, règle 33), for the film of a trip only. */
+    onAiFilm: (() -> Unit)? = null,
+) {
     val context = LocalContext.current
     var remind by rememberSaveable { mutableStateOf(false) }
     var noPlayer by rememberSaveable { mutableStateOf(false) }
+    val download = rememberFilmDownload()?.takeIf { downloadName != null }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when (state) {
             FilmState.Idle, FilmState.Failed -> {
@@ -95,7 +110,18 @@ fun AlbumFilmPart(state: FilmState, photoCount: Int, actions: FilmActions, help:
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.album_film_share))
                     }
+                    if (download != null && downloadName != null) {
+                        OutlinedButton(
+                            onClick = { download.download(FilmSource.Local(File(state.path), downloadName)) },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        ) {
+                            Icon(Icons.Outlined.SaveAlt, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.film_download))
+                        }
+                    }
                 }
+                FilmDownloadLine(download)
                 if (noPlayer) {
                     Text(
                         stringResource(R.string.album_film_no_player),
@@ -113,6 +139,13 @@ fun AlbumFilmPart(state: FilmState, photoCount: Int, actions: FilmActions, help:
                         onDismiss = { remind = false },
                     )
                 }
+            }
+        }
+        if (onAiFilm != null) {
+            TextButton(onClick = onAiFilm, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.film_ai_open))
             }
         }
     }

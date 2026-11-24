@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,6 +27,7 @@ import fr.familia.app.core.album.book.PhotoBookButton
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.share.galleryFilmName
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import kotlinx.coroutines.CancellationException
@@ -77,6 +81,12 @@ fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: Str
         container?.tripRepository?.observeSteps(tripId)?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) } ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(emptyList())
     val plan = remember(trip, steps, state.photos) { trip?.let { tripFilmPlan(it, steps, state.photos) } }
+    val words by remember(container, tripId) {
+        container?.tripWordRepository?.observeWords(tripId)?.catch { e -> if (e is CancellationException) throw e else emit(emptyMap()) } ?: flowOf(emptyMap())
+    }.collectAsStateWithLifecycle(emptyMap())
+    val aiSubject = remember(trip, steps, state.photos, words) { trip?.let { tripAiSubject(it, steps, state.photos, words) } }
+    var aiOpen by rememberSaveable { mutableStateOf(false) }
+    if (aiOpen && aiSubject != null) FilmAiSheet(aiSubject, container?.photoStorage) { aiOpen = false }
     // A photo or a step changed since the film was made: it is made again at the next « Voir » (C2 of #557).
     LaunchedEffect(plan) { filmViewModel.keepFor(plan) }
     val filmActions = remember(filmViewModel, plan) {
@@ -91,7 +101,15 @@ fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: Str
         actionsBar = { HelpButton(ScreenHelp.TripDetail) },
         top = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                AlbumFilmPart(film, if (plan == null) 0 else state.photos.size, filmActions, help = stringResource(R.string.trip_film_help))
+                AlbumFilmPart(
+                    film,
+                    if (plan == null) 0 else state.photos.size,
+                    filmActions,
+                    help = stringResource(R.string.trip_film_help),
+                    downloadName = galleryFilmName("voyage", trip?.title ?: tripId),
+                    // Règle 33: the prompt for an AI, from the steps that have photos.
+                    onAiFilm = aiSubject?.takeIf { it.photos.isNotEmpty() }?.let { { aiOpen = true } },
+                )
                 // Le livre photo (récit 59), behind the switch photoBook: the caller gives it or not.
                 if (onMakeBook != null && state.photos.isNotEmpty()) PhotoBookButton(onMakeBook)
             }
