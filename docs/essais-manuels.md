@@ -2321,3 +2321,13 @@ Sur un téléphone en Android 10 ou plus :
 3. Pendant l'une ou l'autre, toucher la carte : le mouvement s'arrête tout de suite, là où il est, et la carte se laisse déplacer.
 4. Revenir d'une page ouverte depuis la carte : l'arrivée ne rejoue pas.
 5. Avec « Supprimer les animations » dans les réglages du téléphone : pas d'arrivée, comme avant.
+
+## Voyage : des propositions pendant la frappe dans « Où allez-vous ? » (DESIGN-103 A, E-20)
+
+**Publier Firebase : non.**
+1. Nouveau voyage, « Où allez-vous ? » : taper « La R » sans toucher « Chercher ».
+2. Attendu : après une courte pause (moins d'une demi-seconde), « Recherche en cours… » puis jusqu'à 5 propositions (par exemple La Rochelle).
+3. Continuer à taper « La Rochelle » : les propositions se mettent à jour, sans clignoter à chaque lettre.
+4. Toucher une proposition puis « Continuer » : le voyage prend le nom « La Rochelle », avec sa majuscule.
+5. Deux lettres seulement : pas de proposition, l'indication reste. « Chercher » marche toujours.
+6. Sans réseau : « Aucun lieu trouvé », comme avant.

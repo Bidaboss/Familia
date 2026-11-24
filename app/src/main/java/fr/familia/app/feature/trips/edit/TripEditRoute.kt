@@ -13,6 +13,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import fr.familia.app.feature.trips.PlaceCover
@@ -65,6 +66,15 @@ fun TripEditRoute(
         val done = state as? TripEditUiState.Done ?: return@LaunchedEffect
         if (done.deleted) onDeleted() else done.tripId?.let { onSaved(it, chosen?.let(::destinationName)) }
     }
+    // DESIGN-103 A: the places come while the member types, after a short pause; a new letter cancels the question.
+    LaunchedEffect(query, asking) {
+        if (!asking) return@LaunchedEffect
+        val typed = suggestionQuery(query, chosen) ?: return@LaunchedEffect
+        delay(SUGGEST_PAUSE_MS)
+        search = DestinationSearch.Searching
+        val places = container?.placeLocator?.suggest(typed).orEmpty()
+        search = if (places.isEmpty()) DestinationSearch.NothingFound else DestinationSearch.Found(places)
+    }
     if (asking && state is TripEditUiState.Editing) {
         TripDestinationScreen(
             query = query,
@@ -77,7 +87,10 @@ fun TripEditRoute(
                     search = DestinationSearch.Searching
                     scope.launch {
                         val places = container?.placeLocator?.suggest(typed).orEmpty()
-                        search = if (places.isEmpty()) DestinationSearch.NothingFound else DestinationSearch.Found(places)
+                        // The member typed again meanwhile: that answer is for another text.
+                        if (query.trim() == typed) {
+                            search = if (places.isEmpty()) DestinationSearch.NothingFound else DestinationSearch.Found(places)
+                        }
                     }
                 }
             },
