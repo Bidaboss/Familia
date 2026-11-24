@@ -21,7 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.Satellite
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -107,7 +107,7 @@ fun MapSettingsSheet(
                 SectionTitle(stringResource(R.string.trip_map_style))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SettingTile(stringResource(R.string.trip_map_look_satellite), look == MapLook.Satellite, Modifier.weight(1f), onClick = { onLook(MapLook.Satellite) }) {
-                        StylePreview(Icons.Outlined.Satellite, Brush.linearGradient(listOf(Color(0xFF2F6B3A), Color(0xFF1E4E7A))), Color.White)
+                        StylePreview(Icons.Outlined.Public, Brush.linearGradient(listOf(Color(0xFF2F6B3A), Color(0xFF1E4E7A))), Color.White)
                     }
                     SettingTile(stringResource(R.string.trip_map_look_streets), look == MapLook.Streets, Modifier.weight(1f), onClick = { onLook(MapLook.Streets) }) {
                         StylePreview(Icons.Outlined.Map, Brush.linearGradient(listOf(Color(0xFFF1ECE2), Color(0xFFDCE6EC))), SettingsInk)
