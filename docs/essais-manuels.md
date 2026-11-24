@@ -2079,3 +2079,13 @@ Rien à publier côté Firebase. « APK de publication ».
 1. Ouvrir un voyage planifié : la carte blanche « Le programme » garde son encre foncée, ses ronds bleu foncé et ses « + » bleu foncé, en thème clair comme en thème sombre.
 2. Changer un nombre de nuits puis attendre le bandeau : « Annuler » reste jaune sur bleu foncé.
 3. Sur la photo du haut, l'étiquette « Voyage programmé » reste jaune avec une encre foncée.
+
+## Voyage : compte à rebours, nuits et jours (récit 109 : règles 15, 16 et 26)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui part dans 4 jours : sous la photo, une carte blanche dit « 4 nuits avant le départ ». La veille, elle dit « Demain, c'est le départ », le jour même « C'est le jour J », puis « Jour 2 sur 6 » pendant le voyage. Une fois le voyage fini, plus de carte.
+2. Liste Voyages : la pastille d'un voyage à venir dit « Dans 4 nuits » (et non plus « Dans 4 jours »), puis « Demain » et « Aujourd'hui ».
+3. Accueil, la veille du départ, pour quelqu'un qui part : la carte « Demain, départ pour <première destination> » avec « Valise » et « Voir le trajet ». « Valise » ouvre la valise du voyage, « Voir le trajet » ouvre le voyage. Le jour J : « C'est le jour J : départ pour … ». Le lendemain, la carte « En ce moment » reprend sa place. Sans destination placée, la carte dit le nom du voyage.
+4. Même voyage, pour quelqu'un qui le suit sans partir : pas de carte la veille. Aucune notification ne part.
+5. Nouveau voyage avec un départ passé (l'an dernier) : sous les dates, « Combien de jours ? » avec − et +. « + » avance la date de retour d'un jour, et « − » s'arrête à 1 jour. Avec un départ aujourd'hui ou plus tard, cette ligne n'apparaît pas.
+6. Modifier une étape, champ « Une note » : l'aide dit « Plusieurs lignes possibles : … ». Le champ grandit jusqu'à 6 lignes, puis il défile au lieu de grandir encore.

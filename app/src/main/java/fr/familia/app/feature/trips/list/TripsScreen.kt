@@ -355,12 +355,12 @@ private fun LazyListScope.rows(title: Int, key: String, trips: List<TripSummary>
     }
 }
 
-/** « Dans 142 jours », « Demain », « Aujourd'hui ». */
+/** « Dans 142 nuits », « Demain », « Aujourd'hui » (récit 109: the nights before the departure). */
 @Composable
 private fun waitLabel(trip: Trip, today: LocalDate): String = when (val days = daysUntil(trip, today)) {
     0 -> stringResource(R.string.day_today)
     1 -> stringResource(R.string.day_tomorrow)
-    else -> pluralStringResource(R.plurals.trips_in_days, days, days)
+    else -> pluralStringResource(R.plurals.trips_in_nights, days, days)
 }
 
 /** « Du dim. 11 au ven. 16 avril 2027 · 6 jours ». */

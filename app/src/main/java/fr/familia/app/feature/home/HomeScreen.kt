@@ -12,6 +12,8 @@ import fr.familia.app.feature.tree.challenges.rememberHasChallenge
 import fr.familia.app.feature.tree.challenges.ChallengeHomeCard
 import fr.familia.app.feature.trips.now.rememberNowTravelling
 import fr.familia.app.feature.trips.now.NowTravellingCard
+import fr.familia.app.feature.trips.now.TripDepartureCard
+import fr.familia.app.feature.trips.now.rememberTripDeparture
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
@@ -75,6 +77,8 @@ class HomeActions(
     val onOpenWishes: ((memberId: String) -> Unit)? = null,
     val onOpenList: (String) -> Unit = {},
     val onOpenTrip: (String) -> Unit = {},
+    /** « Valise » of the card of the day before a trip (récit 109). */
+    val onOpenPacking: (String) -> Unit = {},
     val onOpenWord: (String, String) -> Unit = { _, _ -> },
     /** A photo of « Il y a N ans »: its album, opened on it (récit 36). */
     val onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit = { _, _ -> },
@@ -269,7 +273,16 @@ fun HomeRoute(
         } else {
             null
         },
-        nowTravelling = rememberNowTravelling(container, currentMember)?.let { now ->
+        // The day before and on the day, those who go see their departure; then « En ce moment ».
+        nowTravelling = rememberTripDeparture(container, currentMember)?.let { departure ->
+            {
+                TripDepartureCard(
+                    departure,
+                    onPacking = { actions.onOpenPacking(departure.tripId) },
+                    onOpen = { actions.onOpenTrip(departure.tripId) },
+                )
+            }
+        } ?: rememberNowTravelling(container, currentMember)?.let { now ->
             { NowTravellingCard(now, onOpen = { actions.onOpenTrip(now.tripId) }) }
         },
         allBadge = allBadge,

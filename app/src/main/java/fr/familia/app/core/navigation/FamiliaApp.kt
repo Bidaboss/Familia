@@ -967,6 +967,7 @@ fun FamiliaApp(
                                 },
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                                onOpenPacking = { id -> navController.navigate(TripPackingDestination(id)) },
                                 onOpenWord = { tripId, stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                                 onOpenAlbumPhoto = { album, photoId ->
                                     when (album.kind) {
