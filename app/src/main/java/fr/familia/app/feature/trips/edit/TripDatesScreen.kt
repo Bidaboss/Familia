@@ -294,7 +294,7 @@ private fun DayCell(day: LocalDate, range: DateRange, past: Boolean, onPick: () 
             fontWeight = FontWeight.ExtraBold,
             color = when {
                 isStart || isEnd -> Color.White
-                past -> Ink.copy(alpha = 0.35f)
+                past -> Ink.copy(alpha = 0.6f)
                 else -> Ink
             },
             modifier = Modifier.clearAndSetSemantics { },
