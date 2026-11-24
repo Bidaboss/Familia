@@ -32,7 +32,7 @@ class NearbyPhotoTest {
     fun theAddressAsksAround10Km() {
         val url = nearbyPhotosUrl(45.6912, -1.1834)
         assertTrue(url.startsWith("https://fr.wikipedia.org/w/api.php?"))
-        assertTrue("ggscoord=45.69120%7C-1.18340" in url)
+        assertTrue("ggscoord=45.691%7C-1.183" in url)
         assertTrue("ggsradius=10000" in url)
     }
 }

@@ -236,7 +236,7 @@ fun TripsScreen(
                             mascot = true,
                         )
                         souvenirs -> Souvenirs(state, openTrip, handAdded, onOpenCarnet)
-                        else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn, photos = placePhotos, token = globeToken)
+                        else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn, photos = placePhotos)
                     }
                 }
               }
@@ -332,7 +332,6 @@ private fun Coming(
     expensesOn: Boolean,
     withLandscape: Boolean = true,
     photos: PlacePhotos? = null,
-    token: String = "",
 ) {
     val plan = tripsPathPlan(state.ongoing, state.upcoming)
     val hero = plan.hero
@@ -352,7 +351,7 @@ private fun Coming(
         item(key = "hero") {
             Box(Modifier.fillMaxWidth().background(ground).padding(horizontal = 16.dp, vertical = 8.dp)) {
                 if (hero != null) {
-                    HeroCard(hero, plan.heroOngoing, state.today, onOpenTrip, onOpenPart, expensesOn, photos, token)
+                    HeroCard(hero, plan.heroOngoing, state.today, onOpenTrip, onOpenPart, expensesOn, photos)
                 } else {
                     Text(
                         stringResource(if (state.canCreate) R.string.trips_none_coming else R.string.trips_none_coming_child),
@@ -428,7 +427,6 @@ private fun HeroCard(
     onOpenPart: ((String, TripPart) -> Unit)?,
     expensesOn: Boolean,
     photos: PlacePhotos? = null,
-    token: String = "",
 ) {
     val trip = summary.trip
     val wait = if (ongoing) stringResource(R.string.trips_day_of, tripDayNumber(trip, today), tripLength(trip)) else waitLabel(trip, today)

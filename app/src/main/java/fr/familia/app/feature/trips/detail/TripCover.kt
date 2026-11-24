@@ -81,7 +81,6 @@ fun TripCoverCarousel(
     trip: Trip,
     steps: List<TripStep>,
     photos: PlacePhotos?,
-    token: String,
     modifier: Modifier = Modifier,
 ) {
     val places = coverPlaces(trip, steps)

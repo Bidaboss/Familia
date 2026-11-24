@@ -108,7 +108,7 @@ fun commonsInfoUrl(file: String): String =
 /** The pages of French Wikipedia within 10 km of a point, nearest first, with their main image. */
 fun nearbyPhotosUrl(lat: Double, lng: Double): String =
     "https://fr.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&generator=geosearch" +
-        "&ggscoord=" + URLEncoder.encode("%.5f|%.5f".format(java.util.Locale.ROOT, lat, lng), "UTF-8") +
+        "&ggscoord=" + URLEncoder.encode("%.3f|%.3f".format(java.util.Locale.ROOT, lat, lng), "UTF-8") +
         "&ggsradius=10000&ggslimit=10&prop=pageimages&piprop=thumbnail%7Coriginal&pithumbsize=$PHOTO_WIDTH"
 
 /**
