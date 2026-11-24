@@ -2639,3 +2639,10 @@ Sur un téléphone en Android 10 ou plus :
 3. Sur un petit téléphone ou avec un grand texte (Réglages Android, taille de police maximale) : le titre « Voyages » se coupe avec « … » ; les trois ronds gardent leur taille.
 4. TalkBack sur l'avatar : il annonce l'ouverture du compte.
 5. Les écrans « Nouveau voyage » et le carnet n'ont pas d'avatar (seule la liste en a un).
+
+## Voyage : le temps d'ouverture écrit une fois par toucher (notes C de la 605)
+
+**Publier Firebase : non.**
+1. Avec le journal Android filtré sur « TripOpen » : toucher un voyage. Une ligne « écran : … ms » puis une ligne « carte : … ms ».
+2. Changer le style de la carte du voyage (Satellite ↔ Rues) : aucune nouvelle ligne « carte ».
+3. Revenir, toucher un autre voyage : de nouveau une ligne « écran » et une ligne « carte ».

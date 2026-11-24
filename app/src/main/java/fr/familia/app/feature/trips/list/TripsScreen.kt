@@ -1,5 +1,6 @@
 package fr.familia.app.feature.trips.list
 
+import fr.familia.app.feature.trips.TripOpenTiming
 import fr.familia.app.feature.trips.detail.SheetHandle
 import fr.familia.app.feature.trips.detail.sheetDrag
 import fr.familia.app.feature.trips.map.backdropSheetShare
@@ -164,7 +165,7 @@ fun TripsScreen(
         }
     }
     val openTrip: (String) -> Unit = { id ->
-        fr.familia.app.feature.trips.TripOpenTiming.touched()
+        TripOpenTiming.touched()
         val place = success?.let { (it.ongoing + it.upcoming + it.past).firstOrNull { s -> s.trip.id == id }?.place }
         if (globeOn && place != null && !still && flight == null) {
             flights++

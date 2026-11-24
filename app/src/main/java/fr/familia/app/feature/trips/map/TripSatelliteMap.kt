@@ -1,5 +1,6 @@
 package fr.familia.app.feature.trips.map
 
+import fr.familia.app.feature.trips.TripOpenTiming
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
@@ -260,7 +261,7 @@ fun TripSatelliteMap(
                         applied[5] = bottomPaddingDp
                         // The style is there: the map shows, even while the last tiles still come (slow phone, slow network).
                         listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true; GlobeHealth.markWorking(context) }
-                        listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; restyling[0] = false; GlobeHealth.markWorking(context); fr.familia.app.feature.trips.TripOpenTiming.reached("carte") }
+                        listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; restyling[0] = false; GlobeHealth.markWorking(context); TripOpenTiming.reached("carte") }
                         listener[3] = map.mapboxMap.subscribeMapLoadingError { error ->
                             lastError[0] = mapErrorLine(error.type.toString(), error.message)
                             recordTileError(context, "TripSatelliteMap", error.type.toString(), error.sourceId, error.message)
