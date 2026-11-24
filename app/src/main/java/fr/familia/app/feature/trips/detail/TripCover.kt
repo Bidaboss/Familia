@@ -115,8 +115,8 @@ fun TripCoverCarousel(
             stringResource(R.string.trip_cover_planned),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF111111),
-            modifier = Modifier.align(Alignment.TopStart).padding(10.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFD84A)).padding(horizontal = 10.dp, vertical = 4.dp),
+            color = TripSheetColors.Ink,
+            modifier = Modifier.align(Alignment.TopStart).padding(10.dp).clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Highlight).padding(horizontal = 10.dp, vertical = 4.dp),
         )
         Column(
             Modifier

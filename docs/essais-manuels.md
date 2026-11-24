@@ -2051,3 +2051,31 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Entre 10 et 25 min après la dernière photo, le second reçoit une seule notification « <voyage> : 3 nouvelles photos », « Par <prénom>. ». La toucher ouvre le voyage.
 3. L'auteur, quand il est seul, ne reçoit rien. Un membre qui ne suit pas le voyage ne reçoit rien non plus.
 4. En ajoutant une photo toutes les 5 min, la notification part quand même au plus tard 45 à 60 min après la première.
+
+## Voyage : l'ajout rapide pendant le voyage (récit 104, partie 3a : règle 35)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Pendant un voyage dont on fait partie (aujourd'hui entre le départ et le retour), un bouton rond avec un appareil photo apparaît au-dessus de « Ajouter une étape ».
+2. Le toucher : une feuille s'ouvre, avec le titre « Ajouter à <destination du jour> » et les choix « Photo » et « Mot court ».
+3. Choisir « Photo » puis une photo : elle apparaît sous la destination du jour. Aucune notification ne part tout de suite : les suiveurs en reçoivent une seule, 10 à 25 min plus tard, pour toutes les photos (#538).
+4. Choisir « Mot court » : la page « Le mot de l'étape » de la destination du jour s'ouvre.
+5. Avant le départ, après le retour, ou pour quelqu'un qui suit le voyage sans y participer : pas de bouton rond.
+
+## Voyage : la note vocale de l'ajout rapide (récit 104, partie 3b : règle 35)
+
+**Publier Firebase : oui** (firestore.rules, storage.rules et deux fonctions), avant l'APK.
+1. Pendant un voyage dont on fait partie, toucher le bouton rond, puis « Note vocale ». La première fois, Android demande le micro : accepter.
+2. Toucher « Enregistrer » et parler, puis « Arrêter » : « Note de 0:12 prête à envoyer ». « Recommencer » efface et reprend. Toucher « Envoyer ».
+3. Sous la destination du jour apparaît « Note vocale de <prénom>, 0:12 » avec un bouton ▶ de 56 dp. Le toucher fait entendre la note, et le toucher encore l'arrête.
+4. Au bout de 2 min, l'enregistrement s'arrête tout seul.
+5. L'auteur, ou le créateur du voyage, voit une corbeille. Elle demande confirmation, puis supprime la note.
+6. Un membre qui suit le voyage sans y participer l'écoute, mais n'a ni le choix « Note vocale » ni la corbeille.
+7. Supprimer la destination : ses notes vocales partent avec elle.
+8. Avec TalkBack : le bouton dit « Écouter » ou « Arrêter l'écoute », et le compteur d'enregistrement est lu.
+
+## Voyage : couleurs de « Le programme » rangées dans une palette (retour C1 de #527)
+
+**Publier Firebase : non.** Rien ne doit changer à l'écran.
+1. Ouvrir un voyage planifié : la carte blanche « Le programme » garde son encre foncée, ses ronds bleu foncé et ses « + » bleu foncé, en thème clair comme en thème sombre.
+2. Changer un nombre de nuits puis attendre le bandeau : « Annuler » reste jaune sur bleu foncé.
+3. Sur la photo du haut, l'étiquette « Voyage programmé » reste jaune avec une encre foncée.

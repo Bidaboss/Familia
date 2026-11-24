@@ -1011,6 +1011,19 @@ Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, e
 
 Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Storage. Chaque participant, enfant compris, ajoute les siennes. L'auteur, le créateur du voyage et l'admin principal les retirent, les fichiers d'abord, puis le document. Une photo n'est jamais modifiée : une fois son document écrit, ses fichiers ne peuvent plus être renvoyés. Tests : `firebase/tests/trips.test.mjs` et `firebase/tests/storage.test.mjs`.
 
+### `trips/{tripId}/voiceNotes/{noteId}` (récit 104, règle 35)
+
+Les notes vocales de l'ajout rapide, enregistrées pendant le voyage sous la destination du jour.
+
+| Champ | Type | Description |
+|---|---|---|
+| `authorId`, `authorName` | texte | L'auteur et son prénom |
+| `stepId` | texte | La destination (une étape existante de ce voyage, identifiant simple) |
+| `seconds` | entier de 1 à 120 | La durée |
+| `createdAt` | horodatage serveur | Les notes s'affichent de la plus ancienne à la plus récente |
+
+Fichier dans Storage : `trips/{tripId}/voice/{authorId}/{noteId}.m4a`. C'est de l'AAC mono à 48 kb/s, soit environ 720 Ko pour 2 min. Le fichier fait 2 Mo au plus et son type doit être `audio/mp4`. Il est envoyé avant la fiche et n'est jamais remplacé. Les lecteurs du voyage l'écoutent, et chaque participant ajoute les siennes. L'auteur, ou qui gère le voyage, retire une note : `onTripVoiceNoteDeleted` efface alors son fichier. Supprimer l'étape supprime ses notes (`onStepDeletedWord`), et supprimer le voyage supprime tout. Aucune notification n'est envoyée. Le micro n'est demandé que la première fois, au moment d'enregistrer.
+
 ### `tripPhotoBursts/{tripId}` (récit 104, règle 34)
 
 Les photos d'un voyage qui attendent d'être annoncées. Aucune notification ne part par photo. `onTripPhotoCreated` ajoute 1 au compteur de l'auteur dans `counts` (`memberId` : nombre), garde `firstAt` (la première photo de la rafale) et pose `dueAt` 10 min après cette photo, jamais plus de 45 min après `firstAt`. Toutes les 15 min, `goodNewsReactionDigests` appelle aussi `sendTripPhotoDigests`. Celle-ci envoie par `deliver()` (plafond de 3 par heure, nuit, résumé du soir) une notification « Corse : 5 nouvelles photos » / « Par Lou et Sam. » aux lecteurs du voyage qui ont l'appli (`readerIds` seulement). Quand il n'y a qu'un auteur, il ne la reçoit pas. Ensuite, le document est supprimé si rien n'est arrivé pendant l'envoi. Sinon, le reste attend la rafale suivante. Le document part avec le voyage. Les fonctions seules le lisent et l'écrivent.
