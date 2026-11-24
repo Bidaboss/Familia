@@ -25,6 +25,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.core.model.Trip
@@ -87,6 +90,8 @@ fun TripMapBackdrop(
     focusId: String?,
     /** « Modifier » of a trip (règle 4): the sheet high then low, the map out to the globe and back. */
     arrival: Boolean = false,
+    /** The height the sheet opens at: 0 low, 1 the middle (« Nouvel élément », fiche F2 §4), 2 the whole screen. */
+    startLevel: Int = 0,
     content: @Composable (inSheet: Boolean) -> Unit,
 ) {
     val context = LocalContext.current
@@ -104,7 +109,9 @@ fun TripMapBackdrop(
     val playArrival = playsEditArrival(arrival, withMap, remember { animationsOff(context) })
     // Played once: back from a page opened here, or the screen turned, it does not come again.
     var arrivalDone by rememberSaveable { mutableStateOf(false) }
-    var level by rememberSaveable { mutableStateOf(0) }
+    var level by rememberSaveable { mutableStateOf(startLevel.coerceIn(0, 2)) }
+    // Fiche F2 §4: the screen in the sheet may put its title over the map (round back, title pill, help).
+    val header = remember { BackdropHeader() }
     // The steps arrive after the form: the sheet goes from the whole screen to high, then down.
     LaunchedEffect(playArrival) {
         if (!playArrival || arrivalDone) return@LaunchedEffect
@@ -145,8 +152,11 @@ fun TripMapBackdrop(
                 bottomPaddingDp = low.value.toDouble(),
                 onFailed = { cause = it.detail; failed = true },
                 modifier = Modifier.fillMaxSize(),
+                settingsAtTop = header.content != null,
             )
         }
+        val floating = withMap && level < 2
+        if (floating) header.content?.let { title -> Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().statusBarsPadding()) { title() } }
         Column(
             Modifier
                 .align(Alignment.BottomCenter)
@@ -159,7 +169,20 @@ fun TripMapBackdrop(
             // Low or high, the sheet is far from the status bar: the bars of the screens inside do not leave room for it.
             Column(
                 Modifier.weight(1f).fillMaxWidth().then(if (mapLayout && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
-            ) { content(mapLayout) }
+            ) {
+                CompositionLocalProvider(LocalBackdropHeader provides header, LocalBackdropHeaderFloating provides floating) { content(mapLayout) }
+            }
         }
     }
 }
+
+/** The title a screen in the sheet puts over the map (fiche F2 §4); null: its own bar in the sheet. */
+class BackdropHeader {
+    var content by mutableStateOf<(@Composable () -> Unit)?>(null)
+}
+
+/** The header of the [TripMapBackdrop] around, for the screen in its sheet; null outside one. */
+val LocalBackdropHeader = androidx.compose.runtime.staticCompositionLocalOf<BackdropHeader?> { null }
+
+/** True while that header shows over the map (map drawn, sheet not at the whole screen). */
+val LocalBackdropHeaderFloating = androidx.compose.runtime.compositionLocalOf { false }

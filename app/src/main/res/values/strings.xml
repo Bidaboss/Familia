@@ -417,6 +417,8 @@
     <string name="timeline_add_restaurant">Ajouter un restaurant</string>
     <string name="timeline_add_enrich">Enrichir ici avec une IA</string>
     <string name="timeline_add_end_a11y">Ajouter à la fin du voyage</string>
+    <string name="trip_element_new">Nouvel élément</string>
+    <string name="trip_element_add">Ajouter l\'élément</string>
     <string name="add_destination_search">Recherchez un lieu</string>
     <string name="add_destination_cities">Villes</string>
     <string name="add_destination_regions">Régions</string>

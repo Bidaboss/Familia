@@ -2412,3 +2412,15 @@ Sur un téléphone en Android 10 ou plus :
 5. En bas à droite du globe, une petite case sombre « Anim » : la toucher arrête la rotation (« Anim » barré), la retoucher la relance. TalkBack : « Animation du globe, activée / désactivée ».
 6. Le globe occupe environ 80 % de la largeur de l'écran.
 7. Nouveau voyage, choix de la destination : le petit globe garde sa taille.
+
+## Voyage : frise, menu du « + », « Ajouter une destination » et « Nouvel élément » (fiche F2)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage, panneau plein écran : sous « Enrichir le voyage avec une IA », plus de cadre blanc ni de titre « Le trajet ». Un fil gris-bleu relie, à gauche, le rond foncé « maison » (« Le voyage commence », date en majuscules, pastille « 7/7 nuits planifiées » à droite) au rond gris-bleu « drapeau » (« Le voyage se termine »).
+2. Entre les blocs, des ronds blancs « + » bordés de crème, sur le fil. Chaque destination est une carte blanche arrondie : photo du lieu avec son numéro, « Séville › », les dates soulignées, puis « − 7 nuitées + ». Dessous, les hébergements, restos, spots, photos et notes vocales de la destination, en lignes compactes.
+3. Avec TalkBack : le premier bloc se lit « Le trajet, Le voyage commence, … » comme titre ; « − » et « + » disent « Une nuit de moins / de plus à Séville ».
+4. Toucher un « + » : menu gris clair arrondi « Ajouter une destination », « Ajouter un transport », « Ajouter un hébergement », « Ajouter un spot », « Ajouter un restaurant », « Enrichir ici avec une IA ». Sans aucune destination, seuls « destination », « transport » et l'IA sont proposés.
+5. En bas à droite du panneau, un rond foncé « + » (60 dp) : le même menu, qui ajoute à la fin du voyage. Pendant le voyage, l'appareil photo blanc est au-dessus.
+6. « Ajouter une destination » : écran bleu clair, rond retour et titre, champ « Recherchez un lieu », onglets « Villes | Régions | Pays ». Avant de taper, les lieux où la famille est déjà allée (drapeau du pays). À partir de 3 lettres, les lieux trouvés par le téléphone (5 au plus), triés par onglet. Toucher un lieu : « Séville ajouté au voyage », retour au voyage, une nuit à partir du jour du « + ».
+7. « Ajouter un transport » : la carte reste en haut avec, par-dessus, le rond retour, la pilule « Nouvel élément » / « Voiture · Été » et l'aide ; le panneau s'ouvre à mi-hauteur avec le bandeau « Dans le voyage · … », les tuiles, et le bouton « Ajouter l'élément ». En plein écran, la barre de titre revient dans le panneau.
+8. « Ajouter un hébergement / spot / restaurant » : la recherche de lieux d'abord (inchangée), puis la même page « Nouvel élément » sur la carte, avec « Hébergement · Séville ».

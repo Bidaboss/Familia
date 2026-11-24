@@ -104,6 +104,8 @@ fun PlaceEditScreen(
     onBack: () -> Unit,
     /** Opens the search of its kind again (« Choisir un autre … », règle 19); null hides the button. */
     onSearch: (() -> Unit)? = null,
+    /** In the sheet under the map of the trip (fiche F2 §4). */
+    inSheet: Boolean = false,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val editing = state as? PlaceEditUiState.Editing
@@ -121,12 +123,15 @@ fun PlaceEditScreen(
         )
     }
     TripFormScaffold(
-        title = editing?.let { pageTitle(it) } ?: stringResource(R.string.place_page_title),
+        // Fiche F2 §4: a new accommodation, spot or restaurant is « Nouvel élément », as a transport.
+        title = editing?.let { if (it.isNew) stringResource(R.string.trip_element_new) else pageTitle(it) } ?: stringResource(R.string.place_page_title),
         help = ScreenHelp.TripStepEdit,
         onBack = { if (hasChanges) confirmLeave = true else onBack() },
-        action = editing?.takeIf { it.canEdit }?.let { stringResource(if (it.isNew) R.string.place_add else R.string.member_save) },
+        action = editing?.takeIf { it.canEdit }?.let { stringResource(if (it.isNew) R.string.trip_element_add else R.string.member_save) },
         busy = editing?.isSaving == true,
         onAction = onSave,
+        inSheet = inSheet,
+        subtitle = editing?.takeIf { it.isNew }?.let { listOf(placeKindLabel(it.kind), it.destination).filter { part -> part.isNotBlank() }.joinToString(" · ") },
     ) {
         when (state) {
             PlaceEditUiState.Loading, PlaceEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))

@@ -36,6 +36,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -93,14 +97,27 @@ internal fun TripFormScaffold(
     onAction: () -> Unit,
     /** Under the map, in its sheet (règle 4): the bar starts at the top of the sheet, not under the status bar. */
     inSheet: Boolean = false,
+    /** Fiche F2 §4: over the map, the round back, a pill with [title] over this line (« Voiture · Séville ») and the help. */
+    subtitle: String? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val header = fr.familia.app.feature.trips.map.LocalBackdropHeader.current.takeIf { inSheet && subtitle != null }
+    val currentBack = androidx.compose.runtime.rememberUpdatedState(onBack)
+    if (header != null) {
+        androidx.compose.runtime.DisposableEffect(header, title, subtitle, help) {
+            header.content = { MapTitleBar(title, subtitle.orEmpty(), help) { currentBack.value() } }
+            onDispose { header.content = null }
+        }
+    }
+    val floating = header != null && fr.familia.app.feature.trips.map.LocalBackdropHeaderFloating.current
     Scaffold(
         containerColor = TripPathColors.Sky,
         contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
-            Box(Modifier.background(TripPathColors.Sky).then(if (inSheet) Modifier else Modifier.statusBarsPadding())) {
-                TripsTopBar(onBack = onBack, title = title, help = help)
+            if (!floating) {
+                Box(Modifier.background(TripPathColors.Sky).then(if (inSheet) Modifier else Modifier.statusBarsPadding())) {
+                    TripsTopBar(onBack = onBack, title = title, help = help)
+                }
             }
         },
         bottomBar = {
@@ -114,6 +131,35 @@ internal fun TripFormScaffold(
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize(), content = content)
+    }
+}
+
+/** Over the map (fiche F2 §4): the white round back, the white pill « Nouvel élément » over « Voiture · Séville », the help. */
+@Composable
+private fun MapTitleBar(title: String, subtitle: String, help: ScreenHelp, onBack: () -> Unit) {
+    androidx.compose.foundation.layout.Row(
+        Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        androidx.compose.material3.Surface(shape = androidx.compose.foundation.shape.CircleShape, color = Color.White, contentColor = TripPathColors.Ink, shadowElevation = 2.dp) {
+            fr.familia.app.core.ui.BackButton(onClick = onBack)
+        }
+        androidx.compose.material3.Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = Color.White.copy(alpha = 0.95f),
+            contentColor = TripPathColors.Ink,
+            shadowElevation = 2.dp,
+            modifier = Modifier.weight(1f),
+        ) {
+            Column(Modifier.heightIn(min = 56.dp).padding(horizontal = 18.dp, vertical = 6.dp).semantics(mergeDescendants = true) { heading() }, verticalArrangement = Arrangement.Center) {
+                Text(title, fontFamily = fr.familia.app.core.theme.Fredoka, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                if (subtitle.isNotBlank()) Text(subtitle, fontSize = 13.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+        }
+        androidx.compose.material3.Surface(shape = androidx.compose.foundation.shape.CircleShape, color = Color.White, contentColor = TripPathColors.Ink, shadowElevation = 2.dp) {
+            fr.familia.app.feature.help.HelpButton(help)
+        }
     }
 }
 
