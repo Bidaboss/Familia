@@ -4,15 +4,16 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.power.rememberBatterySaving
@@ -33,9 +33,9 @@ import fr.familia.app.feature.trips.detail.SheetHandle
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.mapLabels
 import fr.familia.app.feature.trips.detail.tripTimeline
+import kotlinx.coroutines.delay
 import fr.familia.app.feature.trips.list.animationsOff
 import fr.familia.app.feature.trips.list.talkBackOn
-import kotlinx.coroutines.delay
 
 /** The share of the screen the sheet takes at each of its three heights (règle 8): low, high, whole screen. */
 internal fun backdropSheetShare(level: Int): Float = when (level) {

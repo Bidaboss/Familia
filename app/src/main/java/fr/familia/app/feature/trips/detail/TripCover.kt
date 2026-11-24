@@ -47,11 +47,11 @@ import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.place.PlacePhotos
 import fr.familia.app.core.power.rememberBatterySaving
-import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.PlaceCover
 import fr.familia.app.feature.trips.list.animationsOff
 import fr.familia.app.feature.trips.list.talkBackOn
 import fr.familia.app.feature.trips.list.tripLength
+import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.map.GeoPoint
 import kotlinx.coroutines.delay
 
