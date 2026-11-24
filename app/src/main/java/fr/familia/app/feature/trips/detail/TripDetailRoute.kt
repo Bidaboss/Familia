@@ -96,6 +96,12 @@ fun TripDetailRoute(
         onOpenMap = onOpenMap,
         onOpenWord = onOpenWord,
         onSeePhotos = onSeePhotos,
+        // « Le trajet »: those who go change the nights (règle 16), the others read them.
+        timeline = TimelineActions(
+            onOpen = onEditStep,
+            onNights = if (shown?.isParticipant == true) viewModel::changeNights else null,
+            onUndo = viewModel::restoreSteps,
+        ),
         cover = { success ->
             TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
         },

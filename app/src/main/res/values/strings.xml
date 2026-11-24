@@ -355,6 +355,30 @@
     <string name="place_cover_satellite">Vue satellite de %1$s</string>
     <string name="place_cover_credit">Photo : %1$s</string>
     <string name="trip_cover_planned">Voyage programmé</string>
+    <string name="timeline_title">Le trajet</string>
+    <string name="timeline_start">Le voyage commence</string>
+    <string name="timeline_end">Le voyage se termine</string>
+    <string name="timeline_planned">%1$d/%2$d nuits planifiées</string>
+    <string name="timeline_planned_a11y">%1$d nuits planifiées sur %2$d</string>
+    <plurals name="timeline_missing">
+        <item quantity="one">%1$d nuit sans destination</item>
+        <item quantity="other">%1$d nuits sans destination</item>
+    </plurals>
+    <plurals name="timeline_nights">
+        <item quantity="one">%1$d nuitée</item>
+        <item quantity="other">%1$d nuitées</item>
+    </plurals>
+    <string name="timeline_dates">%1$s – %2$s</string>
+    <string name="timeline_open">Ouvrir %1$s</string>
+    <string name="timeline_less_a11y">Une nuit de moins à %1$s</string>
+    <string name="timeline_more_a11y">Une nuit de plus à %1$s</string>
+    <string name="timeline_at_return">Le voyage se termine juste après : pour une nuit de plus, change d\'abord la date de retour.</string>
+    <string name="timeline_one_night">Une destination garde au moins une nuit. Pour aucune, supprime-la.</string>
+    <string name="timeline_changed">Nuits de %1$s changées</string>
+    <string name="timeline_undo">Annuler</string>
+    <string name="timeline_next">Prochaine étape</string>
+    <string name="timeline_empty">Aucune destination pour le moment. Ajoute une destination pour commencer le trajet.</string>
+    <string name="timeline_km">≈ %1$d km à vol d\'oiseau</string>
     <string name="trip_cover_slide">Image %1$d sur %2$d : %3$s</string>
     <string name="trip_cover_pause">Mettre en pause le défilement des images</string>
     <string name="trip_cover_play">Reprendre le défilement des images</string>
@@ -1985,7 +2009,7 @@
     <string name="trip_step_tile_type">Quel type d\'étape ?</string>
     <string name="trip_step_tile_where">Où ?</string>
     <string name="trip_step_place_hint">D\'où à où : « Paris → Bordeaux »</string>
-    <string name="trip_step_place_hint_lodging">Le nom et la ville : « Camping Les Pins, La Palmyre »</string>
+    <string name="trip_step_place_hint_lodging">Une ville, une région ou un pays : « La Palmyre », « Toscane »</string>
     <string name="trip_step_tile_when">Quand ?</string>
     <string name="trip_step_day">Jour</string>
     <string name="trip_step_time">Heure</string>
@@ -1996,7 +2020,7 @@
     <string name="trip_step_type_flight">Vol</string>
     <string name="trip_step_type_train">Train</string>
     <string name="trip_step_type_car">Voiture</string>
-    <string name="trip_step_type_lodging">Hébergement</string>
+    <string name="trip_step_type_lodging">Destination</string>
     <string name="trip_step_type_activity">Activité</string>
     <string name="trip_step_field_place">Lieu</string>
     <string name="trip_step_field_depart">Départ</string>
