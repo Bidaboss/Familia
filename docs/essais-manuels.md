@@ -1938,3 +1938,13 @@ Rien à publier côté Firebase. « APK de publication » (le réseau est néces
 3. Sous les dates : « 5 nuitées » (ou « Aller-retour dans la journée »). Sous le nom : « Il deviendra le nom du voyage… Tu pourras le changer plus tard. »
 4. Modifier un voyage existant : la photo du lieu de sa première étape.
 5. Ouvrir un voyage pas encore commencé : en haut de la feuille, les images des lieux défilent toutes les 4 s (jusqu'à 5), avec « Voyage programmé », le nom, le mois, les jours et les kilomètres ; le bouton pause les arrête. Animations du téléphone coupées : pas de défilement.
+
+## Voyage : page d'un hébergement, d'un restaurant ou d'un spot (récit 103, partie « lieux » 1 : règles 19, 21, 24, 26)
+
+« Publier Firebase » (nouvelles règles et une fonction), puis « APK de publication ». La page s'ouvre depuis le panneau d'une destination quand le fil voyage l'aura branché ; avant, rien ne change à l'écran.
+1. Panneau d'une destination, « Ajouter » sous Restaurants : la page « Ton restaurant » avec Nom, Heure d'arrivée au restaurant, Notes (plusieurs lignes, compteur sur 600), Coût dans la monnaie du voyage, « Voir sur Tripadvisor ». Le bouton du bas dit « Ajouter au voyage ».
+2. Enregistrer sans nom : « Écris le nom du lieu. ». Coût « beaucoup » : « Écris un montant, par exemple 80 ou 12,50. ».
+3. Rouvrir le restaurant depuis le panneau : « Modifier ton restaurant », l'heure et la note sont là ; changer l'heure puis Retour : « Quitter sans enregistrer ? ».
+4. En bas de la page : « Supprimer ce restaurant », avec confirmation. Il disparaît du panneau.
+5. Un membre qui suit le voyage sans partir : la page se lit, sans champ ni bouton.
+6. Supprimer la destination : ses hébergements, restaurants et spots disparaissent aussi.

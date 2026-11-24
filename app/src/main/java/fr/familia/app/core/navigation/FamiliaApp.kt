@@ -304,6 +304,10 @@ import fr.familia.app.feature.trips.TripPackingDestination
 import fr.familia.app.feature.trips.TripPhrasesDestination
 import fr.familia.app.feature.trips.TripSafetyDestination
 import fr.familia.app.feature.trips.TripMoneyDestination
+import fr.familia.app.feature.trips.TripPlaceAddDestination
+import fr.familia.app.feature.trips.TripPlaceDestination
+import fr.familia.app.feature.trips.place.PlaceEditRoute
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.safety.TripSafetyRoute
 import fr.familia.app.feature.trips.money.TripMoneyRoute
@@ -1199,6 +1203,24 @@ fun FamiliaApp(
                     }
                     composable<TripMoneyDestination> { entry ->
                         TripMoneyRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripMoneyDestination>().tripId, onBack = { navController.popBackStack() })
+                    }
+                    // Récit 103: the page of an accommodation, a restaurant or a spot of a destination.
+                    composable<TripPlaceDestination> { entry ->
+                        val route = entry.toRoute<TripPlaceDestination>()
+                        PlaceEditRoute(container, currentMember, route.tripId, route.placeId, onDone = { navController.popBackStack() })
+                    }
+                    composable<TripPlaceAddDestination> { entry ->
+                        val route = entry.toRoute<TripPlaceAddDestination>()
+                        PlaceEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = route.tripId,
+                            placeId = null,
+                            onDone = { navController.popBackStack() },
+                            stepId = route.stepId,
+                            kind = TripPlaceKind.entries.firstOrNull { it.name == route.kind },
+                            presetName = route.name,
+                        )
                     }
                     composable<TripMapDestination> { entry ->
                         val tripId = entry.toRoute<TripMapDestination>().tripId
