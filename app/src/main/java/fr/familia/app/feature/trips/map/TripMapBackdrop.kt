@@ -28,7 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
-import fr.familia.app.core.power.rememberBatterySaving
+import fr.familia.app.core.power.rememberBatterySavingAtOpening
 import fr.familia.app.feature.trips.detail.SheetHandle
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.mapLabels
@@ -89,7 +89,7 @@ fun TripMapBackdrop(
     var failed by rememberSaveable { mutableStateOf(false) }
     val allowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
     // Règle 46: no satellite map while the battery is saved; the screen opens as a plain page.
-    val saving = rememberBatterySaving()
+    val saving = rememberBatterySavingAtOpening()
     val withMap = satelliteMapUsable(token, allowed && !failed && !saving, talkBack = false) && placed.isNotEmpty()
     val playArrival = playsEditArrival(arrival, withMap, remember { animationsOff(context) })
     // Played once: back from a page opened here, or the screen turned, it does not come again.
