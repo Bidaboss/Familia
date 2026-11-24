@@ -67,7 +67,8 @@
     <string name="carnet_remove_title">Retirer %1$s ?</string>
     <string name="carnet_remove_body">Elle disparaît du carnet et du planisphère. Les voyages de l\'appli ne changent pas.</string>
     <string name="carnet_add">Ajouter une destination</string>
-    <string name="carnet_add_intro">Pour un voyage déjà fait : il compte dans ton carnet et apparaît sur le planisphère. Sans kilomètres ni photos.</string>
+    <string name="carnet_add_intro">Pour un voyage déjà fait : il apparaît dans « Souvenirs » et sur le planisphère. Sans kilomètres ni photos.</string>
+    <string name="carnet_hand_added">Ajouté à la main</string>
     <string name="carnet_add_field">Recherchez une destination</string>
     <string name="carnet_add_search">Chercher</string>
     <string name="carnet_add_searching">Recherche…</string>

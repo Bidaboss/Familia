@@ -109,6 +109,8 @@ fun TripsGlobe(
     modifier: Modifier = Modifier,
     /** A touch on a dot: the trip there (the next one when several trips share the place). */
     onOpenTrip: (String) -> Unit = {},
+    /** The destinations added by hand to the carnet (récit 107, règle 38): a simple mark in Souvenirs, no line, no touch. */
+    handAdded: List<GeoPoint> = emptyList(),
 ) {
     val context = LocalContext.current
     val started = LocalLifecycleOwner.current.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
@@ -132,6 +134,10 @@ fun TripsGlobe(
     LaunchedEffect(view, ready, spots, souvenirs) {
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
         if (ready) showSpots(style, spots, souvenirs)
+    }
+    LaunchedEffect(view, ready, handAdded, souvenirs) {
+        val style = view?.mapboxMap?.style ?: return@LaunchedEffect
+        if (ready) showHandAdded(style, if (souvenirs) handAdded else emptyList())
     }
     // 6 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the landscape.
     LaunchedEffect(Unit) {
@@ -197,6 +203,8 @@ fun TripsGlobe(
                     map.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
                         runCatching {
                             configureSatelliteGlobe(style)
+                            // Before the trips: its layer lies under their dots.
+                            addHandAdded(style)
                             addMarkers(style)
                             showSpots(style, spots, souvenirs)
                         }.onFailure { onFailed() }
@@ -259,4 +267,20 @@ private fun addMarkers(style: Style) {
     style.addLayer(symbolLayer("trips-other-count", "trips-other") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
     style.addLayer(symbolLayer("trips-past-count", "trips-past") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
     style.addLayer(symbolLayer("trips-next-count", "trips-next") { textField(get("count")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
+}
+
+/*
+ * The destinations added by hand to « Carnet de baroudeur » (récit 107, règle 38): their own source
+ * and layer, beside the trips (never in SPOT_LAYERS: a touch there opens nothing). A small white
+ * dot ringed in coral, under the dots of the trips.
+ */
+private const val HAND_ADDED_SOURCE = "carnet-hand-added"
+
+private fun addHandAdded(style: Style) {
+    style.addSource(geoJsonSource(HAND_ADDED_SOURCE) { featureCollection(FeatureCollection.fromFeatures(emptyList())) })
+    style.addLayer(circleLayer("carnet-hand-added-marks", HAND_ADDED_SOURCE) { circleRadius(6.0); circleColor("#FFFFFF"); circleStrokeColor("#D9604A"); circleStrokeWidth(2.5) })
+}
+
+private fun showHandAdded(style: Style, points: List<GeoPoint>) {
+    style.getSourceAs<GeoJsonSource>(HAND_ADDED_SOURCE)?.featureCollection(FeatureCollection.fromFeatures(points.map { Feature.fromGeometry(it.toPoint()) }))
 }

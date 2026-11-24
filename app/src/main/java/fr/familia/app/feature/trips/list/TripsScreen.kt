@@ -51,6 +51,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
+import java.util.Locale
+import androidx.compose.ui.unit.sp
+import fr.familia.app.feature.trips.map.GeoPoint
+import fr.familia.app.feature.trips.carnet.flagOf
+import fr.familia.app.core.model.TravelPlace
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -117,6 +122,8 @@ fun TripsScreen(
     placePhotos: PlacePhotos? = null,
     /** « Carnet de baroudeur » (récit 107); null: no button. */
     onOpenCarnet: (() -> Unit)? = null,
+    /** The destinations the member added by hand to the carnet (règle 38): in Souvenirs and a mark on the globe. */
+    handAdded: List<TravelPlace> = emptyList(),
 ) {
     var souvenirs by rememberSaveable { mutableStateOf(false) }
     var globeStopped by rememberSaveable { mutableStateOf(false) }
@@ -163,6 +170,7 @@ fun TripsScreen(
         TripsGlobe(
             token = globeToken,
             markers = markers,
+            handAdded = handAdded.map { GeoPoint(it.lat, it.lng) },
             souvenirs = souvenirs,
             stopped = globeStopped,
             flight = flight,
@@ -179,7 +187,7 @@ fun TripsScreen(
                 Column(Modifier.background(skyColor).statusBarsPadding()) {
                     TripsTopBar(onBack, onDark = dark, onOpenCarnet = onOpenCarnet)
                     if (success != null && !success.isEmpty) {
-                        TripsSwitch(souvenirs, success.past.size, onChoose = { souvenirs = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                        TripsSwitch(souvenirs, success.past.size + handAdded.size, onChoose = { souvenirs = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     }
                 }
             },
@@ -221,7 +229,7 @@ fun TripsScreen(
                             action = onOpenAlbums?.let { open -> { ClayLink(stringResource(R.string.trips_empty_albums), onClick = open) } },
                             mascot = true,
                         )
-                        souvenirs -> Souvenirs(state, openTrip)
+                        souvenirs -> Souvenirs(state, openTrip, handAdded, onOpenCarnet)
                         else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn, photos = placePhotos, token = globeToken)
                     }
                 }
@@ -556,8 +564,10 @@ internal fun MiniLandscape(landscape: TripLandscape, modifier: Modifier, pale: B
 
 /** « Souvenirs »: the past trips, most recent first, two by row. */
 @Composable
-private fun Souvenirs(state: TripsUiState.Success, onOpenTrip: (String) -> Unit) {
+private fun Souvenirs(state: TripsUiState.Success, onOpenTrip: (String) -> Unit, handAdded: List<TravelPlace> = emptyList(), onOpenCarnet: (() -> Unit)? = null) {
     val columns = if (LocalDensity.current.fontScale >= 1.3f) 1 else 2
+    // The trips and the hand-added destinations (règle 38) together, the most recent first.
+    val cards: List<Any> = (state.past.map { it.trip.startDate to it } + handAdded.map { it.date to it }).sortedByDescending { it.first }.map { it.second }
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
@@ -565,14 +575,19 @@ private fun Souvenirs(state: TripsUiState.Success, onOpenTrip: (String) -> Unit)
     ) {
         item(key = "intro") {
             Text(
-                stringResource(if (state.past.isEmpty()) R.string.trips_souvenirs_empty else R.string.trips_souvenirs_intro),
+                stringResource(if (cards.isEmpty()) R.string.trips_souvenirs_empty else R.string.trips_souvenirs_intro),
                 style = MaterialTheme.typography.bodyLarge,
                 color = TripPathColors.InkSoft,
             )
         }
-        items(state.past.chunked(columns), key = { row -> "past-" + row.first().trip.id }) { row ->
+        items(cards.chunked(columns), key = { row -> row.first().let { if (it is TripSummary) "past-" + it.trip.id else "hand-" + (it as TravelPlace).id } }) { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                row.forEach { summary -> SouvenirCard(summary, Modifier.weight(1f)) { onOpenTrip(summary.trip.id) } }
+                row.forEach { card ->
+                    when (card) {
+                        is TripSummary -> SouvenirCard(card, Modifier.weight(1f)) { onOpenTrip(card.trip.id) }
+                        is TravelPlace -> HandAddedCard(card, Modifier.weight(1f), onOpenCarnet)
+                    }
+                }
                 repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
@@ -596,6 +611,38 @@ private fun SouvenirCard(summary: TripSummary, modifier: Modifier, onClick: () -
         Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(trip.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TripPathColors.Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(line, style = MaterialTheme.typography.bodyMedium, color = TripPathColors.InkSoft)
+        }
+    }
+}
+
+/**
+ * A destination added by hand to the carnet (récit 107, règle 38): no photo, no path, so its flag
+ * on a sand band; a touch opens the carnet.
+ */
+@Composable
+private fun HandAddedCard(place: TravelPlace, modifier: Modifier, onOpen: (() -> Unit)?) {
+    val line = stringResource(
+        R.string.trips_dates_and_length,
+        place.date.format(java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH)).replaceFirstChar { it.titlecase(Locale.FRANCE) },
+        pluralStringResource(R.plurals.trips_days, place.days, place.days),
+    )
+    val added = stringResource(R.string.carnet_hand_added)
+    val description = "${place.name}, $line, $added"
+    Column(
+        modifier
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White)
+            .then(if (onOpen != null) Modifier.clickable(role = Role.Button, onClick = onOpen) else Modifier)
+            .clearAndSetSemantics { contentDescription = description },
+    ) {
+        Box(
+            Modifier.fillMaxWidth().aspectRatio(1.45f).background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFFF7D9C0), Color(0xFFEAD9C4)))),
+            contentAlignment = Alignment.Center,
+        ) { Text(place.countryCode?.let(::flagOf).orEmpty(), fontSize = 40.sp) }
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(place.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TripPathColors.Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(line, style = MaterialTheme.typography.bodyMedium, color = TripPathColors.InkSoft)
+            Text(added, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = TripPathColors.InkSoft)
         }
     }
 }
