@@ -10,6 +10,7 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripPlace
+import fr.familia.app.core.place.FoundPlace
 import fr.familia.app.feature.trips.canDeleteStep
 import fr.familia.app.feature.trips.isParticipant
 import kotlinx.coroutines.CancellationException
@@ -39,6 +40,9 @@ sealed interface PlaceEditUiState {
         val destination: String,
         /** The ISO code of the money of the trip (règle 42); null is the euro. */
         val currency: String? = null,
+        /** The point of the destination, around which the search looks (règle 20); null when it has none. */
+        val destinationLat: Double? = null,
+        val destinationLng: Double? = null,
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
@@ -92,7 +96,7 @@ class PlaceEditViewModel(
             val trip = tripRepo.getTrip(tripId)
             val existing = placeId?.let { placeRepo.getPlace(tripId, it) }
             val step = (existing?.stepId ?: stepId)?.let { tripRepo.getStep(tripId, it) }
-            Loaded(family, trip, existing, step?.id, step?.place)
+            Loaded(family, trip, existing, step?.id, step?.place, step?.takeIf { it.hasPosition }?.lat, step?.takeIf { it.hasPosition }?.lng)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -124,6 +128,8 @@ class PlaceEditViewModel(
             errors = emptySet(),
             destination = loaded.destination.orEmpty().substringBefore('→').substringBefore(',').trim(),
             currency = trip.currency,
+            destinationLat = loaded.lat,
+            destinationLng = loaded.lng,
             hasChanges = form != initialForm,
         )
     }
@@ -134,6 +140,8 @@ class PlaceEditViewModel(
         val existing: TripPlace?,
         val stepId: String?,
         val destination: String?,
+        val lat: Double?,
+        val lng: Double?,
     )
 
     private fun unavailable() {
@@ -153,11 +161,21 @@ class PlaceEditViewModel(
         )
     }
 
+    /** A place chosen in the search (règle 20, « Choisir un autre … »): its name and its location; the rest stays. */
+    fun choose(found: FoundPlace) = update { it.choose(found) }
+
+    /** A name typed in the search that it did not find (« Ajouter « … » »): no address, no point. */
+    fun chooseTyped(name: String) = update { it.copy(name = name.trim().take(MAX_PLACE_NAME), pick = null) }
+
     private fun keepDraft(form: PlaceForm) {
         savedState[DRAFT_NAME] = form.name
         savedState[DRAFT_TIME] = form.arriveTime?.toString().orEmpty()
         savedState[DRAFT_NOTE] = form.note
         savedState[DRAFT_COST] = form.cost
+        savedState[DRAFT_PICK_NAME] = form.pick?.name
+        savedState[DRAFT_PICK_ADDRESS] = form.pick?.address
+        savedState[DRAFT_PICK_LAT] = form.pick?.lat?.toString()
+        savedState[DRAFT_PICK_LNG] = form.pick?.lng?.toString()
     }
 
     /** The draft kept before Android stopped the app, or null when there is none. */
@@ -168,6 +186,14 @@ class PlaceEditViewModel(
             arriveTime = savedState.get<String>(DRAFT_TIME)?.takeIf { it.isNotEmpty() }?.let { runCatching { LocalTime.parse(it) }.getOrNull() },
             note = savedState.get<String>(DRAFT_NOTE).orEmpty(),
             cost = savedState.get<String>(DRAFT_COST).orEmpty(),
+            pick = savedState.get<String>(DRAFT_PICK_NAME)?.let { pickName ->
+                PlacePick(
+                    name = pickName,
+                    address = savedState.get<String>(DRAFT_PICK_ADDRESS),
+                    lat = savedState.get<String>(DRAFT_PICK_LAT)?.toDoubleOrNull(),
+                    lng = savedState.get<String>(DRAFT_PICK_LNG)?.toDoubleOrNull(),
+                )
+            },
         )
     }
 
@@ -181,7 +207,7 @@ class PlaceEditViewModel(
             _uiState.value = state.copy(errors = errors)
             return
         }
-        val place = state.form.toPlace(editedId, editedStepId, editedKind, original)
+        val place = state.form.toPlace(editedId, editedStepId, editedKind)
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
             if (write { repo.savePlace(tripId, place, isNew = original == null) }) _uiState.value = PlaceEditUiState.Done else markFailed()
@@ -220,5 +246,9 @@ class PlaceEditViewModel(
         const val DRAFT_TIME = "place_draft_time"
         const val DRAFT_NOTE = "place_draft_note"
         const val DRAFT_COST = "place_draft_cost"
+        const val DRAFT_PICK_NAME = "place_draft_pick_name"
+        const val DRAFT_PICK_ADDRESS = "place_draft_pick_address"
+        const val DRAFT_PICK_LAT = "place_draft_pick_lat"
+        const val DRAFT_PICK_LNG = "place_draft_pick_lng"
     }
 }

@@ -24,6 +24,8 @@ import fr.familia.app.core.photo.StoragePhotoUploader
 import fr.familia.app.core.place.AndroidPlaceLocator
 import fr.familia.app.core.place.NearbyPlaces
 import fr.familia.app.core.place.OverpassNearbyPlaces
+import fr.familia.app.core.place.OverpassPlaceSearch
+import fr.familia.app.core.place.PlaceSearch
 import fr.familia.app.core.place.PlaceArticles
 import fr.familia.app.core.place.WIKIPEDIA_HOST
 import fr.familia.app.core.place.WikimediaPlaceArticles
@@ -88,6 +90,9 @@ interface AppContainer {
 
     /** « Autour de l'étape » (récit 96): restaurants and sites around the place of a step. */
     val nearbyPlaces: NearbyPlaces? get() = null
+
+    /** The search of a place of a trip by kind (récit 103, règle 20); null in tests and previews. */
+    val placeSearch: PlaceSearch? get() = null
 
     /** « Monnaie » (récit 105): the exchange rates from the euro, with their date. */
     val exchangeRates: ExchangeRates? get() = null
@@ -322,6 +327,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val placeWeather: PlaceWeather? by lazy { OpenMeteoWeather() }
     override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
+    override val placeSearch: PlaceSearch? by lazy { OverpassPlaceSearch() }
     override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }
 
     override val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }

@@ -3607,4 +3607,21 @@
     <string name="error_place_name_missing">Écris le nom du lieu.</string>
     <string name="error_place_note_too_long">600 caractères au plus.</string>
     <string name="error_place_cost">Écris un montant, par exemple 80 ou 12,50.</string>
+    <string name="place_search_lodging">Trouver un hébergement</string>
+    <string name="place_search_restaurant">Trouver un restaurant</string>
+    <string name="place_search_spot">Trouver un spot</string>
+    <string name="place_search_field">Nom ou mot (pizza, plage, camping…)</string>
+    <string name="place_search_hint">Les lieux à moins de %1$d km de %2$s, les plus proches d\'abord.</string>
+    <string name="place_search_hint_nowhere">Les lieux autour de la destination, les plus proches d\'abord.</string>
+    <string name="place_search_add_typed">Ajouter « %1$s »</string>
+    <string name="place_search_add_typed_hint">Il n\'est pas dans la liste : tu l\'ajoutes avec ce nom.</string>
+    <string name="place_search_loading">On cherche autour de la destination…</string>
+    <string name="place_search_no_point">Cette destination n\'a pas de point sur la carte : écris le nom du lieu puis touche « Ajouter ».</string>
+    <string name="place_search_failed">OpenStreetMap ne répond pas pour le moment, ou le téléphone n\'a pas de réseau. Réessaie, ou écris le nom puis touche « Ajouter ».</string>
+    <string name="place_search_none_around">Aucun lieu de ce type trouvé autour de cette destination. Écris son nom pour l\'ajouter.</string>
+    <string name="place_search_none">Aucun lieu trouvé avec ce nom. Touche « Ajouter » pour le garder tel que tu l\'as écrit.</string>
+    <string name="place_search_source">Données : © les contributeurs d\'OpenStreetMap. Seuls le point de la destination et les mots tapés quittent le téléphone.</string>
+    <string name="place_choose_other_lodging">Choisir un autre hébergement</string>
+    <string name="place_choose_other_restaurant">Choisir un autre restaurant</string>
+    <string name="place_choose_other_spot">Choisir un autre spot</string>
 </resources>
