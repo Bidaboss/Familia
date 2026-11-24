@@ -606,6 +606,15 @@ describe('trip documents folder (récit 105, règle 41)', () => {
     await assertFails(getBytes(ref(storageAs(ADULT), file('adult3', 'abc124.jpg'))));
   });
 
+  test('a document of another owner with the same name never opens the file', async () => {
+    // Relecture de la 598: ADULT names a document like the file of adult3 and shares it with themselves.
+    await uploadString(ref(storageAs(NEIGHBOUR), file('adult3', 'abc300.pdf')), 'x', 'raw', pdf);
+    await named('abc300', 'adult1', ['adult1']);
+    await assertFails(getBytes(ref(storageAs(ADULT), file('adult3', 'abc300.pdf'))));
+    await named('abc300', 'adult3', ['adult3', 'adult1']);
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), file('adult3', 'abc300.pdf'))));
+  });
+
   test('never in someone else\'s folder, never by a follower, never too big, never another type', async () => {
     await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('adult1')), 'x', 'raw', pdf));
     await assertFails(uploadString(ref(storageAs(ADMIN), file('admin1')), 'x', 'raw', pdf));
