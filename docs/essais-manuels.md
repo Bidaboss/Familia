@@ -2042,3 +2042,12 @@ Rien à publier côté Firebase. « APK de publication ».
 ## Voyage : l'étape d'une photo est un identifiant simple (suite du récit 104, partie 2)
 
 **Publier Firebase : oui** (firestore.rules). Rien ne change à l'écran : ajouter des photos depuis une destination marche comme avant.
+
+## Voyage : l'ajout rapide pendant le voyage (récit 104, partie 3a : règle 35)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Pendant un voyage dont on fait partie (aujourd'hui entre le départ et le retour), un bouton rond avec un appareil photo apparaît au-dessus de « Ajouter une étape ».
+2. Le toucher : une feuille s'ouvre, avec le titre « Ajouter à <destination du jour> » et les choix « Photo » et « Mot court ».
+3. Choisir « Photo » puis une photo : elle apparaît sous la destination du jour, et personne ne reçoit de notification.
+4. Choisir « Mot court » : la page « Le mot de l'étape » de la destination du jour s'ouvre.
+5. Avant le départ, après le retour, ou pour quelqu'un qui suit le voyage sans y participer : pas de bouton rond.
