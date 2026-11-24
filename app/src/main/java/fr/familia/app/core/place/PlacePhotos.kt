@@ -38,7 +38,10 @@ interface PlacePhotos {
 }
 
 /** The summary service of Wikipedia in French then the image info of Commons: free, no key, a generic User-Agent. */
-class WikimediaPlacePhotos : PlacePhotos {
+class WikimediaPlacePhotos(
+    /** Why a photo could not be had (retour du 24/11 soir): « refusé 403 fr.wikipedia.org », for « Plantages ». */
+    private val onRefused: (String) -> Unit = {},
+) : PlacePhotos {
     private val known = java.util.concurrent.ConcurrentHashMap<String, Result<PlacePhoto?>>()
 
     override suspend fun of(place: String): PlacePhoto? {
@@ -55,6 +58,7 @@ class WikimediaPlacePhotos : PlacePhotos {
         }
         // Only a real answer is kept for the session: no network tries again next time.
         if (found != null && found.isSuccess) known[title] = found
+        refusal(found)?.let(onRefused)
         return found?.getOrNull()
     }
 
@@ -77,6 +81,7 @@ class WikimediaPlacePhotos : PlacePhotos {
             }
         }
         if (found != null && found.isSuccess) known[key] = found
+        refusal(found)?.let(onRefused)
         return found?.getOrNull()
     }
 
@@ -87,7 +92,13 @@ class WikimediaPlacePhotos : PlacePhotos {
             connection.readTimeout = 5_000
             connection.setRequestProperty("User-Agent", USER_AGENT)
             connection.setRequestProperty("Accept", "application/json")
-            if (connection.responseCode != 200) null else connection.inputStream.bufferedReader().readText()
+            val code = connection.responseCode
+            if (code != 200) {
+                onRefused(photoRefusalLine(code, connection.url.host))
+                null
+            } else {
+                connection.inputStream.bufferedReader().readText()
+            }
         } finally {
             connection.disconnect()
         }
@@ -98,6 +109,16 @@ class WikimediaPlacePhotos : PlacePhotos {
         private const val TIMEOUT_MS = 8_000L
         private const val MAX_TITLE = 100
     }
+}
+
+/** The line of « Plantages » for an answer other than 200: the code and the site, never the place. */
+fun photoRefusalLine(code: Int, host: String?): String = "refusé $code ${host.orEmpty()}".trim().take(60)
+
+/** A search that broke (no network, unreadable answer) or ran out of time; null when it answered. */
+internal fun refusal(found: Result<PlacePhoto?>?): String? = when {
+    found == null -> "délai dépassé"
+    found.isFailure -> found.exceptionOrNull()?.javaClass?.simpleName?.take(60) ?: "erreur"
+    else -> null
 }
 
 /** Shown when Commons does not say who took the photo. */

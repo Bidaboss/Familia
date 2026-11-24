@@ -350,7 +350,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val placeArticles: PlaceArticles? by lazy { WikimediaPlaceArticles() }
     override val placeAnecdotes: PlaceArticles? by lazy { WikimediaPlaceArticles(WIKIPEDIA_HOST) }
     override val placeWeather: PlaceWeather? by lazy { OpenMeteoWeather() }
-    override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos() }
+    override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos(onRefused = { fr.familia.app.core.place.PhotoFailureLog.record(appContext, it) }) }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
     override val placeSearch: PlaceSearch? by lazy { OverpassPlaceSearch() }
     override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }

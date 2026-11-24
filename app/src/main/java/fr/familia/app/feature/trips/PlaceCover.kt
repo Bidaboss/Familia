@@ -60,6 +60,7 @@ fun PlaceCover(
     var layer by remember(place, point) { mutableStateOf<CoverLayer?>(null) }
     var retried by remember(place, point) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
     LaunchedEffect(place, point, photos) {
         val found = place?.takeIf { it.isNotBlank() }?.let { photos?.of(it, point?.lat, point?.lng) }
         layer = found?.let { CoverLayer.Photo(it) } ?: CoverLayer.Drawn
@@ -75,6 +76,8 @@ fun PlaceCover(
                     contentScale = ContentScale.Crop,
                     onError = { error ->
                         Log.w(TAG, "Photo du lieu non affichée : ${shown.photo.url}", error.result.throwable)
+                        // Retour du 24/11 soir: the reason of the image itself goes to « Plantages » too.
+                        fr.familia.app.core.place.PhotoFailureLog.record(context, "image ${coverErrorLine(error.result.throwable)}")
                         val failed = shown.photo.url
                         if (retried || point == null || photos == null) {
                             layer = CoverLayer.Drawn
@@ -109,6 +112,10 @@ fun PlaceCover(
 }
 
 private const val TAG = "PlaceCover"
+
+/** The error of an image, short and without its address: « HttpException: HTTP 403 ». */
+internal fun coverErrorLine(error: Throwable): String =
+    listOfNotNull(error.javaClass.simpleName, error.message?.substringBefore(" http")?.take(30)).joinToString(": ").take(50)
 
 /** After a failed image: the next nearby photo when there is one and it is another image, else the drawing. */
 internal fun nextCoverLayer(failedUrl: String, next: PlacePhoto?): CoverLayer =

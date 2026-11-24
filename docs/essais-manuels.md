@@ -2578,3 +2578,13 @@ Sur un téléphone en Android 10 ou plus :
 5. Feuille basse : le bouton jaune « Nouveau voyage » disparaît, il ne cache plus « À venir | Souvenirs ». Il revient dès qu'on remonte la feuille.
 6. Feuille basse : la feuille descend jusqu'en bas de l'écran, sous la barre de gestes ; la carte du voyage s'arrête proprement au-dessus de cette barre.
 7. Sans globe (économie de batterie) : la liste ne change pas.
+
+## Voyages : jamais de globe noir, et la raison d'une photo absente dans « Plantages » (retour du 24/11 soir)
+
+**Publier Firebase : non.**
+1. Ouvrir « Voyages » avec un bon réseau : le globe satellite s'affiche comme avant, aux vraies couleurs.
+2. Si les images satellite ne viennent pas dans les 8 s : le globe passe tout seul sur une Terre dessinée (océans, continents, sans écritures), avec les points des voyages. Il ne reste plus noir.
+3. Dans ce cas, Administration > Plantages montre au prochain lancement une ligne « globe : imagerie absente 8 s, Terre dessinée », et avant elle la ligne « Carte … : SOURCE … » qui dit pourquoi Mapbox a refusé les images, s'il l'a dit.
+4. Une destination sans photo (le dessin s'affiche) : au prochain lancement, « Plantages » montre une ligne « Photo du lieu : … » avec la raison, par exemple « refusé 403 fr.wikipedia.org », « délai dépassé » ou « image HttpException… ». Le nom du lieu n'y est jamais.
+5. Avec une photo qui s'affiche : aucune ligne nouvelle.
+6. Le globe de « Voyages » prend les mêmes images que la carte d'un voyage (Satellite Streets), sans noms ni routes. Sur le téléphone où la carte d'un voyage montrait de vraies photos mais où le globe restait noir, le globe a maintenant ses couleurs.
