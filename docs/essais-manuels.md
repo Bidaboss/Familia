@@ -2293,3 +2293,12 @@ Sur un téléphone en Android 10 ou plus :
 4. Appuyer sur « Bien arrivé » : la carte passe à l'étape suivante du jour, ou disparaît s'il n'y en a plus.
 5. Le lendemain d'une étape non signalée, « Bien arrivé » est encore proposé ; deux jours après, plus rien.
 6. En tant que simple suiveur, avant le jour de l'étape, « Pas encore signalé. » n'est plus affiché.
+
+## Voyage : la cause sous « Carte indisponible » (retour d'essai du 24/11)
+
+**Publier Firebase : non.** « APK de publication ».
+1. Si l'accueil d'un voyage montre « Carte indisponible pour le moment », une ligne en petit dessous dit pourquoi : par exemple « Cause : délai 15 s », « Cause : STYLE: … 401 », « Cause : hors ligne » ou « Cause : IllegalStateException: … ». Une capture d'écran suffit pour la transmettre.
+2. Même chose dans Valise, Documents, Argent et « Modifier », posés sur la carte.
+3. Couper le réseau, ouvrir un voyage, attendre 15 s : « Cause : délai 15 s » (ou « hors ligne »). Remettre le réseau, « Réessayer » : la carte revient.
+4. Au lancement suivant, la même cause arrive dans Administration > Plantages, une fois par écran et par lancement.
+5. Un voyage à plusieurs destinations s'ouvre cadré sur toutes ses étapes, au-dessus de la feuille.

@@ -18,6 +18,12 @@ class MapFailureTest {
         assertEquals("IllegalStateException", failure.detail)
     }
 
+    @Test fun viewErrorSaysItsMessageWithoutToken() {
+        val failure = mapFailureReason(token, true, null, IllegalArgumentException("bad url?access_token=pk.secret&x=1"), false)
+        assertEquals("IllegalArgumentException: bad url?access_token=…&x=1", failure.detail)
+        assertTrue(failure.detail.length <= 60)
+    }
+
     @Test fun offlineWinsOverTheDelay() {
         val failure = mapFailureReason(token, false, null, null, true)
         assertTrue(failure is MapUnavailable.NoNetwork)

@@ -109,7 +109,8 @@ fun TripSatelliteMap(
     /** The sheet is high: the camera comes closer to the next step; low: all the steps above the sheet. */
     sheetHigh: Boolean,
     bottomPaddingDp: Double,
-    onFailed: () -> Unit,
+    /** The map gave up; its reason, short, goes under « Carte indisponible » (retour d'essai du 24/11). */
+    onFailed: (MapUnavailable) -> Unit,
     modifier: Modifier = Modifier,
     /** The arrival of règle 4: out to Europe, then back in on the place; false for who asked for no animation. */
     intro: Boolean = true,
@@ -143,9 +144,10 @@ fun TripSatelliteMap(
     val fail: (Throwable?, Boolean) -> Unit = { viewError, timedOut ->
         if (!gaveUp[0]) {
             gaveUp[0] = true
-            MapFailureLog.record(context, mapFailureReason(token, MapFailureLog.online(context), lastError[0], viewError, timedOut))
+            val reason = mapFailureReason(token, MapFailureLog.online(context), lastError[0], viewError, timedOut)
+            MapFailureLog.record(context, reason)
             GlobeHealth.markFailed(context)
-            onFailed()
+            onFailed(reason)
         }
     }
     val view = remember { arrayOfNulls<MapView>(1) }
@@ -345,9 +347,16 @@ private fun cameraOf(kept: DoubleArray): CameraOptions =
 
 private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilted: Boolean = false): CameraOptions {
     val pitch = if (tilted) 60.0 else 0.0
-    if (points.size == 1) return CameraOptions.Builder().center(points.first().toPoint()).zoom(9.0).pitch(pitch).build()
+    val middle = CameraOptions.Builder()
+        .center(com.mapbox.geojson.Point.fromLngLat(points.map { it.lng }.average(), points.map { it.lat }.average()))
+        .zoom(if (points.size == 1) 9.0 else 6.0).pitch(pitch).build()
+    if (points.size <= 1) return middle
+    // Before its first layout the view has no size: margins larger than the map make no frame.
     val padding = EdgeInsets(120.0, 60.0, bottomPx + 60.0, 60.0)
-    return view.mapboxMap.cameraForCoordinates(points.map { it.toPoint() }, CameraOptions.Builder().pitch(pitch).build(), padding, null, null)
+    if (view.width <= 0 || view.height <= padding.top + padding.bottom || view.width <= padding.left + padding.right) return middle
+    return runCatching {
+        view.mapboxMap.cameraForCoordinates(points.map { it.toPoint() }, CameraOptions.Builder().pitch(pitch).build(), padding, null, null)
+    }.getOrDefault(middle)
 }
 
 /** Loads the look of the map, then draws the steps on it (again after a change of look: the style forgets them). */

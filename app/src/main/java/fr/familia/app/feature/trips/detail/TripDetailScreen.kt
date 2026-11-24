@@ -389,6 +389,7 @@ private fun PathContent(
     val placed = remember(state.steps) { state.steps.filter { it.hasPosition } }
     // A new try each time the trip opens (retour d'essai du 24/11): a failure is never kept for hours.
     var mapFailed by remember { mutableStateOf(false) }
+    var mapCause by remember { mutableStateOf<String?>(null) }
     var mapTry by remember { mutableStateOf(0) }
     val mapAllowed = remember { !talkBackOn(context) }
     // Règle 46: under 20 % unplugged, or with Android's saver, no satellite map (the path instead).
@@ -416,6 +417,7 @@ private fun PathContent(
     if (mapLayout && mapFailed) {
         MapUnavailableNotice(
             onRetry = { mapFailed = false; mapTry++ },
+            reason = mapCause,
             modifier = Modifier.fillMaxWidth().height(maxHeight - lowHeight),
         )
     }
@@ -435,7 +437,7 @@ private fun PathContent(
             intro = !animationsOff(context),
             sheetHigh = expanded,
             bottomPaddingDp = lowHeight.value.toDouble(),
-            onFailed = { mapFailed = true },
+            onFailed = { mapCause = it.detail; mapFailed = true },
             modifier = Modifier.fillMaxSize(),
         )
     }
