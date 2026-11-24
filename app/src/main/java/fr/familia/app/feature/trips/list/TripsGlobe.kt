@@ -1,5 +1,7 @@
 package fr.familia.app.feature.trips.list
 
+import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.scalebar.scalebar
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -205,6 +207,8 @@ fun TripsGlobe(
             runCatching {
                 MapboxOptions.accessToken = token
                 MapView(context).also { map ->
+                    // Règle 5 (E-25): nothing but the globe, no scale over « Voyages », no compass.
+                    runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
                     map.mapboxMap.setCamera(
                         CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(0.6).pitch(20.0).build(),
                     )

@@ -1,5 +1,7 @@
 package fr.familia.app.feature.trips.list
 
+import fr.familia.app.feature.trips.detail.SheetHandle
+import fr.familia.app.feature.trips.map.backdropSheetShare
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -166,6 +168,11 @@ fun TripsScreen(
             onOpenTrip(id)
         }
     }
+    // E-24, DESIGN-98 A: the sheet of the trips has the three heights of the prototype, the middle first.
+    var level by rememberSaveable { mutableStateOf(1) }
+    androidx.activity.compose.BackHandler(enabled = globeOn && level == 2) { level = 1 }
+    // Low sheet, more globe: it keeps its centre above the sheet.
+    val globeShare by androidx.compose.animation.core.animateFloatAsState(if (level == 0) 0.85f else 0.62f, label = "globe-share")
     // Over the globe the top bar sits on the night sky.
     val dark = globeOn
     val skyColor = if (dark) Color.Transparent else TripPathColors.Sky
@@ -180,7 +187,7 @@ fun TripsScreen(
             flight = flight,
             onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
             onOpenTrip = { id -> openTrip(id) },
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.62f).align(Alignment.TopCenter),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(globeShare).align(Alignment.TopCenter),
         )
     }
     CompositionLocalProvider(LocalContentColor provides TripPathColors.Ink) {
@@ -200,21 +207,25 @@ fun TripsScreen(
                 if (success?.canCreate == true) StickyActionBar(text = "+ " + stringResource(R.string.trips_add), onClick = onAddTrip)
             },
         ) { padding ->
-            Column(Modifier.padding(padding).fillMaxSize()) {
-              if (saving) BatterySavingBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-              if (globeOn) {
-                Box(Modifier.weight(0.4f).fillMaxWidth()) {
-                    OutlinedButton(
-                        onClick = { globeStopped = !globeStopped },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).heightIn(min = 56.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
-                    ) { Text(stringResource(if (globeStopped) R.string.globe_list_resume else R.string.globe_list_stop)) }
-                }
+            androidx.compose.foundation.layout.BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
+              val sheet by androidx.compose.animation.core.animateDpAsState(
+                  if (globeOn) maxHeight * backdropSheetShare(level) else maxHeight,
+                  label = "trips-sheet",
+              )
+              if (globeOn && level < 2) {
+                OutlinedButton(
+                    onClick = { globeStopped = !globeStopped },
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = sheet + 12.dp).heightIn(min = 56.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
+                ) { Text(stringResource(if (globeStopped) R.string.globe_list_resume else R.string.globe_list_stop)) }
               }
-              Box(
-                Modifier.weight(if (globeOn) 0.6f else 1f).fillMaxWidth()
+              Column(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(sheet)
                     .then(if (globeOn) Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier),
               ) {
+              if (globeOn) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
+              if (saving) BatterySavingBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+              Box(Modifier.weight(1f).fillMaxWidth()) {
                 when (state) {
                     TripsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                     TripsUiState.Error -> EmptyState(
@@ -239,6 +250,7 @@ fun TripsScreen(
                         else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn, photos = placePhotos)
                     }
                 }
+              }
               }
             }
         }
