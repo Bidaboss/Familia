@@ -69,11 +69,18 @@ fun TripEditRoute(
     // DESIGN-103 A: the places come while the member types, after a short pause; a new letter cancels the question.
     LaunchedEffect(query, asking) {
         if (!asking) return@LaunchedEffect
-        val typed = suggestionQuery(query, chosen) ?: return@LaunchedEffect
+        val typed = suggestionQuery(query, chosen) ?: run {
+            // Back under three letters (erased): the old places go away.
+            if (chosen == null && search !is DestinationSearch.Idle && query.trim().length < SUGGEST_MIN_CHARS) search = DestinationSearch.Idle
+            return@LaunchedEffect
+        }
         delay(SUGGEST_PAUSE_MS)
         search = DestinationSearch.Searching
         val places = container?.placeLocator?.suggest(typed).orEmpty()
-        search = if (places.isEmpty()) DestinationSearch.NothingFound else DestinationSearch.Found(places)
+        // A late answer for an older text is dropped, as for the « Chercher » button.
+        if (query.trim() == typed) {
+            search = if (places.isEmpty()) DestinationSearch.NothingFound else DestinationSearch.Found(places)
+        }
     }
     if (asking && state is TripEditUiState.Editing) {
         TripDestinationScreen(

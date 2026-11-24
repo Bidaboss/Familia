@@ -2358,3 +2358,4 @@ Sur un téléphone en Android 10 ou plus :
 3. En haut à droite, un crayon remplace le mot « Modifier » (pour l'admin ou un chef de famille qui gère le voyage) ; il ouvre la modification du voyage.
 4. Ajouter une étape en tapant « la rochelle » : le clavier met une majuscule à chaque mot, et l'étape s'enregistre « La Rochelle ». « saint-jean-de-luz » devient « Saint-Jean-de-Luz ».
 5. Une ancienne étape « La rochelle » s'affiche « La Rochelle » dans la carte du jour.
+6. Nouveau voyage, taper « La R » : des propositions apparaissent ; effacer jusqu'à « La » : les propositions disparaissent (remarque C de #583).
