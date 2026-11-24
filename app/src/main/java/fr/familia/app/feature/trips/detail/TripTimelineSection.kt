@@ -244,6 +244,11 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
     }
 }
 
+/** « Bordeaux » out of « Bordeaux, Gironde, France ». */
+internal fun placeName(step: TripStep): String = step.place.substringAfterLast('→').substringBefore(',').trim().ifEmpty { step.place }
+
+private fun shortDay(day: LocalDate): String = frenchDate(day, "EEE d MMM")
+
 /** The menu of a « + » of the timeline (F2 §2): where it adds, and who may add. Shared with the dark « + » of the sheet. */
 @Composable
 fun TimelineAddMenu(expanded: Boolean, onDismiss: () -> Unit, spot: InsertSpot, actions: TimelineActions, hasDestination: Boolean) {
