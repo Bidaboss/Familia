@@ -2241,3 +2241,10 @@ Sur un téléphone en Android 10 ou plus :
 3. Film prêt : « Voir le film du voyage » le relance. Le menu ⋮ propose « Partager » (avec le rappel de partage), « Télécharger » (Android 10 ou plus) et « Faire un vrai film avec une IA ».
 4. Avant que le film soit fait, le menu ⋮ propose seulement l'IA (s'il y a des photos liées à une étape).
 5. Les films d'album d'un événement et du diaporama du mois gardent leurs boutons « Faire le film », « Regarder », « Partager », sans « Télécharger » ni IA.
+
+## Voyage : « Enrichir avec une IA » se tire au-dessus de la carte (règle 8)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage qui a des étapes placées, puis « Enrichir avec une IA ». L'écran s'ouvre dans la feuille au-dessus de la carte, comme Valise, Documents ou Argent.
+2. Tirer la feuille vers le haut : l'écran prend toute la hauteur. La redescendre : la carte réapparaît.
+3. Avec TalkBack, sans réseau ou sans étape placée, l'écran s'affiche seul, comme avant.
