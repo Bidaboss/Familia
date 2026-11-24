@@ -2072,3 +2072,13 @@ Rien à publier côté Firebase. « APK de publication ».
 6. Un membre qui suit le voyage sans y participer l'écoute, mais n'a ni le choix « Note vocale » ni la corbeille.
 7. Supprimer la destination : ses notes vocales partent avec elle.
 8. Avec TalkBack : le bouton dit « Écouter » ou « Arrêter l'écoute », et le compteur d'enregistrement est lu.
+
+## Voyage : Retour remet la carte où elle était (règle 25)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec au moins deux destinations placées : la carte satellite fait son arrivée (vers le continent, puis sur le voyage).
+2. Déplacer la carte du doigt et zoomer sur une destination, puis faire défiler la feuille jusqu'à « Le programme ».
+3. Toucher une destination ou un lieu pour ouvrir sa page, puis Retour : la carte est exactement où on l'avait laissée, l'arrivée ne se rejoue pas, et la feuille est à la même hauteur et au même endroit de la liste.
+4. Pareil après « Mot de l'étape », « Photos », « Valise », et après avoir tourné le téléphone.
+5. Quitter le voyage (Retour jusqu'à la liste) puis le rouvrir : l'arrivée se joue de nouveau, cadrée sur tout le voyage.
+6. Avec « Supprimer les animations » d'Android : pas d'arrivée, et Retour remet aussi la carte où elle était.
