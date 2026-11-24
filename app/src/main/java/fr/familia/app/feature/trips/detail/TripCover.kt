@@ -117,7 +117,8 @@ fun TripCoverCarousel(
                 },
             ) {
                 PlaceCover(
-                    place.name, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
+                    // Without a step, the name is the free title of the trip: it never goes to Wikipedia (B1 of #586).
+                    place.name.takeIf { steps.isNotEmpty() }, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
                     // Under « Voyage programmé », away from the pause button and the title: the licence asks for it to be read.
                     creditAlignment = Alignment.TopStart,
                     creditTop = 44.dp,
