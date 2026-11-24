@@ -83,6 +83,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.navigation.AccountButton
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
@@ -129,6 +130,9 @@ fun TripsScreen(
     onOpenCarnet: (() -> Unit)? = null,
     /** The destinations the member added by hand to the carnet (règle 38): in Souvenirs and a mark on the globe. */
     handAdded: List<TravelPlace> = emptyList(),
+    /** The member's avatar at the far right of the bar (E-62), which opens the account sheet; null: none. */
+    account: Member? = null,
+    onAccount: (() -> Unit)? = null,
 ) {
     var souvenirs by rememberSaveable { mutableStateOf(false) }
     var globeStopped by rememberSaveable { mutableStateOf(false) }
@@ -188,7 +192,7 @@ fun TripsScreen(
             contentColor = TripPathColors.Ink,
             topBar = {
                 Column(Modifier.background(skyColor).statusBarsPadding()) {
-                    TripsTopBar(onBack, onDark = dark, onOpenCarnet = onOpenCarnet)
+                    TripsTopBar(onBack, onDark = dark, onOpenCarnet = onOpenCarnet, account = account, onAccount = onAccount)
                 }
             },
             // E-28: the yellow pill of the prototype, floating bottom right over the list, not a dark bar.
@@ -286,6 +290,8 @@ internal fun TripsTopBar(
     help: ScreenHelp = ScreenHelp.Trips,
     onDark: Boolean = false,
     onOpenCarnet: (() -> Unit)? = null,
+    account: Member? = null,
+    onAccount: (() -> Unit)? = null,
 ) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
@@ -298,6 +304,9 @@ internal fun TripsTopBar(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold,
             color = if (onDark) Color.White else TripPathColors.Ink,
+            // Short on room (E-62): the title gives way, never the 56 dp buttons.
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f).padding(start = 8.dp).semantics { heading() },
         )
         // « Carnet de baroudeur » (récit 107): the round button left of « ? », as in the prototype.
@@ -309,6 +318,8 @@ internal fun TripsTopBar(
             }
         }
         Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { HelpButton(help) }
+        // E-62: the same avatar as the other tabs, at the far right: avatar, aide, carnet from right to left.
+        if (account != null && onAccount != null) AccountButton(account, onAccount)
     }
 }
 
