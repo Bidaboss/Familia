@@ -3542,4 +3542,41 @@
         <item quantity="many">%1$s, %2$s et %3$d autres</item>
         <item quantity="other">%1$s, %2$s et %3$d autres</item>
     </plurals>
+    <!-- Récit 103 : page d'un hébergement, d'un restaurant ou d'un spot d'une destination (fil des pages lieu). -->
+    <string name="place_kind_lodging">Hébergement</string>
+    <string name="place_kind_restaurant">Restaurant</string>
+    <string name="place_kind_spot">Spot</string>
+    <string name="place_page_title">Lieu</string>
+    <string name="place_new_lodging">Ton hébergement</string>
+    <string name="place_new_restaurant">Ton restaurant</string>
+    <string name="place_new_spot">Ton spot</string>
+    <string name="place_edit_lodging">Modifier ton hébergement</string>
+    <string name="place_edit_restaurant">Modifier ton restaurant</string>
+    <string name="place_edit_spot">Modifier ton spot</string>
+    <string name="place_add">Ajouter au voyage</string>
+    <string name="place_field_name">Nom</string>
+    <string name="place_name_hint">Le nom écrit sur sa réservation ou sur sa devanture.</string>
+    <string name="place_in_destination">Dans la destination %1$s</string>
+    <string name="place_tile_arrive">Heure d\'arrivée</string>
+    <string name="place_tile_time">Heure</string>
+    <string name="place_time_hint_lodging">Facultatif. Pratique pour prévenir l\'hôte.</string>
+    <string name="place_time_hint">Facultatif. Utile pour une réservation.</string>
+    <string name="place_no_time">Pas d\'heure prévue</string>
+    <string name="place_tile_note">Notes</string>
+    <string name="place_note_example_lodging">Code d\'entrée, étage, numéro de réservation, petit-déjeuner…</string>
+    <string name="place_note_example">Table réservée au nom de…, plat à goûter, allergies…</string>
+    <string name="place_note_hint">Tu peux écrire sur plusieurs lignes. %1$d / %2$d caractères.</string>
+    <string name="place_tile_cost">Coût (%1$s)</string>
+    <string name="place_cost_hint">Facultatif. Pour tout le groupe, dans la monnaie du voyage.</string>
+    <string name="place_tripadvisor">Voir sur Tripadvisor</string>
+    <string name="place_delete_lodging">Supprimer cet hébergement</string>
+    <string name="place_delete_restaurant">Supprimer ce restaurant</string>
+    <string name="place_delete_spot">Supprimer ce spot</string>
+    <string name="place_delete_title">Supprimer « %1$s » ?</string>
+    <string name="place_delete_body">Il disparaît du programme de la destination pour tout le voyage. Cette action ne peut pas être annulée.</string>
+    <string name="place_unavailable_title">Ce lieu n\'est plus là</string>
+    <string name="place_unavailable_body">Il a été supprimé, ou tu ne suis plus ce voyage.</string>
+    <string name="error_place_name_missing">Écris le nom du lieu.</string>
+    <string name="error_place_note_too_long">600 caractères au plus.</string>
+    <string name="error_place_cost">Écris un montant, par exemple 80 ou 12,50.</string>
 </resources>
