@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -263,20 +264,32 @@ private fun TripReminder(trip: Trip) {
     )
 }
 
-/** A day box and the hour (TimeBox) side by side, one under the other with a big font. */
+/**
+ * A day box and the hour (TimeBox) side by side, one under the other with a big font. No big
+ * « Sans heure » chip under each pair (E-18): « Choisir » already means no hour, and a small
+ * « Sans heure » link clears an hour once one is set.
+ */
 @Composable
 private fun DayAndTime(day: LocalDate?, onDay: (LocalDate) -> Unit, time: LocalTime?, onTime: (LocalTime?) -> Unit, initial: LocalDate? = null) {
     val dayLabel = stringResource(R.string.trip_step_day)
     val timeLabel = stringResource(R.string.trip_step_time)
-    if (LocalDensity.current.fontScale >= 1.3f) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TripDayBox(dayLabel, day, onDay, Modifier.fillMaxWidth(), initial = initial)
-            TimeBox(time = time, onPick = onTime, modifier = Modifier.fillMaxWidth(), label = timeLabel)
+    Column {
+        if (LocalDensity.current.fontScale >= 1.3f) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TripDayBox(dayLabel, day, onDay, Modifier.fillMaxWidth(), initial = initial)
+                TimeBox(time = time, onPick = onTime, modifier = Modifier.fillMaxWidth(), label = timeLabel, clearLabel = null)
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TripDayBox(dayLabel, day, onDay, Modifier.weight(1f), initial = initial)
+                TimeBox(time = time, onPick = onTime, modifier = Modifier.weight(1f), label = timeLabel, clearLabel = null)
+            }
         }
-    } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TripDayBox(dayLabel, day, onDay, Modifier.weight(1f), initial = initial)
-            TimeBox(time = time, onPick = onTime, modifier = Modifier.weight(1f), label = timeLabel)
+        if (time != null) {
+            TextButton(
+                onClick = { onTime(null) },
+                modifier = Modifier.align(Alignment.End).heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.event_no_time)) }
         }
     }
 }
