@@ -295,7 +295,7 @@ private fun DocumentRow(document: TripDocument, onOpen: () -> Unit, onDelete: ((
                 }
             }
             if (onDelete != null) {
-                IconButton(onClick = onDelete, modifier = Modifier.size(width = 48.dp, height = 56.dp)) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(56.dp)) {
                     Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.documents_delete_description, document.title), tint = DocumentRed)
                 }
             }
