@@ -111,11 +111,35 @@ fun rememberBatterySavingAtOpening(): Boolean {
     return rememberSaveable { now }
 }
 
-/** The line that says why the map and the animations are gone. */
+/** E-58: why the trips save the battery: Android's saver, or the level of the battery (null when unknown). */
+sealed interface SavingReason {
+    data object SystemSaver : SavingReason
+    data class Level(val percent: Int?) : SavingReason
+}
+
+/** Pure rule: Android's saver first (it saves at any level), else the level. */
+fun savingReason(levelPercent: Int?, systemPowerSave: Boolean): SavingReason =
+    if (systemPowerSave) SavingReason.SystemSaver else SavingReason.Level(levelPercent)
+
+private fun readReason(context: Context): SavingReason {
+    val battery = runCatching { context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) }.getOrNull()
+    val level = battery?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+    val scale = battery?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+    val powerSave = (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isPowerSaveMode == true
+    return savingReason(if (level >= 0 && scale > 0) level * 100 / scale else null, powerSave)
+}
+
+/** The line that says why the map and the animations are gone, and the reason (E-58). */
 @Composable
 fun BatterySavingBanner(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val reason = remember(context) { readReason(context) }
+    val why = when (reason) {
+        SavingReason.SystemSaver -> stringResource(R.string.battery_saving_reason_saver)
+        is SavingReason.Level -> reason.percent?.let { stringResource(R.string.battery_saving_reason_level, it) }
+    }
     Text(
-        stringResource(R.string.battery_saving_banner, BATTERY_SAVING_PERCENT),
+        listOfNotNull(why, stringResource(R.string.battery_saving_banner, BATTERY_SAVING_PERCENT)).joinToString(" "),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSecondaryContainer,
         modifier = modifier

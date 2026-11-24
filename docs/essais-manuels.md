@@ -2557,3 +2557,4 @@ Sur un téléphone en Android 10 ou plus :
 4. Sous une destination sans lieux, sans photos ni notes : plus de ligne vide avec une seule icône photo. Avec des photos : la ligne des photos et son bouton d'ajout.
 5. Toucher un « + » : le menu d'ajout s'ouvre comme avant ; toucher une ligne de transport : sa page s'ouvre.
 6. Dans le panneau du voyage, les titres « Photos » et « Prochaine étape » sont en encre foncée, plus en rouge.
+7. Retour E-58 : allumer l'économiseur de batterie d'Android puis ouvrir un voyage : la bannière commence par « Économiseur de batterie d'Android activé. ». L'éteindre, batterie sous 20 % et débranchée : elle commence par « Batterie à n %. ».

@@ -1,5 +1,6 @@
 package fr.familia.app.core.power
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,5 +22,13 @@ class BatterySavingTest {
         assertFalse(batterySaving(10, charging = true, systemPowerSave = false, wasSaving = true))
         assertFalse(batterySaving(22, charging = false, systemPowerSave = false, wasSaving = false))
         assertTrue(batterySaving(null, charging = false, systemPowerSave = false, wasSaving = true))
+    }
+
+    @Test
+    fun `the banner says why the trips save the battery`() {
+        // E-58: Android's saver at any level, else the level of the battery.
+        assertEquals(SavingReason.SystemSaver, savingReason(30, systemPowerSave = true))
+        assertEquals(SavingReason.Level(17), savingReason(17, systemPowerSave = false))
+        assertEquals(SavingReason.Level(null), savingReason(null, systemPowerSave = false))
     }
 }
