@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,14 +34,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.album.AlbumFilmViewModel
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.FILM_MIN_PHOTOS
 import fr.familia.app.core.album.FilmActions
 import fr.familia.app.core.album.FilmState
+import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.share.ShareConsentReminder
 import fr.familia.app.core.share.playVideo
 import fr.familia.app.core.share.shareVideo
+import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.feature.trips.TripTile
 import java.io.File
 
@@ -49,6 +57,24 @@ const val STEP_FILM_SECONDS = 2.5
 
 /** The photos of the film of [stepId]: those added from that step (récit 104), among the photos this person sees. */
 fun stepFilmPhotos(album: List<AlbumPhoto>, stepId: String): List<AlbumPhoto> = album.filter { it.stepId == stepId }
+
+/** The film of [stepId] under its word (relecture #555, C2): its ViewModel, its photos, its tile. */
+@Composable
+fun StepFilm(container: AppContainer?, tripId: String, stepId: String, album: List<AlbumPhoto>) {
+    val filmsDir = File(LocalContext.current.cacheDir, "films")
+    val filmViewModel: AlbumFilmViewModel = viewModel(
+        key = "step-film-$tripId-$stepId",
+        factory = viewModelFactory {
+            initializer { AlbumFilmViewModel(container?.photoStorage, container?.filmMaker, "etape-$tripId-$stepId", filmsDir, FilmStyle.Trip) { STEP_FILM_SECONDS } }
+        },
+    )
+    val film by filmViewModel.uiState.collectAsStateWithLifecycle()
+    val stepPhotos = remember(album, stepId) { stepFilmPhotos(album, stepId) }
+    // A photo added or taken off since the film was made: it is made again at the next « Voir » (C1).
+    LaunchedEffect(stepPhotos) { filmViewModel.keepFor(stepPhotos) }
+    val actions = remember(filmViewModel, stepPhotos) { FilmActions(onMake = { filmViewModel.make(stepPhotos) }, onCancel = filmViewModel::cancel) }
+    StepFilmTile(film, stepPhotos.size, actions)
+}
 
 /**
  * « Film de l'étape » (récit 108, règle 32): the photos of the step, oldest first, 2,5 s each with
