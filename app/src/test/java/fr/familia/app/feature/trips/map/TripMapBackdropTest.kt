@@ -32,10 +32,12 @@ class TripMapBackdropTest {
         assertFalse(playsEditArrival(asked = true, withMap = true, animationsOff = true))
     }
 
-    @Test fun theArrivalIsAsShortAsThePrototype() {
-        // About 2.5 s of camera after the sheet (règle 4, prototype v75), the globe seen whole.
+    @Test fun theArrivalLastsAboutSixSeconds() {
+        // DESIGN-101 B: about 6 s of camera after the sheet, the globe seen whole.
         val camera = EditArrival.CAMERA_WAIT_MS + EditArrival.OUT_MS + EditArrival.IN_MS
-        assertTrue(camera in 2_500L..3_200L)
+        assertTrue(camera in 5_500L..6_500L)
         assertTrue(EditArrival.GLOBE_ZOOM <= 1.5)
+        // The page of a trip too: out to the continent, then in on the steps.
+        assertTrue(EditArrival.HOME_OUT_MS + EditArrival.HOME_IN_MS in 5_500L..6_500L)
     }
 }

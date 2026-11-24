@@ -193,7 +193,7 @@ fun TripSatelliteMap(
         if (!drawn) return@LaunchedEffect
         // C1 of #580: made before its layout, the view started on the middle of the steps; now it has
         // its size, the frame on all the steps is right. The arrival does it itself when it plays.
-        if (!restored && (!intro || introPlayed || touched)) {
+        if (!restored && !touched && (!intro || introPlayed)) {
             view[0]?.let { map -> runCatching { map.mapboxMap.setCamera(frame(map, points, bottomPaddingDp * density, tilted)) } }
         }
         if (!intro || introPlayed) return@LaunchedEffect
@@ -211,15 +211,17 @@ fun TripSatelliteMap(
             map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(EditArrival.IN_MS) })
             return@LaunchedEffect
         }
-        map.camera.easeTo(CameraOptions.Builder().center(middle).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
-        delay(1_400L)
+        map.camera.easeTo(CameraOptions.Builder().center(middle).zoom(3.2).build(), mapAnimationOptions { duration(EditArrival.HOME_OUT_MS) })
+        delay(EditArrival.HOME_OUT_MS + 100L)
         if (touched) return@LaunchedEffect
-        map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(2_400L) })
+        map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(EditArrival.HOME_IN_MS) })
     }
     Box(
         modifier.pointerInput(Unit) {
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                // DESIGN-101 B: the 6 s arrival stops where it is, not only before its next part.
+                if (!touched && introPlayed) view[0]?.camera?.cancelAllAnimators()
                 touched = true
                 introPlayed = true
             }
