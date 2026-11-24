@@ -370,8 +370,6 @@
     <string name="trip_map_credit">© Mapbox © OpenStreetMap</string>
     <string name="trip_map_open_description">Ouvrir la carte du voyage, avec toutes ses étapes</string>
     <string name="trip_enrich_pill">Enrichir le voyage avec une IA</string>
-    <string name="timeline_add_place_a11y">%1$s : ajouter à %2$s</string>
-    <string name="timeline_insert_transport">Transport</string>
     <string name="timeline_insert_after_a11y">Ajouter après %1$s</string>
     <string name="timeline_insert_start_a11y">Ajouter au début du voyage</string>
     <plurals name="timeline_photos_a11y">
@@ -407,6 +405,30 @@
         <item quantity="other">%d photos sans étape</item>
     </plurals>
     <string name="timeline_title">Le trajet</string>
+    <plurals name="timeline_nights_word">
+        <item quantity="one">nuitée</item>
+        <item quantity="many">nuitées</item>
+        <item quantity="other">nuitées</item>
+    </plurals>
+    <string name="timeline_add_destination">Ajouter une destination</string>
+    <string name="timeline_add_transport">Ajouter un transport</string>
+    <string name="timeline_add_lodging">Ajouter un hébergement</string>
+    <string name="timeline_add_spot">Ajouter un spot</string>
+    <string name="timeline_add_restaurant">Ajouter un restaurant</string>
+    <string name="timeline_add_enrich">Enrichir ici avec une IA</string>
+    <string name="timeline_add_end_a11y">Ajouter à la fin du voyage</string>
+    <string name="trip_element_new">Nouvel élément</string>
+    <string name="trip_element_add">Ajouter l\'élément</string>
+    <string name="add_destination_search">Recherchez un lieu</string>
+    <string name="add_destination_cities">Villes</string>
+    <string name="add_destination_regions">Régions</string>
+    <string name="add_destination_countries">Pays</string>
+    <string name="add_destination_hint">Tape le nom d\'une ville, d\'une région ou d\'un pays. Ici s\'affichent aussi les lieux où la famille est déjà allée.</string>
+    <string name="add_destination_searching">Recherche…</string>
+    <string name="add_destination_none">Aucun lieu de ce type trouvé. Essaie un autre nom, ou un autre onglet.</string>
+    <string name="add_destination_failed">L\'ajout n\'a pas marché. Vérifie le réseau et réessaie.</string>
+    <string name="add_destination_added">%1$s ajouté au voyage</string>
+    <string name="add_destination_add_a11y">ajouter au voyage</string>
     <string name="timeline_start">Le voyage commence</string>
     <string name="timeline_end">Le voyage se termine</string>
     <string name="timeline_planned">%1$d/%2$d nuits planifiées</string>
@@ -414,10 +436,6 @@
     <plurals name="timeline_missing">
         <item quantity="one">%1$d nuit sans destination</item>
         <item quantity="other">%1$d nuits sans destination</item>
-    </plurals>
-    <plurals name="timeline_nights">
-        <item quantity="one">%1$d nuitée</item>
-        <item quantity="other">%1$d nuitées</item>
     </plurals>
     <string name="timeline_dates">%1$s – %2$s</string>
     <string name="timeline_open">Ouvrir %1$s</string>

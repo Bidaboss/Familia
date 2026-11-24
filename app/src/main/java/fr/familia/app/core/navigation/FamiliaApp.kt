@@ -1183,7 +1183,14 @@ fun FamiliaApp(
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
                             onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
-                            onInsertStep = { kind, day -> navController.navigate(TripStepEditDestination(tripId, kind = kind.name, day = day.toString())) },
+                            onInsertStep = { kind, day ->
+                                // Fiche F2 §3: a destination is chosen in its own screen and added in one touch; a transport keeps the form.
+                                if (kind == fr.familia.app.feature.trips.step.StepAddKind.Destination) {
+                                    navController.navigate(fr.familia.app.feature.trips.TripAddDestinationDestination(tripId, day.toString()))
+                                } else {
+                                    navController.navigate(TripStepEditDestination(tripId, kind = kind.name, day = day.toString()))
+                                }
+                            },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
                             onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
@@ -1360,6 +1367,16 @@ fun FamiliaApp(
                             // The trip is gone: back past its view too.
                             onDeleted = { navController.popBackStack<TripDetailDestination>(inclusive = true) },
                             onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<fr.familia.app.feature.trips.TripAddDestinationDestination> { entry ->
+                        val route = entry.toRoute<fr.familia.app.feature.trips.TripAddDestinationDestination>()
+                        fr.familia.app.feature.trips.step.AddDestinationRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = route.tripId,
+                            day = runCatching { java.time.LocalDate.parse(route.day) }.getOrElse { java.time.LocalDate.now() },
+                            onDone = { navController.popBackStack() },
                         )
                     }
                     composable<TripStepEditDestination> { entry ->

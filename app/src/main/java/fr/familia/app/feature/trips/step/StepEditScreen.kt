@@ -56,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
@@ -118,14 +119,17 @@ fun StepEditScreen(
             },
         )
     }
+    val isNew = editing?.isNew != false
     TripFormScaffold(
-        title = stringResource(if (editing?.isNew == false) R.string.trip_step_edit_title else R.string.trip_step_add_title),
+        // Fiche F2 §4: a new transport is « Nouvel élément », its title over the map.
+        title = stringResource(if (isNew) R.string.trip_element_new else R.string.trip_step_edit_title),
         help = ScreenHelp.TripStepEdit,
         onBack = { if (hasChanges) confirmLeave = true else onBack() },
-        action = editing?.let { stringResource(if (it.isNew) R.string.trip_step_add else R.string.member_save) },
+        action = editing?.let { stringResource(if (it.isNew) R.string.trip_element_add else R.string.member_save) },
         busy = editing?.isSaving == true,
         onAction = onSave,
         inSheet = inSheet,
+        subtitle = editing?.takeIf { it.isNew }?.let { listOfNotNull(stepTypeLabel(it.form.type), it.trip?.title).joinToString(" · ") },
     ) {
         when (state) {
             StepEditUiState.Loading, StepEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -251,18 +255,20 @@ private fun FormContent(
 private fun TripReminder(trip: Trip) {
     val (from, to) = tripRangeEnds(trip, weekday = false)
     val dates = if (trip.startDate == trip.endDate) to else stringResource(R.string.trip_preview_range, from, to)
+    // Fiche F2 §4: a white band 40 dp high, rounded 26, grey bold text.
     Text(
         stringResource(R.string.trip_step_in_trip, trip.title, dates),
-        style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.SemiBold,
-        color = TripPathColors.Ink,
+        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF5B6770),
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .heightIn(min = 40.dp)
+            .clip(RoundedCornerShape(26.dp))
             .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 9.dp),
     )
 }
 

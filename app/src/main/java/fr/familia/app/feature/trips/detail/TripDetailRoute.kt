@@ -188,6 +188,7 @@ fun TripDetailRoute(
                 }
             },
             canDeleteVoice = { note -> note.authorId == currentMember.id || shown?.canManage == true },
+            placePhotos = container?.placePhotos,
             onDeleteVoice = { note ->
                 if (voicePlayer.playingId == note.id) voicePlayer.stop()
                 scope.launch { runCatching { voiceRepo?.delete(tripId, note) } }

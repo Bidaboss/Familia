@@ -346,7 +346,8 @@ private fun showSpots(style: Style, spots: List<GlobeSpot>, souvenirs: Boolean, 
 /** A white rounded label with the name of the place, dark bold text, as the prototype. */
 private fun labelBitmap(context: Context, name: String): android.graphics.Bitmap {
     val density = context.resources.displayMetrics.density
-    val text = name.take(28)
+    // C of #592: a long name ends with « … » rather than cut short.
+    val text = if (name.length > 28) name.take(27).trimEnd() + "…" else name
     val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF17333F.toInt()
         textSize = 12f * context.resources.configuration.fontScale.coerceAtMost(1.3f) * density
