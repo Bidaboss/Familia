@@ -2231,3 +2231,4 @@ Sur un téléphone en Android 10 ou plus :
 1. Sur un téléphone sans la voix d'une langue (par exemple sans la voix néerlandaise), ouvrir « Phrases utiles » d'un voyage aux Pays-Bas : sous le titre de la langue, la ligne « La voix en néerlandais n'est pas installée sur ce téléphone… » avec « Installer ». Il n'y a pas de haut-parleur à côté des phrases.
 2. « Installer » ouvre l'écran Android des voix. Après l'installation, revenir : la ligne disparaît et les haut-parleurs apparaissent, sans quitter l'écran.
 3. Une langue dont la voix est là n'a pas la ligne. Pendant le tout premier chargement des voix, aucune ligne ne s'affiche.
+4. Sur un téléphone qui n'a pas d'écran des voix, « Installer » disparaît après le toucher et une phrase indique le chemin dans les Paramètres.

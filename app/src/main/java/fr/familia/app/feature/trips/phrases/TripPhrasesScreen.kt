@@ -20,6 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -93,6 +96,8 @@ private fun LanguageBlock(language: PhraseLanguage, codes: List<String>, speaker
     // Règle 44: a missing voice is said, never just a speaker that is not there.
     if (speaker != null && voiceMissing(speaker.checked, speaker.available, language)) {
         val context = LocalContext.current
+        // No screen of voices on this phone (C1 of #568): the button goes, the way through the settings is said.
+        var noInstaller by rememberSaveable { mutableStateOf(false) }
         Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 stringResource(R.string.phrases_voice_missing, language.frenchName),
@@ -100,9 +105,18 @@ private fun LanguageBlock(language: PhraseLanguage, codes: List<String>, speaker
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f).padding(end = 8.dp),
             )
-            TextButton(onClick = { openVoiceInstall(context) }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.phrases_voice_install))
+            if (!noInstaller) {
+                TextButton(onClick = { noInstaller = !openVoiceInstall(context) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.phrases_voice_install))
+                }
             }
+        }
+        if (noInstaller) {
+            Text(
+                stringResource(R.string.phrases_voice_settings),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
     PhraseBook.phrases(language).forEach { phrase ->
