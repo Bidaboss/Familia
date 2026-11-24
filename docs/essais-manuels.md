@@ -2191,3 +2191,15 @@ Rien à toucher dans l'appli pour l'instant : le bouton « Publier le film de la
 Rien à voir dans l'appli. Les essais automatiques couvrent :
 1. Un film publié n'efface plus les photos en attente d'être annoncées (celles d'une autre étape gardent leur avis).
 2. Un film ne peut être daté que d'un vrai jour du voyage, entre son début et sa fin.
+
+## Voyage : publier le film de la journée (récit 108, partie 3b : règle 32, PRD 156 à 158)
+
+**Publier Firebase : non** (les règles et les fonctions sont arrivées avec #559 et #560).
+Il faut deux téléphones : un participant du voyage (A) et quelqu'un qui le suit sans y participer (B).
+1. A ouvre une étape d'un voyage en cours et y ajoute 2 photos aujourd'hui. Dans « Film de l'étape », le menu ⋮ à côté de « Voir le film de l'étape » propose « Publier le film de la journée ».
+2. A publie : « Le film du … se prépare, puis part… » avec une barre et « Annuler », puis « Le film du … est publié ». Une ligne « Film du …, par A » apparaît sous la tuile ; la toucher lance le film (muet, 2,5 s par photo, avec le zoom lent).
+3. B reçoit une seule notification « {voyage} : le film du … ». Dans son fil, une carte « Film du jour » (étape · voyage, « Le film du …, n photos ») ouvre l'étape, où la ligne du film le lance. B ne voit pas « Publier » (il ne participe pas).
+4. Le lendemain, sans avoir publié la veille : en ouvrant l'étape, A voit « Le film du … n'est pas encore publié. » avec « Publier ». Aucune notification pour ce rappel. Il disparaît deux jours après.
+5. Deux participants qui publient le même jour la même étape : le second lit « Quelqu'un a déjà publié le film du … » et rien de lui ne reste dans Storage.
+6. Un voyage surprise ou caché à quelqu'un : pas de carte dans le fil, pas de notification.
+7. Film du voyage dans « Voir les photos » : après avoir fait le film, ajouter une photo puis revenir : « Faire le film » le refait (retour C2 de #557).

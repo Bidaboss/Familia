@@ -3,6 +3,7 @@ package fr.familia.app.feature.trips.photos
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +77,8 @@ fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: Str
         container?.tripRepository?.observeSteps(tripId)?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) } ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(emptyList())
     val plan = remember(trip, steps, state.photos) { trip?.let { tripFilmPlan(it, steps, state.photos) } }
+    // A photo or a step changed since the film was made: it is made again at the next « Voir » (C2 of #557).
+    LaunchedEffect(plan) { filmViewModel.keepFor(plan) }
     val filmActions = remember(filmViewModel, plan) {
         FilmActions(onMake = { filmViewModel.make(plan) }, onCancel = filmViewModel::cancel)
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -45,12 +46,19 @@ import fr.familia.app.core.album.FILM_MIN_PHOTOS
 import fr.familia.app.core.album.FilmActions
 import fr.familia.app.core.album.FilmState
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.core.data.familyToday
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.Trip
 import fr.familia.app.core.share.ShareConsentReminder
 import fr.familia.app.core.share.playVideo
 import fr.familia.app.core.share.shareVideo
 import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.feature.trips.TripTile
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 import java.io.File
+import java.time.LocalDate
 
 /** Each photo of the film of a step stays this long (récit 108, PRD 158). */
 const val STEP_FILM_SECONDS = 2.5
@@ -58,9 +66,19 @@ const val STEP_FILM_SECONDS = 2.5
 /** The photos of the film of [stepId]: those added from that step (récit 104), among the photos this person sees. */
 fun stepFilmPhotos(album: List<AlbumPhoto>, stepId: String): List<AlbumPhoto> = album.filter { it.stepId == stepId }
 
-/** The film of [stepId] under its word (relecture #555, C2): its ViewModel, its photos, its tile. */
+/**
+ * The film of [stepId] under its word (relecture #555, C2): its ViewModel, its photos, its tile, and
+ * for a participant [me] the film of the day to publish (récit 108, PRD 156 and 157).
+ */
 @Composable
-fun StepFilm(container: AppContainer?, tripId: String, stepId: String, album: List<AlbumPhoto>) {
+fun StepFilm(
+    container: AppContainer?,
+    tripId: String,
+    stepId: String,
+    album: List<AlbumPhoto>,
+    trip: Trip? = null,
+    me: Member? = null,
+) {
     val filmsDir = File(LocalContext.current.cacheDir, "films")
     val filmViewModel: AlbumFilmViewModel = viewModel(
         key = "step-film-$tripId-$stepId",
@@ -68,12 +86,36 @@ fun StepFilm(container: AppContainer?, tripId: String, stepId: String, album: Li
             initializer { AlbumFilmViewModel(container?.photoStorage, container?.filmMaker, "etape-$tripId-$stepId", filmsDir, FilmStyle.Trip) { STEP_FILM_SECONDS } }
         },
     )
+    val publisher: DayFilmPublisher = viewModel(
+        key = "day-film-$tripId-$stepId",
+        factory = viewModelFactory {
+            initializer { DayFilmPublisher(container?.photoStorage, container?.filmMaker, container?.tripFilmRepository, tripId, stepId, filmsDir) }
+        },
+    )
     val film by filmViewModel.uiState.collectAsStateWithLifecycle()
+    val publishing by publisher.uiState.collectAsStateWithLifecycle()
+    val filmsFlow = remember(container, tripId) { container?.tripFilmRepository?.observe(tripId)?.catch { emit(emptyList()) } ?: flowOf(emptyList()) }
+    val films by filmsFlow.collectAsStateWithLifecycle(emptyList())
+    val today by remember { currentDayFlow() }.collectAsStateWithLifecycle(familyToday())
     val stepPhotos = remember(album, stepId) { stepFilmPhotos(album, stepId) }
     // A photo added or taken off since the film was made: it is made again at the next « Voir » (C1).
     LaunchedEffect(stepPhotos) { filmViewModel.keepFor(stepPhotos) }
     val actions = remember(filmViewModel, stepPhotos) { FilmActions(onMake = { filmViewModel.make(stepPhotos) }, onCancel = filmViewModel::cancel) }
-    StepFilmTile(film, stepPhotos.size, actions)
+    // Only a participant publishes, as the rules say; never in « Voir comme » (no repository there).
+    val canPublish = trip != null && me != null && me.id in trip.participantIds && publisher.canPublish
+    val day = if (canPublish && trip != null) dayToPublish(stepPhotos, films, stepId, trip, today) else null
+    val publish: (LocalDate) -> Unit = { d -> if (me != null) publisher.publish(me, d, stepPhotos) }
+    val repository = container?.tripFilmRepository
+    StepFilmTile(film, stepPhotos.size, actions, onPublish = day?.takeIf { publishing !is DayFilmState.Working }?.let { d -> { publish(d) } }) {
+        DayFilmsPart(
+            state = publishing,
+            published = stepFilms(films, stepId),
+            reminderDay = day?.takeIf { remindsDayFilm(it, today) },
+            onPublish = publish,
+            onCancel = publisher::cancel,
+            playUrl = { f -> repository?.playUrl(tripId, f) },
+        )
+    }
 }
 
 /**
@@ -82,7 +124,14 @@ fun StepFilm(container: AppContainer?, tripId: String, stepId: String, album: Li
  * film once it is made; « Partager » is in the menu (DESIGN-79 B), after the reminder of EXPERT-6.
  */
 @Composable
-fun StepFilmTile(state: FilmState, photoCount: Int, actions: FilmActions) {
+fun StepFilmTile(
+    state: FilmState,
+    photoCount: Int,
+    actions: FilmActions,
+    /** « Publier le film de la journée » in the menu, for a participant with a day to publish (PRD 156). */
+    onPublish: (() -> Unit)? = null,
+    below: @Composable () -> Unit = {},
+) {
     val context = LocalContext.current
     // « Voir » asked before the film was made: it plays as soon as it is ready.
     var playWhenReady by rememberSaveable { mutableStateOf(false) }
@@ -100,14 +149,24 @@ fun StepFilmTile(state: FilmState, photoCount: Int, actions: FilmActions) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             when (state) {
                 FilmState.Idle, FilmState.Failed -> {
-                    Button(
-                        onClick = { playWhenReady = true; actions.onMake() },
-                        enabled = photoCount >= FILM_MIN_PHOTOS,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    ) {
-                        Icon(Icons.Outlined.PlayArrow, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.step_film_watch))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { playWhenReady = true; actions.onMake() },
+                            enabled = photoCount >= FILM_MIN_PHOTOS,
+                            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                        ) {
+                            Icon(Icons.Outlined.PlayArrow, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.step_film_watch))
+                        }
+                        if (onPublish != null) {
+                            IconButton(onClick = { menu = true }, modifier = Modifier.size(56.dp)) {
+                                Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.step_film_more))
+                                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                    PublishItem { menu = false; onPublish() }
+                                }
+                            }
+                        }
                     }
                     Text(
                         stringResource(
@@ -138,7 +197,7 @@ fun StepFilmTile(state: FilmState, photoCount: Int, actions: FilmActions) {
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.step_film_watch))
                         }
-                        // The rest in a menu (DESIGN-79 B): « Partager » now; « Publier » and « Télécharger » come next.
+                        // The rest in a menu (DESIGN-79 B): « Partager », « Publier » ; « Télécharger » comes next.
                         IconButton(onClick = { menu = true }, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.step_film_more))
                             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -148,6 +207,7 @@ fun StepFilmTile(state: FilmState, photoCount: Int, actions: FilmActions) {
                                     onClick = { menu = false; remind = true },
                                     modifier = Modifier.heightIn(min = 56.dp),
                                 )
+                                if (onPublish != null) PublishItem { menu = false; onPublish() }
                             }
                         }
                     }
@@ -166,6 +226,17 @@ fun StepFilmTile(state: FilmState, photoCount: Int, actions: FilmActions) {
                     }
                 }
             }
+            below()
         }
     }
+}
+
+@Composable
+private fun PublishItem(onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.day_film_publish)) },
+        leadingIcon = { Icon(Icons.Outlined.CloudUpload, contentDescription = null) },
+        onClick = onClick,
+        modifier = Modifier.heightIn(min = 56.dp),
+    )
 }

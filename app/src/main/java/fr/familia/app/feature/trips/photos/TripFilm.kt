@@ -54,6 +54,8 @@ const val TRIP_FILM_MIN_SECONDS = 1.2
  * trajet » that has photos, its name, then its photos oldest first; the photos of no step at the
  * end. 2,5 s an image, less for a long trip so that it stays under 3 min; past 1,2 s, the photos
  * of each step are thinned out evenly, never under one a step. Null when there are not 2 photos.
+ * Past about 75 steps with photos, a title and a photo each at 1,2 s go a little over 3 min: it is
+ * let be, a family trip never has that many (relecture #557, C1).
  */
 fun tripFilmPlan(trip: Trip, steps: List<TripStep>, photos: List<AlbumPhoto>): TripFilmPlan? {
     if (photos.size < FILM_MIN_PHOTOS) return null
@@ -136,12 +138,15 @@ class TripFilmViewModel(
     private val state = MutableStateFlow<FilmState>(FilmState.Idle)
     val uiState: StateFlow<FilmState> = state.asStateFlow()
     private var job: Job? = null
+    /** The plan the film in [uiState] was made of. */
+    private var madeOf: TripFilmPlan? = null
 
     fun make(plan: TripFilmPlan?) {
         val files = storage ?: return
         val film = maker ?: return
         if (plan == null || state.value == FilmState.Making) return
         state.value = FilmState.Making
+        madeOf = plan
         job = viewModelScope.launch {
             state.value = try {
                 val cards = File(filmsDir, "titres-$tripId")
@@ -160,6 +165,14 @@ class TripFilmViewModel(
                 FilmState.Failed
             }
         }
+    }
+
+    /**
+     * The film to make is now [plan] (relecture #557, C2): a film made of other photos or steps is
+     * forgotten, so that « Voir » makes it again.
+     */
+    fun keepFor(plan: TripFilmPlan?) {
+        if (state.value is FilmState.Ready && plan != madeOf) state.value = FilmState.Idle
     }
 
     fun cancel() {

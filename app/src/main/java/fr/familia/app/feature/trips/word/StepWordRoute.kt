@@ -61,7 +61,7 @@ fun StepWordRoute(
     val ready = state as? StepWordUiState.Ready
     StepWordScreen(state, actions, onSite = {
         if (ready != null) {
-            StepFilm(container, tripId, stepId, ready.album)
+            StepFilm(container, tripId, stepId, ready.album, ready.trip, currentMember.takeIf { !readOnly })
             val lat = ready.step.lat
             val lng = ready.step.lng
             // Règle 45: the weather and the local time first, the anecdote at the bottom.

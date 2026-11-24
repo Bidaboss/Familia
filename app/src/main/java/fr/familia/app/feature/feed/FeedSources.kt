@@ -58,6 +58,8 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
             }
             // Le mot de l'étape (fil voyage): never a trip hidden from someone.
             if (family != null && tripsOn) add(WordFeedSource(container?.tripRepository, container?.tripWordRepository, family, me.id, today))
+            // Film du jour (récit 108, PRD 156): the same trips as the words.
+            if (family != null && tripsOn) add(FilmFeedSource(container?.tripRepository, container?.tripFilmRepository, family, me.id, today))
             // Recettes ajoutées (fil voyage), with their last comment.
             container?.recipeRepository?.takeIf { recipesOn }?.let { add(RecipeFeedSource(it, container.albumPhotoRepository)) }
             // Capsule ouverte, Il y a un an, La semaine de la famille (le dimanche), Notre année (récit 71).

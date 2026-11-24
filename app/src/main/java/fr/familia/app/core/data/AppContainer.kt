@@ -105,6 +105,9 @@ interface AppContainer {
 
     /** Notes vocales (récit 104, règle 35), recorded during the trip. Null in « Voir comme ». */
     val tripVoiceNoteRepository: TripVoiceNoteRepository? get() = null
+
+    /** Films de la journée (récit 108, PRD 156), published for the followers. Null in « Voir comme ». */
+    val tripFilmRepository: TripFilmRepository? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -264,6 +267,10 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     override val tripVoiceNoteRepository: TripVoiceNoteRepository? by lazy {
         firestore?.let { FirestoreTripVoiceNoteRepository(it, FirebaseStorage.getInstance()) }
+    }
+
+    override val tripFilmRepository: TripFilmRepository? by lazy {
+        firestore?.let { FirestoreTripFilmRepository(it, FirebaseStorage.getInstance()) }
     }
 
     private val photoLinks: PhotoLinks by lazy {
