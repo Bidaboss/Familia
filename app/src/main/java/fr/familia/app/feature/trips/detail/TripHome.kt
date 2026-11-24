@@ -120,7 +120,7 @@ private fun WhiteRound(content: @Composable () -> Unit) {
     Surface(shape = CircleShape, color = Color.White, contentColor = Ink, shadowElevation = 2.dp) { content() }
 }
 
-/** « Séville ✎ » over « Camille, Inès et 1 autre » (E-4), in a white pill; it opens « Modifier le voyage ». */
+/** « Lisbonne ✎ » over « Camille, Inès et 1 autre » (E-4), in a white pill; it opens « Modifier le voyage ». */
 @Composable
 private fun TitlePill(title: String, participants: List<String>, onEditTrip: (() -> Unit)?, modifier: Modifier) {
     val (shown, others) = headNames(participants)
