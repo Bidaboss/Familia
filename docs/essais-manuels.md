@@ -2072,3 +2072,10 @@ Rien à publier côté Firebase. « APK de publication ».
 6. Un membre qui suit le voyage sans y participer l'écoute, mais n'a ni le choix « Note vocale » ni la corbeille.
 7. Supprimer la destination : ses notes vocales partent avec elle.
 8. Avec TalkBack : le bouton dit « Écouter » ou « Arrêter l'écoute », et le compteur d'enregistrement est lu.
+
+## Voyage : couleurs de « Le programme » rangées dans une palette (retour C1 de #527)
+
+**Publier Firebase : non.** Rien ne doit changer à l'écran.
+1. Ouvrir un voyage planifié : la carte blanche « Le programme » garde son encre foncée, ses ronds bleu foncé et ses « + » bleu foncé, en thème clair comme en thème sombre.
+2. Changer un nombre de nuits puis attendre le bandeau : « Annuler » reste jaune sur bleu foncé.
+3. Sur la photo du haut, l'étiquette « Voyage programmé » reste jaune avec une encre foncée.
