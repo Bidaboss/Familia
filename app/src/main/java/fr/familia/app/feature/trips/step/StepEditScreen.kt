@@ -275,6 +275,7 @@ private fun FormContent(
 /** The cream edge of a field at rest, and its dark blue edge while typed (E-64 a): red only after a refused save. */
 private val FieldCream = Color(0xFFE6D9C6)
 private val FieldFocus = Color(0xFF1F3B4D)
+private val FieldExample = Color(0xFF5B6770)
 
 @Composable
 private fun tripFieldColors() = OutlinedTextFieldDefaults.colors(
@@ -287,6 +288,11 @@ private fun tripFieldColors() = OutlinedTextFieldDefaults.colors(
     errorContainerColor = Color.White,
     focusedTextColor = TripPathColors.Ink,
     unfocusedTextColor = TripPathColors.Ink,
+    errorTextColor = TripPathColors.Ink,
+    // The grey example stays readable on the white field in every theme, the dark ones too.
+    focusedPlaceholderColor = FieldExample,
+    unfocusedPlaceholderColor = FieldExample,
+    errorPlaceholderColor = FieldExample,
 )
 
 /** A place field of 56 dp, its label above and a grey example inside. */
