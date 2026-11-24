@@ -2401,3 +2401,14 @@ Sur un téléphone en Android 10 ou plus :
 **Publier Firebase : non.**
 1. Modifier une étape, choisir une heure de départ et une heure d'arrivée : deux petits liens « Sans heure ».
 2. Avec TalkBack, le premier se lit « Retirer l'heure de départ », le second « Retirer l'heure d'arrivée » ; chacun n'efface que la sienne.
+
+## Voyages : liste au plus près du prototype (E-35 à E-40)
+
+**Publier Firebase : non.**
+1. Liste Voyages avec le globe : l'onglet se lit « Souvenirs (n) », avec le nombre, même 0.
+2. La carte du prochain voyage est posée directement sur le panneau bleu clair, sans bande beige autour ; ses angles sont arrondis.
+3. Le bouton « + Nouveau voyage » a le même jaune que la pastille active de la barre du bas.
+4. Sur le globe : des points jaunes (le prochain voyage un peu plus gros) avec, dessous, une étiquette blanche arrondie au nom du lieu ; dans Souvenirs, points blancs bordés d'orange, avec leur nom.
+5. En bas à droite du globe, une petite case sombre « Anim » : la toucher arrête la rotation (« Anim » barré), la retoucher la relance. TalkBack : « Animation du globe, activée / désactivée ».
+6. Le globe occupe environ 80 % de la largeur de l'écran.
+7. Nouveau voyage, choix de la destination : le petit globe garde sa taille.

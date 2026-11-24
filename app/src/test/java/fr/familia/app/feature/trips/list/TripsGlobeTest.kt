@@ -47,4 +47,17 @@ class TripsGlobeTest {
     }
 
     @Test fun theGlobeTurnsAgainAFewSecondsAfterATouch() = assertEquals(3_000L, GLOBE_RESUME_AFTER_TOUCH_MS)
+
+    // E-38: the accent of the theme drawn on the globe, and one label image per place name.
+    @Test fun theAccentYellowGoesToMapboxAsHex() =
+        assertEquals("#F2C14E", accentHex(androidx.compose.ui.graphics.Color(0xFFF2C14E)))
+
+    @Test fun aPlaceKeepsItsLabelAndTwoTripsThereShareIt() {
+        val here = GeoPoint(43.7, 7.26)
+        val spots = globeSpots(listOf(GlobeMarker(here, true, "a", "Nice"), GlobeMarker(here, false, "b", "Nice")))
+        assertEquals("Nice", spots.single().name)
+        assertEquals(labelImageId("Nice"), labelImageId("Nice"))
+    }
+
+    @Test fun theListGlobeIsBiggerThanBefore() = assertEquals(1.0, GLOBE_LIST_ZOOM, 0.0)
 }
