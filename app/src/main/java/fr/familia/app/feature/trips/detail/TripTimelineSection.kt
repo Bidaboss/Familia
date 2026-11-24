@@ -6,6 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -49,10 +52,12 @@ import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.feature.trips.place.placeKindIcon
 import fr.familia.app.feature.trips.place.placeKindLabel
+import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.stepTypeLabel
 import java.time.LocalDate
+import java.time.LocalTime
 import kotlinx.coroutines.delay
 
 /** What « Le trajet » does: open a step, change the nights of a stay, take back a change. */
@@ -71,7 +76,7 @@ class TimelineActions(
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
 internal fun placesByStep(places: List<TripPlace>): Map<String, List<TripPlace>> =
     places.groupBy { it.stepId }.mapValues { (_, list) ->
-        list.sortedWith(compareBy<TripPlace>({ it.kind.ordinal }, { it.arriveTime ?: java.time.LocalTime.MAX }, { it.name.lowercase() }))
+        list.sortedWith(compareBy<TripPlace>({ it.kind.ordinal }, { it.arriveTime ?: LocalTime.MAX }, { it.name.lowercase() }))
     }
 
 private const val UNDO_MILLIS = 5_000L
@@ -114,7 +119,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                         progress = { if (line.total == 0) 1f else (line.planned.toFloat() / line.total).coerceIn(0f, 1f) },
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 3.dp,
-                        color = Color(0xFF17333F),
+                        color = Deep,
                         trackColor = Color(0xFFDCE3E8),
                     )
                     Text(
@@ -137,7 +142,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
         }
         undo?.let { (name, before) ->
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF17333F)).padding(start = 12.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Deep).padding(start = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(stringResource(R.string.timeline_changed, name), color = Color.White, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
@@ -179,7 +184,7 @@ private fun shortDay(day: LocalDate): String = frenchDate(day, "EEE d MMM")
 @Composable
 private fun EndRow(text: String, day: LocalDate, trailing: @Composable () -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF17333F)), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(Deep), contentAlignment = Alignment.Center) {
             Icon(Icons.Outlined.Home, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
@@ -230,7 +235,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
                     onClick = { onChange(-1) },
                     enabled = row.nights > 1,
                     modifier = Modifier.size(56.dp).semantics { contentDescription = less },
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = nightsButtonColors(),
                 ) { Text("−", style = MaterialTheme.typography.titleLarge) }
             }
@@ -247,7 +252,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
                     onClick = { onChange(1) },
                     enabled = !plusBlocked,
                     modifier = Modifier.size(56.dp).semantics { contentDescription = more },
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = nightsButtonColors(),
                 ) { Text("+", style = MaterialTheme.typography.titleLarge) }
             }
@@ -267,6 +272,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
  * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each
  * opening its page (règle 19); then « + Hébergement », « + Restaurant », « + Spot » for those who go (règle 20).
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DestinationProgramme(stepId: String, destination: String, actions: TimelineActions) {
     val places = actions.places[stepId].orEmpty()
@@ -284,22 +290,23 @@ private fun DestinationProgramme(stepId: String, destination: String, actions: T
             Icon(placeKindIcon(place.kind), contentDescription = null, tint = InkSoft, modifier = Modifier.size(20.dp))
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("${place.name} ›", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                val time = place.arriveTime?.let { " · " + it.format(java.time.format.DateTimeFormatter.ofPattern("HH'h'mm")) }.orEmpty()
+                val time = place.arriveTime?.let { " · " + formatTime(it) }.orEmpty()
                 Text(kind + time, style = MaterialTheme.typography.bodySmall, color = InkSoft)
             }
         }
     }
     val onAdd = actions.onAddPlace ?: return
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    // The three « + » go to the next line rather than cut « Hébergement » on a small screen or in large text.
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         TripPlaceKind.entries.forEach { kind ->
             val label = placeKindLabel(kind)
             val spoken = stringResource(R.string.timeline_add_place_a11y, label, destination)
             TextButton(
                 onClick = { onAdd(stepId, kind) },
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp).semantics { contentDescription = spoken },
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = spoken },
+                contentPadding = PaddingValues(horizontal = 4.dp),
             ) {
-                Text("+ $label", color = Color(0xFF17333F), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("+ $label", color = Deep, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -332,6 +339,9 @@ private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit) {
 
 private val Ink = Color(0xFF111111)
 private val InkSoft = Color(0xFF3A4A52)
+
+/** The dark blue of the rounds, the « Annuler » band and the « + » of the section. */
+private val Deep = Color(0xFF17333F)
 
 @Composable
 private fun nightsButtonColors() = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
