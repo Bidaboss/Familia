@@ -2284,3 +2284,12 @@ Sur un téléphone en Android 10 ou plus :
 5. « Transport » ouvre le formulaire avec seulement Avion, Train, Bus et Voiture.
 6. Modifier une destination existante : pas de choix du type. Une ancienne étape « Activité » peut encore changer de type, par exemple pour devenir une destination.
 7. Quelqu'un qui suit le voyage sans y aller : aucun « + ».
+
+## Voyage : « Bien arrivé » seulement le jour de l'étape (DESIGN-102 A, E-9)
+
+1. Ouvrir un voyage qui commence dans plusieurs semaines, en tant que participant.
+2. Attendu : pas de carte « Prochaine étape », pas de bouton « Bien arrivé », pas de bouton « Le mot de l'étape » ; seul le compte à rebours dit quand on part.
+3. Le jour d'une étape (changer la date de l'étape pour aujourd'hui) : la carte « Prochaine étape » revient avec « Bien arrivé ».
+4. Appuyer sur « Bien arrivé » : la carte passe à l'étape suivante du jour, ou disparaît s'il n'y en a plus.
+5. Le lendemain d'une étape non signalée, « Bien arrivé » est encore proposé ; deux jours après, plus rien.
+6. En tant que simple suiveur, avant le jour de l'étape, « Pas encore signalé. » n'est plus affiché.

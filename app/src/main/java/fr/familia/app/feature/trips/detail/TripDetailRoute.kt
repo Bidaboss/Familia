@@ -195,7 +195,7 @@ fun TripDetailRoute(
         ),
         quickAdd = quickAdd,
         cover = { success ->
-            TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
+            TripCoverCarousel(success.trip, success.steps, container?.placePhotos)
         },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
