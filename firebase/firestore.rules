@@ -2688,6 +2688,45 @@ service cloud.firestore {
       }
     }
 
+    // Places programmed under a destination (récit 103): trips/{tripId}/places/{placeId}, an
+    // accommodation, a restaurant or a spot, with an optional hour of arrival, a note and a cost in
+    // the currency of the trip. Read by the followers, written by the participants, as the steps.
+    // A place stays under its destination (stepId never changes) and goes with it (server).
+    function isValidTripPlacePosition(p) {
+      return (p.lat == null && p.lng == null)
+        || (p.lat is number && p.lng is number && p.lat >= -90 && p.lat <= 90 && p.lng >= -180 && p.lng <= 180);
+    }
+
+    function isValidTripPlace(p) {
+      return p.keys().hasAll(['stepId', 'kind', 'name', 'address', 'lat', 'lng', 'arriveTime', 'note', 'cost', 'updatedAt'])
+        && p.keys().hasOnly(['stepId', 'kind', 'name', 'address', 'lat', 'lng', 'arriveTime', 'note', 'cost', 'updatedAt'])
+        && p.stepId is string
+        && p.kind in ['lodging', 'restaurant', 'spot']
+        && p.name is string && p.name.size() > 0 && p.name.size() <= 120
+        && (p.address == null || (p.address is string && p.address.size() <= 200))
+        && isValidTripPlacePosition(p)
+        && (p.arriveTime == null || isClockTime(p.arriveTime))
+        && (p.note == null || (p.note is string && p.note.size() <= 600))
+        && (p.cost == null || (p.cost is number && p.cost >= 0 && p.cost <= 1000000))
+        && p.updatedAt == request.time;
+    }
+
+    match /trips/{tripId}/places/{placeId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+
+      allow create: if isMember()
+        && isParticipantOf(tripId)
+        && isValidTripPlace(request.resource.data)
+        && exists(/databases/$(database)/documents/trips/$(tripId)/steps/$(request.resource.data.stepId));
+
+      allow update: if isMember()
+        && isParticipantOf(tripId)
+        && isValidTripPlace(request.resource.data)
+        && request.resource.data.stepId == resource.data.stepId;
+
+      allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
+    }
+
     // « Ma valise » (récit 62, module packingList): trips/{tripId}/bags/{memberId}, one private list
     // per participant, ticked by them or by one of their responsible adults (a child's bag), never
     // read by anyone else. `items` holds { label, done } maps, written whole each time. Deleting the
