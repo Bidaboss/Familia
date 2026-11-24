@@ -155,6 +155,8 @@ export async function notifyAlert(db: Firestore, send: Sender, tripId: string, m
 /** A deleted trip takes its steps with it, so nothing stays readable or reminded. */
 export async function deleteTripContents(db: Firestore, tripId: string): Promise<void> {
   await db.recursiveDelete(db.collection('trips').doc(tripId));
+  // Its photos waiting to be told (récit 104): nothing goes for a trip that is gone.
+  await db.collection(PHOTO_BURSTS).doc(tripId).delete();
 }
 
 /** The word of a deleted step (récit 88) goes with its hearts and its comments. */
@@ -178,4 +180,96 @@ export function tripDocumentFile(tripId: string, docId: string, data: TripDocume
   if (!/^[A-Za-z0-9]{1,40}$/.test(data.ownerId)) return null;
   if (!['pdf', 'jpg', 'png'].some((ext) => data.file === `${docId}.${ext}`)) return null;
   return `trips/${tripId}/documents/${data.ownerId}/${data.file}`;
+}
+
+// --- Photos groupées (récit 104, règle 34, DESIGN-76-notifs A) -----------------------------------
+//
+// No notice per photo. Each new photo of a trip adds to tripPhotoBursts/{tripId} (counts by author,
+// firstAt, dueAt) and pushes dueAt to 10 min after it, never past 45 min after the first photo of
+// the burst, so a long send still goes. The digest of the good news (every 15 min, no new
+// schedule) then tells the followers of the trip once per burst, through deliver() and its cap.
+// Only the functions read and write this collection (firestore.rules).
+
+export const PHOTO_BURSTS = 'tripPhotoBursts';
+export const PHOTO_CALM_MS = 10 * 60 * 1000;
+export const PHOTO_BURST_MAX_MS = 45 * 60 * 1000;
+
+type Counts = Record<string, number>;
+
+function countsOf(value: unknown): Counts {
+  const result: Counts = {};
+  if (value && typeof value === 'object') {
+    for (const [id, n] of Object.entries(value as Record<string, unknown>)) {
+      if (typeof n === 'number' && n > 0) result[id] = n;
+    }
+  }
+  return result;
+}
+
+const total = (counts: Counts) => Object.values(counts).reduce((a, b) => a + b, 0);
+
+/** When a burst goes: 10 min of calm after [now], at most 45 min after its first photo. */
+export function photoBurstDue(firstAt: Date, now: Date): Date {
+  return new Date(Math.min(now.getTime() + PHOTO_CALM_MS, firstAt.getTime() + PHOTO_BURST_MAX_MS));
+}
+
+/** A photo was added to the trip: it waits in the burst, nothing is sent now. */
+export async function addTripPhotoToBurst(db: Firestore, tripId: string, authorId: unknown, now: Date): Promise<void> {
+  if (typeof authorId !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(authorId)) return;
+  const ref = db.collection(PHOTO_BURSTS).doc(tripId);
+  await db.runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    const counts = doc.exists ? countsOf(doc.get('counts')) : {};
+    const firstAt = doc.exists && doc.get('firstAt') instanceof Timestamp ? (doc.get('firstAt') as Timestamp).toDate() : now;
+    counts[authorId] = (counts[authorId] ?? 0) + 1;
+    tx.set(ref, { counts, firstAt: Timestamp.fromDate(firstAt), dueAt: Timestamp.fromDate(photoBurstDue(firstAt, now)) });
+  });
+}
+
+/** « Corse : 5 nouvelles photos », « Par Lou et Sam. » */
+export function photoBurstNotice(tripId: string, trip: TripData, count: number, authorNames: string[]): Notice {
+  const title = count === 1 ? `${trip.title} : une nouvelle photo` : `${trip.title} : ${count} nouvelles photos`;
+  const body = authorNames.length === 0 ? 'Touche pour les voir.' : `Par ${joinNames(authorNames)}.`;
+  return { channel: 'trips', title, body, tripId };
+}
+
+/**
+ * Every 15 min (with the digest of the good news): the bursts whose time has come. The followers
+ * of the trip with the app are told once (readerIds only, never every member); the author is left
+ * out when they are the only one. A photo that came while sending is never lost: the burst goes
+ * only if it did not change, else what came stays for the next time.
+ */
+export async function sendTripPhotoDigests(db: Firestore, send: Sender, now: Date): Promise<number> {
+  const due = await db.collection(PHOTO_BURSTS).where('dueAt', '<=', Timestamp.fromDate(now)).get();
+  if (due.empty) return 0;
+  const members = await loadMembers(db);
+  let sent = 0;
+  for (const burst of due.docs) {
+    const told = countsOf(burst.get('counts'));
+    const tripDoc = await db.collection('trips').doc(burst.id).get();
+    if (tripDoc.exists && total(told) > 0) {
+      const trip = tripDoc.data() as TripData;
+      const authors = Object.keys(told).sort();
+      const recipients = withApp(members, trip.readerIds ?? [], authors.length === 1 ? authors[0] : null);
+      const byId = new Map(members.map((m) => [m.id, m.firstName]));
+      const names = authors.map((id) => byId.get(id)).filter((n): n is string => !!n);
+      if (recipients.length > 0) sent += await notify(db, send, recipients, photoBurstNotice(burst.id, trip, total(told), names), now);
+    }
+    await db.runTransaction(async (tx) => {
+      const current = await tx.get(burst.ref);
+      if (!current.exists) return;
+      const left = countsOf(current.get('counts'));
+      for (const [id, n] of Object.entries(told)) {
+        left[id] = (left[id] ?? 0) - n;
+        if (left[id] <= 0) delete left[id];
+      }
+      if (!tripDoc.exists || total(left) === 0) {
+        tx.delete(burst.ref);
+      } else {
+        // What came while sending: a new burst, from now.
+        tx.set(burst.ref, { counts: left, firstAt: Timestamp.fromDate(now), dueAt: Timestamp.fromDate(photoBurstDue(now, now)) });
+      }
+    });
+  }
+  return sent;
 }
