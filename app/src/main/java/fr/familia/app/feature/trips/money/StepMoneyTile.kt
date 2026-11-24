@@ -34,11 +34,11 @@ fun stepCurrency(countryCode: String?): TripCurrency? = Currencies.ofCountries(l
 /**
  * « Monnaie » on the page of a step outside the euro zone (récit 112, règles 39 et 42, PRODUIT-162):
  * the currency of its country, the rate of the day with its date and source, and « Convertir » that
- * opens the screen of the currency of the trip. Shown with or without « Comptes »; nothing in the
+ * opens « Monnaie » on that currency (retour C1 de #574). Shown with or without « Comptes »; nothing in the
  * euro zone, and only the name of the currency while no rate is known.
  */
 @Composable
-fun StepMoneyTile(container: AppContainer?, step: TripStep, onOpen: (() -> Unit)?) {
+fun StepMoneyTile(container: AppContainer?, step: TripStep, onOpen: ((String) -> Unit)?) {
     val steps = remember(step.id, step.lat, step.lng) { listOf(step) }
     val currency = stepCurrency(rememberAbroadCountries(container, steps).firstOrNull()) ?: return
     var table by remember { mutableStateOf<RatesTable?>(null) }
@@ -51,7 +51,7 @@ fun StepMoneyTile(container: AppContainer?, step: TripStep, onOpen: (() -> Unit)
             Source(rates.date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRANCE)))
         }
         if (onOpen != null) {
-            OutlinedButton(onClick = onOpen, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
+            OutlinedButton(onClick = { onOpen(currency.code) }, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.money_step_open))
             }
         }

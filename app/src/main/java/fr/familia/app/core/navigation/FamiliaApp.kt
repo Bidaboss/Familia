@@ -1227,9 +1227,9 @@ fun FamiliaApp(
                         }
                     }
                     composable<TripMoneyDestination> { entry ->
-                        val tripId = entry.toRoute<TripMoneyDestination>().tripId
-                        TripScreenOverMap(container, tripId) {
-                            TripMoneyRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
+                        val route = entry.toRoute<TripMoneyDestination>()
+                        TripScreenOverMap(container, route.tripId) {
+                            TripMoneyRoute(container = container, currentMember = currentMember, tripId = route.tripId, onBack = { navController.popBackStack() }, stepCurrency = route.currency)
                         }
                     }
                     // Règle 8: « Enrichir avec une IA » pulls up over the map too, like the other screens of the trip.
@@ -1298,7 +1298,7 @@ fun FamiliaApp(
                                 onBack = { navController.popBackStack() },
                                 onOpenPhrases = { country -> navController.navigate(TripPhrasesDestination(route.tripId, country)) },
                                 onOpenSafety = { country -> navController.navigate(TripSafetyDestination(route.tripId, country)) },
-                                onOpenMoney = { navController.navigate(TripMoneyDestination(route.tripId)) },
+                                onOpenMoney = { currency -> navController.navigate(TripMoneyDestination(route.tripId, currency)) },
                             )
                         }
                     }

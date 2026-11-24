@@ -24,7 +24,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Euro
+import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -138,7 +138,7 @@ fun ExpensesScreen(
                 actions = {
                     if (onMoney != null && !isEvent) {
                         IconButton(onClick = onMoney, modifier = Modifier.size(56.dp)) {
-                            Icon(Icons.Outlined.Euro, contentDescription = stringResource(R.string.money_from_expenses))
+                            Icon(Icons.Outlined.CurrencyExchange, contentDescription = stringResource(R.string.money_from_expenses))
                         }
                     }
                     if (success != null) ExportMenu(success)

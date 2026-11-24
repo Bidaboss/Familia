@@ -94,4 +94,15 @@ class TripMoneyTest {
         assertNull(stepCurrency("FR"))
         assertNull(stepCurrency(null))
     }
+
+    @Test
+    fun `from a step, its currency comes first only when the trip has another one`() {
+        val chf = Currencies.of("CHF")
+        val gbp = Currencies.of("GBP")
+        assertEquals(chf, stepOnlyCurrency(chf, gbp))
+        assertEquals(chf, stepOnlyCurrency(chf, Currencies.EURO))
+        assertNull(stepOnlyCurrency(chf, chf))
+        assertNull(stepOnlyCurrency(null, gbp))
+        assertNull(stepOnlyCurrency(Currencies.EURO, gbp))
+    }
 }
