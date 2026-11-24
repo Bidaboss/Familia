@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Luggage
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -25,15 +23,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -41,10 +43,11 @@ import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.PackingLine
-import fr.familia.app.core.theme.ClayTint
-import fr.familia.app.core.theme.FamiliaClay
-import fr.familia.app.core.ui.ClayLink
-import fr.familia.app.feature.trips.TripTile
+import fr.familia.app.core.theme.Fredoka
+import fr.familia.app.feature.trips.TripPageCard
+import fr.familia.app.feature.trips.TripPageCheck
+import fr.familia.app.feature.trips.TripPageLink
+import fr.familia.app.feature.trips.detail.TripPathColors
 
 /** The ViewModel of the bags I see in [tripId]: mine, and those of my children who come (récit 62). */
 @Composable
@@ -83,7 +86,7 @@ class PackingActions(
     val onDismissFailure: () -> Unit = {},
 )
 
-/** Stateless: one card per bag. */
+/** Stateless: one white card per bag, on the light blue page of « Valise » (fiche F3). */
 @Composable
 fun PackingBags(state: PackingUiState, actions: PackingActions) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -91,11 +94,16 @@ fun PackingBags(state: PackingUiState, actions: PackingActions) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.packing_failed),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFC62828),
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = actions.onDismissFailure, modifier = Modifier.heightIn(min = 56.dp)) {
+                TextButton(
+                    onClick = actions.onDismissFailure,
+                    modifier = Modifier.heightIn(min = 56.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
+                ) {
                     Text(stringResource(R.string.action_ok))
                 }
             }
@@ -110,27 +118,35 @@ internal fun BagCard(bag: BagUiState, actions: PackingActions) {
     var adding by rememberSaveable(ownerId) { mutableStateOf(false) }
     var removing by rememberSaveable(ownerId) { mutableStateOf<Int?>(null) }
     var kept by rememberSaveable(ownerId) { mutableStateOf(false) }
-    val tint = ClayTint.Plain
-    // A tile per bag, like the other tiles of the trip (refonte lot 4).
-    TripTile(
-        icon = Icons.Outlined.Luggage,
-        title = if (bag.owner.isMe) stringResource(R.string.packing_my_bag) else stringResource(R.string.packing_bag_of, bag.owner.firstName),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
+    val variant = TripPathColors.Ink.copy(alpha = 0.7f)
+    // Fiche F3: the title in Fredoka over the white card of the lines, on the light blue page.
+    Text(
+        if (bag.owner.isMe) stringResource(R.string.packing_my_bag) else stringResource(R.string.packing_bag_of, bag.owner.firstName),
+        fontFamily = Fredoka,
+        fontSize = 17.sp,
+        fontWeight = FontWeight.Bold,
+        color = TripPathColors.Ink,
+        modifier = Modifier.semantics { heading() },
+    )
+    TripPageCard {
         Text(
             if (bag.left == 0) stringResource(R.string.packing_all_done) else stringResource(R.string.packing_left, bag.left),
-            style = MaterialTheme.typography.bodyMedium,
-            color = FamiliaClay.colors.onTintVariant(tint),
+            fontSize = 13.sp,
+            color = variant,
         )
         bag.lines.forEachIndexed { index, line ->
             LineRow(line, onToggle = { actions.onToggle(ownerId, index, it) }, onRemove = { removing = index })
         }
-        ClayLink(stringResource(R.string.packing_add), onClick = { adding = true })
+        TripPageLink(stringResource(R.string.packing_add), onClick = { adding = true })
         if (bag.owner.isMe) {
             if (kept) {
-                Text(stringResource(R.string.packing_kept), style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(tint))
+                Text(stringResource(R.string.packing_kept), fontSize = 13.sp, color = variant)
             } else {
-                ClayLink(stringResource(R.string.packing_keep), onClick = { actions.onKeepAsMyList(); kept = true })
+                TextButton(
+                    onClick = { actions.onKeepAsMyList(); kept = true },
+                    modifier = Modifier.heightIn(min = 56.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
+                ) { Text(stringResource(R.string.packing_keep), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold) }
             }
         }
     }
@@ -163,23 +179,28 @@ internal fun BagCard(bag: BagUiState, actions: PackingActions) {
 
 @Composable
 private fun LineRow(line: PackingLine, onToggle: (Boolean) -> Unit, onRemove: () -> Unit) {
-    val variant = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
+    val variant = TripPathColors.Ink.copy(alpha = 0.7f)
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
         Row(
             Modifier.weight(1f).heightIn(min = 56.dp).toggleable(value = line.done, role = Role.Checkbox, onValueChange = onToggle),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Checkbox(checked = line.done, onCheckedChange = null)
+            TripPageCheck(line.done)
             Spacer(Modifier.width(12.dp))
             Text(
                 line.label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (line.done) variant else MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (line.done) variant else TripPathColors.Ink,
                 textDecoration = if (line.done) TextDecoration.LineThrough else null,
             )
         }
         val removeLabel = stringResource(R.string.packing_remove_action, line.label)
-        TextButton(onClick = onRemove, modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = removeLabel }) {
+        TextButton(
+            onClick = onRemove,
+            modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = removeLabel },
+            colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
+        ) {
             Text(stringResource(R.string.packing_remove))
         }
     }
