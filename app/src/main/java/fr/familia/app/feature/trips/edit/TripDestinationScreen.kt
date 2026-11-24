@@ -54,10 +54,12 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -71,7 +73,6 @@ import fr.familia.app.R
 import fr.familia.app.core.place.Place
 import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.ui.BackButton
-import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.feature.trips.detail.TripPathColors
@@ -174,8 +175,8 @@ fun TripDestinationScreen(
                 )
                 SearchField(query, onQueryChange, onSearch)
                 when (search) {
-                    DestinationSearch.Searching -> FormHint(stringResource(R.string.trip_destination_searching))
-                    DestinationSearch.NothingFound -> FormHint(stringResource(R.string.trip_destination_none), isError = true)
+                    DestinationSearch.Searching -> SheetHint(stringResource(R.string.trip_destination_searching))
+                    DestinationSearch.NothingFound -> SheetHint(stringResource(R.string.trip_destination_none), isError = true)
                     is DestinationSearch.Found -> Surface(shape = RoundedCornerShape(20.dp), color = Color.White, contentColor = TripPathColors.Ink) {
                         Column(Modifier.selectableGroup().padding(horizontal = 8.dp)) {
                             search.places.forEach { place ->
@@ -183,7 +184,7 @@ fun TripDestinationScreen(
                             }
                         }
                     }
-                    DestinationSearch.Idle -> FormHint(stringResource(R.string.trip_destination_hint))
+                    DestinationSearch.Idle -> SheetHint(stringResource(R.string.trip_destination_hint))
                 }
                 // Not in the prototype: without it, a trip without a place (a wedding…) could not be made.
                 TextButton(
@@ -210,6 +211,18 @@ fun TripDestinationScreen(
             }
         }
     }
+}
+
+/** A hint on the light blue sheet, in its ink whatever the theme (the theme's grey is pale in dark). */
+@Composable
+private fun SheetHint(text: String, isError: Boolean = false) {
+    Text(
+        text,
+        fontSize = 14.sp,
+        fontWeight = if (isError) FontWeight.Bold else FontWeight.Normal,
+        color = if (isError) Color(0xFFB3261E) else TripPathColors.Ink.copy(alpha = 0.8f),
+        modifier = if (isError) Modifier.semantics { liveRegion = LiveRegionMode.Polite } else Modifier,
+    )
 }
 
 /** The white round back, « Nouveau voyage » (white over the night, ink on the light blue) and the white round help. */
