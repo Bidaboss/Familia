@@ -168,9 +168,10 @@ export async function deleteStepWord(db: Firestore, tripId: string, stepId: stri
 export async function deleteStepVoiceNotes(db: Firestore, tripId: string, stepId: string): Promise<number> {
   const notes = await db.collection('trips').doc(tripId).collection('voiceNotes').where('stepId', '==', stepId).get();
   if (notes.empty) return 0;
-  const batch = db.batch();
-  notes.docs.forEach((d) => batch.delete(d.ref));
-  await batch.commit();
+  // No limit of 500 writes, as for the places of a trip.
+  const writer = db.bulkWriter();
+  notes.docs.forEach((d) => void writer.delete(d.ref));
+  await writer.close();
   return notes.size;
 }
 

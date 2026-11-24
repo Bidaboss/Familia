@@ -655,9 +655,12 @@ export const onTripPhotoCreated = onDocumentCreated('trips/{tripId}/photos/{phot
 
 // « Le mot de l'étape » (récit 88) goes with its step, with its hearts and comments.
 export const onStepDeletedWord = onDocumentDeleted('trips/{tripId}/steps/{stepId}', async (event) => {
-  await deleteStepWord(getFirestore(), event.params.tripId, event.params.stepId);
-  // And its voice notes (récit 104, règle 35).
-  await deleteStepVoiceNotes(getFirestore(), event.params.tripId, event.params.stepId);
+  // And its voice notes (récit 104, règle 35): one failing never keeps the other.
+  const results = await Promise.allSettled([
+    deleteStepWord(getFirestore(), event.params.tripId, event.params.stepId),
+    deleteStepVoiceNotes(getFirestore(), event.params.tripId, event.params.stepId),
+  ]);
+  for (const r of results) if (r.status === 'rejected') throw r.reason;
 });
 
 // A removed voice note takes its file with it, whoever removed it (récit 104, règle 35).
