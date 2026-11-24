@@ -1228,8 +1228,12 @@ fun FamiliaApp(
                             TripMoneyRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
                     }
+                    // Règle 8: « Enrichir avec une IA » pulls up over the map too, like the other screens of the trip.
                     composable<TripEnrichDestination> { entry ->
-                        TripEnrichRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripEnrichDestination>().tripId, onBack = { navController.popBackStack() })
+                        val tripId = entry.toRoute<TripEnrichDestination>().tripId
+                        TripScreenOverMap(container, tripId) {
+                            TripEnrichRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
+                        }
                     }
                     // Récit 103: the page of an accommodation, a restaurant or a spot of a destination.
                     composable<TripPlaceDestination> { entry ->
