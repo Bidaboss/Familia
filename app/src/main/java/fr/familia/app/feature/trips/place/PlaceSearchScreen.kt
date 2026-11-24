@@ -49,6 +49,7 @@ import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.feature.trips.TripFormScaffold
 import fr.familia.app.feature.trips.TripTile
+import fr.familia.app.feature.trips.detail.TripPathColors
 
 /**
  * The search dedicated to each kind of place (récit 103, règle 20): a field, the places found
@@ -123,15 +124,15 @@ fun PlaceSearchScreen(
                     repeat(3) {
                         Box(Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant))
                     }
-                    FormHint(stringResource(R.string.place_search_loading))
+                    SkyHint(stringResource(R.string.place_search_loading))
                 }
-                PlaceSearchResults.NoPoint -> FormHint(stringResource(R.string.place_search_no_point))
+                PlaceSearchResults.NoPoint -> SkyHint(stringResource(R.string.place_search_no_point))
                 PlaceSearchResults.Failed -> Column {
-                    FormHint(stringResource(R.string.place_search_failed))
+                    SkyHint(stringResource(R.string.place_search_failed))
                     TextButton(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_retry)) }
                 }
                 is PlaceSearchResults.Found -> if (results.places.isEmpty()) {
-                    FormHint(stringResource(if (typed.isEmpty()) R.string.place_search_none_around else R.string.place_search_none))
+                    SkyHint(stringResource(if (typed.isEmpty()) R.string.place_search_none_around else R.string.place_search_none))
                 } else {
                     results.places.forEach { place ->
                         val distance = distanceLabel(place.meters)
@@ -144,10 +145,16 @@ fun PlaceSearchScreen(
                     }
                 }
             }
-            FormHint(stringResource(R.string.place_search_source))
+            SkyHint(stringResource(R.string.place_search_source))
             Spacer(Modifier.height(8.dp))
         }
     }
+}
+
+/** A line written on the sky of the trips, out of a tile: always dark, in light and dark themes alike. */
+@Composable
+private fun SkyHint(text: String) {
+    Text(text, style = MaterialTheme.typography.bodyMedium, color = TripPathColors.InkSoft)
 }
 
 /** One choice, at least 56 dp high; clickable reads its lines in one go to TalkBack. */
