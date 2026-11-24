@@ -368,6 +368,7 @@
         <item quantity="other">Départ dans %d nuits</item>
     </plurals>
     <string name="trip_map_credit">© Mapbox © OpenStreetMap</string>
+    <string name="trip_map_open_description">Ouvrir la carte du voyage, avec toutes ses étapes</string>
     <string name="trip_enrich_pill">Enrichir le voyage avec une IA</string>
     <string name="timeline_add_place_a11y">%1$s : ajouter à %2$s</string>
     <string name="timeline_insert_transport">Transport</string>

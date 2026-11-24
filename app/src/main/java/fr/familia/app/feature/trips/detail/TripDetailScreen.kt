@@ -177,23 +177,13 @@ fun TripDetailScreen(
         topBar = {
             if (!path) FamiliaTopBar(
                 title = {
-                    if (path && success != null) {
-                        PathTitle(success)
-                    } else {
-                        Text(success?.trip?.title ?: stringResource(R.string.trip_title), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
+                    Text(success?.trip?.title ?: stringResource(R.string.trip_title), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 },
                 navigationIcon = { BackButton(onClick = onBack) },
-                // The sky of the trip's landscape goes on under the bar (récit 81).
-                containerColor = if (path) success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky else Color.Transparent,
-                contentColor = if (path) TripPathColors.Ink else Color.Unspecified,
+                // The path draws its own top (fiche F1): this bar is only for the plain list.
+                containerColor = Color.Transparent,
                 actions = {
-                    if (success?.canManage == true && path) {
-                        // E-4, règle 14: a pencil next to the title, as on the prototype; the names keep their room.
-                        IconButton(onClick = onEditTrip, modifier = Modifier.size(56.dp)) {
-                            Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.trip_edit_a11y))
-                        }
-                    } else if (success?.canManage == true) {
+                    if (success?.canManage == true) {
                         TextButton(
                             onClick = onEditTrip,
                             modifier = Modifier.heightIn(min = 56.dp),
@@ -329,25 +319,6 @@ private fun Content(
                 ClayLink(stringResource(R.string.expenses_open), onClick = onOpenExpenses)
             }
         }
-    }
-}
-
-/** « Séville », and under it who goes: « Avec Camille, Inès et Noé ». */
-@Composable
-private fun PathTitle(state: TripDetailUiState.Success) {
-    Column {
-        Text(state.trip.title, style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        // E-4: two names and how many others on one line; TalkBack reads them all.
-        val (shown, others) = headNames(state.participants)
-        val everyone = joinNames(state.participants)
-        Text(
-            if (others == 0) joinNames(shown) else pluralStringResource(R.plurals.trip_people_more, others, shown.joinToString(", "), others),
-            modifier = Modifier.semantics { contentDescription = everyone },
-            style = MaterialTheme.typography.labelLarge,
-            color = TripPathColors.InkSoft,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
@@ -553,7 +524,7 @@ private fun PathContent(
                 }
                 if (onOpenDocuments != null && state.isParticipant) add(TripTool(stringResource(R.string.documents_round_label), stringResource(R.string.documents_round_description), onOpenDocuments))
                 // The satellite map is already above the sheet (règle 23): « La carte » stays only for the fallback (TalkBack, no map).
-                if (onOpenMap != null && state.steps.isNotEmpty() && !satellite) add(TripTool(stringResource(R.string.trip_map_open), stringResource(R.string.trip_map_open), onOpenMap))
+                if (onOpenMap != null && state.steps.isNotEmpty() && !satellite) add(TripTool(stringResource(R.string.trip_map_open), stringResource(R.string.trip_map_open_description), onOpenMap))
             }
             TripToolsGrid(tools, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp))
         }

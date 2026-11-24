@@ -2380,3 +2380,9 @@ Sur un téléphone en Android 10 ou plus :
 2. Sans heure choisie, la case dit « Choisir » : l'étape s'enregistre sans heure.
 3. Choisir une heure : un petit lien « Sans heure » apparaît à droite, dessous ; le toucher efface l'heure.
 4. Avec une très grande police : jour et heure l'un sous l'autre, le lien « Sans heure » toujours petit.
+
+## Voyage : nettoyage après la fiche F1 (C de #588)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage sur la carte satellite : le crédit « © Mapbox © OpenStreetMap » en haut à droite reste lisible sur une zone claire (ombre sombre sous le texte).
+2. Avec TalkBack (pas de carte satellite), le bouton « La carte » en bas du voyage se lit « Ouvrir la carte du voyage, avec toutes ses étapes », une seule fois.

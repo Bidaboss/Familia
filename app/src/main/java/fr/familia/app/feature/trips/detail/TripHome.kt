@@ -99,7 +99,14 @@ internal fun TripHeader(
             }
             Spacer(Modifier.weight(1f))
             if (showCredit) {
-                Text(stringResource(R.string.trip_map_credit), fontSize = 10.sp, color = Color(0xFFDBE7EF), maxLines = 1)
+                // A dark shadow under the light text keeps it readable on any satellite tile (C4 of #588).
+                Text(
+                    stringResource(R.string.trip_map_credit),
+                    fontSize = 10.sp,
+                    color = Color(0xFFDBE7EF),
+                    maxLines = 1,
+                    style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 1f), blurRadius = 4f)),
+                )
             }
         }
     }
