@@ -74,6 +74,9 @@ import fr.familia.app.feature.trips.word.StepWordScreen
 import fr.familia.app.feature.trips.word.previewStepWord
 import fr.familia.app.feature.trips.step.StepEditScreen
 import fr.familia.app.feature.trips.place.PlaceEditScreen
+import fr.familia.app.feature.trips.place.PlaceSearchResults
+import fr.familia.app.feature.trips.place.PlaceSearchScreen
+import fr.familia.app.feature.trips.place.previewPlaceSearchState
 import fr.familia.app.feature.trips.place.PlaceFormError
 import fr.familia.app.feature.trips.place.previewPlaceEditState
 import fr.familia.app.core.model.TripPlaceKind
@@ -120,6 +123,12 @@ internal object VoyageScreens {
             PlaceEditScreen(previewPlaceEditState(errors = setOf(PlaceFormError.NameMissing, PlaceFormError.CostInvalid)), {}, {}, {}, {})
         },
         screen("a spot, for a follower") { PlaceEditScreen(previewPlaceEditState(kind = TripPlaceKind.Spot, canEdit = false), {}, {}, {}, {}) },
+        // Règle 20: the search of each kind, with places found, a typed name and no answer.
+        screen("a restaurant, with « Choisir un autre »") { PlaceEditScreen(previewPlaceEditState(), {}, {}, {}, {}, onSearch = {}) },
+        screen("the search of a restaurant") { PlaceSearchScreen(previewPlaceSearchState(), "Ajaccio", {}, {}, {}, {}, {}) },
+        screen("the search of a spot, no answer") {
+            PlaceSearchScreen(previewPlaceSearchState(kind = TripPlaceKind.Spot, text = "plage", results = PlaceSearchResults.Failed), "Ajaccio", {}, {}, {}, {}, {})
+        },
         screen("edit a step, with errors") {
             StepEditScreen(previewStepEditState(errors = setOf(StepFormError.PlaceMissing, StepFormError.ArriveBeforeDepart)), {}, {}, {}, {})
         },
