@@ -430,12 +430,12 @@ private fun DestinationRow(trip: Trip, row: TimelineRow.Destination, plusBlocked
     }
 }
 
-/** − or + of the nights: a 48 × 56 dp zone, the sign in dark ink, pale when it cannot change. */
+/** − or + of the nights: a 56 × 56 dp zone (B1 of #593), the sign in dark ink, pale when it cannot change. */
 @Composable
 private fun NightsButton(sign: String, description: String, enabled: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
-            .size(width = 48.dp, height = 56.dp)
+            .size(56.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description },

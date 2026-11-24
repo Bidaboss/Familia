@@ -363,23 +363,30 @@ fun AddDestinationScreen(
 @Composable
 private fun ScaleSwitch(scale: PlaceScale, onScale: (PlaceScale) -> Unit) {
     Row(Modifier.heightIn(min = 56.dp).selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
-        Row(Modifier.clip(RoundedCornerShape(22.dp)).background(Color.White).padding(4.dp)) {
+        Row(Modifier.clip(RoundedCornerShape(28.dp)).background(Color.White).padding(horizontal = 4.dp)) {
             listOf(
                 PlaceScale.City to R.string.add_destination_cities,
                 PlaceScale.Region to R.string.add_destination_regions,
                 PlaceScale.Country to R.string.add_destination_countries,
             ).forEach { (value, label) ->
                 val chosen = value == scale
+                // The whole height of 56 touches (B2 of #593); the dark pill inside is drawn smaller.
                 Box(
                     Modifier
-                        .heightIn(min = 34.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(if (chosen) Dark else Color.White)
-                        .selectable(selected = chosen, role = Role.Tab, onClick = { onScale(value) })
-                        .padding(horizontal = 18.dp, vertical = 6.dp),
+                        .heightIn(min = 56.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .selectable(selected = chosen, role = Role.Tab, onClick = { onScale(value) }),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(stringResource(label), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = if (chosen) Color.White else Ink)
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(if (chosen) Dark else Color.White)
+                            .padding(horizontal = 18.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(stringResource(label), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = if (chosen) Color.White else Ink)
+                    }
                 }
             }
         }
