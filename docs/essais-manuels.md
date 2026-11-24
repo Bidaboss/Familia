@@ -2100,6 +2100,14 @@ Rien à publier côté Firebase. « APK de publication ».
 5. Nouveau voyage avec un départ passé (l'an dernier) : sous les dates, « Combien de jours ? » avec − et +. « + » avance la date de retour d'un jour, et « − » s'arrête à 1 jour. Avec un départ aujourd'hui ou plus tard, cette ligne n'apparaît pas.
 6. Modifier une étape, champ « Une note » : l'aide dit « Plusieurs lignes possibles : … ». Le champ grandit jusqu'à 6 lignes, puis il défile au lieu de grandir encore.
 
+## Voyage : réglages de carte enregistrés (récit 110, partie 1 : règle 5 et section 9)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec la carte satellite, toucher le bouton discret en bas à droite : « Satellite / Rues » et « 2D / 3D », puis « Annuler » et « Enregistrer ». Il n'y a ni Lire, ni Terrain, ni Hiver, ni profil altimétrique (décision 155).
+2. Choisir « Rues » et « 3D » : la carte change tout de suite. Toucher « Annuler » : elle revient comme avant.
+3. Choisir de nouveau « Rues » et « 3D », puis « Enregistrer ». Quitter le voyage, en ouvrir un autre : il s'ouvre en Rues 3D. Le choix reste aussi après avoir fermé l'appli.
+4. Toucher en dehors de la fenêtre revient au même qu'« Annuler ».
+
 ## Voyage : la photo de l'étape dans son repère (récit 110, partie 2 : règle 7)
 
 **Publier Firebase : non.**

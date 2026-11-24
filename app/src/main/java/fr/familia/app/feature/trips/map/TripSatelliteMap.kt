@@ -115,8 +115,10 @@ fun TripSatelliteMap(
 ) {
     val context = LocalContext.current
     var drawn by remember { mutableStateOf(false) }
-    var look by rememberSaveable { mutableStateOf(MapLook.Satellite) }
-    var tilted by rememberSaveable { mutableStateOf(false) }
+    // The settings kept for the person (récit 110): Satellite or Rues, 2D or 3D.
+    val saved = remember { MapSettingsStore.read(context) }
+    var look by rememberSaveable { mutableStateOf(saved.look) }
+    var tilted by rememberSaveable { mutableStateOf(saved.tilted) }
     var settingsOpen by remember { mutableStateOf(false) }
     // A touch of the map stops the arrival at once (règle 3: a click interrupts the animation).
     var touched by remember { mutableStateOf(false) }
@@ -252,8 +254,15 @@ fun TripSatelliteMap(
         }
     }
     if (settingsOpen) {
+        // The map follows each choice at once; « Enregistrer » keeps it for next time, « Annuler » puts back what was there.
+        val before = remember { MapSettings(look, tilted) }
+        val cancel = {
+            look = before.look
+            tilted = before.tilted
+            settingsOpen = false
+        }
         AlertDialog(
-            onDismissRequest = { settingsOpen = false },
+            onDismissRequest = cancel,
             title = { Text(stringResource(R.string.trip_map_settings)) },
             text = {
                 Column {
@@ -267,7 +276,16 @@ fun TripSatelliteMap(
                     }
                 }
             },
-            confirmButton = { TextButton({ settingsOpen = false }, Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.trip_map_settings_done)) } },
+            confirmButton = {
+                TextButton(
+                    {
+                        MapSettingsStore.save(context, MapSettings(look, tilted))
+                        settingsOpen = false
+                    },
+                    Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.trip_map_settings_save)) }
+            },
+            dismissButton = { TextButton(cancel, Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
