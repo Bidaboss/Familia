@@ -2302,3 +2302,12 @@ Sur un téléphone en Android 10 ou plus :
 3. Couper le réseau, ouvrir un voyage, attendre 15 s : « Cause : délai 15 s » (ou « hors ligne »). Remettre le réseau, « Réessayer » : la carte revient.
 4. Au lancement suivant, la même cause arrive dans Administration > Plantages, une fois par écran et par lancement.
 5. Un voyage à plusieurs destinations s'ouvre cadré sur toutes ses étapes, au-dessus de la feuille.
+
+## Voyages : la feuille de la liste a les trois positions du prototype, sans échelle sur le globe (E-24, E-25)
+
+**Publier Firebase : non.** « APK de publication » (globe satellite).
+1. Ouvrir Voyages : la feuille « Prochain voyage » est au milieu (environ la moitié du bas), le globe au-dessus. Plus d'échelle « 0 · 5000 km · 10000 km » sur le titre.
+2. Glisser la poignée vers le bas : la feuille descend tout en bas (environ un quart), le globe grandit et reste centré au-dessus. « Arrêter » suit le haut de la feuille.
+3. Glisser vers le haut deux fois : la feuille prend tout le bas de l'écran, avec la flèche en haut à gauche ; la flèche, un glissé vers le bas ou le bouton Retour la redescendent au milieu.
+4. Toucher la poignée : passe de tout en bas au milieu, et inversement.
+5. Sans globe (TalkBack, économie de batterie, pas de jeton) : la liste prend tout l'écran comme avant, sans poignée.
