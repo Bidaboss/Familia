@@ -3,7 +3,7 @@ package fr.familia.app.feature.trips.detail
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.power.BatterySavingBanner
-import fr.familia.app.core.power.rememberBatterySaving
+import fr.familia.app.core.power.rememberBatterySavingAtOpening
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
@@ -386,7 +386,7 @@ private fun PathContent(
     var mapFailed by rememberSaveable { mutableStateOf(false) }
     val mapAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
     // Règle 46: under 20 % unplugged, or with Android's saver, no satellite map (the path instead).
-    val saving = rememberBatterySaving()
+    val saving = rememberBatterySavingAtOpening()
     val satellite = satelliteToken.isNotBlank() && mapAllowed && !mapFailed && !saving && placed.isNotEmpty()
     // The sheet has three heights: low (the map above), high, and the whole screen (règle 8).
     var level by rememberSaveable(state.trip.id) { mutableStateOf(0) }

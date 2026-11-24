@@ -2,6 +2,8 @@ package fr.familia.app.core.navigation
 
 import fr.familia.app.core.mention.LocalMentionFamily
 import fr.familia.app.core.mention.LocalOpenMember
+import fr.familia.app.core.power.LocalBatterySaving
+import fr.familia.app.core.power.watchBatterySaving
 import fr.familia.app.core.welcome.OliveMascot
 import fr.familia.app.core.welcome.LocalMascotFruits
 import fr.familia.app.core.welcome.welcomeFruits
@@ -782,6 +784,8 @@ fun FamiliaApp(
             liveFamily?.let { welcomeFruits(it, currentMember) }.orEmpty()
         },
         LocalFeatureFlags provides features,
+        // « Économie de batterie » (récit 112, règle 46): one receiver for the whole app.
+        LocalBatterySaving provides watchBatterySaving(),
         // « @Prénom » in the texts and comments (Kévin, 19/11).
         LocalMentionFamily provides liveFamily,
         LocalOpenMember provides { id -> navController.navigate(MemberProfileDestination(id)) },
