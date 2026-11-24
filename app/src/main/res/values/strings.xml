@@ -355,6 +355,7 @@
     <string name="place_cover_satellite">Vue satellite de %1$s</string>
     <string name="place_cover_credit">Photo : %1$s</string>
     <string name="trip_cover_planned">Voyage programmé</string>
+    <string name="timeline_add_place_a11y">%1$s : ajouter à %2$s</string>
     <string name="timeline_title">Le trajet</string>
     <string name="timeline_start">Le voyage commence</string>
     <string name="timeline_end">Le voyage se termine</string>

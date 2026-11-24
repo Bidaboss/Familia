@@ -2,7 +2,10 @@ package fr.familia.app.feature.trips.detail
 
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripPlace
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripStep
+import java.time.LocalTime
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -59,5 +62,21 @@ class TripTimelineTest {
         val less = changeNights(trip, steps, bordeaux, -1) as NightsChange.Steps
         assertEquals(day(11), less.changed.first { it.id == "bordeaux" }.arriveDate)
         assertEquals(day(11), less.changed.first { it.id == "palmyre" }.departDate)
+    }
+
+    @Test fun theProgrammeOfADestinationPutsTheAccommodationFirstThenByTime() {
+        fun place(id: String, step: String, kind: TripPlaceKind, name: String, at: LocalTime? = null) =
+            TripPlace(id, step, kind, name, null, null, null, at, null)
+        val byStep = placesByStep(
+            listOf(
+                place("r2", "s1", TripPlaceKind.Restaurant, "Le Port", LocalTime.of(20, 0)),
+                place("sp", "s1", TripPlaceKind.Spot, "Phare"),
+                place("r1", "s1", TripPlaceKind.Restaurant, "Chez Lou", LocalTime.of(12, 30)),
+                place("h", "s1", TripPlaceKind.Lodging, "Camping"),
+                place("o", "s2", TripPlaceKind.Spot, "Zoo"),
+            ),
+        )
+        assertEquals(listOf("h", "r1", "r2", "sp"), byStep["s1"]!!.map { it.id })
+        assertEquals(listOf("o"), byStep["s2"]!!.map { it.id })
     }
 }
