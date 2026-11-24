@@ -8,7 +8,7 @@ import { Member, Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
   ALERT_GAP_MS, alertNotice, arrivalNotice, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, joinNames, notifyAlert, notifyArrival,
-  sendArrivalReminders, StepData, TripData, withApp,
+  sendArrivalReminders, StepData, TripData, tripDocumentFile, withApp,
 } from '../src/trips';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
@@ -203,5 +203,17 @@ describe('« Prévenir ma famille » (récit 105)', () => {
       assert.equal(await notifyAlert(db, send, 't1', 'sam', at(Date.now())), 0);
       assert.equal(sent.length, 0);
     });
+  });
+});
+
+describe('file of a removed document', () => {
+  test('only the file at the place of this document', () => {
+    assert.equal(tripDocumentFile('t1', 'd1', { ownerId: 'adult1', file: 'd1.pdf' }), 'trips/t1/documents/adult1/d1.pdf');
+    assert.equal(tripDocumentFile('t1', 'd1', { ownerId: 'adult1', file: 'd1.png' }), 'trips/t1/documents/adult1/d1.png');
+    assert.equal(tripDocumentFile('t1', 'd1', { ownerId: 'adult1', file: 'd2.pdf' }), null);
+    assert.equal(tripDocumentFile('t1', 'd1', { ownerId: 'adult1', file: 'd1.exe' }), null);
+    assert.equal(tripDocumentFile('t1', 'd1', { ownerId: '../x', file: 'd1.pdf' }), null);
+    assert.equal(tripDocumentFile('t1', 'd1', { ownerId: 'adult1' }), null);
+    assert.equal(tripDocumentFile('t1', 'd1', undefined), null);
   });
 });

@@ -563,3 +563,49 @@ describe('photo of a thing to lend (récit 51)', () => {
     await assertSucceeds(deleteObject(ref(storage, photo('adult1', 'p1.jpg'))));
   });
 });
+
+describe('trip documents folder (récit 105, règle 41)', () => {
+  // ADULT created the trip and takes part with adult3; admin1 follows it without going.
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'trips/t1'), {
+        title: 'Corse', startDate: '2027-07-10', endDate: '2027-07-20',
+        participantIds: ['adult1', 'adult3'], readerIds: ['admin1', 'adult1', 'adult3'],
+        creatorId: 'adult1', creatorName: 'adult1', createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+  });
+  const file = (owner, name = 'abc123.pdf') => `trips/t1/documents/${owner}/${name}`;
+  const pdf = { contentType: 'application/pdf' };
+
+  test('a participant sends a PDF, a JPEG or a PNG in their folder, and only those who go read it', async () => {
+    const storage = storageAs(NEIGHBOUR);
+    await assertSucceeds(uploadString(ref(storage, file('adult3')), 'x'.repeat(1024 * 1024), 'raw', pdf));
+    await assertSucceeds(uploadString(ref(storage, file('adult3', 'abc124.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, file('adult3', 'abc125.png')), 'x', 'raw', { contentType: 'image/png' }));
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), file('adult3'))));
+    await assertFails(getBytes(ref(storageAs(ADMIN), file('adult3'))));
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file('adult3'))));
+  });
+
+  test('never in someone else\'s folder, never by a follower, never too big, never another type', async () => {
+    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('adult1')), 'x', 'raw', pdf));
+    await assertFails(uploadString(ref(storageAs(ADMIN), file('admin1')), 'x', 'raw', pdf));
+    const storage = storageAs(NEIGHBOUR);
+    await assertFails(uploadString(ref(storage, file('adult3', 'big.pdf')), 'x'.repeat(5 * 1024 * 1024 + 1), 'raw', pdf));
+    await assertFails(uploadString(ref(storage, file('adult3', 'abc.pdf')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult3', 'abc.exe')), 'x', 'raw', { contentType: 'application/octet-stream' }));
+    await assertFails(uploadString(ref(storage, file('adult3', 'a-b.pdf')), 'x', 'raw', pdf));
+  });
+
+  test('a file is never replaced; its owner or the creator of the trip removes it', async () => {
+    // Names of their own: the emulator may keep a file of an earlier test.
+    const storage = storageAs(NEIGHBOUR);
+    await uploadString(ref(storage, file('adult3', 'abc200.pdf')), 'x', 'raw', pdf);
+    await assertFails(uploadString(ref(storage, file('adult3', 'abc200.pdf')), 'y', 'raw', pdf));
+    await uploadString(ref(storage, file('adult3', 'abc201.pdf')), 'x', 'raw', pdf);
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult3', 'abc200.pdf'))));
+    await assertSucceeds(deleteObject(ref(storage, file('adult3', 'abc200.pdf'))));
+    await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult3', 'abc201.pdf'))));
+  });
+});

@@ -96,6 +96,9 @@ interface AppContainer {
 
     /** « Monnaie » (récit 105): the exchange rates from the euro, with their date. */
     val exchangeRates: ExchangeRates? get() = null
+
+    /** « Documents » (récit 105, règle 41): tickets, bookings and papers, for those who go. Null in « Voir comme ». */
+    val tripDocumentRepository: TripDocumentRepository? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -246,6 +249,10 @@ class FirebaseAppContainer(context: Context) : AppContainer {
         } else {
             null
         }
+    }
+
+    override val tripDocumentRepository: TripDocumentRepository? by lazy {
+        firestore?.let { FirestoreTripDocumentRepository(it, FirebaseStorage.getInstance()) }
     }
 
     private val photoLinks: PhotoLinks by lazy {
