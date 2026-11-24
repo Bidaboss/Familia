@@ -71,6 +71,8 @@ fun TripDetailRoute(
     onOpenPlace: (placeId: String) -> Unit = {},
     /** A new accommodation, restaurant or spot under the destination [stepId] (règle 20). */
     onAddPlace: (stepId: String, kind: TripPlaceKind) -> Unit = { _, _ -> },
+    /** A new destination or transport from a « + » of « Le trajet », starting on [day] (DESIGN-99 A). */
+    onInsertStep: (kind: fr.familia.app.feature.trips.step.StepAddKind, day: java.time.LocalDate) -> Unit = { _, _ -> onAddStep() },
     /** The album of the trip opened on one photo (récit 104). */
     onOpenPhoto: (photoId: String) -> Unit = { onSeePhotos() },
 ) {
@@ -174,6 +176,8 @@ fun TripDetailRoute(
             places = remember(places) { placesByStep(places) },
             onOpenPlace = onOpenPlace,
             onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
+            onInsertStep = if (shown?.isParticipant == true) onInsertStep else null,
+            onEnrich = onOpenEnrich?.takeIf { shown?.isParticipant == true && container?.tripPlaceRepository != null },
             photos = byStep.byStay,
             onOpenPhoto = onOpenPhoto,
             withoutStep = byStep.withoutStep.size,

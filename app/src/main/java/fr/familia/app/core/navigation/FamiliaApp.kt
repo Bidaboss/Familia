@@ -1198,6 +1198,7 @@ fun FamiliaApp(
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
                             onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
+                            onInsertStep = { kind, day -> navController.navigate(TripStepEditDestination(tripId, kind = kind.name, day = day.toString())) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
                             onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
@@ -1381,6 +1382,8 @@ fun FamiliaApp(
                             tripId = route.tripId,
                             stepId = route.stepId,
                             presetPlace = route.place,
+                            presetKind = route.kind?.let { name -> fr.familia.app.feature.trips.step.StepAddKind.entries.firstOrNull { it.name == name } },
+                            presetDay = route.day?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() },
                             onDone = { navController.popBackStack() },
                         )
                     }

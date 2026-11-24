@@ -285,6 +285,19 @@ class TripViewModelsTest {
     }
 
     @Test
+    fun `a destination from a plus of the route starts that day, without asking its type`() {
+        val vm = StepEditViewModel(
+            FakeTrips(), FakeMembers(), "adult2", "t1", null,
+            presetKind = fr.familia.app.feature.trips.step.StepAddKind.Destination,
+            presetDay = LocalDate.of(2027, 7, 12),
+            zone = paris, now = beforeTrip,
+        )
+        assertEquals(StepType.Lodging, vm.editing().form.type)
+        assertEquals(LocalDate.of(2027, 7, 12), vm.editing().form.departDate)
+        assertTrue(vm.editing().typeOptions.isEmpty())
+    }
+
+    @Test
     fun `saving a step sets the reminder 3 hours after the planned arrival`() {
         val trips = FakeTrips()
         val vm = StepEditViewModel(trips, FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip)

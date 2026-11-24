@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
@@ -30,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -67,6 +71,7 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.voice.voiceDuration
 import fr.familia.app.feature.trips.stepTypeLabel
+import fr.familia.app.feature.trips.step.StepAddKind
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.delay
@@ -82,6 +87,10 @@ class TimelineActions(
     val onOpenPlace: (placeId: String) -> Unit = {},
     /** Null for who does not go: they see the programme, without « + ». */
     val onAddPlace: ((stepId: String, kind: TripPlaceKind) -> Unit)? = null,
+    /** Null for who does not go: no « + » between the elements (DESIGN-99 A). A destination or a transport from [day]. */
+    val onInsertStep: ((kind: StepAddKind, day: LocalDate) -> Unit)? = null,
+    /** « Enrichir avec une IA » in the menu of a « + »; null when it is not offered. */
+    val onEnrich: (() -> Unit)? = null,
     /** The photos of each destination (récit 104, règle 31), from [stepPhotos]; and the album opened on one of them. */
     val photos: Map<String, List<AlbumPhoto>> = emptyMap(),
     val onOpenPhoto: (photoId: String) -> Unit = {},
@@ -98,6 +107,29 @@ class TimelineActions(
     val canDeleteVoice: (TripVoiceNote) -> Boolean = { false },
     val onDeleteVoice: (TripVoiceNote) -> Unit = {},
 )
+
+/**
+ * Where a « + » of « Le trajet » adds (DESIGN-99 A): after « Le voyage commence » (index 0) and
+ * after each element. [day]: the day the new element starts; [destinationId]: the destination
+ * its accommodation, restaurant or spot goes under (the one before, else the next, else none).
+ */
+data class InsertSpot(val day: LocalDate, val destinationId: String?, val after: TripStep?)
+
+internal fun insertSpots(trip: Trip, rows: List<TimelineRow>): List<InsertSpot> {
+    val firstDestination = rows.firstOrNull { it is TimelineRow.Destination }?.step?.id
+    var lastDestination: String? = null
+    val spots = mutableListOf(InsertSpot(trip.startDate, firstDestination, null))
+    rows.forEach { row ->
+        val day = when (row) {
+            is TimelineRow.Destination -> row.end
+            is TimelineRow.Move -> row.step.arriveDate ?: row.step.departDate
+        }.coerceIn(trip.startDate, trip.endDate)
+        if (row is TimelineRow.Destination) lastDestination = row.step.id
+        val next = rows.dropWhile { it !== row }.drop(1).firstOrNull { it is TimelineRow.Destination }?.step?.id
+        spots += InsertSpot(day, lastDestination ?: next, row.step)
+    }
+    return spots
+}
 
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
 internal fun placesByStep(places: List<TripPlace>): Map<String, List<TripPlace>> =
@@ -180,7 +212,9 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
         if (line.rows.isEmpty()) {
             Text(stringResource(R.string.timeline_empty), style = MaterialTheme.typography.bodyLarge, color = Ink)
         }
-        line.rows.forEach { row ->
+        val spots = remember(trip, line) { insertSpots(trip, line.rows) }
+        spots.firstOrNull()?.let { InsertPoint(it, actions) }
+        line.rows.forEachIndexed { index, row ->
             when (row) {
                 is TimelineRow.Destination -> DestinationRow(
                     row = row,
@@ -197,6 +231,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                 )
                 is TimelineRow.Move -> MoveRow(row, onOpen = { actions.onOpen(row.step.id) })
             }
+            spots.getOrNull(index + 1)?.let { InsertPoint(it, actions) }
         }
         if (actions.withoutStep > 0) {
             val label = pluralStringResource(R.plurals.timeline_photos_without_step, actions.withoutStep, actions.withoutStep)
@@ -442,6 +477,56 @@ private fun DestinationProgramme(stepId: String, destination: String, actions: T
             }
         }
     }
+}
+
+/**
+ * A « + » between two elements of « Le trajet » (DESIGN-99 A, prototype): its menu adds a
+ * destination, a transport, an accommodation, a spot or a restaurant there, or opens
+ * « Enrichir avec une IA ». Nothing for who does not go.
+ */
+@Composable
+private fun InsertPoint(spot: InsertSpot, actions: TimelineActions) {
+    val insert = actions.onInsertStep ?: return
+    var open by remember { mutableStateOf(false) }
+    val spoken = spot.after?.let { stringResource(R.string.timeline_insert_after_a11y, placeName(it)) } ?: stringResource(R.string.timeline_insert_start_a11y)
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .clickable(role = Role.Button) { open = true }
+                .semantics { contentDescription = spoken },
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(Modifier.size(32.dp).clip(CircleShape).background(TripSheetColors.Track), contentAlignment = Alignment.Center) {
+                Text("+", color = Deep, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            }
+            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                InsertItem(stringResource(R.string.trip_step_type_lodging), Icons.Outlined.Place) { open = false; insert(StepAddKind.Destination, spot.day) }
+                InsertItem(stringResource(R.string.timeline_insert_transport), Icons.Outlined.DirectionsCar) { open = false; insert(StepAddKind.Transport, spot.day) }
+                val addPlace = actions.onAddPlace
+                val destination = spot.destinationId
+                if (addPlace != null && destination != null) {
+                    TripPlaceKind.entries.forEach { kind ->
+                        InsertItem(placeKindLabel(kind), placeKindIcon(kind)) { open = false; addPlace(destination, kind) }
+                    }
+                }
+                actions.onEnrich?.let { enrich ->
+                    InsertItem(stringResource(R.string.enrich_title), Icons.Outlined.AutoAwesome) { open = false; enrich() }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InsertItem(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(text) },
+        leadingIcon = { Icon(icon, contentDescription = null) },
+        onClick = onClick,
+        modifier = Modifier.heightIn(min = 56.dp),
+    )
 }
 
 @Composable
