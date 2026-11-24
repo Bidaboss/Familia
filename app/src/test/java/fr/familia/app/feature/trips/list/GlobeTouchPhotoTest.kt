@@ -4,8 +4,10 @@ import fr.familia.app.core.place.noPhotoLine
 import fr.familia.app.core.place.parseNearbyImage
 import fr.familia.app.core.place.searchPhotosUrl
 import fr.familia.app.core.place.titleCandidates
+import fr.familia.app.feature.trips.map.drawnEarthPlan
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -48,5 +50,25 @@ class GlobeTouchPhotoTest {
     fun `no photo says where the search went, never the place`() {
         assertEquals("aucune photo : nom, recherche et 10 km autour", noPhotoLine(withPoint = true))
         assertEquals("aucune photo : nom et recherche, lieu sans position", noPhotoLine(withPoint = false))
+    }
+
+    @Test
+    fun `the drawn Earth goes under the first image layer, from the vector tiles`() {
+        val plan = drawnEarthPlan(
+            layers = listOf("background" to "background", "satellite" to "raster", "road" to "line"),
+            sources = listOf("mapbox://mapbox.satellite" to "raster", "composite" to "vector"),
+        )!!
+        assertEquals("background", plan.backgroundId)
+        assertEquals("satellite", plan.rasterId)
+        assertEquals("composite", plan.vectorSourceId)
+        val noBackground = drawnEarthPlan(listOf("satellite" to "raster"), listOf("s" to "raster"))!!
+        assertNull(noBackground.backgroundId)
+        assertEquals("satellite", noBackground.bottomId)
+        assertNull(noBackground.vectorSourceId)
+    }
+
+    @Test
+    fun `a style without images needs no drawn Earth under it`() {
+        assertNull(drawnEarthPlan(listOf("land" to "fill"), listOf("composite" to "vector")))
     }
 }
