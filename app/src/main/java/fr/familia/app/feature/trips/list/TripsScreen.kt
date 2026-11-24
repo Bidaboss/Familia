@@ -116,10 +116,6 @@ fun TripsScreen(
     /** Null when the list is a tab of the bar: nothing to go back to. */
     onBack: (() -> Unit)?,
     onOpenAlbums: (() -> Unit)? = null,
-    /** Étapes, À prévoir, Comptes of the next trip; null: the card has no buttons. */
-    onOpenPart: ((tripId: String, part: TripPart) -> Unit)? = null,
-    /** Whether « Comptes » exists for this member (the switch, an adult). */
-    expensesOn: Boolean = false,
     /** Public Mapbox token of this APK; blank: no globe, the drawn landscape stays (récit 99). */
     globeToken: String = "",
     /** The real photos of the places (règle 12); null: the satellite image, else the drawn landscape. */
@@ -684,5 +680,5 @@ internal fun previewTrips(): TripsUiState.Success {
 @FamiliaPreviews
 @Composable
 private fun TripsScreenPreview() {
-    FamiliaTheme { Surface { TripsScreen(previewTrips(), {}, {}, {}, {}, onOpenPart = { _, _ -> }, expensesOn = true) } }
+    FamiliaTheme { Surface { TripsScreen(previewTrips(), {}, {}, {}, {}) } }
 }

@@ -1162,20 +1162,6 @@ fun FamiliaApp(
                             // A tab of the bar when its module is on: no « Retour » then.
                             onBack = if (TopLevelDestination.Trips in tabs) null else ({ navController.popBackStack() }),
                             onOpenAlbums = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) { launchSingleTop = true } }) else null,
-                            // Étapes, À prévoir, Comptes of the next trip (récit 80): « Comptes » opens over the trip, so back leads to it.
-                            onOpenPart = { id, part ->
-                                if (part == TripPart.Expenses) {
-                                    navController.navigate(TripDetailDestination(id))
-                                    navController.navigate(TripExpensesDestination(id))
-                                } else if (part == TripPart.ToBring) {
-                                    // « À prévoir » opens « Valise » over the trip (récit 98), so back leads to it.
-                                    navController.navigate(TripDetailDestination(id))
-                                    navController.navigate(TripPackingDestination(id))
-                                } else {
-                                    navController.navigate(TripDetailDestination(id, part.name))
-                                }
-                            },
-                            expensesOn = features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult,
                         )
                     }
                     composable<TripDetailDestination> { entry ->

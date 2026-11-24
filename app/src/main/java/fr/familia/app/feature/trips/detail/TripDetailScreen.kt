@@ -103,6 +103,10 @@ import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.feature.trips.TripSectionTitle
 import fr.familia.app.feature.trips.joinNames
+import fr.familia.app.feature.trips.headNames
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.ui.semantics.contentDescription
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.stepTypeLabel
 import fr.familia.app.feature.trips.tripDatesLabel
@@ -179,7 +183,12 @@ fun TripDetailScreen(
                 containerColor = if (path) success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky else Color.Transparent,
                 contentColor = if (path) TripPathColors.Ink else Color.Unspecified,
                 actions = {
-                    if (success?.canManage == true) {
+                    if (success?.canManage == true && path) {
+                        // E-4, règle 14: a pencil next to the title, as on the prototype; the names keep their room.
+                        IconButton(onClick = onEditTrip, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.trip_edit_a11y))
+                        }
+                    } else if (success?.canManage == true) {
                         TextButton(
                             onClick = onEditTrip,
                             modifier = Modifier.heightIn(min = 56.dp),
@@ -318,8 +327,12 @@ private fun Content(
 private fun PathTitle(state: TripDetailUiState.Success) {
     Column {
         Text(state.trip.title, style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        // E-4: two names and how many others on one line; TalkBack reads them all.
+        val (shown, others) = headNames(state.participants)
+        val everyone = joinNames(state.participants)
         Text(
-            joinNames(state.participants),
+            if (others == 0) joinNames(shown) else pluralStringResource(R.plurals.trip_people_more, others, shown.joinToString(", "), others),
+            modifier = Modifier.semantics { contentDescription = everyone },
             style = MaterialTheme.typography.labelLarge,
             color = TripPathColors.InkSoft,
             maxLines = 1,

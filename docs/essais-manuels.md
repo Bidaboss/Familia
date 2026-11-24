@@ -2335,7 +2335,7 @@ Sur un téléphone en Android 10 ou plus :
 ## Voyage : une couche refusée par Mapbox ne coupe plus la carte (plantage du 24/11 16 h 47)
 
 **Publier Firebase : non.** « APK de publication » (R8 et carte satellite).
-1. Ouvrir le voyage La Palmyre : la carte satellite s'affiche avec ses ronds numérotés et le chemin en pointillé.
+1. Ouvrir un voyage dont les étapes sont placées : la carte satellite s'affiche avec ses ronds numérotés et le chemin en pointillé.
 2. Toucher un rond : un anneau blanc l'entoure, sans disque noir dedans.
 3. Basculer Satellite / Rues puis 2D / 3D plusieurs fois : la carte reste, sans « Carte indisponible ».
 4. Si une couche secondaire (nom, numéro, anneau) était encore refusée, la carte reste affichée et Administration > Plantages reçoit au lancement suivant « SdkError » avec « couche <id>: <message> ».
@@ -2349,3 +2349,13 @@ Sur un téléphone en Android 10 ou plus :
 3. La carte du prochain voyage : la photo remplit toute la carte (sans photo, le paysage dessiné). En haut à gauche, « ● Voyage programmé » sur fond sombre ; en haut à droite, « Dans N nuits » sur fond blanc. En bas, sur un dégradé sombre, le nom du voyage en gros, puis le mois (l'année dessous), le nombre de jours (JOURS) et les kilomètres (KILOMÈTRES, seulement à partir de deux étapes placées).
 4. Plus de boutons « Étapes », « À prévoir », « Comptes » sur la carte : la toucher n'importe où ouvre le voyage.
 5. Faire défiler jusqu'en bas : la dernière carte n'est pas cachée par le bouton jaune.
+
+## Voyage : l'en-tête tient sur une ligne et les lieux prennent leurs majuscules (E-4, E-6)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage à quatre participants ou plus : sous le titre, deux prénoms puis « et 2 autres » (par exemple), sans « … ». Avec TalkBack, tous les prénoms sont lus.
+2. Un voyage à deux : les deux prénoms, « X et Y ».
+3. En haut à droite, un crayon remplace le mot « Modifier » (pour l'admin ou un chef de famille qui gère le voyage) ; il ouvre la modification du voyage.
+4. Ajouter une étape en tapant « la ciotat » : le clavier met une majuscule à chaque mot, et l'étape s'enregistre « La Ciotat ». « saint-jean-de-luz » devient « Saint-Jean-de-Luz ».
+5. Une ancienne étape « La ciotat » s'affiche « La Ciotat » dans la carte du jour.
+6. Nouveau voyage, taper « La R » : des propositions apparaissent ; effacer jusqu'à « La » : les propositions disparaissent (remarque C de #583).

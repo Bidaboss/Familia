@@ -75,6 +75,13 @@ fun firstNames(ids: List<String>, family: Family): List<String> {
     return ids.mapNotNull { byId[it]?.firstName }
 }
 
+/**
+ * Who goes, short enough for one line under the title (E-4): two names, then how many others.
+ * « Lou et Sam » stays whole; « Lou, Sam, Noé, Inès » gives the first two and 2 for « et 2 autres ».
+ */
+fun headNames(names: List<String>, shown: Int = 2): Pair<List<String>, Int> =
+    if (names.size <= shown) names to 0 else names.take(shown) to (names.size - shown)
+
 /** "Lou", "Lou et Sam", "Lou, Sam et Noé". */
 fun joinNames(names: List<String>): String = when (names.size) {
     0 -> ""

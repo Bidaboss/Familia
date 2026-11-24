@@ -187,7 +187,7 @@ private fun FormContent(
                 isError = StepFormError.PlaceMissing in errors || StepFormError.PlaceTooLong in errors,
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
             )
             val placeError = errorMessage(errors, StepFormError.PlaceMissing, StepFormError.PlaceTooLong)

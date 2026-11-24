@@ -20,7 +20,7 @@ data class StepForm(
     fun toStep(id: String, arrival: TripArrival?): TripStep = TripStep(
         id = id,
         type = type,
-        place = place.trim(),
+        place = placeName(place),
         departDate = requireNotNull(departDate),
         departTime = departTime,
         // An arrival time alone is on the day of departure.
