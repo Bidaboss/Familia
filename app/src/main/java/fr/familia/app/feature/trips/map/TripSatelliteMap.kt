@@ -193,7 +193,7 @@ fun TripSatelliteMap(
         if (!drawn) return@LaunchedEffect
         // C1 of #580: made before its layout, the view started on the middle of the steps; now it has
         // its size, the frame on all the steps is right. The arrival does it itself when it plays.
-        if (!restored && (!intro || introPlayed || touched)) {
+        if (!restored && !touched && (!intro || introPlayed)) {
             view[0]?.let { map -> runCatching { map.mapboxMap.setCamera(frame(map, points, bottomPaddingDp * density, tilted)) } }
         }
         if (!intro || introPlayed) return@LaunchedEffect
