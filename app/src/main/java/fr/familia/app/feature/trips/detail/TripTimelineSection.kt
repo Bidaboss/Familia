@@ -44,7 +44,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripPlace
+import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.feature.trips.place.placeKindIcon
+import fr.familia.app.feature.trips.place.placeKindLabel
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.stepTypeLabel
@@ -57,7 +61,18 @@ class TimelineActions(
     /** Null for who does not go: they see the nights, without − and +. */
     val onNights: ((stayId: String, delta: Int) -> NightsChange)? = null,
     val onUndo: (List<TripStep>) -> Unit = {},
+    /** The places programmed under each destination, by its step id (règle 18), from [placesByStep]. */
+    val places: Map<String, List<TripPlace>> = emptyMap(),
+    val onOpenPlace: (placeId: String) -> Unit = {},
+    /** Null for who does not go: they see the programme, without « + ». */
+    val onAddPlace: ((stepId: String, kind: TripPlaceKind) -> Unit)? = null,
 )
+
+/** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
+internal fun placesByStep(places: List<TripPlace>): Map<String, List<TripPlace>> =
+    places.groupBy { it.stepId }.mapValues { (_, list) ->
+        list.sortedWith(compareBy<TripPlace>({ it.kind.ordinal }, { it.arriveTime ?: java.time.LocalTime.MAX }, { it.name.lowercase() }))
+    }
 
 private const val UNDO_MILLIS = 5_000L
 
@@ -243,6 +258,49 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
                 style = MaterialTheme.typography.bodySmall,
                 color = InkSoft,
             )
+        }
+        DestinationProgramme(row.step.id, name, actions)
+    }
+}
+
+/**
+ * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each
+ * opening its page (règle 19); then « + Hébergement », « + Restaurant », « + Spot » for those who go (règle 20).
+ */
+@Composable
+private fun DestinationProgramme(stepId: String, destination: String, actions: TimelineActions) {
+    val places = actions.places[stepId].orEmpty()
+    places.forEach { place ->
+        val kind = placeKindLabel(place.kind)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, place.name)) { actions.onOpenPlace(place.id) }
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(placeKindIcon(place.kind), contentDescription = null, tint = InkSoft, modifier = Modifier.size(20.dp))
+            Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                Text("${place.name} ›", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val time = place.arriveTime?.let { " · " + it.format(java.time.format.DateTimeFormatter.ofPattern("HH'h'mm")) }.orEmpty()
+                Text(kind + time, style = MaterialTheme.typography.bodySmall, color = InkSoft)
+            }
+        }
+    }
+    val onAdd = actions.onAddPlace ?: return
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        TripPlaceKind.entries.forEach { kind ->
+            val label = placeKindLabel(kind)
+            val spoken = stringResource(R.string.timeline_add_place_a11y, label, destination)
+            TextButton(
+                onClick = { onAdd(stepId, kind) },
+                modifier = Modifier.weight(1f).heightIn(min = 56.dp).semantics { contentDescription = spoken },
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
+            ) {
+                Text("+ $label", color = Color(0xFF17333F), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }

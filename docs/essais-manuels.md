@@ -1966,3 +1966,12 @@ Rien à publier côté Firebase. « APK de publication ».
 4. En bas de la page : « Supprimer ce restaurant », avec confirmation. Il disparaît du panneau.
 5. Un membre qui suit le voyage sans partir : la page se lit, sans champ ni bouton.
 6. Supprimer la destination : ses hébergements, restaurants et spots disparaissent aussi.
+
+## Voyage : le programme sous chaque destination du trajet (récit 103, panneaux 1 : règles 18, 19, 20)
+
+Rien à publier côté Firebase (les lieux et leurs règles sont arrivés avec #524). « APK de publication ».
+1. Ouvrir un voyage dont on fait partie, section « Le trajet » : sous chaque destination, trois boutons « + Hébergement », « + Restaurant » et « + Spot ».
+2. « + Restaurant » ouvre la page « Ton restaurant » de cette destination. Après l'enregistrement, le restaurant apparaît sous la destination, en plus petit, avec son heure.
+3. L'ordre sous une destination : d'abord l'hébergement, puis les restaurants et les spots, chacun par heure.
+4. Un appui sur un lieu ouvre sa page (modifier l'heure ou la note, le supprimer).
+5. Pour qui suit le voyage sans partir : les lieux sont visibles, sans les boutons « + ».

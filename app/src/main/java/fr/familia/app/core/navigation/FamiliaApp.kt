@@ -1182,6 +1182,8 @@ fun FamiliaApp(
                             onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
                             onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
+                            onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
+                            onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
                             onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
