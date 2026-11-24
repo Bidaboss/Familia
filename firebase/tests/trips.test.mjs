@@ -742,29 +742,44 @@ describe('« Prévenir ma famille » (récit 105, règle 43)', () => {
 });
 
 describe('« Documents » (récit 105, règle 41)', () => {
+  // Private by default (DESIGN-105): sharedWith is its owner alone, or the travellers they pick.
   const document = (m, overrides = {}) => ({
     ownerId: m.memberId, ownerName: m.memberId, title: 'Billet aller', kind: 'ticket',
-    file: 'd1.pdf', contentType: 'application/pdf', size: 1024, createdAt: serverTimestamp(), ...overrides,
+    file: 'd1.pdf', contentType: 'application/pdf', size: 1024, sharedWith: [m.memberId], createdAt: serverTimestamp(), ...overrides,
   });
 
-  async function storedDocument(tripId, id, m) {
+  async function storedDocument(tripId, id, m, overrides = {}) {
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), `trips/${tripId}/documents/${id}`), {
-        ...document(m, { file: `${id}.pdf` }), createdAt: Timestamp.fromMillis(0),
+        ...document(m, { file: `${id}.pdf`, ...overrides }), createdAt: Timestamp.fromMillis(0),
       });
     });
   }
 
-  test('a participant adds one, signed with their name, and only those who go read it', async () => {
+  test('a participant adds one, private: only they read it, and the app lists only what is shared with the reader', async () => {
     await storedTrip('t1', ADULT);
     await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d1'), document(NEIGHBOUR)));
-    await assertSucceeds(getDoc(doc(as(env, ADULT), 'trips/t1/documents/d1')));
-    // KID follows the trip (EVERYONE) without going: no document for them.
-    await assertFails(getDoc(doc(as(env, KID), 'trips/t1/documents/d1')));
-    await assertFails(getDocs(collection(as(env, KID), 'trips/t1/documents')));
+    await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d1')));
+    // ADULT goes too, but the document is not shared with them.
+    await assertFails(getDoc(doc(as(env, ADULT), 'trips/t1/documents/d1')));
+    await assertSucceeds(getDocs(query(collection(as(env, ADULT), 'trips/t1/documents'), where('sharedWith', 'array-contains', 'adult1'))));
+    // The whole folder, without asking for one's own: refused.
+    await assertFails(getDocs(collection(as(env, ADULT), 'trips/t1/documents')));
   });
 
-  test('the shape is checked: owner, kind, file named after the document, type, size, time', async () => {
+  test('shared with the travellers picked, never with a follower, and read only while one goes', async () => {
+    await storedTrip('t1', ADULT);
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d1'), document(NEIGHBOUR, { sharedWith: ['adult3', 'adult1'] })));
+    await assertSucceeds(getDoc(doc(as(env, ADULT), 'trips/t1/documents/d1')));
+    // KID follows the trip (EVERYONE) without going: never shared with them, never read by them.
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d2'), document(NEIGHBOUR, { file: 'd2.pdf', sharedWith: ['adult3', 'kid1'] })));
+    await assertFails(getDoc(doc(as(env, KID), 'trips/t1/documents/d1')));
+    // ADULT no longer goes: the document shared with them is closed to them.
+    await storedTrip('t1', ADULT, { participantIds: ['adult3'] });
+    await assertFails(getDoc(doc(as(env, ADULT), 'trips/t1/documents/d1')));
+  });
+
+  test('the shape is checked: owner, kind, file named after the document, type, size, sharing, time', async () => {
     await storedTrip('t1', ADULT);
     const db = as(env, NEIGHBOUR);
     await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(ADULT)));
@@ -775,14 +790,28 @@ describe('« Documents » (récit 105, règle 41)', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { title: '' })));
     await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { createdAt: Timestamp.fromMillis(0) })));
     await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { lat: 1 })));
+    // The owner is always in sharedWith, once; a document without sharing is refused.
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { sharedWith: ['adult1'] })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { sharedWith: ['adult3', 'adult3'] })));
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), document(NEIGHBOUR, { sharedWith: [] })));
+    const { sharedWith, ...unshared } = document(NEIGHBOUR);
+    await assertFails(setDoc(doc(db, 'trips/t1/documents/d1'), unshared));
     await assertSucceeds(setDoc(doc(db, 'trips/t1/documents/d3'), document(NEIGHBOUR, { file: 'd3.png', contentType: 'image/png' })));
   });
 
-  test('a follower who does not go adds none; nothing is edited', async () => {
+  test('a follower who does not go adds none; only the owner changes who reads it, and nothing else', async () => {
     await storedTrip('t1', ADULT);
     await assertFails(setDoc(doc(as(env, KID), 'trips/t1/documents/d1'), document(KID)));
     await storedDocument('t1', 'd2', NEIGHBOUR);
-    await assertFails(updateDoc(doc(as(env, NEIGHBOUR), 'trips/t1/documents/d2'), { title: 'Autre' }));
+    const owner = doc(as(env, NEIGHBOUR), 'trips/t1/documents/d2');
+    await assertFails(updateDoc(owner, { title: 'Autre' }));
+    await assertSucceeds(updateDoc(owner, { sharedWith: ['adult3', 'adult1'] }));
+    await assertSucceeds(updateDoc(owner, { sharedWith: ['adult3'] }));
+    await assertFails(updateDoc(owner, { sharedWith: ['adult1'] }));
+    await assertFails(updateDoc(owner, { sharedWith: ['adult3', 'kid1'] }));
+    await storedDocument('t1', 'd4', NEIGHBOUR, { sharedWith: ['adult3', 'adult1'] });
+    await assertFails(updateDoc(doc(as(env, ADULT), 'trips/t1/documents/d4'), { sharedWith: ['adult3', 'adult1', 'adult1'] }));
+    await assertFails(updateDoc(doc(as(env, ADULT), 'trips/t1/documents/d4'), { sharedWith: ['adult3'] }));
   });
 
   test('the owner, the creator of the trip or the admin principal removes one, nobody else', async () => {

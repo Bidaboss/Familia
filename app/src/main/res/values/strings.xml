@@ -3527,7 +3527,7 @@
     <string name="documents_title">Documents</string>
     <string name="documents_round_label">Documents</string>
     <string name="documents_round_description">Billets, réservations et papiers du voyage</string>
-    <string name="documents_intro">Billets, réservations et papiers du voyage. Seuls ceux qui partent les voient, jamais ceux qui suivent le voyage.</string>
+    <string name="documents_intro">Billets, réservations et papiers du voyage. Chacun est privé, sauf si tu le partages avec d\'autres voyageurs ; jamais avec ceux qui suivent le voyage sans partir.</string>
     <string name="documents_add">Ajouter un document</string>
     <string name="documents_sending">Envoi en cours…</string>
     <string name="documents_limits">PDF, JPEG ou PNG, 5 Mo au plus.</string>
@@ -3557,6 +3557,21 @@
     <string name="documents_open_failed">Le document n\'a pas pu être ouvert. Vérifiez la connexion.</string>
     <string name="documents_no_viewer">Aucune application du téléphone ne sait ouvrir ce fichier.</string>
     <string name="documents_delete_failed">Le document n\'a pas pu être supprimé. Réessayez.</string>
+    <!-- DESIGN-105 : un document est privé par défaut, ou partagé avec les voyageurs choisis. -->
+    <string name="documents_who">Qui le voit ?</string>
+    <string name="documents_private_choice">Privé : toi seul</string>
+    <string name="documents_shared_choice">Partagé avec…</string>
+    <string name="documents_all_travellers">Tous les voyageurs</string>
+    <string name="documents_others">Autres</string>
+    <string name="documents_alone">Tu es seul à partir : le document reste privé.</string>
+    <string name="documents_private">Privé</string>
+    <string name="documents_private_line">Privé : seul celui qui l\'a ajouté le voit.</string>
+    <string name="documents_shared_line">Partagé avec %1$s</string>
+    <string name="documents_shared_left">Partagé avec des voyageurs qui ne partent plus</string>
+    <string name="documents_share">Partager…</string>
+    <string name="documents_share_title">Qui voit « %1$s » ?</string>
+    <string name="documents_share_save">Enregistrer</string>
+    <string name="documents_share_failed">Le partage n\'a pas pu être changé. Vérifiez la connexion.</string>
     <string name="packing_round_ready">Valise, tout est prêt</string>
     <plurals name="packing_round_todo">
         <item quantity="one">Valise, %1$d chose à faire</item>

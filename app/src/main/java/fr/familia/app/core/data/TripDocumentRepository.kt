@@ -2,7 +2,6 @@ package fr.familia.app.core.data
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageMetadata
@@ -47,7 +46,11 @@ data class TripDocument(
     val type: TripDocumentType,
     val size: Long,
     val createdAt: Instant?,
+    /** Who reads it (DESIGN-105): its owner alone when private, or the travellers they picked too. */
+    val sharedWith: List<String> = listOf(ownerId),
 ) {
+    val isPrivate: Boolean get() = sharedWith.none { it != ownerId }
+
     /** trips/{tripId}/documents/{ownerId}/{id}.{ext} in Storage. */
     fun path(tripId: String): String = TripDocuments.path(tripId, ownerId, id, type)
 }
@@ -62,15 +65,19 @@ object TripDocuments {
 }
 
 /**
- * « Documents » of a trip (récit 105, règle 41). Only those who go read them, never the followers:
- * a passport may be one. They live out of the album and go with the trip.
+ * « Documents » of a trip (récit 105, règle 41). Never the followers: a passport may be one. Private
+ * by default (DESIGN-105): each one is read by its owner and the travellers they share it with. They
+ * live out of the album and go with the trip.
  */
 interface TripDocumentRepository {
-    /** The documents of the trip, the newest first, updated live. */
-    fun observe(tripId: String): Flow<List<TripDocument>>
+    /** The documents of the trip shared with [memberId] (theirs included), the newest first, updated live. */
+    fun observe(tripId: String, memberId: String): Flow<List<TripDocument>>
 
-    /** Sends the file, then writes the document that names it. */
-    suspend fun add(tripId: String, me: Member, title: String, kind: TripDocumentKind, type: TripDocumentType, bytes: ByteArray)
+    /** Sends the file, then writes the document that names it, read by [sharedWith] (the owner first). */
+    suspend fun add(tripId: String, me: Member, title: String, kind: TripDocumentKind, type: TripDocumentType, bytes: ByteArray, sharedWith: List<String>)
+
+    /** « Partager… »: the owner changes who reads [document]. */
+    suspend fun share(tripId: String, document: TripDocument, sharedWith: List<String>)
 
     /** The file, to open it on the phone; null when it is gone or unreadable. */
     suspend fun bytes(tripId: String, document: TripDocument): ByteArray?
@@ -86,8 +93,10 @@ class FirestoreTripDocumentRepository(
 
     private fun documents(tripId: String) = db.collection("trips").document(tripId).collection("documents")
 
-    override fun observe(tripId: String): Flow<List<TripDocument>> = callbackFlow {
-        val registration = documents(tripId).orderBy("createdAt", Query.Direction.DESCENDING).addSnapshotListener { snapshot, error ->
+    // Only what is shared with the reader: the rules can prove it, and refuse the whole folder. Sorted
+    // here rather than with orderBy, which would need an index with array-contains.
+    override fun observe(tripId: String, memberId: String): Flow<List<TripDocument>> = callbackFlow {
+        val registration = documents(tripId).whereArrayContains("sharedWith", memberId).addSnapshotListener { snapshot, error ->
             if (error != null) {
                 close(error)
                 return@addSnapshotListener
@@ -104,16 +113,19 @@ class FirestoreTripDocumentRepository(
                         kind = kind,
                         type = type,
                         size = doc.getLong("size") ?: 0L,
-                        createdAt = doc.getTimestamp("createdAt")?.toDate()?.toInstant(),
+                        // A document being written has no time yet: it is the newest.
+                        createdAt = doc.getTimestamp("createdAt", com.google.firebase.firestore.DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toDate()?.toInstant(),
+                        sharedWith = (doc.get("sharedWith") as? List<*>).orEmpty().filterIsInstance<String>(),
                     )
-                },
+                }.sortedByDescending { it.createdAt ?: Instant.MAX },
             )
         }
         awaitClose { registration.remove() }
     }
 
-    override suspend fun add(tripId: String, me: Member, title: String, kind: TripDocumentKind, type: TripDocumentType, bytes: ByteArray) {
+    override suspend fun add(tripId: String, me: Member, title: String, kind: TripDocumentKind, type: TripDocumentType, bytes: ByteArray, sharedWith: List<String>) {
         require(bytes.isNotEmpty() && bytes.size <= TripDocuments.MAX_BYTES)
+        require(sharedWith.firstOrNull() == me.id)
         val ref = documents(tripId).document()
         val metadata = StorageMetadata.Builder().setContentType(type.contentType).build()
         storage.reference.child(TripDocuments.path(tripId, me.id, ref.id, type)).putBytes(bytes, metadata).await()
@@ -126,9 +138,15 @@ class FirestoreTripDocumentRepository(
                 "file" to "${ref.id}.${type.extension}",
                 "contentType" to type.contentType,
                 "size" to bytes.size.toLong(),
+                "sharedWith" to sharedWith.distinct(),
                 "createdAt" to FieldValue.serverTimestamp(),
             ),
         ).await()
+    }
+
+    override suspend fun share(tripId: String, document: TripDocument, sharedWith: List<String>) {
+        require(sharedWith.firstOrNull() == document.ownerId)
+        documents(tripId).document(document.id).update("sharedWith", sharedWith.distinct()).await()
     }
 
     override suspend fun bytes(tripId: String, document: TripDocument): ByteArray? = runCatching {

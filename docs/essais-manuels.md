@@ -2493,3 +2493,14 @@ Sur un téléphone en Android 10 ou plus :
 5. Taper vite plusieurs lettres : une seule recherche part à la fin (les précédentes sont arrêtées), ce qui évite le refus « trop de demandes ».
 6. Si OpenStreetMap ne répond pas, le message dit pourquoi : pas de réseau (ou Wi-Fi qui bloque), trop de demandes, ou trop lent. « Réessayer » est en encre.
 7. Retour d'Android ou rond retour : on revient à la destination, la carte et sa poignée réapparaissent.
+## Voyage : documents privés par défaut, ou partagés avec les voyageurs choisis (DESIGN-105)
+
+**Publier Firebase : oui** (règles Firestore et Storage, fonction `arrivalReminder`).
+1. Après la publication, attendre au plus 30 min : les documents d'avant restent visibles par tous ceux qui partent, avec leurs visages dessous.
+2. Ouvrir un voyage où l'on part, « Documents », « Ajouter un document », choisir un PDF : sous le nom et le type, « Qui le voit ? » avec « Privé : toi seul » coché.
+3. « Envoyer » : le document affiche « Privé » avec un cadenas. Sur le téléphone d'un autre voyageur : il n'apparaît pas.
+4. Sur le sien, toucher « Partager… » : « Partagé avec… » puis « Tous les voyageurs » coche tout le monde ; les voyageurs sont rangés par foyer (une case par foyer). « Enregistrer » : leurs visages s'affichent sous le document, et il apparaît chez eux.
+5. Décocher quelqu'un et enregistrer : le document disparaît de chez lui.
+6. Un document d'un autre : pas de « Partager… », seulement ses visages ou rien.
+7. Quelqu'un qui suit le voyage sans partir : toujours « Les documents sont réservés à ceux qui partent. ».
+8. Seul sur un voyage : « Tu es seul à partir : le document reste privé. ».

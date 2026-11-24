@@ -256,6 +256,34 @@ internal object VoyageScreens {
                 onBack = {},
             )
         },
+        // DESIGN-105: a private document, and one shared with two travellers (their faces, « Partager… »).
+        screen("the documents of a trip") {
+            fun m(id: String, name: String) = fr.familia.app.core.model.Member(id, name, null, null, "h1", fr.familia.app.core.model.MemberProfile.Adult, false, emptyList(), null)
+            val people = listOf(m("m1", "Camille"), m("m2", "Inès"), m("m3", "Noé"))
+            fun d(id: String, title: String, kind: fr.familia.app.core.data.TripDocumentKind, sharedWith: List<String>) =
+                fr.familia.app.core.data.TripDocument(id, "m1", "Camille", title, kind, fr.familia.app.core.data.TripDocumentType.Pdf, 10, null, sharedWith)
+            fr.familia.app.feature.trips.documents.TripDocumentsScreen(
+                loading = false,
+                allowed = true,
+                state = fr.familia.app.feature.trips.documents.DocumentsState.Ready(
+                    listOf(
+                        d("d1", "Billet aller", fr.familia.app.core.data.TripDocumentKind.Ticket, listOf("m1", "m2", "m3")),
+                        d("d2", "Passeport", fr.familia.app.core.data.TripDocumentKind.Paper, listOf("m1")),
+                    ),
+                ),
+                sending = false,
+                problem = null,
+                canDelete = { true },
+                onAdd = {},
+                onOpen = {},
+                onDelete = {},
+                onDismissProblem = {},
+                onBack = {},
+                people = people,
+                meId = "m1",
+                onShare = {},
+            )
+        },
         // Fiche F3: the bags are always on the light blue page of « Valise ».
         screen("À emporter") { androidx.compose.foundation.layout.Box(Modifier.background(TripPathColors.Sky)) {
             PackingBags(
