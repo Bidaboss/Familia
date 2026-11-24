@@ -2107,3 +2107,11 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Choisir « Rues » et « 3D » : la carte change tout de suite. Toucher « Annuler » : elle revient comme avant.
 3. Choisir de nouveau « Rues » et « 3D », puis « Enregistrer ». Quitter le voyage, en ouvrir un autre : il s'ouvre en Rues 3D. Le choix reste aussi après avoir fermé l'appli.
 4. Toucher en dehors de la fenêtre revient au même qu'« Annuler ».
+
+## Voyage : « Où allez-vous ? » sur le globe (récit 110, partie 3 : règle 11)
+
+**Publier Firebase : non.**
+1. Voyages → « Nouveau voyage » : au-dessus de « Où allez-vous ? », le globe satellite tourne doucement.
+2. Chercher « La Palmyre » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
+3. « Continuer » mène à la suite de la création, comme avant, avec le nom du voyage déjà rempli.
+4. Avec TalkBack, sans réseau, ou si le globe a échoué récemment : le formulaire reste seul, sans globe, et tout marche pareil.
