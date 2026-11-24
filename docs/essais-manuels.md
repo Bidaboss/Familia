@@ -2004,3 +2004,10 @@ Rien à publier côté Firebase. « APK de publication ».
 3. Tirer la poignée vers le haut : la feuille monte à 85 %, puis prend tout l'écran avec une flèche en haut à gauche. Retour, la flèche ou un glissement vers le bas la redescendent.
 4. Changer un champ puis Retour : « Quitter sans enregistrer ? » s'affiche toujours.
 5. Avec TalkBack, ou sans carte : le formulaire seul, comme avant.
+
+## Voyage : la carte au-dessus d'une étape sans clignotement, et le clavier (récit 103 : règles 4, 8)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir la modification d'une étape : le formulaire ne saute pas quand la carte arrive. Il reste en place, et la carte apparaît au-dessus.
+2. Toucher le champ du lieu ou du commentaire : le clavier s'ouvre, la feuille prend tout l'écran et le champ reste visible au-dessus du clavier.
+3. Fermer le clavier puis appuyer sur la flèche : la feuille redescend et la carte réapparaît.
