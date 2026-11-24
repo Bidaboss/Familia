@@ -135,6 +135,8 @@ fun TripSatelliteMap(
     // Règle 25: back from a page opened here, the map is where it was, and the arrival does not play again.
     var introPlayed by rememberSaveable { mutableStateOf(false) }
     val memory = rememberSaveable(saver = CameraMemory.Saver) { CameraMemory() }
+    // Back from a page opened here (règle 25): the kept camera, never a new frame.
+    val restored = remember { memory.camera != null }
     val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(4) }
     // Why it failed, for « Plantages » (retour d'essai du 24/11): the last error Mapbox gave, once only.
     val lastError = remember { arrayOfNulls<String>(1) }
@@ -188,7 +190,13 @@ fun TripSatelliteMap(
     }
     // The arrival: out to the continent of the trip, then in on the trip, unless the person touches the map.
     LaunchedEffect(drawn) {
-        if (!drawn || !intro || introPlayed) return@LaunchedEffect
+        if (!drawn) return@LaunchedEffect
+        // C1 of #580: made before its layout, the view started on the middle of the steps; now it has
+        // its size, the frame on all the steps is right. The arrival does it itself when it plays.
+        if (!restored && (!intro || introPlayed || touched)) {
+            view[0]?.let { map -> runCatching { map.mapboxMap.setCamera(frame(map, points, bottomPaddingDp * density, tilted)) } }
+        }
+        if (!intro || introPlayed) return@LaunchedEffect
         val map = view[0] ?: return@LaunchedEffect
         if (touched) return@LaunchedEffect
         introPlayed = true

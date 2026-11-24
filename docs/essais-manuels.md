@@ -2311,3 +2311,4 @@ Sur un téléphone en Android 10 ou plus :
 3. Glisser vers le haut deux fois : la feuille prend tout le bas de l'écran, avec la flèche en haut à gauche ; la flèche, un glissé vers le bas ou le bouton Retour la redescendent au milieu.
 4. Toucher la poignée : passe de tout en bas au milieu, et inversement.
 5. Sans globe (TalkBack, économie de batterie, pas de jeton) : la liste prend tout l'écran comme avant, sans poignée.
+6. Avec « Supprimer les animations » dans les réglages du téléphone, ouvrir un voyage à plusieurs destinations éloignées : la carte s'ouvre cadrée sur toutes les étapes, pas sur leur milieu (C1 de #580).
