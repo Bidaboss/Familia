@@ -2224,3 +2224,11 @@ Sur un téléphone en Android 10 ou plus :
 4. « Exporter vers une IA (photos + commentaires + prompt) » montre d'abord le rappel de partage. Après « Continuer », les photos se préparent (barre), puis le partage Android s'ouvre avec les photos (20 au plus) et le prompt en texte.
 5. Dans « Voir les photos » du voyage, sous le film, « Faire un vrai film avec une IA » fait de même pour tout le voyage : une séquence par destination, dans l'ordre du trajet.
 6. Sans photo liée à une étape, l'entrée n'apparaît pas. Sans réseau, l'export dit « Les photos n'ont pas pu être préparées… ».
+
+## Voyage : « Phrases utiles » dit quand la voix manque (règle 44)
+
+**Publier Firebase : non.**
+1. Sur un téléphone sans la voix d'une langue (par exemple sans la voix néerlandaise), ouvrir « Phrases utiles » d'un voyage aux Pays-Bas : sous le titre de la langue, la ligne « La voix en néerlandais n'est pas installée sur ce téléphone… » avec « Installer ». Il n'y a pas de haut-parleur à côté des phrases.
+2. « Installer » ouvre l'écran Android des voix. Après l'installation, revenir : la ligne disparaît et les haut-parleurs apparaissent, sans quitter l'écran.
+3. Une langue dont la voix est là n'a pas la ligne. Pendant le tout premier chargement des voix, aucune ligne ne s'affiche.
+4. Sur un téléphone qui n'a pas d'écran des voix, « Installer » disparaît après le toucher et une phrase indique le chemin dans les Paramètres.

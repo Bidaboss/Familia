@@ -3380,6 +3380,9 @@
     <string name="phrases_none">Aucune étape de ce voyage n\'est dans un pays avec des phrases pour l\'instant.</string>
     <string name="phrases_language">%1$s : %2$s</string>
     <string name="phrases_say">Écouter : %1$s</string>
+    <string name="phrases_voice_missing">La voix en %1$s n\'est pas installée sur ce téléphone : le haut-parleur reviendra une fois installée.</string>
+    <string name="phrases_voice_install">Installer</string>
+    <string name="phrases_voice_settings">Ce téléphone n\'ouvre pas l\'écran des voix. Passe par les Paramètres : Système, Langues, Synthèse vocale.</string>
     <string name="phrases_step_title">Phrases utiles en %1$s</string>
     <string name="phrases_step_all">Les %1$d phrases</string>
     <string name="safety_title">Sécurité</string>
