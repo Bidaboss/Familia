@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- « Carnet de baroudeur » (récit 107, règles 36 à 38). A file of its own, so the other trip work never meets it. -->
+<resources>
+    <string name="carnet_title">Carnet de baroudeur</string>
+    <string name="carnet_subtitle">Tes voyages terminés</string>
+    <string name="carnet_open">Ouvrir le carnet de baroudeur</string>
+    <string name="carnet_rank">Rang</string>
+    <string name="carnet_rank_hiker">Randonneur</string>
+    <string name="carnet_rank_explorer">Explorateur</string>
+    <string name="carnet_rank_globetrotter">Globe-trotter</string>
+    <string name="carnet_rank_great">Grand baroudeur</string>
+    <string name="carnet_countries_label">pays\n%1$d %% du monde</string>
+    <string name="carnet_progress">%1$d pays sur %2$d</string>
+    <string name="carnet_next">Encore %1$d pays pour devenir %2$s</string>
+    <string name="carnet_max">Rang maximum atteint</string>
+    <string name="carnet_passport">Passeport</string>
+    <string name="carnet_home">chez toi</string>
+    <string name="carnet_coming">À venir</string>
+    <string name="carnet_stamp">%1$s, %2$s</string>
+    <string name="carnet_continents">Continents</string>
+    <string name="carnet_continents_count">%1$d sur 5</string>
+    <string name="carnet_map_description">Planisphère. Continents visités : %1$s. %2$d lieux de voyage, %3$d ajoutés à la main.</string>
+    <string name="carnet_map_none">aucun</string>
+    <string name="carnet_europe">Europe</string>
+    <string name="carnet_africa">Afrique</string>
+    <string name="carnet_america">Amérique</string>
+    <string name="carnet_asia">Asie</string>
+    <string name="carnet_oceania">Océanie</string>
+    <string name="carnet_counter">Au compteur</string>
+    <plurals name="carnet_days">
+        <item quantity="one">jour sur la route</item>
+        <item quantity="many">jours sur la route</item>
+        <item quantity="other">jours sur la route</item>
+    </plurals>
+    <string name="carnet_km">km parcourus</string>
+    <plurals name="carnet_trips">
+        <item quantity="one">voyage</item>
+        <item quantity="many">voyages</item>
+        <item quantity="other">voyages</item>
+    </plurals>
+    <plurals name="carnet_photos">
+        <item quantity="one">photo</item>
+        <item quantity="many">photos</item>
+        <item quantity="other">photos</item>
+    </plurals>
+    <plurals name="carnet_destinations">
+        <item quantity="one">%1$d destination · %2$s tour de la Terre</item>
+        <item quantity="many">%1$d destinations · %2$s tour de la Terre</item>
+        <item quantity="other">%1$d destinations · %2$s tour de la Terre</item>
+    </plurals>
+    <string name="carnet_farthest">Le plus loin de la maison</string>
+    <string name="carnet_farthest_from">Maison</string>
+    <string name="carnet_farthest_km">%1$s km à vol d\'oiseau</string>
+    <string name="carnet_trophies">Trophées</string>
+    <string name="carnet_trophy_first">Premier voyage</string>
+    <string name="carnet_trophy_three">3 pays</string>
+    <string name="carnet_trophy_continents">2 continents</string>
+    <string name="carnet_trophy_five">5 pays</string>
+    <string name="carnet_trophy_km">10 000 km</string>
+    <string name="carnet_trophy_world">1er tour du monde</string>
+    <string name="carnet_trophy_won">%1$s, gagné</string>
+    <string name="carnet_trophy_locked">%1$s, pas encore</string>
+    <string name="carnet_manual">Ajoutées à la main</string>
+    <string name="carnet_manual_line">%1$s · %2$d j</string>
+    <string name="carnet_remove">Retirer</string>
+    <string name="carnet_remove_described">Retirer %1$s du carnet</string>
+    <string name="carnet_remove_title">Retirer %1$s ?</string>
+    <string name="carnet_remove_body">Elle disparaît du carnet et du planisphère. Les voyages de l\'appli ne changent pas.</string>
+    <string name="carnet_add">Ajouter une destination</string>
+    <string name="carnet_add_intro">Pour un voyage déjà fait : il compte dans ton carnet et apparaît sur le planisphère. Sans kilomètres ni photos.</string>
+    <string name="carnet_add_field">Recherchez une destination</string>
+    <string name="carnet_add_search">Chercher</string>
+    <string name="carnet_add_searching">Recherche…</string>
+    <string name="carnet_add_none">Aucun lieu trouvé. Essaie une ville, une région ou un pays.</string>
+    <string name="carnet_add_change">Changer</string>
+    <string name="carnet_add_date">Date du voyage</string>
+    <string name="carnet_add_date_pick">Choisir la date</string>
+    <string name="carnet_add_days">Nombre de jours</string>
+    <string name="carnet_add_days_hint">Ex. : 5</string>
+    <string name="carnet_add_save">Ajouter au carnet</string>
+    <string name="carnet_add_no_place">Choisis une destination.</string>
+    <string name="carnet_add_no_date">Choisis la date du voyage.</string>
+    <string name="carnet_add_not_past">La date doit être passée.</string>
+    <string name="carnet_add_bad_days">Indique le nombre de jours (de 1 à 365).</string>
+    <string name="carnet_add_failed">L\'ajout n\'a pas abouti. Vérifie le réseau et réessaie.</string>
+    <string name="carnet_added">%1$s ajouté à ton carnet</string>
+</resources>
