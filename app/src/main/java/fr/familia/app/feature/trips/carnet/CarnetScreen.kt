@@ -67,6 +67,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
+import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.model.TravelPlace
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.LoadingState
@@ -151,7 +152,8 @@ private fun CarnetTopBar(onBack: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Text(
                 stringResource(R.string.carnet_title),
-                style = MaterialTheme.typography.headlineSmall,
+                fontFamily = Fredoka,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = CarnetColors.Ink,
                 modifier = Modifier.semantics { heading() },
@@ -182,9 +184,9 @@ private fun Hero(carnet: Carnet) {
         }
         Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
             Text(stringResource(R.string.carnet_rank).uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.ExtraBold, color = CarnetColors.Soft, letterSpacing = 1.5.sp)
-            Text(rankName(carnet.rank), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = CarnetColors.Coral)
+            Text(rankName(carnet.rank), fontFamily = Fredoka, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = CarnetColors.Coral)
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(vertical = 8.dp)) {
-                Text(carnet.countries.toString(), fontSize = 64.sp, lineHeight = 64.sp, fontWeight = FontWeight.Bold, color = CarnetColors.Ink)
+                Text(carnet.countries.toString(), fontFamily = Fredoka, fontSize = 64.sp, lineHeight = 64.sp, fontWeight = FontWeight.Bold, color = CarnetColors.Ink)
                 Text(stringResource(R.string.carnet_countries_label, carnet.worldPercent), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(bottom = 6.dp))
             }
             val goal = carnet.next?.countries ?: carnet.countries
@@ -258,7 +260,8 @@ private fun CarnetPart(title: String, content: @Composable () -> Unit) {
     ) {
         Text(
             title.uppercase(),
-            style = MaterialTheme.typography.titleMedium,
+            fontFamily = Fredoka,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
             color = CarnetColors.Ink,
             modifier = Modifier.semantics { heading() },
@@ -300,7 +303,7 @@ private fun StampCell(stamp: Stamp, color: Color, tilt: Float, modifier: Modifie
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(flagOf(stamp.code), fontSize = 30.sp)
-        Text(name.uppercase(), color = color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
+        Text(name.uppercase(), color = color, fontFamily = Fredoka, fontSize = 17.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Text(date.uppercase(), color = color, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
     }
 }

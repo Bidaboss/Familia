@@ -174,6 +174,8 @@ internal fun TripDayBox(
     onPick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
     initial: LocalDate? = null,
+    /** Opens another calendar instead (« Dates du voyage », fiche F4); null: the calendar of the day. */
+    onOpen: (() -> Unit)? = null,
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
@@ -184,7 +186,7 @@ internal fun TripDayBox(
             .clip(shape)
             .background(colors.surface)
             .border(1.5.dp, if (date != null) colors.outline else colors.outlineVariant, shape)
-            .clickable(role = Role.Button, onClick = { open = true })
+            .clickable(role = Role.Button, onClick = { if (onOpen != null) onOpen() else open = true })
             .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {

@@ -332,14 +332,15 @@
     <string name="trip_countdown_today">C\'est le jour J</string>
     <string name="trip_countdown_during">Jour %1$d sur %2$d</string>
     <string name="trip_destination_title">Où allez-vous ?</string>
-    <string name="trip_destination_question">Votre destination</string>
-    <string name="trip_destination_field">Un lieu, une ville, un pays</string>
-    <string name="trip_destination_search">Chercher</string>
     <string name="trip_destination_searching">Recherche en cours…</string>
     <string name="trip_destination_none">Aucun lieu trouvé. Essaie un autre nom, ou tape le nom du voyage toi-même.</string>
     <string name="trip_destination_hint">Tape un lieu : jusqu\'à 5 propositions arrivent pendant que tu écris.</string>
     <string name="trip_destination_continue">Continuer</string>
     <string name="trip_destination_type_name">Je tape un nom</string>
+    <string name="trip_destination_new">Nouveau voyage</string>
+    <string name="trip_destination_placeholder">Recherchez un lieu</string>
+    <string name="trip_destination_sheet_raise">Agrandir le panneau</string>
+    <string name="trip_destination_sheet_lower">Réduire le panneau sur le globe</string>
     <string name="nearby_title">Autour de l\'étape</string>
     <string name="nearby_eat">À manger</string>
     <string name="nearby_see">À voir</string>
@@ -1403,6 +1404,24 @@
         <item quantity="many">Dans %d nuits</item>
         <item quantity="other">Dans %d nuits</item>
     </plurals>
+    <string name="trip_dates_title">Dates du voyage</string>
+    <string name="trip_dates_start">Date de début</string>
+    <string name="trip_dates_end">Date de fin</string>
+    <string name="trip_dates_none">À choisir</string>
+    <string name="trip_dates_clear">Effacer les dates</string>
+    <string name="trip_dates_pick_start">Touche le premier jour</string>
+    <string name="trip_dates_pick_end">Touche le dernier jour</string>
+    <string name="trip_dates_single_day">1 jour sélectionné</string>
+    <plurals name="trip_dates_nights">
+        <item quantity="one">%1$d nuit sélectionnée</item>
+        <item quantity="many">%1$d nuits sélectionnées</item>
+        <item quantity="other">%1$d nuits sélectionnées</item>
+    </plurals>
+    <string name="trip_dates_save">Enregistrer</string>
+    <string name="trip_dates_day_start">%1$s, début du voyage</string>
+    <string name="trip_dates_day_end">%1$s, fin du voyage</string>
+    <string name="trip_dates_day_only">%1$s, seul jour du voyage</string>
+    <string name="trip_dates_day_in">%1$s, pendant le voyage</string>
     <plurals name="trips_days">
         <item quantity="one">%d jour</item>
         <item quantity="many">%d jours</item>

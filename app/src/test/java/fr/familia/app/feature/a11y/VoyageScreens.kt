@@ -60,6 +60,12 @@ import fr.familia.app.feature.recipes.previewRecipesState
 import fr.familia.app.feature.trips.detail.TripDetailScreen
 import fr.familia.app.feature.trips.detail.previewTripDetail
 import fr.familia.app.feature.trips.edit.TripEditScreen
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import fr.familia.app.feature.trips.detail.TripPathColors
+import fr.familia.app.feature.trips.edit.DestinationSearch
+import fr.familia.app.feature.trips.edit.TripDestinationScreen
+import fr.familia.app.feature.trips.edit.TripDatesScreen
 import fr.familia.app.feature.trips.edit.TripFormError
 import fr.familia.app.feature.trips.edit.previewTripEditState
 import fr.familia.app.feature.trips.list.TripsScreen
@@ -173,7 +179,15 @@ internal object VoyageScreens {
             )
         },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },
-        screen("À emporter") {
+        // Fiche F4: the calendar of the dates, a trip chosen; the destination without the globe (no token).
+        screen("the dates of a trip") {
+            TripDatesScreen(LocalDate.of(2027, 8, 2), LocalDate.of(2027, 8, 9), { _, _ -> }, {})
+        },
+        screen("where are you going") {
+            TripDestinationScreen("Ajac", DestinationSearch.Idle, null, {}, {}, {}, {}, {}, {})
+        },
+        // Fiche F3: the bags are always on the light blue page of « Valise ».
+        screen("À emporter") { androidx.compose.foundation.layout.Box(Modifier.background(TripPathColors.Sky)) {
             PackingBags(
                 PackingUiState(
                     listOf(
@@ -183,7 +197,7 @@ internal object VoyageScreens {
                 ),
                 PackingActions(),
             )
-        },
+        } },
         screen("the albums") {
             val albums = listOf(
                 AlbumEntry(AlbumEntry.Kind.Event, "e1", "Pique-nique au lac", LocalDate.of(2026, 10, 4), photoCount = 12),

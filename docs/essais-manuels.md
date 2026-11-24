@@ -2436,3 +2436,18 @@ Sur un téléphone en Android 10 ou plus :
 6. Bouton « Documents » : même page bleu clair ; chaque document est une ligne blanche, une icône dans un carré bleu pâle, le titre en gras, « par Sam · PDF » dessous, et un ✕ rouge pour qui peut le retirer (une confirmation est demandée). « Ajouter un document » est le grand bouton sombre fixé en bas.
 7. Une étape à l'étranger, « Phrases utiles » : « Espagne · espagnol » en titre, puis une carte blanche avec un trait entre les phrases ; chaque phrase en gras, « Bonjour · *o-la* » dessous, et un rond crème de 56 dp avec le haut-parleur qui la dit.
 8. La page d'une étape à l'étranger : la tuile « Phrases utiles en … » montre les phrases de la même façon.
+
+## Voyage : nouveau voyage sur le globe, calendrier des dates, carnet en Fredoka (fiche F4)
+
+**Publier Firebase : non.**
+1. Voyages, « + Nouveau voyage » : le globe satellite occupe le haut sur un fond de nuit et tourne ; « Nouveau voyage » en blanc, un rond blanc de retour à gauche, un rond blanc d'aide à droite.
+2. En bas, un panneau bleu clair arrondi : sa poignée, « Où allez-vous ? » en grand, un champ blanc « Recherchez un lieu » avec une loupe, et « Continuer » en bas, gris tant que rien n'est choisi.
+3. Taper « Ajac » : le panneau monte avec le clavier ; jusqu'à 5 lieux arrivent dans une carte blanche. En choisir un : le globe vole dessus et « Continuer » devient sombre.
+4. Fermer le clavier, toucher la poignée : le panneau prend tout l'écran ; la retoucher le redescend sur le globe.
+5. « Je tape un nom » (souligné, sous la recherche) mène toujours au formulaire sans lieu.
+6. Avec TalkBack : pas de globe, le même panneau sur fond bleu clair.
+7. Dans le formulaire, toucher « Départ » ou « Retour » : l'écran crème « Dates du voyage » s'ouvre sur le mois du départ. Les mois défilent de haut en bas, les jours passés sont plus pâles mais restent touchables (voyage déjà fait).
+8. Toucher le 2 puis le 9 : deux ronds sombres et une bande sable entre les deux, l'en-tête dit « 2 août 2027 › 9 août 2027 », en bas « 7 nuits sélectionnées ». Un même jour touché deux fois : « 1 jour sélectionné ».
+9. « Effacer les dates » vide tout ; « Enregistrer » reste gris tant que la fin n'est pas choisie, puis remplit les deux cases du formulaire.
+10. TalkBack sur un jour : « samedi 2 août 2027, début du voyage ».
+11. Carnet de baroudeur : le titre, le rang, le grand chiffre, « PASSEPORT », « CONTINENTS » et les noms des tampons sont dans la police arrondie.
