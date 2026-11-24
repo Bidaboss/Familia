@@ -65,7 +65,7 @@ class TripsGlobeTest {
 
     @Test fun theGlobeOfTheListShowsTheNaturalColoursFirst() {
         assertEquals(GlobeLook.Vivid, GlobeLook.LIST_DEFAULT)
-        assertEquals(com.mapbox.maps.Style.SATELLITE, GlobeLook.Vivid.styleUri)
+        assertEquals(com.mapbox.maps.Style.SATELLITE_STREETS, GlobeLook.Vivid.styleUri)
         assertEquals(GlobeLook.Vivid, GlobeLook.of(null))
         assertEquals(GlobeLook.Vivid, GlobeLook.of("inconnue"))
         assertEquals(GlobeLook.Soft, GlobeLook.of("Soft"))

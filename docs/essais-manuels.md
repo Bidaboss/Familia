@@ -2587,3 +2587,4 @@ Sur un téléphone en Android 10 ou plus :
 3. Dans ce cas, Administration > Plantages montre au prochain lancement une ligne « globe : imagerie absente 8 s, Terre dessinée », et avant elle la ligne « Carte … : SOURCE … » qui dit pourquoi Mapbox a refusé les images, s'il l'a dit.
 4. Une destination sans photo (le dessin s'affiche) : au prochain lancement, « Plantages » montre une ligne « Photo du lieu : … » avec la raison, par exemple « refusé 403 fr.wikipedia.org », « délai dépassé » ou « image HttpException… ». Le nom du lieu n'y est jamais.
 5. Avec une photo qui s'affiche : aucune ligne nouvelle.
+6. Le globe de « Voyages » prend les mêmes images que la carte d'un voyage (Satellite Streets), sans noms ni routes. Sur le téléphone où la carte d'un voyage montrait de vraies photos mais où le globe restait noir, le globe a maintenant ses couleurs.

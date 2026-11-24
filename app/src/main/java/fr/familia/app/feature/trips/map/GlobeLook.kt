@@ -22,11 +22,15 @@ enum class GlobeLook(
     /** How big the globe of the list is: 1.1 fills about 85 % of the width of a phone. */
     val listZoom: Double,
 ) {
-    /** Natural colours from zoom 0 (blue oceans, green forests, ochre deserts), a vivid blue halo. */
-    Vivid("A", Style.SATELLITE, "#7FB8FF", "#1E6FE0", "#02050F", 0.10, 0.9, 1.1),
+    /**
+     * Natural colours from zoom 0 (blue oceans, green forests, ochre deserts), a vivid blue halo.
+     * Retour du 24/11 soir: the imagery of Satellite Streets, the one the map of a trip shows on the
+     * phone of the admin (classic Satellite stayed black there); its names and roads are taken off.
+     */
+    Vivid("A", Style.SATELLITE_STREETS, "#7FB8FF", "#1E6FE0", "#02050F", 0.10, 0.9, 1.1),
 
     /** The same imagery, a softer halo, a slightly bigger globe. */
-    Soft("B", Style.SATELLITE, "#A8CCF5", "#2F6FC8", "#030712", 0.06, 0.8, 1.2),
+    Soft("B", Style.SATELLITE_STREETS, "#A8CCF5", "#2F6FC8", "#030712", 0.06, 0.8, 1.2),
 
     /** Standard Satellite as before E-48, for the comparison and for the other globes. */
     Standard("C", Style.STANDARD_SATELLITE, "#BFD9F2", "#3C6FB5", "#050B1A", 0.04, 0.7, 1.0),
