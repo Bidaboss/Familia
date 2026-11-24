@@ -2028,3 +2028,13 @@ Rien à publier côté Firebase. « APK de publication ».
 3. Une photo prise un jour de changement de destination va sous celle qui commence ce jour-là.
 4. Les photos prises hors des jours des destinations restent visibles : un bouton « N photos sans étape » ouvre les photos du voyage.
 5. Rien n'est réécrit : les photos gardent leur fiche, et personne ne voit plus de photos qu'avant.
+
+## Voyage : ajouter des photos depuis une destination (récit 104, partie 2 : règle 31)
+
+**Publier Firebase : oui** (règles Firestore : champ stepId des photos d'un voyage). « APK de publication » ensuite.
+1. Ouvrir un voyage dont on fait partie : sous chaque destination, un carré « Ajouter des photos » (icône photo) suit les vignettes.
+2. Le toucher, choisir deux photos : elles s'envoient et apparaissent sous cette destination, même si elles ont été prises un autre jour.
+3. Avec plus de 4 photos, toucher « + N » : l'album s'ouvre sur la 5e photo.
+4. Avec TalkBack : chaque vignette dit « Photo de <prénom> », « + N » dit le nombre de photos de la destination, le carré dit « Ajouter des photos à <destination> ».
+5. Supprimer la destination : ses photos restent et reviennent sous la destination de leur jour, ou dans « photos sans étape ».
+6. Un membre qui suit le voyage sans y participer ne voit pas le carré d'ajout ; un membre qui ne suit pas le voyage ne voit toujours aucune photo.

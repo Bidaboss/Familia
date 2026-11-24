@@ -360,6 +360,7 @@
         <item quantity="one">%1$d photo à %2$s</item>
         <item quantity="other">%1$d photos à %2$s</item>
     </plurals>
+    <string name="timeline_photo_add">Ajouter des photos à %1$s</string>
     <plurals name="timeline_photos_without_step">
         <item quantity="one">%d photo sans étape</item>
         <item quantity="other">%d photos sans étape</item>
