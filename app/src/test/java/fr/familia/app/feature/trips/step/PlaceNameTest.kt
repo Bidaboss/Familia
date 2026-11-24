@@ -5,9 +5,9 @@ import org.junit.Test
 
 class PlaceNameTest {
     @Test
-    fun `la rochelle takes its capitals`() {
-        assertEquals("La Rochelle", placeName("La rochelle"))
-        assertEquals("La Rochelle", placeName("  la   rochelle "))
+    fun `la ciotat takes its capitals`() {
+        assertEquals("La Ciotat", placeName("La ciotat"))
+        assertEquals("La Ciotat", placeName("  la   ciotat "))
     }
 
     @Test
@@ -20,7 +20,7 @@ class PlaceNameTest {
 
     @Test
     fun `a word typed with capitals stays as typed`() {
-        assertEquals("McDonald's Royan", placeName("McDonald's royan"))
+        assertEquals("McDonald's Quimper", placeName("McDonald's quimper"))
         assertEquals("LA", placeName("LA"))
     }
 

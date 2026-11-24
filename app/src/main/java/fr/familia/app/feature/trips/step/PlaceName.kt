@@ -4,8 +4,8 @@ package fr.familia.app.feature.trips.step
 private val PARTICLES = setOf("de", "du", "des", "la", "le", "les", "en", "et", "sur", "sous", "aux", "à", "lès", "lez")
 
 /**
- * The name of a place as the family reads it (E-6): « La rochelle » typed on the phone becomes
- * « La Rochelle ». Only a word typed all in lower case changes, so « McDonald's » or « LA »
+ * The name of a place as the family reads it (E-6): « La ciotat » typed on the phone becomes
+ * « La Ciotat ». Only a word typed all in lower case changes, so « McDonald's » or « LA »
  * stay as typed; the first word always takes its capital, the small words inside stay small.
  */
 fun placeName(typed: String): String {

@@ -2335,7 +2335,7 @@ Sur un téléphone en Android 10 ou plus :
 ## Voyage : une couche refusée par Mapbox ne coupe plus la carte (plantage du 24/11 16 h 47)
 
 **Publier Firebase : non.** « APK de publication » (R8 et carte satellite).
-1. Ouvrir le voyage La Palmyre : la carte satellite s'affiche avec ses ronds numérotés et le chemin en pointillé.
+1. Ouvrir un voyage dont les étapes sont placées : la carte satellite s'affiche avec ses ronds numérotés et le chemin en pointillé.
 2. Toucher un rond : un anneau blanc l'entoure, sans disque noir dedans.
 3. Basculer Satellite / Rues puis 2D / 3D plusieurs fois : la carte reste, sans « Carte indisponible ».
 4. Si une couche secondaire (nom, numéro, anneau) était encore refusée, la carte reste affichée et Administration > Plantages reçoit au lancement suivant « SdkError » avec « couche <id>: <message> ».
@@ -2356,6 +2356,6 @@ Sur un téléphone en Android 10 ou plus :
 1. Ouvrir un voyage à quatre participants ou plus : sous le titre, deux prénoms puis « et 2 autres » (par exemple), sans « … ». Avec TalkBack, tous les prénoms sont lus.
 2. Un voyage à deux : les deux prénoms, « X et Y ».
 3. En haut à droite, un crayon remplace le mot « Modifier » (pour l'admin ou un chef de famille qui gère le voyage) ; il ouvre la modification du voyage.
-4. Ajouter une étape en tapant « la rochelle » : le clavier met une majuscule à chaque mot, et l'étape s'enregistre « La Rochelle ». « saint-jean-de-luz » devient « Saint-Jean-de-Luz ».
-5. Une ancienne étape « La rochelle » s'affiche « La Rochelle » dans la carte du jour.
+4. Ajouter une étape en tapant « la ciotat » : le clavier met une majuscule à chaque mot, et l'étape s'enregistre « La Ciotat ». « saint-jean-de-luz » devient « Saint-Jean-de-Luz ».
+5. Une ancienne étape « La ciotat » s'affiche « La Ciotat » dans la carte du jour.
 6. Nouveau voyage, taper « La R » : des propositions apparaissent ; effacer jusqu'à « La » : les propositions disparaissent (remarque C de #583).
