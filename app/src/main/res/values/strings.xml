@@ -1357,10 +1357,10 @@
     <string name="trips_none_coming">Aucun voyage prévu pour l\'instant. Touche « Nouveau voyage » pour préparer le prochain.</string>
     <string name="trips_none_coming_child">Aucun voyage prévu pour l\'instant. Va voir tes souvenirs de voyage en haut.</string>
     <string name="trips_day_of">Jour %1$d sur %2$d</string>
-    <plurals name="trips_in_days">
-        <item quantity="one">Dans %d jour</item>
-        <item quantity="many">Dans %d jours</item>
-        <item quantity="other">Dans %d jours</item>
+    <plurals name="trips_in_nights">
+        <item quantity="one">Dans %d nuit</item>
+        <item quantity="many">Dans %d nuits</item>
+        <item quantity="other">Dans %d nuits</item>
     </plurals>
     <plurals name="trips_days">
         <item quantity="one">%d jour</item>
@@ -1435,6 +1435,13 @@
     <string name="now_travelling_many">%1$s sont à %2$s</string>
     <string name="now_travelling_detail">Jour %1$d, %2$s</string>
     <string name="now_travelling_open">ouvrir le voyage</string>
+    <!-- La veille et le jour J d'un voyage, sur l'Accueil, pour ceux qui partent (récit 109) -->
+    <string name="departure_label_tomorrow">Demain</string>
+    <string name="departure_label_today">Jour J</string>
+    <string name="departure_tomorrow">Demain, départ pour %1$s</string>
+    <string name="departure_today">C\'est le jour J : départ pour %1$s</string>
+    <string name="departure_packing">Valise</string>
+    <string name="departure_open">Voir le trajet</string>
     <!-- Photo albums, shared by the trips (récit 15) and later the events (récit 41). -->
     <string name="album_photos_add">Ajouter des photos</string>
     <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
@@ -1940,6 +1947,10 @@
     <string name="trip_tile_trip">Le voyage</string>
     <string name="trip_title_hint">Il deviendra le nom du voyage pour toute la famille : en haut du voyage, dans la liste et dans le fil. Tu pourras le changer plus tard.</string>
     <string name="trip_form_no_night">Aller-retour dans la journée</string>
+    <string name="trip_past_days_title">Combien de jours ?</string>
+    <string name="trip_past_days_less">Un jour de moins</string>
+    <string name="trip_past_days_more">Un jour de plus</string>
+    <string name="trip_past_days_hint">Pour un voyage déjà fait : la date de retour suit le nombre de jours.</string>
     <plurals name="trip_form_nights">
         <item quantity="one">%1$d nuitée</item>
         <item quantity="other">%1$d nuitées</item>
@@ -1997,7 +2008,7 @@
     <string name="globe_resume">Reprendre</string>
     <string name="trip_map_open">La carte</string>
     <string name="trip_map_settings">Réglages de la carte</string>
-    <string name="trip_map_settings_done">Fermer</string>
+    <string name="trip_map_settings_save">Enregistrer</string>
     <string name="trip_map_look_satellite">Satellite</string>
     <string name="trip_map_look_streets">Rues</string>
     <string name="trip_map_mode_2d">2D</string>
@@ -2047,7 +2058,7 @@
     <string name="trip_step_day">Jour</string>
     <string name="trip_step_time">Heure</string>
     <string name="trip_step_tile_note">Une note</string>
-    <string name="trip_step_note_hint">Numéro de train, de vol, voiture, quai…</string>
+    <string name="trip_step_note_hint">Plusieurs lignes possibles : numéro de train, de vol, voiture, quai…</string>
     <string name="trip_step_add">Ajouter l\'étape</string>
     <string name="trip_step_in_trip">Dans le voyage · %1$s · %2$s</string>
     <string name="trip_step_type_flight">Vol</string>
