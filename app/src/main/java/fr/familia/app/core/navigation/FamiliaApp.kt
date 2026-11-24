@@ -319,6 +319,8 @@ import fr.familia.app.feature.trips.word.StepWordRoute
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.map.TripMapRoute
 import fr.familia.app.feature.trips.TripsDestination
+import fr.familia.app.feature.trips.carnet.CarnetRoute
+import fr.familia.app.feature.trips.carnet.TripCarnetDestination
 import fr.familia.app.feature.trips.list.TripPart
 import fr.familia.app.feature.trips.detail.TripDetailRoute
 import fr.familia.app.feature.trips.edit.TripEditRoute
@@ -967,6 +969,7 @@ fun FamiliaApp(
                                 },
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                                onOpenPacking = { id -> navController.navigate(TripPackingDestination(id)) },
                                 onOpenWord = { tripId, stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                                 onOpenAlbumPhoto = { album, photoId ->
                                     when (album.kind) {
@@ -1148,6 +1151,7 @@ fun FamiliaApp(
                             globeToken = BuildConfig.MAPBOX_PUBLIC_TOKEN,
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                             onAddTrip = { navController.navigate(TripEditDestination()) },
+                            onOpenCarnet = { navController.navigate(TripCarnetDestination) { launchSingleTop = true } },
                             // A tab of the bar when its module is on: no « Retour » then.
                             onBack = if (TopLevelDestination.Trips in tabs) null else ({ navController.popBackStack() }),
                             onOpenAlbums = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) { launchSingleTop = true } }) else null,
@@ -1227,6 +1231,9 @@ fun FamiliaApp(
                             kind = TripPlaceKind.entries.firstOrNull { it.name == route.kind },
                             presetName = route.name,
                         )
+                    }
+                    composable<TripCarnetDestination> {
+                        CarnetRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<TripDocumentsDestination> { entry ->
                         TripDocumentsRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripDocumentsDestination>().tripId, onBack = { navController.popBackStack() })

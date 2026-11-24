@@ -221,7 +221,9 @@ private fun FormContent(
                 value = form.note,
                 onValueChange = { value -> onChange { it.copy(note = value) } },
                 isError = StepFormError.NoteTooLong in errors,
+                // Several lines, said by the hint, but never a field taller than 6 lines: it scrolls (règle 26).
                 minLines = 3,
+                maxLines = 6,
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
