@@ -1178,6 +1178,7 @@ fun FamiliaApp(
                             onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
+                            onOpenPhoto = { photoId -> navController.navigate(TripPhotosDestination(tripId, photoId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
                             onOpenPacking = { navController.navigate(TripPackingDestination(tripId)) },
                             onOpenPhrases = { navController.navigate(TripPhrasesDestination(tripId)) },

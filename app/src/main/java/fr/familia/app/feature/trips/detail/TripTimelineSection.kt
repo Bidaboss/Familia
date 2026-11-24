@@ -47,7 +47,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.model.TripPlace
+import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.feature.trips.place.placeKindIcon
@@ -71,6 +73,12 @@ class TimelineActions(
     val onOpenPlace: (placeId: String) -> Unit = {},
     /** Null for who does not go: they see the programme, without « + ». */
     val onAddPlace: ((stepId: String, kind: TripPlaceKind) -> Unit)? = null,
+    /** The photos of each destination (récit 104, règle 31), from [stepPhotos]; and the album opened on one of them. */
+    val photos: Map<String, List<AlbumPhoto>> = emptyMap(),
+    val onOpenPhoto: (photoId: String) -> Unit = {},
+    /** The photos that fall in no destination, « Sans étape », and the album they are in. */
+    val withoutStep: Int = 0,
+    val onSeePhotos: () -> Unit = {},
 )
 
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
@@ -172,6 +180,12 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                 is TimelineRow.Move -> MoveRow(row, onOpen = { actions.onOpen(row.step.id) })
             }
         }
+        if (actions.withoutStep > 0) {
+            val label = pluralStringResource(R.plurals.timeline_photos_without_step, actions.withoutStep, actions.withoutStep)
+            TextButton(onClick = actions.onSeePhotos, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text("$label ›", color = Deep, fontWeight = FontWeight.Bold)
+            }
+        }
         EndRow(text = stringResource(R.string.timeline_end), day = trip.endDate, trailing = {})
     }
 }
@@ -265,8 +279,38 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
             )
         }
         DestinationProgramme(row.step.id, name, actions)
+        StepPhotoStrip(actions.photos[row.step.id].orEmpty(), name, actions.onOpenPhoto)
     }
 }
+
+/** The photos of a destination (règle 31): the first four, 56 dp each, and « + N » for the others; a touch opens the album on it. */
+@Composable
+private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit) {
+    if (photos.isEmpty()) return
+    val spoken = pluralStringResource(R.plurals.timeline_photos_a11y, photos.size, photos.size, destination)
+    Row(
+        Modifier.fillMaxWidth().semantics { contentDescription = spoken },
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        photos.take(STRIP_PHOTOS).forEach { photo ->
+            val open = stringResource(R.string.album_photo_by, photo.authorName)
+            StorageImage(
+                path = photo.thumbnailPath,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(role = Role.Button, onClickLabel = open) { onOpen(photo.id) },
+            )
+        }
+        if (photos.size > STRIP_PHOTOS) {
+            Text("+ ${photos.size - STRIP_PHOTOS}", color = Deep, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp))
+        }
+    }
+}
+
+private const val STRIP_PHOTOS = 4
 
 /**
  * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each
