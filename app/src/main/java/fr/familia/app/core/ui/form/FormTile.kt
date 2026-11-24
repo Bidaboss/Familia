@@ -97,7 +97,7 @@ fun FormLabel(text: String, modifier: Modifier = Modifier) {
 
 /** The help or the error under a field: the error wins, in the error color. */
 @Composable
-fun FormHint(text: String, isError: Boolean = false, modifier: Modifier = Modifier) {
+fun FormHint(text: String, modifier: Modifier = Modifier, isError: Boolean = false) {
     Text(
         text,
         style = MaterialTheme.typography.bodyMedium,

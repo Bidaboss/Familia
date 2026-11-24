@@ -485,6 +485,8 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 ### `migrations/singleList/items/{listId}_{itemId}` (récit 9 ter, « Liste unique »)
 
+Depuis le 23/11, l'appli n'a plus d'interrupteur « Liste unique » : elle est toujours allumée, et l'ancien onglet Cadeaux est retiré. `config/app.features.singleList` reste à `true` dans Firestore, car les fonctions la lisent encore (copie, révélation, rappels d'anniversaire) : ne pas l'effacer.
+
 Écrit par la fonction seule, jamais lu par l'appli. Quand l'interrupteur `singleList` s'allume, chaque article d'une liste d'occasion non révélée est copié, sans rien effacer : dans « Mes envies » s'il est visible par la personne (avec l'occasion de sa liste si c'est Noël ou un anniversaire), sinon dans ses « Idées de la famille ». La copie a l'identifiant `from-{listId}-{itemId}` ; sa réservation, ses parts et les entrées de carnet des offrants suivent. Cette marque, écrite dans le même lot, empêche toute seconde copie : rallumer l'interrupteur ne copie que les nouveaux articles. Champs : `listId`, `itemId`, `target`, `copiedId`, `copiedAt`.
 
 ### `migrations/singleList/lists/{listId}` (récit 9 ter, « Liste unique »)
@@ -861,6 +863,7 @@ Droits : tous les membres lisent les commentaires et en écrivent en leur nom. S
 | `participantIds` | liste de textes | Les membres qui partent (1 à 13, sans doublon), dont toujours le créateur |
 | `readerIds` | liste de textes | Les membres qui suivent le voyage (1 à 40). Ils comprennent toujours les participants |
 | `creatorId`, `creatorName` | texte | Le créateur et son prénom à la création, qui ne changent jamais |
+| `currency` | texte, facultatif | « Monnaie » (récit 105, règle 42) : code ISO à 3 lettres majuscules (`THB`). Absent : l'euro. Changé seulement par le créateur ou l'admin principal, sans toucher au reste. Le taux du jour n'est pas stocké : l'appli le lit chez ExchangeRate-API (open.er-api.com, base EUR, seul l'euro est demandé) et le garde sur le téléphone avec sa date |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
 
 Droits : seul un membre de `readerIds` lit le voyage. L'appli le cherche avec `readerIds array-contains <son id>`, car les règles refusent toute requête plus large. Par défaut, tous les membres proposés par `tripAudience()` sont cochés, et le créateur décoche qui ne doit pas le voir (récit 12). La liste est figée au moment où elle est enregistrée : un membre ajouté plus tard à la famille ne voit pas les anciens voyages, sauf si le créateur le coche. Seul un adulte crée un voyage (PRD rév. 131) : un enfant y participe quand un adulte l'ajoute, et il dit alors « bien arrivé » et remplit les étapes. Le créateur et l'admin principal le modifient et le suppriment. Le créateur peut ajouter comme participant n'importe quel membre de la famille, de tous les foyers, enfants compris, car plusieurs foyers partent souvent ensemble (PRD rév. 190). L'appli propose aussi « Ajouter toute la famille » et « Ajouter tout le foyer … ».
@@ -936,6 +939,18 @@ La liste de départ de « Ma valise », modifiable par le membre seul (« Garder
 | `updatedAt` | horodatage serveur | |
 
 `members/{memberId}/settings/notifications.packingReminder` (booléen, facultatif) : `false` coupe le rappel de la veille du départ quand il reste des objets non cochés.
+### `trips/{tripId}/alerts/{memberId}` (récit 105, « Prévenir ma famille », règle 43)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `authorId` | texte | Le participant qui prévient, égal à `{memberId}` |
+| `authorName` | texte | Son prénom, au moment de l'envoi |
+| `createdAt` | horodatage | Heure du serveur |
+
+Un document par participant, réécrit à chaque alerte. Aucune position n'y est. Droits : seul un participant du voyage écrit le sien, signé de son nom, à l'heure du serveur ; un nouvel envoi n'est accepté que 10 minutes après le précédent. Personne ne le lit dans l'appli. `onTripAlertWritten` prévient aussitôt, sur le canal `trips` et même la nuit (ce qui me vise directement), tous ceux qui suivent le voyage (`readerIds`) et ont l'appli, sauf l'auteur. La suppression du voyage l'emporte. Tests : `firebase/tests/trips.test.mjs` et `firebase/functions/test/trips.test.ts`.
+
+Les numéros d'urgence de l'écran « Sécurité » sont une table fixe dans l'appli (`feature/trips/safety/EmergencyNumbers.kt`), jamais pour la France. Le pays d'une étape est lu par le géocodeur du téléphone à partir de son point : rien de nouveau n'est stocké.
+
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.

@@ -7,7 +7,8 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { Member, Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
-  arrivalNotice, deleteStepWord, deleteTripContents, isNewArrival, joinNames, notifyArrival, sendArrivalReminders, StepData, TripData, withApp,
+  ALERT_GAP_MS, alertNotice, arrivalNotice, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, joinNames, notifyAlert, notifyArrival,
+  sendArrivalReminders, StepData, TripData, withApp,
 } from '../src/trips';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
@@ -154,5 +155,53 @@ describe('le mot de l\'étape (récit 88)', () => {
     await db.doc('trips/t1/words/s1').set({ text: 'Bien arrivés' });
     await deleteTripContents(db, 't1');
     assert.equal((await db.collection('trips/t1/words').get()).size, 0);
+  });
+});
+
+describe('« Prévenir ma famille » (récit 105)', () => {
+  const at = (millis: number) => ({ authorId: 'lou', authorName: 'Lou', createdAt: Timestamp.fromMillis(millis) });
+
+  test('a first alert, or one 10 minutes after the last, is new; a rewrite sooner is not', () => {
+    assert.equal(isNewAlert(undefined, at(1000)), true);
+    assert.equal(isNewAlert(at(1000), at(1000 + ALERT_GAP_MS)), true);
+    assert.equal(isNewAlert(at(1000), at(1000 + ALERT_GAP_MS - 1)), false);
+    assert.equal(isNewAlert(at(1000), undefined), false);
+  });
+
+  test('the notice asks for a call, rings at once and says nothing of a position', () => {
+    const notice = alertNotice('t1', corse, 'Lou');
+    assert.equal(notice.title, 'Corse : Lou prévient la famille');
+    assert.equal(notice.body, 'Lou a touché « Prévenir ma famille ». Appelle dès que possible.');
+    assert.equal(notice.direct, true);
+    assert.equal(notice.tripId, 't1');
+  });
+
+  describe('store', () => {
+    beforeEach(async () => {
+      await db.recursiveDelete(db.collection('members'));
+      await db.recursiveDelete(db.collection('trips'));
+      const batch = db.batch();
+      batch.set(db.doc('members/lou'), member('Lou', 'adult', 'uid-lou'));
+      batch.set(db.doc('members/sam'), member('Sam'));
+      batch.set(db.doc('members/noe'), member('Noé', 'childWithoutApp'));
+      batch.set(db.doc('members/ines'), member('Inès'));
+      batch.set(db.doc('members/max'), member('Max'));
+      for (const id of ['lou', 'sam', 'ines', 'max']) batch.set(db.doc(`members/${id}/devices/token-${id}`), { updatedAt: new Date() });
+      batch.set(db.doc('trips/t1'), corse);
+      await batch.commit();
+    });
+
+    test('every follower with the app but its author is told', async () => {
+      const { sent, send } = fakeSender();
+      assert.equal(await notifyAlert(db, send, 't1', 'lou', at(Date.now())), 3);
+      assert.deepEqual(sent.map((s) => s.token).sort(), ['token-ines', 'token-max', 'token-sam']);
+    });
+
+    test('someone who does not go, or an alert signed by another, rings nobody', async () => {
+      const { sent, send } = fakeSender();
+      assert.equal(await notifyAlert(db, send, 't1', 'ines', { ...at(Date.now()), authorId: 'ines' }), 0);
+      assert.equal(await notifyAlert(db, send, 't1', 'sam', at(Date.now())), 0);
+      assert.equal(sent.length, 0);
+    });
   });
 });

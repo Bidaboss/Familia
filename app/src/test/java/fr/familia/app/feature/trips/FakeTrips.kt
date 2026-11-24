@@ -95,6 +95,19 @@ class FakeTrips(
         cleared += stepId
     }
 
+    val alerts = mutableListOf<Pair<String, String>>()
+    val currencies = mutableListOf<Pair<String, String?>>()
+
+    override suspend fun setCurrency(tripId: String, code: String?) {
+        failWith?.let { throw it }
+        currencies += tripId to code
+    }
+
+    override suspend fun alertFamily(tripId: String, me: Member) {
+        failWith?.let { throw it }
+        alerts += tripId to me.id
+    }
+
     override fun observeItems(tripId: String): Flow<List<TripItem>> = items.map { it[tripId].orEmpty().sortedWith(itemOrder) }
     override fun newItemId(tripId: String): String = "i-new"
 

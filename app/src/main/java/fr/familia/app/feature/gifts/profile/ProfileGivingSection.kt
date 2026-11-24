@@ -81,12 +81,11 @@ class ProfileGivingViewModel(
     gifts: GiftRepository?,
     currentMemberId: String,
     memberId: String,
-    singleList: Boolean,
     /** Off with the notebook module: only the surprises then. */
     notebookOn: Boolean,
 ) : ViewModel() {
     private val entries = (notebook?.takeIf { notebookOn }?.observeEntries(currentMemberId) ?: flowOf(emptyList()))
-        .map { giftsFor(it, memberId, singleList) }
+        .map { giftsFor(it, memberId) }
         .catch { e ->
             if (e is CancellationException) throw e
             emit(emptyList())
@@ -99,8 +98,8 @@ class ProfileGivingViewModel(
             emit(emptyList())
         }
 
-    // With the single list a surprise is an idea of the family (retour d'essai du 17/11).
-    private val surpriseIdea = (gifts?.takeIf { singleList }?.observeItems(ideasListId(memberId), hiddenFromMe = false) ?: flowOf(emptyList()))
+    // A surprise is an idea of the family (retour d'essai du 17/11).
+    private val surpriseIdea = (gifts?.observeItems(ideasListId(memberId), hiddenFromMe = false) ?: flowOf(emptyList()))
         .map { items -> items.any { !it.visibleToBeneficiary } }
         .catch { e ->
             if (e is CancellationException) throw e
@@ -126,7 +125,6 @@ fun ProfileGivingSection(
     container: AppContainer?,
     currentMember: Member,
     member: Member,
-    singleList: Boolean,
     notebookOn: Boolean,
     onOpenList: (listId: String) -> Unit,
     onOpenNotebook: () -> Unit,
@@ -136,21 +134,21 @@ fun ProfileGivingSection(
 ) {
     if (!showsGiving(currentMember.id, member.id, LocalViewAs.current.viewed != null)) return
     val viewModel: ProfileGivingViewModel = viewModel(
-        key = "profile-giving-${member.id}-$singleList-$notebookOn",
+        key = "profile-giving-${member.id}-$notebookOn",
         factory = viewModelFactory {
             initializer {
                 ProfileGivingViewModel(
-                    container?.notebookRepository, container?.giftRepository, currentMember.id, member.id, singleList, notebookOn,
+                    container?.notebookRepository, container?.giftRepository, currentMember.id, member.id, notebookOn,
                 )
             }
         },
     )
     // The writes go through the notebook itself: the reveal of a reservation follows its occasion.
     val notebook: NotebookViewModel = viewModel(
-        key = "profile-notebook-$singleList",
+        key = "profile-notebook",
         factory = viewModelFactory {
             initializer {
-                NotebookViewModel(container?.notebookRepository, currentMember.id, gifts = container?.giftRepository, singleList = singleList)
+                NotebookViewModel(container?.notebookRepository, currentMember.id, gifts = container?.giftRepository)
             }
         },
     )

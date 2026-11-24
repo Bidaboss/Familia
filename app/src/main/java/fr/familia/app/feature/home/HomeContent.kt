@@ -4,8 +4,6 @@ import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
-import fr.familia.app.core.model.GiftList
-import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Rsvp
@@ -14,7 +12,6 @@ import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.upcomingBirthdays
-import fr.familia.app.core.viewas.listsSeenBy
 import fr.familia.app.feature.helprequests.canVolunteer
 import fr.familia.app.feature.polls.canAskPoll
 import fr.familia.app.feature.trips.canCreateTrip
@@ -28,7 +25,6 @@ import fr.familia.app.core.model.leaders
 import fr.familia.app.core.model.tally
 import java.time.Duration
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 /** One line of « À faire pour moi »: it opens the event or the coup de main. */
 sealed interface HomeTodo {
@@ -58,18 +54,6 @@ data class HomeVoted(val poll: Poll, val leaders: List<Int>, val leaderVotes: In
 /** A trip I follow, ongoing or to come, with the last « Bien arrivé » while it is ongoing. */
 data class HomeTrip(val trip: Trip, val who: String, val ongoing: Boolean, val lastArrival: TripArrival?)
 
-/**
- * The next occasion of a gift list I can see. [myClaims] is null on my own list: what is reserved
- * for me never shows. Surprise lists never come here, they stay behind the Cadeaux tab.
- */
-data class HomeOccasion(val list: GiftList, val beneficiaryName: String, val daysLeft: Long, val myClaims: Int?) {
-    /**
-     * My own list: the Accueil then never names it, it only says « Ton anniversaire · dans 3 jours »
-     * and leads to my envies (PRODUIT, démo du 21/11).
-     */
-    val isMine: Boolean get() = myClaims == null
-}
-
 sealed interface HomeUiState {
     data object Loading : HomeUiState
 
@@ -83,7 +67,6 @@ sealed interface HomeUiState {
         /** Events of the 7 days beyond the 3 shown. */
         val weekMore: Int = 0,
         val birthdays: List<Birthday> = emptyList(),
-        val occasion: HomeOccasion? = null,
         val trips: List<HomeTrip> = emptyList(),
         val canCreateTrip: Boolean = false,
         /**
@@ -97,7 +80,7 @@ sealed interface HomeUiState {
         val canAskPoll: Boolean = false,
     ) : HomeUiState {
         val showsPolls: Boolean get() = pollsOn && (pollsToVote.isNotEmpty() || voted.isNotEmpty())
-        val isEmpty: Boolean get() = todos.isEmpty() && !showsPolls && week.isEmpty() && birthdays.isEmpty() && occasion == null && trips.isEmpty()
+        val isEmpty: Boolean get() = todos.isEmpty() && !showsPolls && week.isEmpty() && birthdays.isEmpty() && trips.isEmpty()
     }
 }
 
@@ -183,24 +166,6 @@ internal fun week(me: Member, family: Family, events: List<Event>, today: LocalD
 internal fun birthdays(family: Family, today: LocalDate): List<Birthday> =
     upcomingBirthdays(family.members, today).filter { it.date <= today.plusDays(HomeWindow.BIRTHDAY_DAYS) }
 
-/**
- * The next dated, not yet revealed list I can see. Whatever the repository gave, only the lists that
- * the rule canSeeList lets me read count ([listsSeenBy], the same in Voir comme), and surprise lists
- * stay out of the home screen: their beneficiary never learns they exist.
- */
-internal fun nextOccasionList(lists: List<GiftList>, meId: String, today: LocalDate): GiftList? =
-    listsSeenBy(lists, meId)
-        .filter { it.kind == GiftListKind.Own && !it.revealed && it.date != null && it.date >= today }
-        .minByOrNull { it.date!! }
-
-internal fun occasion(list: GiftList?, me: Member, family: Family, myClaims: Int, today: LocalDate): HomeOccasion? {
-    if (list == null) return null
-    val date = list.date ?: return null
-    val name = family.members.firstOrNull { it.id == list.beneficiaryId }?.firstName ?: return null
-    val mine = list.beneficiaryId == me.id
-    return HomeOccasion(list, name, ChronoUnit.DAYS.between(today, date), if (mine) null else myClaims)
-}
-
 /** The trips I follow that are not over, the ongoing ones first. */
 internal fun shownTrips(trips: List<Trip>, today: LocalDate): List<Trip> =
     trips.filter { it.endDate >= today }.sortedBy { it.startDate }.take(HomeWindow.TRIPS_SHOWN)
@@ -222,7 +187,6 @@ internal fun homeState(
     events: List<Event>,
     answers: Map<String, List<Rsvp>>,
     help: List<HelpRequest>,
-    occasion: HomeOccasion?,
     trips: List<HomeTrip>,
     toVote: List<HomeTodo.Vote> = emptyList(),
     voted: List<HomeVoted> = emptyList(),
@@ -238,7 +202,6 @@ internal fun homeState(
         weekMore = (week.size - HomeWindow.WEEK_SHOWN).coerceAtLeast(0),
         days = homeDays(me, today, week, help, birthdays),
         birthdays = birthdays,
-        occasion = occasion,
         trips = trips,
         canCreateTrip = canCreateTrip(me),
         pollsToVote = toVote.sortedBy { it.date }.take(HomeWindow.TO_VOTE_SHOWN),

@@ -628,15 +628,15 @@ class ScreenshotTest {
     // --- Listes et cadeaux (V2) ---
 
     @Test
-    fun giftsLight() = capture("cadeaux_clair") { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+    fun giftsLight() = capture("cadeaux_clair") { Surface { GiftsScreen(previewGifts(), {}, {}) } }
 
     @Test
     @Config(qualifiers = "+night")
-    fun giftsDark() = capture("cadeaux_sombre", darkTheme = true) { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+    fun giftsDark() = capture("cadeaux_sombre", darkTheme = true) { Surface { GiftsScreen(previewGifts(), {}, {}) } }
 
     @Test
     @Config(fontScale = 2f)
-    fun giftsFontScale200() = capture("cadeaux_police_200") { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+    fun giftsFontScale200() = capture("cadeaux_police_200") { Surface { GiftsScreen(previewGifts(), {}, {}) } }
 
     @Test
     fun giftListLight() = capture("liste_cadeaux_clair") { GiftListScreen(previewGiftList(), GiftListActions()) }

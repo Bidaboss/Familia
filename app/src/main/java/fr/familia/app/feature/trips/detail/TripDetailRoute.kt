@@ -20,6 +20,9 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.feature.trips.packing.packingCount
 import fr.familia.app.feature.trips.packing.rememberPackingViewModel
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
+import fr.familia.app.feature.trips.phrases.PhraseBook
+import fr.familia.app.feature.trips.phrases.rememberAbroadCountries
+import fr.familia.app.feature.trips.safety.EmergencyNumbers
 
 /** Connects the trip view to its ViewModel. */
 @Composable
@@ -42,6 +45,12 @@ fun TripDetailRoute(
     onOpenWord: ((stepId: String) -> Unit)? = null,
     /** « Valise » (récit 98): the screen of the bags, opened from the round button. */
     onOpenPacking: (() -> Unit)? = null,
+    /** « Phrases utiles » (récit 105): opened from the round button when a step is abroad. */
+    onOpenPhrases: (() -> Unit)? = null,
+    /** « Sécurité » (récit 105): opened from the round button when a step is in a country of the table, never France. */
+    onOpenSafety: (() -> Unit)? = null,
+    /** « Monnaie » (récit 105): for those who go, once a step is abroad or the trip has a currency. */
+    onOpenMoney: (() -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -62,6 +71,7 @@ fun TripDetailRoute(
     val context = LocalContext.current
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? TripDetailUiState.Success
+    val abroad = rememberAbroadCountries(container, shown?.steps.orEmpty())
     TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -73,6 +83,9 @@ fun TripDetailRoute(
         onBack = onBack,
         checklist = shownChecklist,
         onOpenPacking = onOpenPacking,
+        onOpenPhrases = onOpenPhrases?.takeIf { PhraseBook.abroad(abroad).isNotEmpty() },
+        onOpenSafety = onOpenSafety?.takeIf { EmergencyNumbers.abroad(abroad).isNotEmpty() },
+        onOpenMoney = onOpenMoney?.takeIf { shown?.isParticipant == true && (abroad.isNotEmpty() || shown.trip.currency != null) },
         packingCount = packingCount,
         photos = photos,
         photoActions = photoActions,

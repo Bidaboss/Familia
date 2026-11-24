@@ -283,7 +283,6 @@
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
     <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
-    <string name="feature_help_single_list">Une seule liste d\'envies par personne, sa liste « Surprise » cachée et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
     <string name="feature_help_good_deals">Dans Entraide, les bons plans et les bonnes adresses de la famille.</string>
@@ -362,6 +361,10 @@
     <string name="place_article_loading">On cherche des infos sur ce lieu…</string>
     <string name="place_article_more">Lire la suite</string>
     <string name="place_article_source">Source : Wikivoyage · CC BY-SA</string>
+    <string name="place_anecdote_title">Le saviez-vous ?</string>
+    <string name="place_anecdote_source">Source : Wikipédia · CC BY-SA</string>
+    <string name="weather_title">Météo et heure sur place</string>
+    <string name="weather_source">Météo : %1$s · CC BY 4.0</string>
     <string name="trip_route_title">Le trajet</string>
     <string name="trip_route_hint">Étape par étape, sans animation : touche une étape pour l\'ouvrir.</string>
     <string name="trip_route_row">Étape %1$d sur %2$d, %3$s, %4$s</string>
@@ -796,9 +799,7 @@
     <string name="nav_gifts_child">Mes envies</string>
     <string name="gifts_error_title">Les cadeaux ne s\'affichent pas</string>
     <string name="gifts_error_body">L\'appli n\'a pas pu lire les cadeaux. Réessaie, et si ça continue, préviens un chef de famille.</string>
-    <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
-    <string name="gifts_section_me">Moi</string>
     <string name="gifts_wishes_none">Pas encore d\'envie</string>
     <plurals name="gifts_wishes_preview">
         <item quantity="one">%1$d envie : %2$s</item>
@@ -806,26 +807,15 @@
         <item quantity="other">%1$d envies : %2$s</item>
     </plurals>
     <string name="gifts_wishes_empty">Encore vide : touche pour ajouter une envie</string>
-    <string name="gifts_birthdays_title">Anniversaires à venir</string>
     <string name="gifts_birthday_of">Anniversaire de %1$s</string>
     <string name="gifts_prepare_surprise">Préparer une surprise</string>
-    <plurals name="gifts_surprises_in_progress">
-        <item quantity="one">%d surprise en préparation</item>
-        <item quantity="other">%d surprises en préparation</item>
-    </plurals>
     <string name="gifts_surprise_prepared">Une surprise est déjà en préparation</string>
-    <string name="gifts_preparing_title">Surprises en préparation</string>
     <string name="gifts_preparing_for">Pour %1$s</string>
-    <string name="gifts_preparing_ideas_title">Surprise pour %1$s</string>
-    <string name="gifts_preparing_ideas_birthday">Dans ses idées, pour son anniversaire : %1$s</string>
-    <string name="gifts_preparing_ideas">Dans la surprise de la famille</string>
     <string name="surprise_pick_title">Préparer une surprise</string>
     <string name="surprise_pick_question">Pour qui ?</string>
     <string name="surprise_pick_next">Prochain anniversaire</string>
     <string name="surprise_pick_birthday">Anniversaire : %1$s</string>
     <string name="surprise_pick_error">Impossible d\'afficher la famille. Vérifie ta connexion, puis réessaie.</string>
-    <string name="gifts_all_birthdays">Tous les anniversaires</string>
-    <string name="gifts_archived_title">Listes passées</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
     <string name="gift_my_wishes">Mes envies</string>
     <string name="gift_wishes_of">Envies de %1$s</string>
@@ -839,9 +829,6 @@
     <string name="gift_wish_for_christmas">Pour Noël</string>
     <string name="gift_wish_for_my_birthday">Pour mon anniversaire</string>
     <string name="gift_wish_for_birthday">Pour son anniversaire</string>
-    <string name="gifts_moment_all">Tout le monde</string>
-    <string name="gifts_moment_christmas">Noël %1$d</string>
-    <string name="gift_ideas_title">La surprise de la famille</string>
     <string name="gift_ideas_of">Surprise pour %1$s</string>
     <string name="gift_ideas_subtitle">%1$s ne voit jamais cette partie</string>
     <string name="gift_ideas_notice">La surprise de la famille pour %1$s : note et prends des idées. %1$s ne voit jamais cette liste, ni qui a pris quoi.</string>
@@ -871,7 +858,6 @@
     <string name="profile_giving_empty">Rien pour l\'instant. Ajoute une idée, ou réserve une envie sur sa liste.</string>
     <string name="profile_giving_surprise">Surprise en cours : %1$s</string>
     <string name="profile_giving_all">Tout voir dans Cadeaux</string>
-    <string name="gifts_my_wishes_on_page">Elles sont sur ta fiche. Touche ici pour y aller.</string>
     <string name="gift_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="gift_claim_taken">Quelqu\'un vient de la réserver, juste avant toi.</string>
     <string name="gift_claim_removed">Son auteur vient de la retirer de la liste.</string>
@@ -951,7 +937,6 @@
     <string name="notebook_archive">Archives (%1$d)</string>
     <string name="notebook_propose_body">L\'idée rejoint une liste de %1$s, sans que %1$s la voie : la famille peut la prendre ou lancer un cadeau commun. Elle quitte ton carnet ; si tu la prends, elle y revient comme réservation.</string>
     <string name="notebook_propose_where">Sur quelle liste ?</string>
-    <string name="notebook_propose_no_list">%1$s n\'a aucune liste où cette idée resterait cachée.</string>
     <string name="notebook_propose_take_it">Je le prends moi-même</string>
     <string name="notebook_propose_note_kept">Ta note privée n\'est pas recopiée.</string>
     <string name="notebook_propose_confirm">Proposer</string>
@@ -2590,22 +2575,13 @@
     <string name="feature_member_card">Goûts et passions sur la fiche</string>
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
-    <string name="feature_single_list">Une seule liste d\'envies par personne</string>
     <string name="feature_surprise_button">Bouton surprise</string>
-    <string name="single_list_confirm_title">Passer à une seule liste par personne ?</string>
-    <string name="single_list_confirm_body">Les listes d\'occasion sont copiées dans « Mes envies » et les surprises, puis les anciennes listes copiées en entier sont effacées pour de bon. Leurs envies, réservations, parts et photos restent dans les copies.</string>
-    <string name="single_list_confirm">Allumer</string>
     <string name="gift_mark_received">Je l\'ai reçue</string>
     <string name="gift_mark_received_title">Tu l\'as déjà reçue ?</string>
     <string name="gift_mark_received_text">Elle sera rangée comme reçue.</string>
     <string name="gift_mark_received_confirm">Oui, reçue</string>
     <string name="feature_more_photos">Plus de photos</string>
     <string name="feature_recipe_book">Livre de recettes</string>
-    <string name="gifts_next_occasion_label">Prochaine occasion</string>
-    <string name="gifts_next_christmas">Noël, %1$s</string>
-    <string name="gifts_next_birthday">Anniversaire de %1$s, %2$s</string>
-    <string name="gifts_next_my_birthday">Ton anniversaire, %1$s</string>
-    <string name="gifts_upcoming_title">À venir</string>
     <!-- Nouvel onglet Cadeaux (PRODUIT-119 et 120) -->
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
@@ -2626,22 +2602,7 @@
         <item quantity="one">demain</item>
         <item quantity="other">dans %d jours</item>
     </plurals>
-    <plurals name="gifts_open_wish_lists">
-        <item quantity="one">%d liste d\'envies ouverte</item>
-        <item quantity="other">%d listes d\'envies ouvertes</item>
-    </plurals>
     <string name="gifts_next_no_wish">Pas encore d\'envie</string>
-    <plurals name="gifts_next_my_wishes">
-        <item quantity="one">%d envie dans ta liste</item>
-        <item quantity="other">%d envies dans ta liste</item>
-    </plurals>
-    <plurals name="gifts_next_their_wishes">
-        <item quantity="one">%d envie dans sa liste</item>
-        <item quantity="other">%d envies dans sa liste</item>
-    </plurals>
-    <string name="gifts_see_ideas">Voir les idées</string>
-    <string name="gifts_my_wish_list">Ma liste d\'envies</string>
-    <string name="gifts_family_wishes_title">Les envies de la famille</string>
     <plurals name="gifts_wishes_count">
         <item quantity="one">%d envie</item>
         <item quantity="other">%d envies</item>
@@ -2650,7 +2611,6 @@
         <item quantity="one">%d nouvelle</item>
         <item quantity="other">%d nouvelles</item>
     </plurals>
-    <string name="gifts_ideas_for">Idées pour %1$s</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
@@ -3311,6 +3271,55 @@
     <string name="packing_everyone_note">Visible seulement de ceux qui partent.</string>
     <string name="packing_private_note">Tu es la seule personne à voir cette liste.</string>
     <string name="packing_round_label">Valise</string>
+    <string name="phrases_title">Phrases utiles</string>
+    <string name="phrases_round_label">Phrases</string>
+    <string name="phrases_round_description">Phrases utiles dans la langue du pays</string>
+    <string name="phrases_intro">Dix phrases pour les étapes hors de France. La prononciation est écrite comme on la lit, en français.</string>
+    <string name="phrases_none">Aucune étape de ce voyage n\'est dans un pays avec des phrases pour l\'instant.</string>
+    <string name="phrases_language">%1$s : %2$s</string>
+    <string name="phrases_say">Écouter : %1$s</string>
+    <string name="safety_title">Sécurité</string>
+    <string name="safety_round_label">Sécurité</string>
+    <string name="safety_round_description">Sécurité : numéros d\'urgence du pays et « Prévenir ma famille »</string>
+    <string name="safety_intro">Les numéros d\'urgence des pays du voyage. Touche un numéro : le téléphone l\'affiche, prêt à appeler.</string>
+    <string name="safety_none">Aucun numéro connu pour les pays de ce voyage.</string>
+    <string name="safety_call">%1$s : %2$s. Touche pour l\'afficher dans le téléphone.</string>
+    <string name="safety_alert_heading">Prévenir ma famille</string>
+    <string name="safety_alert_explain">Tous ceux qui suivent le voyage reçoivent un message qui leur demande de t\'appeler. Ta position n\'est pas envoyée.</string>
+    <string name="safety_alert_button">Prévenir ma famille</string>
+    <string name="safety_alert_sending">Envoi…</string>
+    <string name="safety_alert_confirm_title">Prévenir ta famille ?</string>
+    <string name="safety_alert_confirm_body">Ceux qui suivent le voyage reçoivent tout de suite un message, même la nuit.</string>
+    <string name="safety_alert_send">Prévenir</string>
+    <string name="safety_alert_cancel">Annuler</string>
+    <string name="safety_alert_sent">C\'est envoyé. Ta famille va te rappeler.</string>
+    <string name="safety_alert_too_soon">Tu as déjà prévenu ta famille il y a moins de 10 minutes. Appelle-la directement si besoin.</string>
+    <string name="safety_alert_offline">Pas de réseau : le message partira dès que le téléphone se reconnecte.</string>
+    <string name="safety_alert_failed">Le message n\'est pas parti. Réessaie, ou appelle directement.</string>
+    <string name="safety_alert_ok">D\'accord</string>
+    <string name="money_title">Monnaie</string>
+    <string name="money_round_label">Monnaie</string>
+    <string name="money_round_description">Monnaie du voyage et taux du jour</string>
+    <string name="money_currency_heading">Monnaie du voyage</string>
+    <string name="money_currency_value">%1$s (%2$s)</string>
+    <string name="money_change">Changer la monnaie</string>
+    <string name="money_suggest">Choisir : %1$s (%2$s)</string>
+    <string name="money_save_failed">La monnaie n\'a pas été enregistrée. Réessaie.</string>
+    <string name="money_in_euro">Le voyage est en euros : rien à convertir.</string>
+    <string name="money_rate_heading">Taux du jour</string>
+    <string name="money_rate_loading">Lecture du taux…</string>
+    <string name="money_rate_unavailable">Taux indisponible : pas de réseau, et aucun taux gardé sur le téléphone.</string>
+    <string name="money_rate_missing">La source ne donne pas de taux pour : %1$s.</string>
+    <string name="money_retry">Réessayer</string>
+    <string name="money_rate_value">1 € = %1$s %2$s</string>
+    <string name="money_rate_source">Taux du %1$s, source %2$s. Il peut différer de celui de ta banque.</string>
+    <string name="money_convert_heading">Convertir</string>
+    <string name="money_amount_in">Montant en %1$s</string>
+    <string name="money_convert_hint">Tape un montant dans l\'un des deux champs : l\'autre se calcule.</string>
+    <string name="money_pick_title">Monnaie du voyage</string>
+    <string name="money_search">Rechercher (nom ou code)</string>
+    <string name="money_search_none">Aucune monnaie ne correspond à « %1$s ».</string>
+    <string name="money_close">Fermer</string>
     <string name="packing_round_ready">Valise, tout est prêt</string>
     <plurals name="packing_round_todo">
         <item quantity="one">Valise, %1$d chose à faire</item>

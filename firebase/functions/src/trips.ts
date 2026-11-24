@@ -103,6 +103,55 @@ export async function sendArrivalReminders(db: Firestore, send: Sender, now: Dat
   return sent;
 }
 
+/** « Prévenir ma famille » (récit 105, règle 43): trips/{tripId}/alerts/{memberId}. */
+export interface AlertData {
+  authorId: string;
+  authorName: string;
+  createdAt: Timestamp;
+}
+
+/** The time between two alerts of the same participant, as in the rules. */
+export const ALERT_GAP_MS = 10 * 60 * 1000;
+
+/**
+ * « Lou demande à être appelé » would guess a gender: the title names the trip, the body asks
+ * for a call. No position: the family calls, the app never says where someone is.
+ */
+export function alertNotice(tripId: string, trip: TripData, authorName: string): Notice {
+  return {
+    channel: 'trips',
+    title: `${trip.title} : ${authorName} prévient la famille`,
+    body: `${authorName} a touché « Prévenir ma famille ». Appelle dès que possible.`,
+    tripId,
+    direct: true,
+  };
+}
+
+/** Whether this write is a new alert: a first one, or one at least [ALERT_GAP_MS] after the last. */
+export function isNewAlert(before: AlertData | undefined, after: AlertData | undefined): boolean {
+  if (!after?.createdAt) return false;
+  if (!before?.createdAt) return true;
+  return after.createdAt.toMillis() - before.createdAt.toMillis() >= ALERT_GAP_MS;
+}
+
+/**
+ * Everyone with the app who follows the trip is told at once, even at night (it aims at them
+ * directly), except its author. Only a participant of the trip rings the family: the rules say
+ * so, and the server checks again.
+ */
+export async function notifyAlert(db: Firestore, send: Sender, tripId: string, memberId: string, alert: AlertData): Promise<number> {
+  if (alert.authorId !== memberId) return 0;
+  const tripDoc = await db.collection('trips').doc(tripId).get();
+  if (!tripDoc.exists) return 0;
+  const trip = tripDoc.data() as TripData;
+  if (!trip.participantIds.includes(memberId)) return 0;
+  const members = await loadMembers(db);
+  const author = members.find((m) => m.id === memberId);
+  const recipients = withApp(members, trip.readerIds, memberId);
+  if (recipients.length === 0) return 0;
+  return notify(db, send, recipients, alertNotice(tripId, trip, author?.firstName ?? alert.authorName));
+}
+
 /** A deleted trip takes its steps with it, so nothing stays readable or reminded. */
 export async function deleteTripContents(db: Firestore, tripId: string): Promise<void> {
   await db.recursiveDelete(db.collection('trips').doc(tripId));

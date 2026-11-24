@@ -1,5 +1,7 @@
 package fr.familia.app.core.data
 
+import fr.familia.app.core.money.ExchangeRates
+import fr.familia.app.core.money.OpenExchangeRates
 import android.content.Context
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
@@ -23,7 +25,10 @@ import fr.familia.app.core.place.AndroidPlaceLocator
 import fr.familia.app.core.place.NearbyPlaces
 import fr.familia.app.core.place.OverpassNearbyPlaces
 import fr.familia.app.core.place.PlaceArticles
-import fr.familia.app.core.place.WikivoyagePlaceArticles
+import fr.familia.app.core.place.WIKIPEDIA_HOST
+import fr.familia.app.core.place.WikimediaPlaceArticles
+import fr.familia.app.core.place.OpenMeteoWeather
+import fr.familia.app.core.place.PlaceWeather
 import fr.familia.app.core.place.PlacePhotos
 import fr.familia.app.core.place.WikimediaPlacePhotos
 import fr.familia.app.core.usage.UsageTracker
@@ -69,11 +74,20 @@ interface AppContainer {
     /** « À savoir sur… » (récit 96): a short article about the place of a step. */
     val placeArticles: PlaceArticles? get() = null
 
+    /** The anecdote of a destination (récit 105, règle 45): a few lines of Wikipédia. */
+    val placeAnecdotes: PlaceArticles? get() = null
+
+    /** The weather and the local time of a destination (récit 105, règle 45). */
+    val placeWeather: PlaceWeather? get() = null
+
     /** The photo of the place of a trip (règle 12, PRODUIT-153), from Wikimedia Commons. */
     val placePhotos: PlacePhotos? get() = null
 
     /** « Autour de l'étape » (récit 96): restaurants and sites around the place of a step. */
     val nearbyPlaces: NearbyPlaces? get() = null
+
+    /** « Monnaie » (récit 105): the exchange rates from the euro, with their date. */
+    val exchangeRates: ExchangeRates? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -299,9 +313,12 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** The position of the moment and the geocoder of the phone, for every place (récit 33). */
     override val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
-    override val placeArticles: PlaceArticles? by lazy { WikivoyagePlaceArticles() }
+    override val placeArticles: PlaceArticles? by lazy { WikimediaPlaceArticles() }
+    override val placeAnecdotes: PlaceArticles? by lazy { WikimediaPlaceArticles(WIKIPEDIA_HOST) }
+    override val placeWeather: PlaceWeather? by lazy { OpenMeteoWeather() }
     override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
+    override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }
 
     override val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 

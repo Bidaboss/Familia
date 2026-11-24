@@ -301,6 +301,12 @@ import fr.familia.app.feature.trips.TripGlobeDestination
 import fr.familia.app.feature.trips.TripMapDestination
 import fr.familia.app.feature.trips.map.TripGlobeRoute
 import fr.familia.app.feature.trips.TripPackingDestination
+import fr.familia.app.feature.trips.TripPhrasesDestination
+import fr.familia.app.feature.trips.TripSafetyDestination
+import fr.familia.app.feature.trips.TripMoneyDestination
+import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
+import fr.familia.app.feature.trips.safety.TripSafetyRoute
+import fr.familia.app.feature.trips.money.TripMoneyRoute
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripWordDestination
 import fr.familia.app.feature.trips.word.StepWordRoute
@@ -1168,6 +1174,9 @@ fun FamiliaApp(
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
                             onOpenPacking = { navController.navigate(TripPackingDestination(tripId)) },
+                            onOpenPhrases = { navController.navigate(TripPhrasesDestination(tripId)) },
+                            onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
+                            onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
@@ -1181,6 +1190,15 @@ fun FamiliaApp(
                     composable<TripPackingDestination> { entry ->
                         val route = entry.toRoute<TripPackingDestination>()
                         TripPackingRoute(container = container, currentMember = currentMember, tripId = route.tripId, open = route.open, onBack = { navController.popBackStack() })
+                    }
+                    composable<TripPhrasesDestination> { entry ->
+                        TripPhrasesRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripPhrasesDestination>().tripId, onBack = { navController.popBackStack() })
+                    }
+                    composable<TripSafetyDestination> { entry ->
+                        TripSafetyRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripSafetyDestination>().tripId, onBack = { navController.popBackStack() })
+                    }
+                    composable<TripMoneyDestination> { entry ->
+                        TripMoneyRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripMoneyDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     composable<TripMapDestination> { entry ->
                         val tripId = entry.toRoute<TripMapDestination>().tripId
@@ -1490,10 +1508,6 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
-                            onNewList = { navController.navigate(GiftListEditDestination()) },
-                            onAllBirthdays = { navController.navigate(BirthdaysRoute) },
-                            // With the single list (récit 9 ter), a surprise is an idea of the family.
-                            onPrepareSurprise = { id -> prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = false) },
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
@@ -1506,7 +1520,7 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onPick = { id ->
                                 navController.popBackStack()
-                                prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = true)
+                                navController.navigate(GiftListDestination(ideasListId(id)))
                             },
                         )
                     }
@@ -1527,9 +1541,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             entryId = entry.toRoute<ProposeIdeaDestination>().entryId,
-                            singleList = features.isOn(Feature.SingleList),
                             onBack = { navController.popBackStack() },
-                            onNewSurprise = { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) },
                             onDone = { listId ->
                                 navController.popBackStack()
                                 navController.navigate(GiftListDestination(listId))
@@ -2170,7 +2182,7 @@ private fun NavHostController.seeWhere(feature: Feature, meId: String, nextEvent
     val lastMonth = YearMonth.now().minusMonths(1)
     return when (feature) {
         Feature.Home, Feature.YearAgo, Feature.BirthdayWishes, Feature.Discover, Feature.DailyNudge -> ({ navigateToTab(TopLevelDestination.Home) })
-        Feature.Gifts, Feature.GiftNotebook, Feature.WishesReveal, Feature.GiftBudget, Feature.SingleList -> ({ navigateToTab(TopLevelDestination.Gifts) })
+        Feature.Gifts, Feature.GiftNotebook, Feature.WishesReveal, Feature.GiftBudget -> ({ navigateToTab(TopLevelDestination.Gifts) })
         Feature.HelpRequests, Feature.GoodDeals, Feature.Lending -> ({ navigateToTab(TopLevelDestination.HelpRequests) })
         Feature.Trips, Feature.Expenses, Feature.PackingList -> ({ navigate(TripsDestination) { launchSingleTop = true } })
         Feature.GoodNews, Feature.LittleOnes -> ({ navigate(GoodNewsFeedDestination) { launchSingleTop = true } })
@@ -2237,14 +2249,5 @@ private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
-    }
-}
-
-/** With the single list a surprise is an idea of the family (récit 9 ter); else a surprise list. */
-private fun prepareSurprise(navController: NavHostController, singleList: Boolean, memberId: String, nearestOccasion: Boolean) {
-    if (singleList) {
-        navController.navigate(GiftListDestination(ideasListId(memberId)))
-    } else {
-        navController.navigate(GiftListEditDestination(forMemberId = memberId, nearestOccasion = nearestOccasion))
     }
 }

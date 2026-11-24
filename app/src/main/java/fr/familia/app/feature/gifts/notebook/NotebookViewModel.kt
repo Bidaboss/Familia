@@ -84,8 +84,6 @@ class NotebookViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     /** Writes the occasion of a reservation of « Mes envies », which decides when it is revealed. */
     private val gifts: GiftRepository? = null,
-    /** Switch « Liste unique » (récit 9 ter): which of an entry and its copy shows, see [shownEntries]. */
-    private val singleList: Boolean = false,
     /** Switch « Mon budget » (récit 57), for an adult: the budget of a whole occasion. */
     private val occasionBudget: Boolean = false,
 ) : ViewModel() {
@@ -101,7 +99,7 @@ class NotebookViewModel(
         .flatMapLatest {
             val repo = notebook ?: return@flatMapLatest flowOf(NotebookUiState.Error)
             combine(repo.observeEntries(currentMemberId), repo.observeBudgets(currentMemberId), chosen, today, failed) { entries, budgets, pick, day, didFail ->
-                state(shownEntries(entries, singleList), budgets, pick, day, didFail) as NotebookUiState
+                state(shownEntries(entries), budgets, pick, day, didFail) as NotebookUiState
             }.catch { emit(NotebookUiState.Error) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NotebookUiState.Loading)
@@ -270,24 +268,15 @@ internal val WISH_OCCASIONS = setOf(GiftOccasion.Birthday, GiftOccasion.Christma
 
 /**
  * The copy of « Liste unique » (récit 9 ter) keeps both entries of a moved gift: the old one, which
- * says where it went ([NotebookEntry.movedTo]), and the copy. Only one shows: the copy while the
- * switch is on, the old one once it is off again.
+ * says where it went ([NotebookEntry.movedTo]), and the copy. Only the copy shows.
  */
-internal fun shownEntries(entries: List<NotebookEntry>, singleList: Boolean): List<NotebookEntry> =
-    if (singleList) {
-        entries.filter { it.movedTo == null }
-    } else {
-        entries.filter { it.itemId?.startsWith(COPIED_ITEM_PREFIX) != true }
-    }
+internal fun shownEntries(entries: List<NotebookEntry>): List<NotebookEntry> = entries.filter { it.movedTo == null }
 
 /**
  * « Ce que je lui offre » on the page of [personId] (retour d'essai, 17/11): every gift of the
  * notebook for them, whatever the occasion, the ones still to give first.
  */
-internal fun giftsFor(entries: List<NotebookEntry>, personId: String, singleList: Boolean): List<NotebookEntry> =
-    shownEntries(entries, singleList)
+internal fun giftsFor(entries: List<NotebookEntry>, personId: String): List<NotebookEntry> =
+    shownEntries(entries)
         .filter { it.personId == personId }
         .sortedWith(compareBy<NotebookEntry> { it.status == GiftStatus.Given }.thenBy { it.title.lowercase() })
-
-/** The items copied by « Liste unique » (firebase/functions/src/singleList.ts). */
-private const val COPIED_ITEM_PREFIX = "from-"

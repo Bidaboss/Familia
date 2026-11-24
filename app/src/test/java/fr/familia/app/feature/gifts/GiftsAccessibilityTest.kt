@@ -43,27 +43,17 @@ class GiftsAccessibilityTest {
     private fun check(content: @Composable () -> Unit) = compose.checkAccessibility(content)
 
     @Test
-    fun `the Cadeaux tab`() = check { GiftsScreen(previewGifts(), {}, {}, {}) }
+    fun `the Cadeaux tab`() = check { GiftsScreen(previewGifts(), {}, {}) }
+
+    /** A surprise in progress, a birthday soon (récit 91). */
+    private fun withSurprise() = previewGifts().copy(surpriseButton = true, surprisePreparedFor = setOf("b"))
 
     @Test
-    fun `the Cadeaux tab with the single list and the new presentation`() = check {
-        GiftsScreen(previewGifts().copy(singleList = true, presentation = true), {}, {}, {})
-    }
-
-    /** « Nouvel onglet Cadeaux » (PRODUIT-119 à 121): a surprise in progress, a birthday in relief, the occasions. */
-    private fun newTab() = previewGifts().let { state ->
-        state.copy(
-            singleList = true, tabV2 = true, surpriseButton = true, surprisePreparedFor = setOf("b"),
-            occasions = giftMoments(state.today, state.birthdays),
-        )
-    }
+    fun `the Cadeaux tab with a surprise`() = check { GiftsScreen(withSurprise(), {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {}) }
 
     @Test
-    fun `the new Cadeaux tab`() = check { GiftsScreen(newTab(), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {}) }
-
-    @Test
-    fun `the new Cadeaux tab of a child`() = check {
-        GiftsScreen(newTab().copy(canPrepareSurprise = false), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {})
+    fun `the Cadeaux tab of a child`() = check {
+        GiftsScreen(withSurprise().copy(canPrepareSurprise = false), {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {})
     }
 
     @Test

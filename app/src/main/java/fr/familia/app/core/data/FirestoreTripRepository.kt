@@ -104,6 +104,15 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         }
     }
 
+    override suspend fun setCurrency(tripId: String, code: String?) {
+        db.collection(TRIPS).document(tripId).update(
+            mapOf(
+                "currency" to (code?.takeIf { it.matches(CURRENCY_CODE) && it != "EUR" } ?: FieldValue.delete()),
+                "updatedAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
+
     override suspend fun deleteTrip(id: String) {
         db.collection(TRIPS).document(id).delete().await()
     }
@@ -144,6 +153,21 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
                 "updatedAt" to FieldValue.serverTimestamp(),
             ),
         ).await()
+    }
+
+    override suspend fun alertFamily(tripId: String, me: Member) {
+        try {
+            db.collection(TRIPS).document(tripId).collection(ALERTS).document(me.id).set(
+                mapOf(
+                    "authorId" to me.id,
+                    "authorName" to me.firstName,
+                    "createdAt" to FieldValue.serverTimestamp(),
+                ),
+            ).await()
+        } catch (e: FirebaseFirestoreException) {
+            if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) throw AlertTooSoonException(e)
+            throw e
+        }
     }
 
     override suspend fun clearArrival(tripId: String, stepId: String) {
@@ -233,6 +257,7 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
             creatorId = getString("creatorId").orEmpty(),
             creatorName = getString("creatorName").orEmpty(),
             landscape = TripLandscape.of(getString("landscape")),
+            currency = getString("currency")?.takeIf { it.matches(CURRENCY_CODE) },
         )
     }
 
@@ -276,5 +301,7 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         const val TRIPS = "trips"
         const val STEPS = "steps"
         const val ITEMS = "items"
+        const val ALERTS = "alerts"
+        private val CURRENCY_CODE = Regex("[A-Z]{3}")
     }
 }

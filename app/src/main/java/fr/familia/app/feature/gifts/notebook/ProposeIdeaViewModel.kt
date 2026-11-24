@@ -16,9 +16,6 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.core.model.ideasListId
-import fr.familia.app.feature.gifts.addsVisibleItem
-import fr.familia.app.feature.gifts.canReserve
-import fr.familia.app.feature.gifts.keepsListsOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -56,8 +53,6 @@ sealed interface ProposeIdeaUiState {
         val lists: List<GiftList>,
         val selectedListId: String?,
         val takeIt: Boolean,
-        /** False for a child whose lists the member keeps: no list of theirs can hide a gift from them. */
-        val canPrepareSurprise: Boolean = true,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
         /** « Idées de la famille » nobody started yet (récit 9 ter): the idea creates it. */
@@ -80,8 +75,6 @@ class ProposeIdeaViewModel(
     private val currentMemberId: String,
     private val entryId: String,
     private val writeTimeoutMillis: Long = 4_000,
-    /** Switch « Liste unique » (récit 9 ter): the idea goes to the « Idées de la famille » of the person, nowhere else. */
-    private val singleList: Boolean = false,
 ) : ViewModel() {
 
     private val choice = MutableStateFlow(ProposeChoice())
@@ -121,7 +114,7 @@ class ProposeIdeaViewModel(
         when {
             pick.doneListId != null -> ProposeIdeaUiState.Done(pick.doneListId)
             ctx == null || gifts == null -> ProposeIdeaUiState.Unavailable
-            singleList -> {
+            else -> {
                 val personId = ctx.entry.personId!!
                 val ideas = visible.firstOrNull { it.id == ideasListId(personId) }
                 val target = ideas ?: GiftList(
@@ -132,22 +125,9 @@ class ProposeIdeaViewModel(
                     lists = listOf(target),
                     selectedListId = target.id,
                     takeIt = pick.takeIt,
-                    canPrepareSurprise = false,
                     isSaving = pick.isSaving,
                     saveFailed = pick.saveFailed,
                     newList = target.takeIf { ideas == null },
-                )
-            }
-            else -> {
-                val lists = proposableLists(visible, ctx.entry.personId!!, ctx.me, ctx.family)
-                ProposeIdeaUiState.Choosing(
-                    entry = ctx.entry,
-                    lists = lists,
-                    selectedListId = pick.listId?.takeIf { id -> lists.any { it.id == id } } ?: lists.singleOrNull()?.id,
-                    takeIt = pick.takeIt,
-                    canPrepareSurprise = ctx.family.members.firstOrNull { it.id == ctx.entry.personId }?.let { !keepsListsOf(ctx.me, it) } ?: false,
-                    isSaving = pick.isSaving,
-                    saveFailed = pick.saveFailed,
                 )
             }
         }
@@ -207,12 +187,3 @@ class ProposeIdeaViewModel(
 /** Only a private idea, still an idea, for a member of the family. */
 internal fun canPropose(entry: NotebookEntry): Boolean =
     entry.source == NotebookSource.Idea && entry.status == GiftStatus.Idea && entry.personId != null
-
-/**
- * The lists of [personId] where an item added by [me] stays hidden from them: never a list they
- * already see in full, such as the own list of a child whose lists [me] keeps.
- */
-internal fun proposableLists(visible: List<GiftList>, personId: String, me: Member, family: Family): List<GiftList> =
-    visible
-        .filter { it.beneficiaryId == personId && canReserve(it, me) && !addsVisibleItem(it, me, family) }
-        .sortedWith(compareBy({ it.kind != GiftListKind.Wishes }, { it.title.lowercase() }))

@@ -16,7 +16,7 @@ class FeatureTiersTest {
         assertEquals(FeatureTier.Choice, Feature.NewsFeed.tier)
         val counts = Feature.entries.groupingBy { it.tier }.eachCount()
         assertEquals(19, counts[FeatureTier.Base])
-        assertEquals(4, counts[FeatureTier.NewVersion])
+        assertEquals(3, counts[FeatureTier.NewVersion])
         assertTrue(counts.getValue(FeatureTier.Choice) > 0)
         assertEquals(Feature.entries.size, counts.values.sum())
     }

@@ -21,14 +21,17 @@ interface PlaceArticles {
     suspend fun about(place: String): PlaceArticle?
 }
 
-/** The summary service of Wikivoyage in French: free, no key, a generic User-Agent. */
-class WikivoyagePlaceArticles : PlaceArticles {
+/**
+ * The summary service of a Wikimedia site in French: free, no key, a generic User-Agent. Wikivoyage
+ * for « À savoir sur… » (récit 96), Wikipédia for the anecdote of a destination (récit 105, règle 45).
+ */
+class WikimediaPlaceArticles(private val host: String = WIKIVOYAGE_HOST) : PlaceArticles {
     override suspend fun about(place: String): PlaceArticle? {
         val title = place.trim().take(MAX_TITLE).takeIf { it.isNotEmpty() } ?: return null
         return withContext(Dispatchers.IO) {
             withTimeoutOrNull(TIMEOUT_MS) {
                 runCatching {
-                    val connection = URL(summaryUrl(title)).openConnection() as HttpURLConnection
+                    val connection = URL(summaryUrl(title, host)).openConnection() as HttpURLConnection
                     try {
                         connection.connectTimeout = 5_000
                         connection.readTimeout = 5_000
@@ -51,8 +54,11 @@ class WikivoyagePlaceArticles : PlaceArticles {
 }
 
 /** The summary address of a page: spaces become underscores, the rest is encoded. */
-fun summaryUrl(title: String): String =
-    "https://fr.wikivoyage.org/api/rest_v1/page/summary/" + URLEncoder.encode(title.trim().replace(' ', '_'), "UTF-8").replace("+", "%20")
+fun summaryUrl(title: String, host: String = WIKIVOYAGE_HOST): String =
+    "https://$host/api/rest_v1/page/summary/" + URLEncoder.encode(title.trim().replace(' ', '_'), "UTF-8").replace("+", "%20")
+
+const val WIKIVOYAGE_HOST = "fr.wikivoyage.org"
+const val WIKIPEDIA_HOST = "fr.wikipedia.org"
 
 /** At most this many characters are shown, about three lines. */
 const val ARTICLE_MAX_CHARS = 280
