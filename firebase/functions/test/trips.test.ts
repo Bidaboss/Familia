@@ -8,7 +8,7 @@ import { Member, Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
   ALERT_GAP_MS, alertNotice, arrivalNotice, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, joinNames, notifyAlert, notifyArrival,
-  addTripPhotoToBurst, PHOTO_BURSTS, photoBurstDue, sendArrivalReminders, sendTripPhotoDigests, StepData, TripData, tripDocumentFile, withApp,
+  addTripPhotoToBurst, deleteStepVoiceNotes, voiceNoteFile, PHOTO_BURSTS, photoBurstDue, sendArrivalReminders, sendTripPhotoDigests, StepData, TripData, tripDocumentFile, withApp,
 } from '../src/trips';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
@@ -303,5 +303,28 @@ describe('photos groupées (récit 104, règle 34)', () => {
     await addTripPhotoToBurst(db, 't1', 'lou', t0);
     await deleteTripContents(db, 't1');
     assert.equal((await db.collection(PHOTO_BURSTS).doc('t1').get()).exists, false);
+  });
+});
+
+describe('notes vocales (récit 104, règle 35)', () => {
+  beforeEach(async () => {
+    await db.recursiveDelete(db.collection('trips'));
+  });
+
+  test('a removed step takes its voice notes, not those of the other steps', async () => {
+    const notes = db.collection('trips/t1/voiceNotes');
+    await notes.doc('v1').set({ authorId: 'lou', stepId: 's1', seconds: 10 });
+    await notes.doc('v2').set({ authorId: 'sam', stepId: 's1', seconds: 20 });
+    await notes.doc('v3').set({ authorId: 'lou', stepId: 's2', seconds: 30 });
+    assert.equal(await deleteStepVoiceNotes(db, 't1', 's1'), 2);
+    assert.deepEqual((await notes.get()).docs.map((d) => d.id), ['v3']);
+    assert.equal(await deleteStepVoiceNotes(db, 't1', 's9'), 0);
+  });
+
+  test('the file of a removed note is at its own place only', () => {
+    assert.equal(voiceNoteFile('t1', 'v1', { authorId: 'lou' }), 'trips/t1/voice/lou/v1.m4a');
+    assert.equal(voiceNoteFile('t1', 'v1', { authorId: '../x' }), null);
+    assert.equal(voiceNoteFile('t1', 'v-1', { authorId: 'lou' }), null);
+    assert.equal(voiceNoteFile('t1', 'v1', undefined), null);
   });
 });

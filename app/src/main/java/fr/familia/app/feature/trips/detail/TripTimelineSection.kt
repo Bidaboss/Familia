@@ -19,10 +19,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -32,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +52,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import fr.familia.app.core.data.TripVoiceNote
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.album.AlbumPhoto
@@ -58,6 +65,7 @@ import fr.familia.app.feature.trips.place.placeKindLabel
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.stepTypeIcon
+import fr.familia.app.feature.trips.voice.voiceDuration
 import fr.familia.app.feature.trips.stepTypeLabel
 import java.time.LocalDate
 import java.time.LocalTime
@@ -82,6 +90,13 @@ class TimelineActions(
     val onSeePhotos: () -> Unit = {},
     /** Null for who adds no photo; else the photos chosen go under the destination [stepId] (récit 104, partie 2). */
     val onAddPhoto: ((stepId: String) -> Unit)? = null,
+    /** The voice notes of each destination (récit 104, partie 3b), oldest first; the one playing. */
+    val voiceNotes: Map<String, List<TripVoiceNote>> = emptyMap(),
+    val playingVoiceId: String? = null,
+    val onPlayVoice: (TripVoiceNote) -> Unit = {},
+    /** Null for a note this member may not remove. */
+    val canDeleteVoice: (TripVoiceNote) -> Boolean = { false },
+    val onDeleteVoice: (TripVoiceNote) -> Unit = {},
 )
 
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
@@ -283,6 +298,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
         }
         DestinationProgramme(row.step.id, name, actions)
         StepPhotoStrip(actions.photos[row.step.id].orEmpty(), name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
+        actions.voiceNotes[row.step.id].orEmpty().forEach { note -> VoiceNoteRow(note, actions) }
     }
 }
 
@@ -342,6 +358,47 @@ private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen
 }
 
 private const val STRIP_PHOTOS = 4
+
+/** « Note vocale de Lou, 0:42 »: listen or stop (56 dp), and remove it for its author or who manages the trip. */
+@Composable
+private fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
+    val playing = actions.playingVoiceId == note.id
+    var confirm by rememberSaveable(note.id) { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = { actions.onPlayVoice(note) }, modifier = Modifier.size(56.dp)) {
+            Icon(
+                if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                contentDescription = stringResource(if (playing) R.string.voice_stop_playing else R.string.voice_play),
+                tint = Deep,
+            )
+        }
+        Text(
+            stringResource(R.string.voice_note_by, note.authorName, voiceDuration(note.seconds)),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Deep,
+            modifier = Modifier.weight(1f),
+        )
+        if (actions.canDeleteVoice(note)) {
+            IconButton(onClick = { confirm = true }, modifier = Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.voice_delete), tint = InkSoft)
+            }
+        }
+    }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(R.string.voice_delete_confirm)) },
+            confirmButton = {
+                TextButton(onClick = { confirm = false; actions.onDeleteVoice(note) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.voice_delete_yes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
 
 /**
  * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each

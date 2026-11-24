@@ -609,3 +609,39 @@ describe('trip documents folder (récit 105, règle 41)', () => {
     await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult3', 'abc201.pdf'))));
   });
 });
+
+describe('trip voice notes folder (récit 104, règle 35)', () => {
+  // ADULT created the trip and takes part with adult3; admin1 follows it without going.
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'trips/t1'), {
+        title: 'Corse', startDate: '2027-07-10', endDate: '2027-07-20',
+        participantIds: ['adult1', 'adult3'], readerIds: ['admin1', 'adult1', 'adult3'],
+        creatorId: 'adult1', creatorName: 'adult1', createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+  });
+  const file = (author, name) => `trips/t1/voice/${author}/${name}`;
+  const m4a = { contentType: 'audio/mp4' };
+
+  test('a participant sends a note of 2 MB at most in their folder, and the followers listen', async () => {
+    const storage = storageAs(NEIGHBOUR);
+    await assertSucceeds(uploadString(ref(storage, file('adult3', 'v100.m4a')), 'x'.repeat(2 * 1024 * 1024), 'raw', m4a));
+    await assertSucceeds(getBytes(ref(storageAs(ADMIN), file('adult3', 'v100.m4a'))));
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file('adult3', 'v100.m4a'))));
+  });
+
+  test('never too big, never another type or name, never for someone else, never by a follower, never replaced', async () => {
+    const storage = storageAs(NEIGHBOUR);
+    await assertFails(uploadString(ref(storage, file('adult3', 'v101.m4a')), 'x'.repeat(2 * 1024 * 1024 + 1), 'raw', m4a));
+    await assertFails(uploadString(ref(storage, file('adult3', 'v102.m4a')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult3', 'v-103.m4a')), 'x', 'raw', m4a));
+    await assertFails(uploadString(ref(storage, file('adult3', 'v104.mp3')), 'x', 'raw', m4a));
+    await assertFails(uploadString(ref(storage, file('adult1', 'v105.m4a')), 'x', 'raw', m4a));
+    await assertFails(uploadString(ref(storageAs(ADMIN), file('admin1', 'v106.m4a')), 'x', 'raw', m4a));
+    await uploadString(ref(storage, file('adult3', 'v107.m4a')), 'x', 'raw', m4a);
+    await assertFails(uploadString(ref(storage, file('adult3', 'v107.m4a')), 'y', 'raw', m4a));
+    await assertFails(deleteObject(ref(storageAs(ADULT), file('adult3', 'v107.m4a'))));
+    await assertSucceeds(deleteObject(ref(storage, file('adult3', 'v107.m4a'))));
+  });
+});
