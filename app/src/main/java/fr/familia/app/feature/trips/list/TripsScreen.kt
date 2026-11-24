@@ -462,7 +462,7 @@ private fun HeroCard(
     ) {
         // The photo of the place (règles 10, 12), the drawn landscape when there is none: the labels always show (E-30).
         PlaceCover(
-            place = summary.placeName ?: trip.title,
+            place = summary.placeName,
             point = summary.place,
             landscape = trip.landscape,
             photos = photos,
