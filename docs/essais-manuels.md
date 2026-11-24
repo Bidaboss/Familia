@@ -2535,3 +2535,4 @@ Sur un téléphone en Android 10 ou plus :
 7. Carte d'un voyage, look Satellite (retour E-49) : la vraie imagerie en couleurs, avec les routes et les noms par-dessus (plus de fond gris-rose ni d'eau ardoise). Les noms sont en français (« Afrique », « Amérique du Sud », retour E-54).
 8. Dézoomer au maximum la carte d'un voyage (retour E-53) : le globe entier reste au-dessus du panneau, centré dans la partie visible, avec une petite marge. Monter puis descendre le panneau : le centre suit.
 9. Si l'imagerie manque encore : « Plantages » montre une ligne « Carte … : SOURCE … » qui dit quelle source est refusée et pourquoi (jeton, quota, réseau).
+10. Ouvrir un voyage de plusieurs étapes (retour E-51) : toutes les étapes tiennent dans la carte, la première comme la dernière, avec leur nom, sans toucher le bord ni passer sous le panneau.

@@ -392,7 +392,9 @@ private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilte
         .zoom(if (points.size == 1) 9.0 else 6.0).pitch(pitch).build()
     if (points.size <= 1) return middle
     // Before its first layout the view has no size: margins larger than the map make no frame.
-    val padding = EdgeInsets(120.0, 60.0, bottomPx + 60.0, 60.0)
+    // E-51: margins in dp (they were in pixels, about 22 dp on a phone): the last round and its name never touch the edge.
+    val d = view.resources.displayMetrics.density.toDouble()
+    val padding = EdgeInsets(FRAME_TOP_DP * d, FRAME_SIDE_DP * d, bottomPx + FRAME_SIDE_DP * d, FRAME_SIDE_DP * d)
     if (view.width <= 0 || view.height <= padding.top + padding.bottom || view.width <= padding.left + padding.right) return middle
     return runCatching {
         view.mapboxMap.cameraForCoordinates(points.map { it.toPoint() }, CameraOptions.Builder().pitch(pitch).build(), padding, null, null)
@@ -425,6 +427,10 @@ internal fun wholeGlobeZoom(widthDp: Double, heightDp: Double): Double {
 }
 
 internal const val GLOBE_MARGIN_DP = 16.0
+
+/** E-51: the room kept around the steps when the map frames them: a round of 45 dp with its name fits. */
+internal const val FRAME_SIDE_DP = 56.0
+internal const val FRAME_TOP_DP = 96.0
 
 /** E-49: the style of the Satellite look of the map of a trip. */
 internal val TRIP_SATELLITE_STYLE: String = Style.SATELLITE_STREETS
