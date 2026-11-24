@@ -197,14 +197,11 @@ fun TripsScreen(
             topBar = {
                 Column(Modifier.background(skyColor).statusBarsPadding()) {
                     TripsTopBar(onBack, onDark = dark, onOpenCarnet = onOpenCarnet)
-                    // The hand-added destinations (règle 38) count too: a member with only those sees « Souvenirs ».
-                    if (success != null && !(success.isEmpty && handAdded.isEmpty())) {
-                        TripsSwitch(souvenirs, success.past.size + handAdded.size, onChoose = { souvenirs = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                    }
                 }
             },
-            bottomBar = {
-                if (success?.canCreate == true) StickyActionBar(text = "+ " + stringResource(R.string.trips_add), onClick = onAddTrip)
+            // E-28: the yellow pill of the prototype, floating bottom right over the list, not a dark bar.
+            floatingActionButton = {
+                if (success?.canCreate == true) NewTripButton(onAddTrip)
             },
         ) { padding ->
             androidx.compose.foundation.layout.BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
@@ -224,6 +221,14 @@ fun TripsScreen(
                     .then(if (globeOn) Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier),
               ) {
               if (globeOn) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
+              // E-29: « À venir | Souvenirs (3) » centred just under the handle. The hand-added destinations (règle 38)
+              // count too: a member with only those sees « Souvenirs ».
+              if (success != null && !(success.isEmpty && handAdded.isEmpty())) {
+                  TripsSwitch(
+                      souvenirs, success.past.size + handAdded.size, onChoose = { souvenirs = it },
+                      Modifier.align(Alignment.CenterHorizontally).padding(start = 16.dp, end = 16.dp, top = if (globeOn) 0.dp else 8.dp, bottom = 8.dp),
+                  )
+              }
               if (saving) BatterySavingBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
               Box(Modifier.weight(1f).fillMaxWidth()) {
                 when (state) {
@@ -247,7 +252,7 @@ fun TripsScreen(
                             mascot = true,
                         )
                         souvenirs -> Souvenirs(state, openTrip, handAdded, onOpenCarnet)
-                        else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn, photos = placePhotos)
+                        else -> Coming(state, openTrip, withLandscape = !globeOn, photos = placePhotos)
                     }
                 }
               }
@@ -292,46 +297,50 @@ internal fun TripsTopBar(
     }
 }
 
-/** « À venir | Souvenirs (3) », as the switch of the Accueil: the chosen one dark. */
+/** « À venir | Souvenirs (3) » (E-29): a white pill centred, the chosen one a dark pill with light text. */
 @Composable
 private fun TripsSwitch(souvenirs: Boolean, pastCount: Int, onChoose: (Boolean) -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Color.White).padding(4.dp).selectableGroup(),
+        modifier.clip(RoundedCornerShape(28.dp)).background(Color.White).padding(4.dp).selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         listOf(false, true).forEach { past ->
             val chosen = souvenirs == past
-            Row(
+            val label = stringResource(if (past) R.string.trips_souvenirs else R.string.trips_upcoming)
+            Box(
                 Modifier
-                    .weight(1f)
                     .heightIn(min = 56.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(if (chosen) TripPathColors.Ink else Color.White)
                     .selectable(selected = chosen, role = Role.Tab, onClick = { onChoose(past) })
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    stringResource(if (past) R.string.trips_souvenirs else R.string.trips_upcoming),
+                    if (past && pastCount > 0) "$label ($pastCount)" else label,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (chosen) Color.White else TripPathColors.Ink,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
-                if (past && pastCount > 0) {
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "$pastCount",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = TripPathColors.Ink,
-                        modifier = Modifier.clip(CircleShape).background(TripPathColors.Sun).padding(horizontal = 8.dp, vertical = 2.dp),
-                    )
-                }
             }
         }
+    }
+}
+
+/** « + Nouveau voyage » (E-28): the accent yellow pill, 56 dp high, dark bold text, with its shadow. */
+@Composable
+private fun NewTripButton(onClick: () -> Unit) {
+    androidx.compose.material3.ExtendedFloatingActionButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(28.dp),
+        containerColor = TripPathColors.Sun,
+        contentColor = TripPathColors.Ink,
+        modifier = Modifier.heightIn(min = 56.dp),
+    ) {
+        Text("+", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(8.dp))
+        Text(stringResource(R.string.trips_add), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -340,8 +349,6 @@ private fun TripsSwitch(souvenirs: Boolean, pastCount: Int, onChoose: (Boolean) 
 private fun Coming(
     state: TripsUiState.Success,
     onOpenTrip: (String) -> Unit,
-    onOpenPart: ((String, TripPart) -> Unit)?,
-    expensesOn: Boolean,
     withLandscape: Boolean = true,
     photos: PlacePhotos? = null,
 ) {
@@ -356,14 +363,14 @@ private fun Coming(
         }
         else -> LandscapeGoal.Next(waitLabel(hero.trip, state.today))
     }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
         val landscape = hero?.trip?.landscape ?: TripLandscape.Dunes
         val ground = landscape.palette.near
         if (withLandscape) item(key = "landscape") { TripsLandscape(goal, stringResource(R.string.day_today), landscape = landscape) }
         item(key = "hero") {
             Box(Modifier.fillMaxWidth().background(ground).padding(horizontal = 16.dp, vertical = 8.dp)) {
                 if (hero != null) {
-                    HeroCard(hero, plan.heroOngoing, state.today, onOpenTrip, onOpenPart, expensesOn, photos)
+                    HeroCard(hero, plan.heroOngoing, state.today, onOpenTrip, photos)
                 } else {
                     Text(
                         stringResource(if (state.canCreate) R.string.trips_none_coming else R.string.trips_none_coming_child),
@@ -406,15 +413,6 @@ private fun waitLabel(trip: Trip, today: LocalDate): String = when (val days = d
     else -> pluralStringResource(R.plurals.trips_in_nights, days, days)
 }
 
-/** « Du dim. 11 au ven. 16 avril 2027 · 6 jours ». */
-@Composable
-private fun longDates(trip: Trip): String {
-    val (from, to) = tripRangeEnds(trip, weekday = true)
-    val days = tripLength(trip)
-    val range = if (trip.startDate == trip.endDate) stringResource(R.string.trips_one_day_on, to) else stringResource(R.string.trip_dates, from, to)
-    return stringResource(R.string.trips_dates_and_length, range, pluralStringResource(R.plurals.trips_days, days, days))
-}
-
 /** What TalkBack reads of a trip: « La Palmyre, du dimanche 11 au vendredi 16 avril 2027, dans 142 jours, avec Inès et Hugo ». */
 @Composable
 private fun tripDescription(summary: TripSummary, extra: String?): String {
@@ -430,108 +428,98 @@ private fun tripDescription(summary: TripSummary, extra: String?): String {
     return parts.joinToString(", ")
 }
 
+/**
+ * The card of the next trip (E-30, E-31, E-32), as the prototype: the photo of the place fills the
+ * card; over it « Voyage programmé » top left, « Dans 142 nuits » top right, and at the bottom, on a
+ * dark gradient, the name then the month, the days and the kilometres. The whole card opens the trip;
+ * Étapes, À prévoir and Comptes are only inside it.
+ */
 @Composable
 private fun HeroCard(
     summary: TripSummary,
     ongoing: Boolean,
     today: LocalDate,
     onOpenTrip: (String) -> Unit,
-    onOpenPart: ((String, TripPart) -> Unit)?,
-    expensesOn: Boolean,
     photos: PlacePhotos? = null,
 ) {
     val trip = summary.trip
     val wait = if (ongoing) stringResource(R.string.trips_day_of, tripDayNumber(trip, today), tripLength(trip)) else waitLabel(trip, today)
     val description = tripDescription(summary, wait.lowercase())
     val openLabel = stringResource(R.string.trips_open_action)
-    Column(
+    val days = tripLength(trip)
+    val figures = listOfNotNull(
+        HeroFigure(fr.familia.app.core.ui.frenchDate(trip.startDate, "MMMM").replaceFirstChar { it.titlecase() }, trip.startDate.year.toString()),
+        HeroFigure("$days", pluralStringResource(R.plurals.trips_figure_days, days)),
+        summary.distanceKm?.let { HeroFigure(java.text.NumberFormat.getIntegerInstance(java.util.Locale.FRANCE).format(it), stringResource(R.string.trips_figure_km)) },
+    )
+    Box(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(Color.White)
-            .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .height(210.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(role = Role.Button, onClick = { onOpenTrip(trip.id) })
+            .clearAndSetSemantics { contentDescription = "$description. $openLabel" },
     ) {
-        // The photo of the place where the trip goes (règles 10, 12), with its credit; no place, no image.
-        if (summary.place != null && photos != null) {
-            PlaceCover(
-                place = summary.placeName,
-                point = summary.place,
-                landscape = trip.landscape,
-                photos = photos,
-                modifier = Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(18.dp)),
-            )
-        }
-        // The text of the card opens the trip; the three buttons open one of its parts.
-        Column(
+        // The photo of the place (règles 10, 12), the drawn landscape when there is none: the labels always show (E-30).
+        PlaceCover(
+            place = summary.placeName ?: trip.title,
+            point = summary.place,
+            landscape = trip.landscape,
+            photos = photos,
+            modifier = Modifier.fillMaxSize(),
+            creditAlignment = Alignment.TopStart,
+            creditTop = 50.dp,
+        )
+        Row(
             Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .clickable(role = Role.Button, onClick = { onOpenTrip(trip.id) })
-                .clearAndSetSemantics { contentDescription = "$description. $openLabel" },
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .align(Alignment.TopStart)
+                .padding(12.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color(0xD917333F))
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            Box(Modifier.size(7.dp).clip(CircleShape).background(Color.White))
             Text(
-                stringResource(if (ongoing) R.string.trips_now_label else R.string.trips_next_label),
+                stringResource(if (ongoing) R.string.trips_now_label else R.string.trip_cover_planned),
                 style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = TripPathColors.InkSoft,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 1,
             )
-            Text(trip.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = TripPathColors.Ink)
-            Text(longDates(trip), style = MaterialTheme.typography.bodyLarge, color = TripPathColors.InkSoft)
-            Faces(summary.people, summary.participants)
-        }
-        if (onOpenPart != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PartButton(stringResource(R.string.trips_part_steps), Modifier.weight(1f)) { onOpenPart(trip.id, TripPart.Steps) }
-                PartButton(stringResource(R.string.trips_part_to_bring), Modifier.weight(1f)) { onOpenPart(trip.id, TripPart.ToBring) }
-                if (expensesOn && summary.isParticipant) {
-                    PartButton(stringResource(R.string.trips_part_expenses), Modifier.weight(1f)) { onOpenPart(trip.id, TripPart.Expenses) }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PartButton(text: String, modifier: Modifier, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        modifier = modifier.heightIn(min = 56.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = ButtonDefaults.textButtonColors(containerColor = TripPathColors.Button, contentColor = TripPathColors.Ink),
-        contentPadding = PaddingValues(horizontal = 6.dp),
-    ) {
-        Text(text, fontWeight = FontWeight.Bold, maxLines = 2, textAlign = TextAlign.Center)
-    }
-}
-
-/** Up to four faces overlapping, then the first names. */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun Faces(people: List<Member>, names: List<String>) {
-    if (names.isEmpty()) return
-    FlowRow(verticalArrangement = Arrangement.Center, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        if (people.isNotEmpty()) {
-            val shown = people.take(4)
-            Box(Modifier.width((34 + (shown.size - 1) * 24).dp).align(Alignment.CenterVertically)) {
-                shown.forEachIndexed { i, member ->
-                    MemberAvatar(
-                        member,
-                        size = 34.dp,
-                        modifier = Modifier.offset(x = (i * 24).dp).clip(CircleShape).background(Color.White).padding(2.dp),
-                    )
-                }
-            }
         }
         Text(
-            joinNames(names),
-            style = MaterialTheme.typography.bodyMedium,
-            color = TripPathColors.InkSoft,
-            modifier = Modifier.align(Alignment.CenterVertically),
+            wait,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = TripPathColors.Ink,
+            maxLines = 1,
+            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).clip(RoundedCornerShape(14.dp)).background(Color.White).padding(horizontal = 10.dp, vertical = 5.dp),
         )
+        Column(
+            Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))))
+                .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(trip.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
+                figures.forEach { figure ->
+                    Column {
+                        Text(figure.value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+                        Text(figure.label.uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1)
+                    }
+                }
+            }
+        }
     }
 }
+
+/** A figure under the name of the next trip: « avril » over « 2027 », « 6 » over « JOURS ». */
+private data class HeroFigure(val value: String, val label: String)
 
 /** A line of « Ensuite » or « En ce moment »: the small landscape, the title, the dates, the faces and when. */
 @Composable
@@ -601,7 +589,7 @@ private fun Souvenirs(state: TripsUiState.Success, onOpenTrip: (String) -> Unit,
     val cards = (state.past.map { SouvenirItem.Trip(it) } + handAdded.map { SouvenirItem.HandAdded(it) }).sortedByDescending { it.date }
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item(key = "intro") {

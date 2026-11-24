@@ -1354,7 +1354,12 @@
     <string name="trips_now">En ce moment</string>
     <string name="trips_then">Ensuite</string>
     <string name="trips_now_label">EN CE MOMENT</string>
-    <string name="trips_next_label">PROCHAIN VOYAGE</string>
+    <plurals name="trips_figure_days">
+        <item quantity="one">jour</item>
+        <item quantity="many">jours</item>
+        <item quantity="other">jours</item>
+    </plurals>
+    <string name="trips_figure_km">kilomètres</string>
     <string name="trips_next_adventure">Et la prochaine aventure ?</string>
     <string name="trips_none_coming">Aucun voyage prévu pour l\'instant. Touche « Nouveau voyage » pour préparer le prochain.</string>
     <string name="trips_none_coming_child">Aucun voyage prévu pour l\'instant. Va voir tes souvenirs de voyage en haut.</string>
@@ -1373,9 +1378,6 @@
     <string name="trips_dates_and_length">%1$s · %2$s</string>
     <string name="trips_dates_short">%1$s au %2$s</string>
     <string name="trips_dates_spoken">du %1$s au %2$s</string>
-    <string name="trips_part_steps">Étapes</string>
-    <string name="trips_part_to_bring">À prévoir</string>
-    <string name="trips_part_expenses">Comptes</string>
     <string name="trips_souvenirs_intro">Les voyages passés, du plus récent au plus ancien. Touche-en un pour revoir son chemin et ses photos.</string>
     <string name="trips_souvenirs_empty">Pas encore de voyage passé. Ils viendront ici, avec leurs photos.</string>
     <string name="trips_empty_body_child">Quand un adulte t\'emmène en voyage, il apparaît ici. En attendant, va voir les photos de la famille.</string>
