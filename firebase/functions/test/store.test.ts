@@ -114,6 +114,7 @@ test('removing a member deletes their answers, bags, alerts, trip documents, voi
   await db.doc('trips/corse/alerts/noe').set({ authorId: 'noe', authorName: 'Noé' });
   await db.doc('trips/corse/documents/d1').set({ ownerId: 'ines', file: 'd1.pdf' });
   await db.doc('trips/corse/documents/d2').set({ ownerId: 'noe', file: 'd2.pdf' });
+  await db.doc('tripPhotoBursts/corse').set({ counts: { ines: 2, noe: 1 } });
   await db.doc('members/ines/settings/notifications').set({ dayBeforeReminder: false });
   await db.doc('members/ines/reminders/meal').set({ eventId: 'meal', offsets: ['h1'] });
   await db.doc('members/noe/reminders/meal').set({ eventId: 'meal', offsets: ['h1'] });
@@ -132,6 +133,7 @@ test('removing a member deletes their answers, bags, alerts, trip documents, voi
   assert.equal((await db.doc('trips/corse/alerts/noe').get()).exists, true);
   assert.equal((await db.doc('trips/corse/documents/d1').get()).exists, false);
   assert.equal((await db.doc('trips/corse/documents/d2').get()).exists, true);
+  assert.deepEqual((await db.doc('tripPhotoBursts/corse').get()).get('counts'), { noe: 1 });
   assert.equal((await db.collection('members/ines/devices').get()).size, 0);
   assert.equal((await db.doc('members/ines/settings/notifications').get()).exists, false);
   assert.equal((await db.collection('members/ines/reminders').get()).size, 0);

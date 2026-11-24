@@ -141,6 +141,12 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
     const notes = await trip.ref.collection('voiceNotes').where('authorId', '==', memberId).select().get();
     notes.docs.forEach((n) => writer.delete(n.ref));
   }
+  // « Photos groupées » (récit 104, règle 34): their part of a burst not sent yet.
+  const bursts = await db.collection('tripPhotoBursts').select('counts').get();
+  for (const burst of bursts.docs) {
+    const counts = burst.get('counts');
+    if (counts && typeof counts === 'object' && memberId in counts) writer.update(burst.ref, { [`counts.${memberId}`]: FieldValue.delete() });
+  }
   await writer.close();
   const member = db.collection('members').doc(memberId);
   await db.recursiveDelete(member.collection('devices'));
