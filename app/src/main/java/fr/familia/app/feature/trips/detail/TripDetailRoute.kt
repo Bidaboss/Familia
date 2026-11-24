@@ -8,7 +8,14 @@ import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.model.Feature
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import fr.familia.app.core.photo.keepPhotoAccess
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,6 +25,8 @@ import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.TripPlaceKind
+import java.time.ZoneId
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import fr.familia.app.feature.trips.packing.packingCount
@@ -62,6 +71,8 @@ fun TripDetailRoute(
     onOpenPlace: (placeId: String) -> Unit = {},
     /** A new accommodation, restaurant or spot under the destination [stepId] (règle 20). */
     onAddPlace: (stepId: String, kind: TripPlaceKind) -> Unit = { _, _ -> },
+    /** The album of the trip opened on one photo (récit 104). */
+    onOpenPhoto: (photoId: String) -> Unit = { onSeePhotos() },
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -77,16 +88,27 @@ fun TripDetailRoute(
     val bags by rememberPackingViewModel(container, currentMember, tripId).uiState.collectAsStateWithLifecycle()
     val packingCount = (state as? TripDetailUiState.Success)?.let { success -> packingCount(success.items, bags, packingOn) } ?: 0
     val album = rememberTripAlbum(container, currentMember, tripId)
+    val context = LocalContext.current
     val photos by album.uiState.collectAsStateWithLifecycle()
     val photoActions = rememberPhotoActions(album, onSeePhotos)
-    val context = LocalContext.current
+    // « Ajouter des photos » under a destination (récit 104, partie 2): the photos chosen are filed under it.
+    var photoStep by rememberSaveable { mutableStateOf<String?>(null) }
+    val stepPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(maxOf(2, photos.placesLeft))) { uris ->
+        keepPhotoAccess(context, uris)
+        album.addPhotos(uris.map { it.toString() }, photoStep)
+        photoStep = null
+    }
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? TripDetailUiState.Success
     val abroad = rememberAbroadCountries(container, shown?.steps.orEmpty())
+    // The photos by destination, from the day they were taken (récit 104, partie 1): nothing is written.
+    val byStep = remember(shown?.trip, shown?.steps, photos.photos) {
+        shown?.let { stepPhotos(tripTimeline(it.trip, it.steps), photos.photos, ZoneId.systemDefault()) } ?: StepPhotos(emptyMap(), emptyList())
+    }
     // The places programmed under the destinations (règle 18); none when they cannot be read.
     val places by remember(container, tripId) {
         container?.tripPlaceRepository?.observePlaces(tripId)
-            ?.catch { e -> if (e is kotlinx.coroutines.CancellationException) throw e else emit(emptyList()) }
+            ?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) }
             ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(initialValue = emptyList())
     TripDetailScreen(
@@ -123,6 +145,18 @@ fun TripDetailRoute(
             places = remember(places) { placesByStep(places) },
             onOpenPlace = onOpenPlace,
             onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
+            photos = byStep.byStay,
+            onOpenPhoto = onOpenPhoto,
+            withoutStep = byStep.withoutStep.size,
+            onSeePhotos = onSeePhotos,
+            onAddPhoto = if (photos.canAdd && photos.placesLeft > 0) {
+                { stepId ->
+                    photoStep = stepId
+                    stepPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }
+            } else {
+                null
+            },
         ),
         cover = { success ->
             TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)

@@ -115,6 +115,8 @@ fun TripEditScreen(
     onBack: () -> Unit,
     /** The image of the place (règle 12): a real photo, else satellite, else the drawn landscape; null: the drawing. */
     cover: (@Composable (Modifier) -> Unit)? = null,
+    /** The form sits in the sheet under the map of the trip (règle 4). */
+    inSheet: Boolean = false,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val editing = state as? TripEditUiState.Editing
@@ -138,6 +140,7 @@ fun TripEditScreen(
         action = editing?.let { stringResource(if (it.isNew) R.string.trip_create else R.string.member_save) },
         busy = editing?.isSaving == true,
         onAction = onSave,
+        inSheet = inSheet,
     ) {
         when (state) {
             TripEditUiState.Loading, is TripEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -148,7 +151,7 @@ fun TripEditScreen(
                     body = stringResource(R.string.trip_unavailable_body),
                 )
             }
-            is TripEditUiState.Editing -> FormContent(state, onChange, onDelete, cover)
+            is TripEditUiState.Editing -> FormContent(state, onChange, onDelete, cover, banner = !inSheet)
         }
     }
 }
@@ -159,6 +162,8 @@ private fun FormContent(
     onChange: ((TripForm) -> TripForm) -> Unit,
     onDelete: () -> Unit,
     cover: (@Composable (Modifier) -> Unit)?,
+    /** False under the map: the satellite map above already shows the place, the image would show it twice. */
+    banner: Boolean = true,
 ) {
     val form = state.form
     val errors = state.errors
@@ -177,7 +182,7 @@ private fun FormContent(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        PreviewBanner(form, cover)
+        if (banner) PreviewBanner(form, cover)
 
         TripTile(Icons.Outlined.CardTravel, stringResource(R.string.trip_tile_trip), Modifier.part(TripPart.Trip)) {
             FormLabel(stringResource(R.string.trip_field_title))

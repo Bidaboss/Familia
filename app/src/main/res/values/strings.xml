@@ -356,6 +356,15 @@
     <string name="place_cover_credit">Photo : %1$s</string>
     <string name="trip_cover_planned">Voyage programmé</string>
     <string name="timeline_add_place_a11y">%1$s : ajouter à %2$s</string>
+    <plurals name="timeline_photos_a11y">
+        <item quantity="one">%1$d photo à %2$s</item>
+        <item quantity="other">%1$d photos à %2$s</item>
+    </plurals>
+    <string name="timeline_photo_add">Ajouter des photos à %1$s</string>
+    <plurals name="timeline_photos_without_step">
+        <item quantity="one">%d photo sans étape</item>
+        <item quantity="other">%d photos sans étape</item>
+    </plurals>
     <string name="timeline_title">Le trajet</string>
     <string name="timeline_start">Le voyage commence</string>
     <string name="timeline_end">Le voyage se termine</string>

@@ -99,6 +99,8 @@ fun StepEditScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onBack: () -> Unit,
+    /** The form sits in the sheet under the map of the trip (règle 4). */
+    inSheet: Boolean = false,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val editing = state as? StepEditUiState.Editing
@@ -122,6 +124,7 @@ fun StepEditScreen(
         action = editing?.let { stringResource(if (it.isNew) R.string.trip_step_add else R.string.member_save) },
         busy = editing?.isSaving == true,
         onAction = onSave,
+        inSheet = inSheet,
     ) {
         when (state) {
             StepEditUiState.Loading, StepEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))

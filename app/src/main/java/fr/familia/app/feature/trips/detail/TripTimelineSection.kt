@@ -6,6 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,15 +48,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.model.TripPlace
+import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.feature.trips.place.placeKindIcon
 import fr.familia.app.feature.trips.place.placeKindLabel
+import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.stepTypeLabel
 import java.time.LocalDate
+import java.time.LocalTime
 import kotlinx.coroutines.delay
 
 /** What « Le trajet » does: open a step, change the nights of a stay, take back a change. */
@@ -66,12 +74,20 @@ class TimelineActions(
     val onOpenPlace: (placeId: String) -> Unit = {},
     /** Null for who does not go: they see the programme, without « + ». */
     val onAddPlace: ((stepId: String, kind: TripPlaceKind) -> Unit)? = null,
+    /** The photos of each destination (récit 104, règle 31), from [stepPhotos]; and the album opened on one of them. */
+    val photos: Map<String, List<AlbumPhoto>> = emptyMap(),
+    val onOpenPhoto: (photoId: String) -> Unit = {},
+    /** The photos that fall in no destination, « Sans étape », and the album they are in. */
+    val withoutStep: Int = 0,
+    val onSeePhotos: () -> Unit = {},
+    /** Null for who adds no photo; else the photos chosen go under the destination [stepId] (récit 104, partie 2). */
+    val onAddPhoto: ((stepId: String) -> Unit)? = null,
 )
 
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
 internal fun placesByStep(places: List<TripPlace>): Map<String, List<TripPlace>> =
     places.groupBy { it.stepId }.mapValues { (_, list) ->
-        list.sortedWith(compareBy<TripPlace>({ it.kind.ordinal }, { it.arriveTime ?: java.time.LocalTime.MAX }, { it.name.lowercase() }))
+        list.sortedWith(compareBy<TripPlace>({ it.kind.ordinal }, { it.arriveTime ?: LocalTime.MAX }, { it.name.lowercase() }))
     }
 
 private const val UNDO_MILLIS = 5_000L
@@ -114,7 +130,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                         progress = { if (line.total == 0) 1f else (line.planned.toFloat() / line.total).coerceIn(0f, 1f) },
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 3.dp,
-                        color = Color(0xFF17333F),
+                        color = Deep,
                         trackColor = Color(0xFFDCE3E8),
                     )
                     Text(
@@ -137,7 +153,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
         }
         undo?.let { (name, before) ->
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF17333F)).padding(start = 12.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Deep).padding(start = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(stringResource(R.string.timeline_changed, name), color = Color.White, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
@@ -167,6 +183,12 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                 is TimelineRow.Move -> MoveRow(row, onOpen = { actions.onOpen(row.step.id) })
             }
         }
+        if (actions.withoutStep > 0) {
+            val label = pluralStringResource(R.plurals.timeline_photos_without_step, actions.withoutStep, actions.withoutStep)
+            TextButton(onClick = actions.onSeePhotos, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text("$label ›", color = Deep, fontWeight = FontWeight.Bold)
+            }
+        }
         EndRow(text = stringResource(R.string.timeline_end), day = trip.endDate, trailing = {})
     }
 }
@@ -179,7 +201,7 @@ private fun shortDay(day: LocalDate): String = frenchDate(day, "EEE d MMM")
 @Composable
 private fun EndRow(text: String, day: LocalDate, trailing: @Composable () -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF17333F)), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(Deep), contentAlignment = Alignment.Center) {
             Icon(Icons.Outlined.Home, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
@@ -230,7 +252,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
                     onClick = { onChange(-1) },
                     enabled = row.nights > 1,
                     modifier = Modifier.size(56.dp).semantics { contentDescription = less },
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = nightsButtonColors(),
                 ) { Text("−", style = MaterialTheme.typography.titleLarge) }
             }
@@ -247,7 +269,7 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
                     onClick = { onChange(1) },
                     enabled = !plusBlocked,
                     modifier = Modifier.size(56.dp).semantics { contentDescription = more },
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = nightsButtonColors(),
                 ) { Text("+", style = MaterialTheme.typography.titleLarge) }
             }
@@ -260,13 +282,72 @@ private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, a
             )
         }
         DestinationProgramme(row.step.id, name, actions)
+        StepPhotoStrip(actions.photos[row.step.id].orEmpty(), name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
     }
 }
+
+/**
+ * The photos of a destination (règle 31): the first four, 56 dp each, each said by TalkBack and
+ * opening the album on it; « + N » opens the album on the fifth; « Ajouter une photo » files the
+ * photos chosen under this destination (récit 104, partie 2), for those who add photos.
+ */
+@Composable
+private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit, onAdd: (() -> Unit)?) {
+    if (photos.isEmpty() && onAdd == null) return
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        photos.take(STRIP_PHOTOS).forEach { photo ->
+            StorageImage(
+                path = photo.thumbnailPath,
+                contentDescription = stringResource(R.string.album_photo_by, photo.authorName),
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(shape)
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.album_photo_open)) { onOpen(photo.id) },
+            )
+        }
+        if (photos.size > STRIP_PHOTOS) {
+            val more = photos.size - STRIP_PHOTOS
+            val spoken = pluralStringResource(R.plurals.timeline_photos_a11y, photos.size, photos.size, destination)
+            Box(
+                Modifier
+                    .size(56.dp)
+                    .clip(shape)
+                    .clickable(role = Role.Button) { onOpen(photos[STRIP_PHOTOS].id) }
+                    .semantics { contentDescription = spoken },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("+ $more", color = Deep, fontWeight = FontWeight.Bold)
+            }
+        }
+        if (onAdd != null) {
+            val add = stringResource(R.string.timeline_photo_add, destination)
+            Box(
+                Modifier
+                    .size(56.dp)
+                    .clip(shape)
+                    .border(1.dp, Deep.copy(alpha = 0.4f), shape)
+                    .clickable(role = Role.Button, onClick = onAdd)
+                    .semantics { contentDescription = add },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Outlined.AddPhotoAlternate, contentDescription = null, tint = Deep)
+            }
+        }
+    }
+}
+
+private const val STRIP_PHOTOS = 4
 
 /**
  * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each
  * opening its page (règle 19); then « + Hébergement », « + Restaurant », « + Spot » for those who go (règle 20).
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DestinationProgramme(stepId: String, destination: String, actions: TimelineActions) {
     val places = actions.places[stepId].orEmpty()
@@ -284,22 +365,23 @@ private fun DestinationProgramme(stepId: String, destination: String, actions: T
             Icon(placeKindIcon(place.kind), contentDescription = null, tint = InkSoft, modifier = Modifier.size(20.dp))
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("${place.name} ›", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                val time = place.arriveTime?.let { " · " + it.format(java.time.format.DateTimeFormatter.ofPattern("HH'h'mm")) }.orEmpty()
+                val time = place.arriveTime?.let { " · " + formatTime(it) }.orEmpty()
                 Text(kind + time, style = MaterialTheme.typography.bodySmall, color = InkSoft)
             }
         }
     }
     val onAdd = actions.onAddPlace ?: return
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    // The three « + » go to the next line rather than cut « Hébergement » on a small screen or in large text.
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         TripPlaceKind.entries.forEach { kind ->
             val label = placeKindLabel(kind)
             val spoken = stringResource(R.string.timeline_add_place_a11y, label, destination)
             TextButton(
                 onClick = { onAdd(stepId, kind) },
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp).semantics { contentDescription = spoken },
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = spoken },
+                contentPadding = PaddingValues(horizontal = 4.dp),
             ) {
-                Text("+ $label", color = Color(0xFF17333F), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("+ $label", color = Deep, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -332,6 +414,9 @@ private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit) {
 
 private val Ink = Color(0xFF111111)
 private val InkSoft = Color(0xFF3A4A52)
+
+/** The dark blue of the rounds, the « Annuler » band and the « + » of the section. */
+private val Deep = Color(0xFF17333F)
 
 @Composable
 private fun nightsButtonColors() = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(

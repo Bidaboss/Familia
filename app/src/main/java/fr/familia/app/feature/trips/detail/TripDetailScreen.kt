@@ -444,7 +444,8 @@ private fun PathContent(
                     photoCount = photos.photos.size,
                     onPhotos = onSeePhotos,
                     onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
-                    onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() },
+                    // The satellite map is already open above the sheet (règle 23): « La carte » stays only for the fallback (TalkBack, no map).
+                    onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() && !satellite },
                     onPacking = onOpenPacking?.takeIf { state.isParticipant },
                     packingCount = packingCount,
                     onPhrases = onOpenPhrases,
@@ -520,7 +521,7 @@ private fun PathContent(
  * between low and high; on the whole screen an arrow at the top left lowers it (règles 7 and 8).
  */
 @Composable
-private fun SheetHandle(level: Int, onLevel: (Int) -> Unit) {
+internal fun SheetHandle(level: Int, onLevel: (Int) -> Unit) {
     var dragged by remember { mutableStateOf(0f) }
     val label = stringResource(if (level > 0) R.string.trip_sheet_lower else R.string.trip_sheet_raise)
     Box(

@@ -1987,3 +1987,67 @@ Rien à publier côté Firebase (les lieux et leurs règles sont arrivés avec #
 3. L'ordre sous une destination : d'abord l'hébergement, puis les restaurants et les spots, chacun par heure.
 4. Un appui sur un lieu ouvre sa page (modifier l'heure ou la note, le supprimer).
 5. Pour qui suit le voyage sans partir : les lieux sont visibles, sans les boutons « + ».
+
+## Voyage : plus de bouton « La carte » sous la carte satellite, et retouches du trajet (récit 103 : règle 23)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir un voyage avec la carte satellite : la carte du jour n'a plus le bouton rond « La carte », puisque la carte est déjà ouverte au-dessus.
+2. Avec TalkBack, ou sans carte satellite : le bouton « La carte » est toujours là et ouvre l'ancienne carte.
+3. Dans « Le trajet », un restaurant avec une heure s'écrit « Restaurant · 12 h 30 », comme les autres heures de l'appli.
+4. Avec un texte très grand ou un petit écran : « + Hébergement », « + Restaurant » et « + Spot » passent à la ligne sans être coupés.
+
+## Voyage : la carte reste ouverte au-dessus de la modification d'une étape (récit 103 : règles 4, 6, 8, 9, 23)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Dans un voyage, toucher une étape pour la modifier : la carte satellite du voyage est en haut et l'étape y est choisie, avec son nom. Le formulaire est dans la feuille du bas.
+2. Sur la carte, on peut déplacer et pincer pour zoomer.
+3. Tirer la poignée vers le haut : la feuille monte à 85 %, puis prend tout l'écran avec une flèche en haut à gauche. Retour, la flèche ou un glissement vers le bas la redescendent.
+4. Changer un champ puis Retour : « Quitter sans enregistrer ? » s'affiche toujours.
+5. Avec TalkBack, ou sans carte : le formulaire seul, comme avant.
+
+## Voyage : la carte reste ouverte au-dessus de la modification du voyage (récit 103 : règles 4, 6, 9)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir un voyage qui a des étapes placées, puis « Modifier » : la carte satellite du voyage est en haut, et le formulaire (nom, dates, qui part) est dans la feuille du bas.
+2. La carte se déplace et se zoome. La feuille se tire vers le haut et redescend avec Retour ou la flèche.
+3. Créer un nouveau voyage : il n'y a pas encore d'étape, donc le formulaire s'affiche seul, comme avant.
+
+## Voyage : la carte au-dessus d'une étape sans clignotement, et le clavier (récit 103 : règles 4, 8)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir la modification d'une étape : le formulaire ne saute pas quand la carte arrive. Il reste en place, et la carte apparaît au-dessus.
+2. Toucher le champ du lieu ou du commentaire : le clavier s'ouvre, la feuille prend tout l'écran et le champ reste visible au-dessus du clavier.
+3. Fermer le clavier puis appuyer sur la flèche : la feuille redescend et la carte réapparaît.
+4. Modifier un voyage avec des étapes placées : sous la carte, la feuille commence directement par le nom et les dates. L'image du lieu n'est plus répétée, puisque la carte la montre déjà.
+
+## Voyage : les photos rangées sous chaque destination (récit 104, partie 1 : règle 31)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Ouvrir un voyage qui a des photos et des destinations datées : sous chaque destination, une bande de petites photos montre celles prises pendant ses jours (au plus 4, puis « + N »).
+2. Toucher une petite photo : elle s'ouvre en grand dans les photos du voyage.
+3. Une photo prise un jour de changement de destination va sous celle qui commence ce jour-là.
+4. Les photos prises hors des jours des destinations restent visibles : un bouton « N photos sans étape » ouvre les photos du voyage.
+5. Rien n'est réécrit : les photos gardent leur fiche, et personne ne voit plus de photos qu'avant.
+
+## Voyage : ajouter des photos depuis une destination (récit 104, partie 2 : règle 31)
+
+**Publier Firebase : oui** (règles Firestore : champ stepId des photos d'un voyage). « APK de publication » ensuite.
+1. Ouvrir un voyage dont on fait partie : sous chaque destination, un carré « Ajouter des photos » (icône photo) suit les vignettes.
+2. Le toucher, choisir deux photos : elles s'envoient et apparaissent sous cette destination, même si elles ont été prises un autre jour.
+3. Avec plus de 4 photos, toucher « + N » : l'album s'ouvre sur la 5e photo.
+4. Avec TalkBack : chaque vignette dit « Photo de <prénom> », « + N » dit le nombre de photos de la destination, le carré dit « Ajouter des photos à <destination> ».
+5. Supprimer la destination : ses photos restent et reviennent sous la destination de leur jour, ou dans « photos sans étape ».
+6. Un membre qui suit le voyage sans y participer ne voit pas le carré d'ajout ; un membre qui ne suit pas le voyage ne voit toujours aucune photo.
+
+## Voyage : l'étape d'une photo est un identifiant simple (suite du récit 104, partie 2)
+
+**Publier Firebase : oui** (firestore.rules). Rien ne change à l'écran : ajouter des photos depuis une destination marche comme avant.
+
+
+## Voyage : les photos annoncées en une seule notification (récit 104, partie 4 : règle 34)
+
+**Publier Firebase : oui** (une nouvelle fonction, `onTripPhotoCreated`, et firestore.rules), avant l'APK.
+1. Avec deux téléphones : sur le premier, ajouter 3 photos à un voyage que le second suit. Aucune notification n'arrive tout de suite.
+2. Entre 10 et 25 min après la dernière photo, le second reçoit une seule notification « <voyage> : 3 nouvelles photos », « Par <prénom>. ». La toucher ouvre le voyage.
+3. L'auteur, quand il est seul, ne reçoit rien. Un membre qui ne suit pas le voyage ne reçoit rien non plus.
+4. En ajoutant une photo toutes les 5 min, la notification part quand même au plus tard 45 à 60 min après la première.

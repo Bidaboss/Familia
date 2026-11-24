@@ -1,5 +1,8 @@
 package fr.familia.app.feature.trips.edit
 
+import fr.familia.app.BuildConfig
+import fr.familia.app.core.model.TripLandscape
+import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,9 +15,9 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import fr.familia.app.feature.trips.PlaceCover
 import fr.familia.app.feature.trips.map.GeoPoint
+import fr.familia.app.feature.trips.map.TripMapBackdrop
 import fr.familia.app.core.place.Place
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
@@ -89,24 +92,34 @@ fun TripEditRoute(
         return
     }
     // The image of the place (règle 12): the destination chosen for a new trip, the first placed step of a trip.
-    val firstStep by remember(tripId) {
-        tripId?.let { id -> container?.tripRepository?.observeSteps(id)?.map { steps -> steps.firstOrNull { it.hasPosition } ?: steps.firstOrNull() } }
-            ?.catch { e -> if (e is kotlinx.coroutines.CancellationException) throw e else emit(null) }
+    val steps by remember(tripId) {
+        tripId?.let { id -> container?.tripRepository?.observeSteps(id) }
+            ?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) }
+            ?: flowOf(emptyList())
+    }.collectAsStateWithLifecycle(emptyList())
+    val trip by remember(tripId) {
+        tripId?.let { id -> container?.tripRepository?.observeTrip(id) }
+            ?.catch { e -> if (e is CancellationException) throw e else emit(null) }
             ?: flowOf(null)
     }.collectAsStateWithLifecycle(null)
+    val firstStep = steps.firstOrNull { it.hasPosition } ?: steps.firstOrNull()
     val coverPlace = chosen?.let(::destinationName) ?: firstStep?.place?.substringBefore(',')?.trim()
     val coverPoint = chosen?.let { GeoPoint(it.lat, it.lng) } ?: firstStep?.takeIf { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) }
-    val landscape = (state as? TripEditUiState.Editing)?.form?.landscape ?: fr.familia.app.core.model.TripLandscape.Dunes
-    TripEditScreen(
-        state = state,
-        onChange = viewModel::update,
-        onSave = viewModel::save,
-        onDelete = viewModel::delete,
-        onBack = onBack,
-        cover = { modifier ->
-            PlaceCover(coverPlace, coverPoint, landscape, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN, modifier)
-        },
-    )
+    val landscape = (state as? TripEditUiState.Editing)?.form?.landscape ?: TripLandscape.Dunes
+    // Changing a trip keeps its map open above the form (règles 4, 6, 9); a new trip has no step yet: the form alone.
+    TripMapBackdrop(token = BuildConfig.MAPBOX_PUBLIC_TOKEN, trip = trip, steps = steps, focusId = null) { inSheet ->
+        TripEditScreen(
+            state = state,
+            onChange = viewModel::update,
+            onSave = viewModel::save,
+            onDelete = viewModel::delete,
+            onBack = onBack,
+            cover = { modifier ->
+                PlaceCover(coverPlace, coverPoint, landscape, container?.placePhotos, BuildConfig.MAPBOX_PUBLIC_TOKEN, modifier)
+            },
+            inSheet = inSheet,
+        )
+    }
 }
 
 /** Keeps the chosen destination when Android recreates the screen. */

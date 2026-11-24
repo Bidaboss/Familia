@@ -44,8 +44,8 @@ import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Member, N
 import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import {
-  AlertData, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
-  TripDocumentData, tripDocumentFile,
+  addTripPhotoToBurst, AlertData, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
+  sendTripPhotoDigests, TripDocumentData, tripDocumentFile,
 } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -610,7 +610,13 @@ export const onGoodNewsCommentRemoved = onDocumentDeleted('goodNews/{postId}/com
 
 // Grouped reactions (PRD rév. 174): every 15 minutes, the notices due an hour after a first reaction.
 export const goodNewsReactionDigests = onSchedule({ schedule: '*/15 * * * *', timeZone: 'Europe/Paris' }, async () => {
-  await sendReactionDigests(getFirestore(), sendGoodNews, new Date());
+  // And the photos groupées of the trips (récit 104, règle 34), with no schedule of their own: one
+  // failing never holds the other.
+  const results = await Promise.allSettled([
+    sendReactionDigests(getFirestore(), sendGoodNews, new Date()),
+    sendTripPhotoDigests(getFirestore(), send, new Date()),
+  ]);
+  for (const r of results) if (r.status === 'rejected') throw r.reason;
 });
 
 // --- Trips (V3, récit 14) ---------------------------------------------------------------------
@@ -640,6 +646,11 @@ export const onTripAlertWritten = onDocumentWritten('trips/{tripId}/alerts/{memb
 export const onTripDocumentDeleted = onDocumentDeleted('trips/{tripId}/documents/{docId}', async (event) => {
   const path = tripDocumentFile(event.params.tripId, event.params.docId, event.data?.data() as TripDocumentData | undefined);
   if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
+});
+
+// Photos d'un voyage (récit 104, règle 34): never a notice per photo, a burst told later.
+export const onTripPhotoCreated = onDocumentCreated('trips/{tripId}/photos/{photoId}', async (event) => {
+  await addTripPhotoToBurst(getFirestore(), event.params.tripId, event.data?.get('authorId'), new Date());
 });
 
 // « Le mot de l'étape » (récit 88) goes with its step, with its hearts and comments.
