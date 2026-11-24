@@ -1,12 +1,17 @@
 package fr.familia.app.core.place
 
 import fr.familia.app.core.model.TripPlaceKind
+import java.io.IOException
+import java.io.InterruptedIOException
+import java.net.ConnectException
 import java.net.HttpURLConnection
+import java.net.UnknownHostException
+import javax.net.ssl.SSLException
 import java.net.URL
 import java.net.URLEncoder
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -19,46 +24,100 @@ import kotlinx.serialization.json.jsonPrimitive
 /** A place found around a destination (récit 103, règle 20): its name, its kind in French, its address when known, its point. */
 data class FoundPlace(val name: String, val genre: String, val address: String?, val lat: Double, val lng: Double, val meters: Int)
 
+/** Why OpenStreetMap gave no places (retour E-45): said in the message, so a failure on Wi-Fi is understood. */
+enum class SearchFailure {
+    /** The phone could not reach the server: no network, or a network that filters it. */
+    Offline,
+
+    /** Too many questions at once (code 429), or the server overloaded (502, 503, 504). */
+    Busy,
+
+    /** No answer in time. */
+    Slow,
+
+    /** Another refusal, or an answer that cannot be read. */
+    Other,
+}
+
+/** What a search gives: the places (empty when none), or why there are none. */
+sealed interface PlaceSearchAnswer {
+    data class Found(val places: List<FoundPlace>) : PlaceSearchAnswer
+    data class Failed(val cause: SearchFailure) : PlaceSearchAnswer
+}
+
 /**
  * The search of an accommodation, a restaurant or a spot around a destination (règle 20), from
  * OpenStreetMap (© les contributeurs d'OpenStreetMap). Only the point of the destination and the
  * typed words leave the phone; nothing is stored.
  */
 interface PlaceSearch {
-    /** Up to [PLACE_SEARCH_MAX] places within [PLACE_SEARCH_RADIUS] m, nearest first; empty when none, null when the service did not answer. */
-    suspend fun search(lat: Double, lng: Double, kind: TripPlaceKind, text: String): List<FoundPlace>?
+    /** Up to [PLACE_SEARCH_MAX] places within [PLACE_SEARCH_RADIUS] m, nearest first; empty when none, or why the service did not answer. */
+    suspend fun search(lat: Double, lng: Double, kind: TripPlaceKind, text: String): PlaceSearchAnswer
 }
 
-/** Overpass, as for « Autour de l'étape »: a second server when the first is busy. */
+/**
+ * Overpass, as for « Autour de l'étape »: other servers when the first is busy. The question is
+ * really stopped when a newer one replaces it (a key typed): before, each key left its question
+ * running, and the main server answers 429 past two at once from the same phone (retour E-45).
+ */
 class OverpassPlaceSearch : PlaceSearch {
-    override suspend fun search(lat: Double, lng: Double, kind: TripPlaceKind, text: String): List<FoundPlace>? = withContext(Dispatchers.IO) {
+    override suspend fun search(lat: Double, lng: Double, kind: TripPlaceKind, text: String): PlaceSearchAnswer {
         val query = placeSearchQuery(kind, lat, lng, text)
+        var first: SearchFailure? = null
         for (server in SERVERS) {
-            val found = withTimeoutOrNull(TIMEOUT_MS) { ask(server, query, lat, lng, kind) }
-            if (found != null) return@withContext found
+            val answer = withTimeoutOrNull(TIMEOUT_MS) { runInterruptible(Dispatchers.IO) { ask(server, query, lat, lng, kind) } }
+                ?: PlaceSearchAnswer.Failed(SearchFailure.Slow)
+            if (answer is PlaceSearchAnswer.Found) return answer
+            // The cause of the main server is the one said: the others are only a help.
+            if (first == null) first = (answer as PlaceSearchAnswer.Failed).cause
         }
-        null
+        return PlaceSearchAnswer.Failed(first ?: SearchFailure.Other)
     }
 
-    private fun ask(server: String, query: String, lat: Double, lng: Double, kind: TripPlaceKind): List<FoundPlace>? = runCatching {
+    private fun ask(server: String, query: String, lat: Double, lng: Double, kind: TripPlaceKind): PlaceSearchAnswer = try {
         val connection = URL(server + "?data=" + URLEncoder.encode(query, "UTF-8")).openConnection() as HttpURLConnection
         try {
             connection.connectTimeout = 6_000
-            connection.readTimeout = 12_000
+            connection.readTimeout = 10_000
             connection.setRequestProperty("User-Agent", "Familia/1.0 (application familiale)")
-            if (connection.responseCode != 200) null else parseFoundPlaces(connection.inputStream.bufferedReader().readText(), lat, lng, kind)
+            val code = connection.responseCode
+            if (code != 200) {
+                PlaceSearchAnswer.Failed(failureOfCode(code))
+            } else {
+                parseFoundPlaces(connection.inputStream.bufferedReader().readText(), lat, lng, kind)?.let { PlaceSearchAnswer.Found(it) }
+                    ?: PlaceSearchAnswer.Failed(SearchFailure.Other)
+            }
         } finally {
             connection.disconnect()
         }
-    }.getOrNull()
+    } catch (e: InterruptedIOException) {
+        // Stopped by a newer question, or no answer in time (SocketTimeoutException is one too).
+        PlaceSearchAnswer.Failed(SearchFailure.Slow)
+    } catch (e: UnknownHostException) {
+        PlaceSearchAnswer.Failed(SearchFailure.Offline)
+    } catch (e: ConnectException) {
+        PlaceSearchAnswer.Failed(SearchFailure.Offline)
+    } catch (e: SSLException) {
+        // A Wi-Fi that asks to sign in first, or that filters the server, breaks the secure link.
+        PlaceSearchAnswer.Failed(SearchFailure.Offline)
+    } catch (e: IOException) {
+        PlaceSearchAnswer.Failed(SearchFailure.Other)
+    }
 
     private companion object {
-        const val TIMEOUT_MS = 16_000L
+        const val TIMEOUT_MS = 12_000L
         val SERVERS = listOf(
             "https://overpass-api.de/api/interpreter",
+            "https://overpass.private.coffee/api/interpreter",
             "https://overpass.kumi.systems/api/interpreter",
         )
     }
+}
+
+/** The cause said for an HTTP [code] of Overpass. */
+fun failureOfCode(code: Int): SearchFailure = when (code) {
+    429, 502, 503, 504 -> SearchFailure.Busy
+    else -> SearchFailure.Other
 }
 
 const val PLACE_SEARCH_RADIUS = 10_000

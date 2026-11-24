@@ -2482,3 +2482,14 @@ Sur un téléphone en Android 10 ou plus :
 11. « Enregistrer » (gris tant que rien ne change) : la feuille se ferme et la monnaie du voyage a changé. Sans réseau : elle se ferme aussi et la monnaie part au retour du réseau.
 12. Le taux n'est jamais tapé : « 1 € = … » avec sa date et sa source, touchable. Pour qui suit sans gérer : la monnaie, son taux et le convertisseur, sans pilules ni « Enregistrer ».
 13. Toucher la partie assombrie, le ✕ ou le retour d'Android ferme la feuille.
+
+## Voyage : la recherche d'un lieu (« Trouver un restaurant »), retours E-41 à E-46
+
+**Publier Firebase : non.**
+1. Depuis une destination, « + Ajouter » sous RESTAURANTS : l'écran « Trouver un restaurant » prend tout l'écran, sans flèche ↓ de feuille ; une seule en-tête (rond retour, titre, aide).
+2. Le champ est blanc, arrondi, avec la loupe, sans bord rouge, même pendant la frappe.
+3. Dessous, une phrase courte « Autour de … (10 km), les plus proches d'abord. » ; tout en bas, en petit, « © les contributeurs d'OpenStreetMap ».
+4. Taper un nom : la ligne « Ajouter « … » » est blanche comme les résultats, son « + » en encre, pas en rouge.
+5. Taper vite plusieurs lettres : une seule recherche part à la fin (les précédentes sont arrêtées), ce qui évite le refus « trop de demandes ».
+6. Si OpenStreetMap ne répond pas, le message dit pourquoi : pas de réseau (ou Wi-Fi qui bloque), trop de demandes, ou trop lent. « Réessayer » est en encre.
+7. Retour d'Android ou rond retour : on revient à la destination, la carte et sa poignée réapparaissent.

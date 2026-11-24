@@ -133,7 +133,7 @@ internal object VoyageScreens {
         screen("a restaurant, with « Choisir un autre »") { PlaceEditScreen(previewPlaceEditState(), {}, {}, {}, {}, onSearch = {}) },
         screen("the search of a restaurant") { PlaceSearchScreen(previewPlaceSearchState(), "Ajaccio", {}, {}, {}, {}, {}) },
         screen("the search of a spot, no answer") {
-            PlaceSearchScreen(previewPlaceSearchState(kind = TripPlaceKind.Spot, text = "plage", results = PlaceSearchResults.Failed), "Ajaccio", {}, {}, {}, {}, {})
+            PlaceSearchScreen(previewPlaceSearchState(kind = TripPlaceKind.Spot, text = "plage", results = PlaceSearchResults.Failed(fr.familia.app.core.place.SearchFailure.Busy)), "Ajaccio", {}, {}, {}, {}, {})
         },
         screen("edit a step, with errors") {
             StepEditScreen(previewStepEditState(errors = setOf(StepFormError.PlaceMissing, StepFormError.ArriveBeforeDepart)), {}, {}, {}, {})

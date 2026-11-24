@@ -5,6 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -197,4 +201,40 @@ internal fun TripPageField(
             },
         )
     }
+}
+
+/**
+ * The search field of the trips (fiche F2 §3): white, 56 dp, rounded 20, the magnifier in ink and no
+ * border, whatever the theme; [label] shows inside while it is empty and is read by TalkBack.
+ */
+@Composable
+internal fun TripSearchField(label: String, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(20.dp)
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        textStyle = TextStyle(fontSize = 16.sp, color = TripPathColors.Ink),
+        cursorBrush = SolidColor(TripPathColors.Ink),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Search),
+        modifier = modifier.fillMaxWidth().semantics { contentDescription = label },
+        decorationBox = { field ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .shadow(2.dp, shape)
+                    .background(Color.White, shape)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(Icons.Outlined.Search, contentDescription = null, tint = TripPathColors.Ink)
+                Box(Modifier.weight(1f)) {
+                    if (value.isEmpty()) Text(label, fontSize = 16.sp, color = TripPathColors.Ink.copy(alpha = 0.6f))
+                    field()
+                }
+            }
+        },
+    )
 }
