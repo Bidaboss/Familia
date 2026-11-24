@@ -1,6 +1,8 @@
 package fr.familia.app.feature.trips.edit
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
@@ -54,5 +56,13 @@ class TripDatesTest {
         assertEquals(2, lines.count { it is CalendarLine.Month })
         val days = lines.filterIsInstance<CalendarLine.Week>().flatMap { it.days }.filterNotNull()
         assertEquals(30 + 31, days.size)
+    }
+
+    @Test
+    fun `save waits for both days, a single day counts`() {
+        assertFalse(DateRange(null, null).complete)
+        assertFalse(DateRange(aug2, null).complete)
+        assertTrue(DateRange(aug2, aug2).complete)
+        assertTrue(DateRange(aug2, aug9).complete)
     }
 }

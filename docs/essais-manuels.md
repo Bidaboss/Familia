@@ -2536,3 +2536,14 @@ Sur un téléphone en Android 10 ou plus :
 8. Dézoomer au maximum la carte d'un voyage (retour E-53) : le globe entier reste au-dessus du panneau, centré dans la partie visible, avec une petite marge. Monter puis descendre le panneau : le centre suit.
 9. Si l'imagerie manque encore : « Plantages » montre une ligne « Carte … : SOURCE … » qui dit quelle source est refusée et pourquoi (jeton, quota, réseau).
 10. Ouvrir un voyage de plusieurs étapes (retour E-51) : toutes les étapes tiennent dans la carte, la première comme la dernière, avec leur nom, sans toucher le bord ni passer sous le panneau.
+
+## Voyage : le bouton « Enregistrer » des dates toujours visible, retour E-63
+
+**Publier Firebase : non.**
+1. « Nouveau voyage », toucher les dates : en bas, au-dessus de la barre de gestes Android (ou des trois boutons), deux rangées : « Effacer les dates » à gauche et « Touche le premier jour » à droite, puis le bouton plein « Enregistrer », grisé.
+2. Toucher un premier jour : « Enregistrer » reste grisé. Toucher le dernier jour : « 7 nuits sélectionnées », le bouton devient foncé.
+3. Faire défiler le calendrier : la barre du bas et l'en-tête ne bougent pas.
+4. Toucher deux fois le même jour : « 1 jour sélectionné », « Enregistrer » est actif.
+5. Toucher « Enregistrer » : retour au formulaire avec les deux dates remplies. Rouvrir, changer, puis la flèche retour : les dates d'avant restent.
+6. Même essai sur un voyage existant (« Modifier ») et sur « Départ » d'une destination : « Enregistrer » est visible et change bien la date.
+7. Le titre « Dates du voyage » et la flèche ne passent pas sous la barre d'état en haut.

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -68,6 +69,9 @@ import java.util.Locale
 data class DateRange(val start: LocalDate?, val end: LocalDate?) {
     /** Nights between the start and the end; null while the end is not chosen. */
     val nights: Long? get() = if (start != null && end != null) ChronoUnit.DAYS.between(start, end) else null
+
+    /** « Enregistrer » is on once both days are chosen; a trip of one day (start = end) counts (E-63). */
+    val complete: Boolean get() = start != null && end != null
 }
 
 /**
@@ -130,7 +134,9 @@ fun TripDatesDialog(
     latest: LocalDate? = null,
     title: String? = null,
 ) {
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    // E-63: the dialog draws under the system bars and keeps its own margins, else on an edge-to-edge
+    // phone the bottom bar went under the gesture bar and « Enregistrer » could not be seen.
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         TripDatesScreen(start, end, onSave, onDismiss, fixedStart, latest, title)
     }
 }
@@ -155,7 +161,7 @@ fun TripDatesScreen(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = lines.indexOf(CalendarLine.Month(opensOn)).coerceAtLeast(0))
     Surface(Modifier.fillMaxSize(), color = Cream, contentColor = Ink) {
         Column(Modifier.fillMaxSize()) {
-            Column(Modifier.shadow(4.dp).background(Cream)) {
+            Column(Modifier.shadow(4.dp).background(Cream).statusBarsPadding()) {
                 Row(
                     Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -214,7 +220,8 @@ fun TripDatesScreen(
                     }
                 }
             }
-            Column(Modifier.background(Cream).navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
+            // The bar of the bottom (E-63): fixed above the calendar that scrolls, two rows, out of the gesture bar.
+            Column(Modifier.fillMaxWidth().shadow(4.dp).background(Cream).navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(
                         onClick = { range = DateRange(null, null) },
@@ -243,7 +250,7 @@ fun TripDatesScreen(
                 val chosenEnd = range.end
                 Button(
                     onClick = { if (chosenStart != null && chosenEnd != null) onSave(chosenStart, chosenEnd) },
-                    enabled = chosenStart != null && chosenEnd != null,
+                    enabled = range.complete,
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Ink,
