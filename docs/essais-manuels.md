@@ -1995,3 +1995,12 @@ Rien à publier côté Firebase. « APK de publication ».
 2. Avec TalkBack, ou sans carte satellite : le bouton « La carte » est toujours là et ouvre l'ancienne carte.
 3. Dans « Le trajet », un restaurant avec une heure s'écrit « Restaurant · 12 h 30 », comme les autres heures de l'appli.
 4. Avec un texte très grand ou un petit écran : « + Hébergement », « + Restaurant » et « + Spot » passent à la ligne sans être coupés.
+
+## Voyage : la carte reste ouverte au-dessus de la modification d'une étape (récit 103 : règles 4, 6, 8, 9, 23)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Dans un voyage, toucher une étape pour la modifier : la carte satellite du voyage est en haut et l'étape y est choisie, avec son nom. Le formulaire est dans la feuille du bas.
+2. Sur la carte, on peut déplacer et pincer pour zoomer.
+3. Tirer la poignée vers le haut : la feuille monte à 85 %, puis prend tout l'écran avec une flèche en haut à gauche. Retour, la flèche ou un glissement vers le bas la redescendent.
+4. Changer un champ puis Retour : « Quitter sans enregistrer ? » s'affiche toujours.
+5. Avec TalkBack, ou sans carte : le formulaire seul, comme avant.

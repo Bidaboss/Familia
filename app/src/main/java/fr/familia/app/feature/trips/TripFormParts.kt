@@ -91,13 +91,15 @@ internal fun TripFormScaffold(
     action: String?,
     busy: Boolean,
     onAction: () -> Unit,
+    /** Under the map, in its sheet (règle 4): the bar starts at the top of the sheet, not under the status bar. */
+    inSheet: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Scaffold(
         containerColor = TripPathColors.Sky,
         contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
-            Box(Modifier.background(TripPathColors.Sky).statusBarsPadding()) {
+            Box(Modifier.background(TripPathColors.Sky).then(if (inSheet) Modifier else Modifier.statusBarsPadding())) {
                 TripsTopBar(onBack = onBack, title = title, help = help)
             }
         },

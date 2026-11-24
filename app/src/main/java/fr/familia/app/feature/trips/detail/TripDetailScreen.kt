@@ -505,7 +505,7 @@ private fun PathContent(
  * between low and high; on the whole screen an arrow at the top left lowers it (règles 7 and 8).
  */
 @Composable
-private fun SheetHandle(level: Int, onLevel: (Int) -> Unit) {
+internal fun SheetHandle(level: Int, onLevel: (Int) -> Unit) {
     var dragged by remember { mutableStateOf(0f) }
     val label = stringResource(if (level > 0) R.string.trip_sheet_lower else R.string.trip_sheet_raise)
     Box(
