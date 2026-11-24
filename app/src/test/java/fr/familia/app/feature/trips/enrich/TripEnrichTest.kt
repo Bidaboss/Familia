@@ -193,6 +193,8 @@ class TripEnrichTest {
             {"sorte": "spot", "nom": "Inconnu"}
         ]}]}""")
         vm.read(trip, listOf(placed))
+        // The point of the destination travels with the reading (retour C2 de #579).
+        assertEquals(38.72 to -9.14, (vm.state.value.reading as EnrichReading.Read).destinations.single().anchor)
         vm.add()
         assertEquals(listOf("Rua Augusta 1, Lisbonne", "Tour, Lisbonne", "Inconnu, Lisbonne"), locator.asked)
         val byName = places.saved.associateBy { it.name }

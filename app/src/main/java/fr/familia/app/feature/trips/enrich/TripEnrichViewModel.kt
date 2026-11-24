@@ -9,10 +9,15 @@ import fr.familia.app.core.model.TripPlace
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.place.PlaceLocator
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeoutOrNull
 import fr.familia.app.core.place.distanceMeters
 
@@ -74,11 +79,7 @@ class TripEnrichViewModel(
         _state.value = _state.value.copy(answer = text.take(TripEnrich.MAX_CHARS + 1), reading = null, ticked = emptySet(), added = null)
     }
 
-    /** The points of the destinations of the trip, read with the answer: a place is placed near its own. */
-    private var anchors: Map<String, Pair<Double, Double>> = emptyMap()
-
     fun read(trip: Trip, steps: List<TripStep>) {
-        anchors = steps.mapNotNull { s -> if (s.lat != null && s.lng != null) s.id to (s.lat to s.lng) else null }.toMap()
         val current = _state.value
         val reading = readEnrichAnswer(current.answer, trip, steps, current.target)
         _state.value = current.copy(reading = reading, ticked = (reading as? EnrichReading.Read)?.let(::allKeys).orEmpty(), saveFailed = false)
@@ -116,12 +117,23 @@ class TripEnrichViewModel(
                     id
                 } else {
                     val id = destination.existingStepId ?: return@forEachIndexed
-                    anchor = anchors[id]
+                    anchor = destination.anchor
                     id
+                }
+                // Looked for a few at a time, not one after the other: 15 places on a slow network would
+                // otherwise wait up to 45 s (retour C1 de #579).
+                val near = anchor
+                val gate = Semaphore(GEOCODE_AT_ONCE)
+                val points = coroutineScope {
+                    destination.places.mapIndexed { p, place ->
+                        async {
+                            if (placeKey(d, p) !in current.ticked) null else gate.withPermit { placePosition(place, destination.city, near) }
+                        }
+                    }.awaitAll()
                 }
                 destination.places.forEachIndexed { p, place ->
                     if (placeKey(d, p) !in current.ticked) return@forEachIndexed
-                    val point = placePosition(place, destination.city, anchor)
+                    val point = points[p]
                     val written = TripPlace(
                         id = placeRepo.newPlaceId(tripId),
                         stepId = stepId,
@@ -186,6 +198,9 @@ class TripEnrichViewModel(
 
     companion object {
         const val GEOCODE_MILLIS = 3_000L
+
+        /** How many places of the answer the phone looks for at once. */
+        const val GEOCODE_AT_ONCE = 4
 
         /** How far from its destination a place found by the phone may be. */
         const val PLACE_RADIUS_METERS = 50_000
