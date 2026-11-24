@@ -87,6 +87,7 @@ fun TripEditRoute(
                 asking = false
             },
             onTypeAName = { chosen = null; asking = false },
+            globeToken = fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN,
             onBack = onBack,
         )
         return

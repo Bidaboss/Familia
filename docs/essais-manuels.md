@@ -2119,6 +2119,14 @@ Rien à publier côté Firebase. « APK de publication ».
 6. Toucher un repère avec photo : il est choisi comme un repère simple.
 7. Sans réseau, ou si une photo ne se charge pas : le rond simple reste, la carte ne bascule pas sur le dessin.
 
+## Voyage : « Où allez-vous ? » sur le globe (récit 110, partie 3 : règle 11)
+
+**Publier Firebase : non.**
+1. Voyages → « Nouveau voyage » : au-dessus de « Où allez-vous ? », le globe satellite tourne doucement.
+2. Chercher « La Palmyre » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
+3. « Continuer » mène à la suite de la création, comme avant, avec le nom du voyage déjà rempli.
+4. Avec TalkBack, sans réseau, ou si le globe a échoué récemment : le formulaire reste seul, sans globe, et tout marche pareil.
+
 ## Voyage : repères avec photo, regroupement et chargement (retours C1 et C2 de #547)
 
 **Publier Firebase : non.**
