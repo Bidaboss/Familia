@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,7 +46,7 @@ internal fun backdropSheetShare(level: Int): Float = when (level) {
 /**
  * The arrival of « Modifier » (récit 111, règle 4), from the reference video: the sheet opens high
  * then goes down, then the camera goes out to the whole globe and dives back on the steps, in one
- * move of about 2.5 s (the prototype), stopped by a touch.
+ * move of about 2.9 s of camera (300 + 1 100 + 1 500 ms, close to the 2.5 s of the prototype), stopped by a touch.
  */
 internal object EditArrival {
     /** The sheet stays high this long before it goes down. */
@@ -138,7 +140,10 @@ fun TripMapBackdrop(
                 .background(TripPathColors.Sky),
         ) {
             if (withMap) SheetHandle(level, onLevel = { level = it.coerceIn(0, 2) })
-            Column(Modifier.weight(1f).fillMaxWidth()) { content(withMap) }
+            // Low or high, the sheet is far from the status bar: the bars of the screens inside do not leave room for it.
+            Column(
+                Modifier.weight(1f).fillMaxWidth().then(if (withMap && level < 2) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
+            ) { content(withMap) }
         }
     }
 }
