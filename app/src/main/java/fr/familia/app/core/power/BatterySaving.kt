@@ -73,7 +73,11 @@ val LocalBatterySaving = compositionLocalOf { false }
 @Composable
 fun watchBatterySaving(): Boolean {
     val context = LocalContext.current
-    var saving by remember { mutableStateOf(false) }
+    // Read the sticky battery at once, so a map opened on the very first frame (cold start from a
+    // link) does not freeze « false » under 20 % (retour C1 de #571).
+    var saving by remember(context) {
+        mutableStateOf(readSaving(context, context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)), false))
+    }
     DisposableEffect(context) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(c: Context, intent: Intent) {
