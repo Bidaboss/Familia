@@ -2630,3 +2630,12 @@ Sur un téléphone en Android 10 ou plus :
 5. Sans réseau dès l'ouverture : au bout de 8 s, Terre dessinée, et la ligne « globe : imagerie absente 8 s (0 sources), Terre dessinée ».
 6. Une destination dont le nom exact n'a pas de page Wikipédia (« Samoure, Charente », un camping…) : la photo vient du nom avant la virgule, sinon de la recherche Wikipédia, sinon d'une page à moins de 10 km. « Plantages » ne montre plus « refusé 404 ».
 7. Si aucune photo n'est trouvée : une ligne « Photo du lieu : aucune photo : nom, recherche et 10 km autour » (ou « lieu sans position »), sans le nom du lieu.
+
+## Voyages : l'avatar en haut à droite, retour E-62
+
+**Publier Firebase : non.**
+1. Ouvrir « Voyages » : en haut à droite, de droite à gauche, l'avatar de l'admin (le même rond que sur les autres onglets), le « ? », puis le carnet.
+2. Toucher l'avatar : le panneau du compte s'ouvre (Mon profil, Apparence, Notifications, Aide…), comme depuis l'accueil. Le fermer : on reste sur « Voyages ».
+3. Sur un petit téléphone ou avec un grand texte (Réglages Android, taille de police maximale) : le titre « Voyages » se coupe avec « … » ; les trois ronds gardent leur taille.
+4. TalkBack sur l'avatar : il annonce l'ouverture du compte.
+5. Les écrans « Nouveau voyage » et le carnet n'ont pas d'avatar (seule la liste en a un).

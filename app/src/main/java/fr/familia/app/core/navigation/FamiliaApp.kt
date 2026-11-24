@@ -1161,6 +1161,7 @@ fun FamiliaApp(
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                             onAddTrip = { navController.navigate(TripEditDestination()) },
                             onOpenCarnet = { navController.navigate(TripCarnetDestination) { launchSingleTop = true } },
+                            onAccount = { accountOpen = true },
                             // A tab of the bar when its module is on: no « Retour » then.
                             onBack = if (TopLevelDestination.Trips in tabs) null else ({ navController.popBackStack() }),
                             onOpenAlbums = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) { launchSingleTop = true } }) else null,
