@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import fr.familia.app.feature.trips.map.GeoPoint
+import fr.familia.app.feature.trips.map.GlobeLook
 import org.junit.Test
 
 class TripsGlobeTest {
@@ -59,5 +60,21 @@ class TripsGlobeTest {
         assertEquals(labelImageId("Nice"), labelImageId("Nice"))
     }
 
-    @Test fun theListGlobeIsBiggerThanBefore() = assertEquals(1.0, GLOBE_LIST_ZOOM, 0.0)
+    // E-48: the globe fills about 85 % of the width of a phone.
+    @Test fun theListGlobeIsBiggerThanBefore() = assertEquals(1.1, GLOBE_LIST_ZOOM, 0.0)
+
+    @Test fun theGlobeOfTheListShowsTheNaturalColoursFirst() {
+        assertEquals(GlobeLook.Vivid, GlobeLook.LIST_DEFAULT)
+        assertEquals(com.mapbox.maps.Style.SATELLITE, GlobeLook.Vivid.styleUri)
+        assertEquals(GlobeLook.Vivid, GlobeLook.of(null))
+        assertEquals(GlobeLook.Vivid, GlobeLook.of("inconnue"))
+        assertEquals(GlobeLook.Soft, GlobeLook.of("Soft"))
+    }
+
+    @Test fun aLongTouchGoesThroughTheThreeVariants() {
+        assertEquals(GlobeLook.Soft, GlobeLook.Vivid.next())
+        assertEquals(GlobeLook.Standard, GlobeLook.Soft.next())
+        assertEquals(GlobeLook.Vivid, GlobeLook.Standard.next())
+        assertEquals(listOf("A", "B", "C"), GlobeLook.entries.map { it.letter })
+    }
 }

@@ -29,6 +29,9 @@ sealed class MapUnavailable(val detail: String, cause: Throwable? = null) : Exce
     /** Nothing drawn in time ([detail]: the delay, and the last error Mapbox gave, if any). */
     class Timeout(detail: String) : MapUnavailable(detail)
 
+    /** E-49: tiles refused while the map shows (imagery missing: token, quota, network); [detail] says which source. */
+    class TileError(detail: String) : MapUnavailable(detail)
+
     /** The view of the map could not even start: its own error is the cause. */
     class ViewFailed(cause: Throwable) : MapUnavailable(viewErrorLine(cause), cause)
 }
@@ -57,6 +60,23 @@ fun mapFailureReason(token: String, online: Boolean, sdkError: String?, viewErro
 /** The error of Mapbox for « Plantages »: its type and message, without any token of an address (C3 of #573), 50 characters at most. */
 fun mapErrorLine(type: String, message: String): String =
     "$type: ${message.replace(Regex("access_token=[^&\\s]*"), "access_token=…")}".take(50)
+
+/**
+ * E-49: the line of a refused tile or source, « SOURCE mapbox.satellite : 401 … », the token
+ * hidden. Null for an error of the style itself (handled as a failure of the map).
+ */
+fun tileErrorLine(type: String, sourceId: String?, message: String): String? {
+    if (type != "SOURCE" && type != "TILE") return null
+    val source = sourceId?.takeIf { it.isNotBlank() } ?: "?"
+    return "$type $source : ${message.replace(Regex("access_token=[^&\\s]*"), "access_token=…")}".take(60)
+}
+
+/** E-49: a refused tile or source goes to the log and, once per screen, to « Plantages ». */
+fun recordTileError(context: Context, tag: String, type: String, sourceId: String?, message: String) {
+    val line = tileErrorLine(type, sourceId, message) ?: return
+    android.util.Log.w(tag, "tuile refusée $line")
+    MapFailureLog.record(context, MapUnavailable.TileError(line))
+}
 
 /** The line of « Plantages » that says where: « Carte TripDetail : délai 15 s ». */
 fun mapFailureScreen(where: String, failure: MapUnavailable): String =

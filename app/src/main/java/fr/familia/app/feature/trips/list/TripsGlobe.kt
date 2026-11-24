@@ -10,6 +10,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -47,10 +48,13 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimati
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import com.mapbox.maps.plugin.gestures.OnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
+import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.gestures
+import fr.familia.app.R
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.map.GlobeHealth
 import fr.familia.app.feature.trips.map.MAP_STYLE_TIMEOUT_MS
@@ -59,7 +63,10 @@ import fr.familia.app.feature.trips.map.MapUnavailable
 import fr.familia.app.feature.trips.map.mapErrorLine
 import fr.familia.app.feature.trips.map.viewErrorLine
 import fr.familia.app.feature.trips.map.mapFailureReason
+import fr.familia.app.feature.trips.map.GlobeLook
+import fr.familia.app.feature.trips.map.GlobeLookStore
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
+import fr.familia.app.feature.trips.map.recordTileError
 import fr.familia.app.feature.trips.map.toPoint
 import kotlinx.coroutines.delay
 
@@ -83,8 +90,8 @@ data class GlobeFlight(val id: Int, val tripId: String, val point: GeoPoint)
 
 internal const val FLIGHT_MILLIS = 2_000L
 
-/** E-40: the zoom of the globe of the list, about 80 % of the width of a phone as in the prototype. */
-internal const val GLOBE_LIST_ZOOM = 1.0
+/** E-40 then E-48: the zoom of the globe of the list, about 85 % of the width of a phone (the variant kept may change it). */
+internal val GLOBE_LIST_ZOOM: Double get() = GlobeLook.LIST_DEFAULT.listZoom
 
 /** Degrees per second: one turn in 90 s (récit 99). */
 internal const val GLOBE_DEGREES_PER_SECOND = 4.0
@@ -137,12 +144,16 @@ fun TripsGlobe(
     onOpenTrip: (String) -> Unit = {},
     /** The destinations added by hand to the carnet (récit 107, règle 38): a simple mark in Souvenirs, no line, no touch. */
     handAdded: List<GeoPoint> = emptyList(),
-    /** How big the globe is: [GLOBE_LIST_ZOOM] on the list, smaller in a short frame. */
-    zoom: Double = GLOBE_LIST_ZOOM,
+    /** How big the globe is: the zoom of the variant kept (E-48) when null, smaller in a short frame. */
+    zoom: Double? = null,
+    /** E-48: a long touch goes to the next variant of the globe (the admin compares them on « Voyages »). */
+    cycleLook: Boolean = false,
     /** The accent yellow of the app (the pill of the bottom bar): the dots of the coming trips (E-38). */
     accent: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFFF2C14E),
 ) {
     val context = LocalContext.current
+    val look = remember { GlobeLookStore.read(context) }
+    val shownZoom = zoom ?: look.listZoom
     val started = LocalLifecycleOwner.current.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
     var powerSave by remember { mutableStateOf(powerSaveOn(context)) }
     DisposableEffect(context) {
@@ -251,17 +262,18 @@ fun TripsGlobe(
                     // Règle 5 (E-25): nothing but the globe, no scale over « Voyages », no compass.
                     runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
                     map.mapboxMap.setCamera(
-                        CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(zoom).pitch(20.0).build(),
+                        CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(shownZoom).pitch(20.0).build(),
                     )
                     listeners[0] = map.mapboxMap.subscribeMapLoadingError { error ->
                         lastError[0] = mapErrorLine(error.type.toString(), error.message)
                         Log.w("TripsGlobe", "map error ${lastError[0]}")
+                        recordTileError(context, "TripsGlobe", error.type.toString(), error.sourceId, error.message)
                         // A missing tile leaves the globe; only a style that cannot load is the end, and only before it showed.
                         if (error.type == MapLoadingErrorType.STYLE && !ready) giveUp(lastError[0])
                     }
-                    map.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
+                    map.mapboxMap.loadStyle(look.styleUri) { style ->
                         runCatching {
-                            configureSatelliteGlobe(style)
+                            configureSatelliteGlobe(style, look)
                             // Before the trips: its layer lies under their dots.
                             addHandAdded(style)
                             addMarkers(style, accentHex(accent))
@@ -288,6 +300,16 @@ fun TripsGlobe(
                             false
                         },
                     )
+                    if (cycleLook) {
+                        map.gestures.addOnMapLongClickListener(
+                            OnMapLongClickListener {
+                                val next = GlobeLookStore.read(context).next()
+                                GlobeLookStore.save(context, next)
+                                Toast.makeText(context, context.getString(R.string.globe_look_next, next.letter), Toast.LENGTH_LONG).show()
+                                true
+                            },
+                        )
+                    }
                     // The finger moves the globe: no rotation under it; it starts again after a pause (E-33).
                     map.gestures.addOnMoveListener(
                         object : OnMoveListener {

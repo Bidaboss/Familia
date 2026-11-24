@@ -183,6 +183,7 @@ fun TripsScreen(
             flight = flight,
             onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
             onOpenTrip = { id -> openTrip(id) },
+            cycleLook = true,
             accent = fr.familia.app.core.theme.LocalClayStyle.current.tabPill,
             modifier = Modifier.fillMaxWidth().fillMaxHeight(globeShare).align(Alignment.TopCenter),
         )

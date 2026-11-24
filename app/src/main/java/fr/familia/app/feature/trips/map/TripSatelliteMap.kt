@@ -41,6 +41,7 @@ import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
+import com.mapbox.maps.CameraBoundsOptions
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapLoadingErrorType
@@ -51,6 +52,7 @@ import com.mapbox.maps.RenderedQueryOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.extension.style.expressions.dsl.generated.get
+import com.mapbox.maps.extension.localization.localizeLabels
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
@@ -74,6 +76,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.delay
+import kotlin.math.PI
+import kotlin.math.log2
 
 /** What the satellite home of a trip needs to know about the map (récit 100). */
 internal fun satelliteMapUsable(token: String, usable: Boolean, talkBack: Boolean): Boolean = token.isNotBlank() && usable && !talkBack
@@ -157,7 +161,7 @@ fun TripSatelliteMap(
         }
     }
     val view = remember { arrayOfNulls<MapView>(1) }
-    val applied = remember { arrayOf<Any?>(null, null, null, null, null) } // look, tilted, sheetHigh, selected, photos
+    val applied = remember { arrayOf<Any?>(null, null, null, null, null, null) } // look, tilted, sheetHigh, selected, photos, sheet height
     val density = context.resources.displayMetrics.density
     // The rounds with a photo (récit 110), drawn once each photo is loaded; the others stay plain dots.
     val storage = LocalPhotoStorage.current
@@ -241,11 +245,14 @@ fun TripSatelliteMap(
                         // Règle 5: nothing but the map; the compass and the scale bar go too.
                         runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
                         map.mapboxMap.setCamera(memory.camera?.let(::cameraOf) ?: frame(map, points, bottomPaddingDp * density, tilted))
+                        keepAboveSheet(map, bottomPaddingDp, density)
+                        applied[5] = bottomPaddingDp
                         // The style is there: the map shows, even while the last tiles still come (slow phone, slow network).
                         listener[0] = map.mapboxMap.subscribeMapLoaded { drawn = true; GlobeHealth.markWorking(context) }
                         listener[2] = map.mapboxMap.subscribeStyleLoaded { drawn = true; restyling[0] = false; GlobeHealth.markWorking(context) }
                         listener[3] = map.mapboxMap.subscribeMapLoadingError { error ->
                             lastError[0] = mapErrorLine(error.type.toString(), error.message)
+                            recordTileError(context, "TripSatelliteMap", error.type.toString(), error.sourceId, error.message)
                             // A missing tile or icon leaves the map; only a style that cannot load is the end.
                             if (error.type == MapLoadingErrorType.STYLE && (!drawn || restyling[0])) fail(null, false)
                         }
@@ -284,6 +291,10 @@ fun TripSatelliteMap(
                 val map = (v as? MapView) ?: return@AndroidView
                 if (!drawn) return@AndroidView
                 val padding = bottomPaddingDp * density
+                if (applied[5] != bottomPaddingDp) {
+                    applied[5] = bottomPaddingDp
+                    keepAboveSheet(map, bottomPaddingDp, density)
+                }
                 val shownPhotos = photoMarkers.toMap()
                 if (applied[0] != look) {
                     applied[0] = look
@@ -381,12 +392,48 @@ private fun frame(view: MapView, points: List<GeoPoint>, bottomPx: Double, tilte
         .zoom(if (points.size == 1) 9.0 else 6.0).pitch(pitch).build()
     if (points.size <= 1) return middle
     // Before its first layout the view has no size: margins larger than the map make no frame.
-    val padding = EdgeInsets(120.0, 60.0, bottomPx + 60.0, 60.0)
+    // E-51: margins in dp (they were in pixels, about 22 dp on a phone): the last round and its name never touch the edge.
+    val d = view.resources.displayMetrics.density.toDouble()
+    val padding = EdgeInsets(FRAME_TOP_DP * d, FRAME_SIDE_DP * d, bottomPx + FRAME_SIDE_DP * d, FRAME_SIDE_DP * d)
     if (view.width <= 0 || view.height <= padding.top + padding.bottom || view.width <= padding.left + padding.right) return middle
     return runCatching {
         view.mapboxMap.cameraForCoordinates(points.map { it.toPoint() }, CameraOptions.Builder().pitch(pitch).build(), padding, null, null)
+            .toBuilder().padding(EdgeInsets(0.0, 0.0, bottomPx, 0.0)).build()
     }.getOrDefault(middle)
 }
+
+/**
+ * E-53: the middle of the map is the middle of the part above the sheet (the camera keeps the
+ * sheet as its bottom padding), and zoomed out the whole globe stays above it, 16 dp from the edges.
+ */
+private fun keepAboveSheet(view: MapView, sheetDp: Double, density: Float) {
+    runCatching {
+        view.mapboxMap.setCamera(CameraOptions.Builder().padding(EdgeInsets(0.0, 0.0, sheetDp * density, 0.0)).build())
+        val widthDp = view.width / density.toDouble()
+        val heightDp = view.height / density.toDouble()
+        if (widthDp > 0 && heightDp > 0) {
+            view.mapboxMap.setBounds(CameraBoundsOptions.Builder().minZoom(wholeGlobeZoom(widthDp, heightDp - sheetDp)).build())
+        }
+    }
+}
+
+/**
+ * E-53: the smallest zoom at which the whole globe fits in [widthDp] × [heightDp] with 16 dp on
+ * each side. At zoom z the world is 512 × 2^z dp around, so the globe is 512 × 2^z / π across.
+ */
+internal fun wholeGlobeZoom(widthDp: Double, heightDp: Double): Double {
+    val room = (minOf(widthDp, heightDp) - 2 * GLOBE_MARGIN_DP).coerceAtLeast(64.0)
+    return log2(room * PI / 512.0).coerceIn(0.0, 3.0)
+}
+
+internal const val GLOBE_MARGIN_DP = 16.0
+
+/** E-51: the room kept around the steps when the map frames them: a round of 45 dp with its name fits. */
+internal const val FRAME_SIDE_DP = 56.0
+internal const val FRAME_TOP_DP = 96.0
+
+/** E-49: the style of the Satellite look of the map of a trip. */
+internal val TRIP_SATELLITE_STYLE: String = Style.SATELLITE_STREETS
 
 /** Loads the look of the map, then draws the steps on it (again after a change of look: the style forgets them). */
 /** The layers without which there is no map of the trip: the rounds of the steps and their sources. */
@@ -394,9 +441,13 @@ internal val ESSENTIAL_LAYERS = listOf("home-steps", "home-next", "home-steps-do
 
 private fun loadLook(view: MapView, look: MapLook, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, next: Int, selected: Int?, onFailed: (Throwable) -> Unit, labels: List<String>?, onRefused: (String) -> Unit = {}, afterDraw: (Style) -> Unit = {}) {
     val satellite = look == MapLook.Satellite
-    view.mapboxMap.loadStyle(if (satellite) Style.STANDARD_SATELLITE else Style.STANDARD) { style ->
+    // E-49: Standard Satellite showed only its neutral vector background on the phones of the family;
+    // the classic Satellite Streets has the imagery in its own colours, with the roads and the names.
+    view.mapboxMap.loadStyle(if (satellite) TRIP_SATELLITE_STYLE else Style.STANDARD) { style ->
         runCatching {
-            if (satellite) configureSatelliteGlobe(style)
+            if (satellite) configureSatelliteGlobe(style, GlobeLook.LIST_DEFAULT)
+            // E-54: the names of the map in French (continents, countries, towns), as the app.
+            runCatching { style.localizeLabels(java.util.Locale.FRENCH) }
             val refused = drawSteps(style, points, names, arrived, next, selected, trail = if (satellite) "#FFFFFF" else "#333333", labels = labels)
             // Only the rounds are the map of the trip: a refused name, number or ring leaves it (and says so).
             if (refused.isNotEmpty()) onRefused(refused.first())

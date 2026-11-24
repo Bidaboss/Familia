@@ -2522,3 +2522,17 @@ Sur un téléphone en Android 10 ou plus :
 2. Le créateur retire Sam des voyageurs. Sam ne voit plus le document de Lou ; sur le téléphone de Lou, le document n'affiche plus le visage de Sam.
 3. Les documents que Sam avait ajoutés restent à Sam (ils suivent la suppression habituelle).
 4. Remettre Sam dans le voyage : le document de Lou ne revient pas tout seul ; Lou le partage à nouveau avec « Partager… ».
+
+## Voyage : un globe aux vraies couleurs, retour E-48
+
+**Publier Firebase : non.**
+1. Ouvrir « Voyages » avec le globe : la Terre a ses vraies couleurs (océans bleu profond, forêts vertes, déserts ocre, glaces blanches), un halo bleu vif autour, un ciel noir étoilé. Le globe occupe environ 85 % de la largeur.
+2. Appui long sur le globe : « Globe : variante B. Rouvre « Voyages » pour la voir. » Quitter puis rouvrir « Voyages » : halo plus doux, globe un peu plus grand.
+3. Nouvel appui long : variante C, le globe d'avant (Standard Satellite), pour comparer. Un appui long de plus revient à A.
+4. Les points des voyages, leurs noms et le toucher d'un point qui ouvre le voyage marchent dans les trois variantes.
+5. La carte d'un voyage et le globe d'une nouvelle destination ne changent pas (Standard Satellite).
+6. Dire au fil design la variante retenue : elle devient celle de tout le monde, et l'appui long sera retiré.
+7. Carte d'un voyage, look Satellite (retour E-49) : la vraie imagerie en couleurs, avec les routes et les noms par-dessus (plus de fond gris-rose ni d'eau ardoise). Les noms sont en français (« Afrique », « Amérique du Sud », retour E-54).
+8. Dézoomer au maximum la carte d'un voyage (retour E-53) : le globe entier reste au-dessus du panneau, centré dans la partie visible, avec une petite marge. Monter puis descendre le panneau : le centre suit.
+9. Si l'imagerie manque encore : « Plantages » montre une ligne « Carte … : SOURCE … » qui dit quelle source est refusée et pourquoi (jeton, quota, réseau).
+10. Ouvrir un voyage de plusieurs étapes (retour E-51) : toutes les étapes tiennent dans la carte, la première comme la dernière, avec leur nom, sans toucher le bord ni passer sous le panneau.

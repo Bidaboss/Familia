@@ -56,9 +56,10 @@ fun GlobeMapView(
                 MapboxOptions.accessToken = token
                 MapView(context).also { view ->
                     view.mapboxMap.setCamera(command.target.toOptions())
-                    view.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
+                    // E-49: the classic Satellite, with the imagery in its own colours, as the globe of the list.
+                    view.mapboxMap.loadStyle(GlobeLook.LIST_DEFAULT.styleUri) { style ->
                         runCatching {
-                            configureSatelliteGlobe(style)
+                            configureSatelliteGlobe(style, GlobeLook.LIST_DEFAULT)
                             style.addSource(geoJsonSource(TRAIL_ALL) { geometry(trail(points, points.size - 1)) })
                             style.addSource(geoJsonSource(TRAIL_DONE) { geometry(trail(points, 0)) })
                             style.addSource(geoJsonSource(STEPS) { featureCollection(com.mapbox.geojson.FeatureCollection.fromFeatures(points.map { com.mapbox.geojson.Feature.fromGeometry(it.toPoint()) })) })
@@ -109,14 +110,18 @@ private fun trail(points: List<GeoPoint>, upTo: Int): LineString {
     return LineString.fromLngLats(if (list.size >= 2) list else listOf(list.first(), list.first()))
 }
 
-/** Satellite view, round, in a starry sky. Shared by every globe of the app. */
-internal fun configureSatelliteGlobe(style: Style) {
-    // Standard Satellite is a globe by itself; the rest only tunes the sky, and a refusal there must not give the globe up.
+/** Satellite view, round, in a starry sky, with the sky of [look]. Shared by every globe of the app. */
+internal fun configureSatelliteGlobe(style: Style, look: GlobeLook = GlobeLook.Standard) {
+    // The globe projection; the rest only tunes the sky, and a refusal there must not give the globe up.
     runCatching { style.setStyleProjectionProperty("name", Value.valueOf("globe")) }
-    runCatching {
-        mapOf("color" to "#BFD9F2", "high-color" to "#3C6FB5", "space-color" to "#050B1A")
-            .forEach { (key, color) -> style.setStyleAtmosphereProperty(key, Value.valueOf(color)) }
-        style.setStyleAtmosphereProperty("horizon-blend", Value.valueOf(0.04))
-        style.setStyleAtmosphereProperty("star-intensity", Value.valueOf(0.7))
-    }
+    val sky = hashMapOf(
+        "color" to Value.valueOf(look.color),
+        "high-color" to Value.valueOf(look.highColor),
+        "space-color" to Value.valueOf(look.spaceColor),
+        "horizon-blend" to Value.valueOf(look.horizonBlend),
+        "star-intensity" to Value.valueOf(look.starIntensity),
+    )
+    // A classic style (Satellite) has no sky of its own: it is given whole; Standard Satellite has one, tuned key by key.
+    val whole = runCatching { style.setStyleAtmosphere(Value.valueOf(sky)) }.getOrNull()?.isValue == true
+    if (!whole) runCatching { sky.forEach { (key, value) -> style.setStyleAtmosphereProperty(key, value) } }
 }
