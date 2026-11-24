@@ -2619,3 +2619,14 @@ Sur un téléphone en Android 10 ou plus :
 2. À l'ouverture d'un voyage : la feuille et le titre sont là tout de suite ; derrière, le globe entier tourne d'environ un demi-tour vers le voyage (vite, puis plus doucement), puis plonge sur les étapes ; le tout en 6 s environ.
 3. Toucher la carte pendant ce mouvement : il s'arrête là où il est.
 4. Pour les chiffres (Logcat, filtre « TripOpen ») : « écran : n ms après le toucher » puis « carte : n ms après le toucher ».
+
+## Voyages : le globe répond au doigt, plus de fausse alerte « imagerie absente », photo cherchée plus loin (E-69, retours du 24/11 23 h 56)
+
+**Publier Firebase : non.**
+1. Ouvrir « Voyages » : le globe satellite s'affiche. Glisser le doigt sur le globe (au-dessus de la feuille) : il tourne sous le doigt, puis reprend sa rotation après une pause.
+2. Toucher le point d'un voyage sur le globe : le voyage s'ouvre.
+3. Admin : appui long sur le globe : un message « Globe : variante B » s'affiche et le globe change tout de suite. Encore deux appuis longs : C (Standard Satellite), puis A. Ça marche aussi sur la Terre dessinée.
+4. Les images satellite arrivent en quelques secondes : le globe reste en satellite, il ne passe pas sur la Terre dessinée, et « Plantages » n'a pas de ligne « globe : imagerie absente ».
+5. Sans réseau dès l'ouverture : au bout de 8 s, Terre dessinée, et la ligne « globe : imagerie absente 8 s (0 sources), Terre dessinée ».
+6. Une destination dont le nom exact n'a pas de page Wikipédia (« Samoure, Charente », un camping…) : la photo vient du nom avant la virgule, sinon de la recherche Wikipédia, sinon d'une page à moins de 10 km. « Plantages » ne montre plus « refusé 404 ».
+7. Si aucune photo n'est trouvée : une ligne « Photo du lieu : aucune photo : nom, recherche et 10 km autour » (ou « lieu sans position »), sans le nom du lieu.

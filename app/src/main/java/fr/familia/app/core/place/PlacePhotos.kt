@@ -50,7 +50,11 @@ class WikimediaPlacePhotos(
         val found = withContext(Dispatchers.IO) {
             withTimeoutOrNull(TIMEOUT_MS) {
                 runCatching {
-                    val image = read(photoSummaryUrl(title))?.let(::parseSummaryImage) ?: return@runCatching null
+                    // Retour du 24/11 23 h 57 (« refusé 404 »): no page has the exact name. The name before
+                    // its comma, then the search of Wikipedia, before the pages around (in of(place, lat, lng)).
+                    val image = titleCandidates(title).firstNotNullOfOrNull { candidate -> read(photoSummaryUrl(candidate))?.let(::parseSummaryImage) }
+                        ?: read(searchPhotosUrl(title))?.let { parseNearbyImage(it) }
+                        ?: return@runCatching null
                     val credit = read(commonsInfoUrl(image.file))?.let(::parseCredit) ?: DEFAULT_CREDIT
                     PlacePhoto(image.url, credit)
                 }
@@ -64,8 +68,10 @@ class WikimediaPlacePhotos(
 
     override suspend fun of(place: String, lat: Double?, lng: Double?): PlacePhoto? {
         of(place)?.let { return it }
-        if (lat == null || lng == null) return null
-        return near(lat, lng)
+        val around = if (lat == null || lng == null) null else near(lat, lng)
+        // For « Plantages »: where the search went, never the place itself.
+        if (around == null) onRefused(noPhotoLine(withPoint = lat != null && lng != null))
+        return around
     }
 
     override suspend fun near(lat: Double, lng: Double, except: String?): PlacePhoto? {
@@ -94,7 +100,8 @@ class WikimediaPlacePhotos(
             connection.setRequestProperty("Accept", "application/json")
             val code = connection.responseCode
             if (code != 200) {
-                onRefused(photoRefusalLine(code, connection.url.host))
+                // A 404 is a page that does not exist, not a refusal: the next way is tried.
+                if (code != 404) onRefused(photoRefusalLine(code, connection.url.host))
                 null
             } else {
                 connection.inputStream.bufferedReader().readText()
@@ -113,6 +120,23 @@ class WikimediaPlacePhotos(
 
 /** The line of « Plantages » for an answer other than 200: the code and the site, never the place. */
 fun photoRefusalLine(code: Int, host: String?): String = "refusé $code ${host.orEmpty()}".trim().take(60)
+
+/** The line of « Plantages » when no way gave a photo: whether the pages around could be asked. */
+fun noPhotoLine(withPoint: Boolean): String =
+    if (withPoint) "aucune photo : nom, recherche et 10 km autour" else "aucune photo : nom et recherche, lieu sans position"
+
+/**
+ * The titles tried for [place]: itself, then the part before its first comma
+ * (« Samoure, Charente » then « Samoure »), never empty, never twice.
+ */
+fun titleCandidates(place: String): List<String> =
+    listOf(place.trim(), place.substringBefore(',').trim()).filter { it.isNotEmpty() }.distinct()
+
+/** The search of French Wikipedia for [place]: the three best pages, with their main image. */
+fun searchPhotosUrl(place: String): String =
+    "https://fr.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&generator=search" +
+        "&gsrsearch=" + URLEncoder.encode(place.trim(), "UTF-8") +
+        "&gsrlimit=3&prop=pageimages&piprop=thumbnail%7Coriginal&pithumbsize=$PHOTO_WIDTH"
 
 /** A search that broke (no network, unreadable answer) or ran out of time; null when it answered. */
 internal fun refusal(found: Result<PlacePhoto?>?): String? = when {

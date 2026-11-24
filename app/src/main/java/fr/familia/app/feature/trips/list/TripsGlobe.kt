@@ -108,6 +108,9 @@ internal const val DRAWN_GLOBE_STYLE: String = Style.STANDARD
 /** Only the styles made of imagery need it to show an Earth. */
 internal fun globeNeedsImagery(styleUri: String): Boolean = styleUri == Style.SATELLITE || styleUri == Style.SATELLITE_STREETS
 
+/** Pure rule: a tile event counts as imagery unless Mapbox says it is not loaded (it often leaves « loaded » out). */
+internal fun imageryTile(isTile: Boolean, loaded: Boolean?): Boolean = isTile && loaded != false
+
 /** Pure rule: the style is there but no image of it came in time, and the drawn Earth was not taken yet. */
 internal fun globeFallsBack(imageryCame: Boolean, styleReady: Boolean, fellBack: Boolean): Boolean = styleReady && !imageryCame && !fellBack
 
@@ -346,19 +349,24 @@ fun TripsGlobe(
                     }
                     drawGlobe(look.styleUri, look)
                     // The imagery of the style: one tile of its own sources is enough to know it came.
+                    // Retour du 24/11 23 h 56: no « loaded » asked of a tile event; Mapbox leaves it out on
+                    // tiles, and the check took a globe whose images came for a black one.
                     listeners[2] = map.mapboxMap.subscribeSourceDataLoaded { event ->
                         // Kept whatever the source: a tile may come before the sources of the style are read (C of #610).
-                        if (event.type == SourceDataLoadedType.TILE && event.loaded == true) tileSources.add(event.sourceId)
+                        if (imageryTile(event.type == SourceDataLoadedType.TILE, event.loaded)) tileSources.add(event.sourceId)
                     }
                     // Retour du 24/11 soir (globe noir): a satellite globe whose imagery never comes takes
                     // the drawn Earth (oceans, lands, nothing written) instead of staying black.
-                    if (globeNeedsImagery(look.styleUri)) {
+                    fun armImageryCheck(uri: String) {
+                        imageryCheck[0]?.let(map::removeCallbacks)
+                        imageryCheck[0] = null
+                        if (!globeNeedsImagery(uri)) return
                         val check = Runnable {
-                            val imageryCame = synchronized(tileSources) { tileSources.any { it in styleSources[0] } }
-                            if (map.isAttachedToWindow && globeFallsBack(imageryCame, ready, fellBack[0])) {
+                            val tileCame = synchronized(tileSources) { tileSources.any { it in styleSources[0] } }
+                            if (map.isAttachedToWindow && globeFallsBack(tileCame, ready, fellBack[0])) {
                                 fellBack[0] = true
                                 Log.w("TripsGlobe", "imagery missing, drawn globe")
-                                MapFailureLog.record(context, MapUnavailable.TileError("globe : imagerie absente ${IMAGERY_WAIT_MS / 1000} s, Terre dessinée"))
+                                MapFailureLog.record(context, MapUnavailable.TileError("globe : imagerie absente ${IMAGERY_WAIT_MS / 1000} s (${tileSources.size} sources), Terre dessinée"))
                                 runCatching { drawGlobe(DRAWN_GLOBE_STYLE, GlobeLook.Standard) }
                                     .onFailure { Log.w("TripsGlobe", "drawn globe refused", it) }
                             }
@@ -366,6 +374,7 @@ fun TripsGlobe(
                         imageryCheck[0] = check
                         map.postDelayed(check, IMAGERY_WAIT_MS)
                     }
+                    armImageryCheck(look.styleUri)
                     // A touch on a dot opens its trip (with the flight); anywhere else, nothing.
                     map.gestures.addOnMapClickListener(
                         OnMapClickListener { point ->
@@ -385,6 +394,11 @@ fun TripsGlobe(
                             OnMapLongClickListener {
                                 val next = GlobeLookStore.read(context).next()
                                 GlobeLookStore.save(context, next)
+                                // E-69: the new variant shows at once, the drawn Earth included; its imagery is watched again.
+                                fellBack[0] = false
+                                tileSources.clear()
+                                runCatching { drawGlobe(next.styleUri, next) }.onFailure { Log.w("TripsGlobe", "variant refused", it) }
+                                armImageryCheck(next.styleUri)
                                 Toast.makeText(context, context.getString(R.string.globe_look_next, next.letter), Toast.LENGTH_LONG).show()
                                 true
                             },
