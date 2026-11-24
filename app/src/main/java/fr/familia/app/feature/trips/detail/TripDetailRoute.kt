@@ -167,7 +167,8 @@ fun TripDetailRoute(
         packingCount = packingCount,
         photos = photos,
         photoActions = photoActions,
-        onOpenExpenses = onOpenExpenses,
+        // Règle 40 (récit 112): no « Comptes » for a trip of one household.
+        onOpenExpenses = onOpenExpenses?.takeIf { shown?.severalHouseholds == true },
         illustrated = true,
         satelliteToken = fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN,
         openAt = openAt,

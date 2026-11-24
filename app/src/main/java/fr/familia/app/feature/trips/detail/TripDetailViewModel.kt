@@ -12,6 +12,7 @@ import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.feature.trips.canManageTrip
 import fr.familia.app.feature.trips.firstNames
+import fr.familia.app.feature.trips.hasSeveralHouseholds
 import fr.familia.app.feature.trips.isParticipant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,6 +59,8 @@ sealed interface TripDetailUiState {
          * hidden from someone, must never reach them through a family group.
          */
         val canShare: Boolean = false,
+        /** The participants come from several households: « Comptes » shows (règle 40). */
+        val severalHouseholds: Boolean = false,
     ) : TripDetailUiState
 }
 
@@ -240,6 +243,7 @@ class TripDetailViewModel(
                 .map { ItemAssignee(it.id, it.firstName) }
                 .sortedBy { it.name.lowercase() },
             canShare = family.members.all { it.id in trip.readerIds },
+            severalHouseholds = hasSeveralHouseholds(trip.participantIds.mapNotNull { id -> family.members.firstOrNull { it.id == id } }),
         )
     }
 }

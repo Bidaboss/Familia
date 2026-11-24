@@ -34,6 +34,13 @@ fun canCreateTrip(me: Member): Boolean = me.profile == MemberProfile.Adult
 /** Each participant adds and edits the steps and says « bien arrivé ». */
 fun isParticipant(trip: Trip, me: Member): Boolean = me.id in trip.participantIds
 
+/**
+ * « Comptes » (récit 16 bis, règle 40 du récit 112): only when the participants come from several
+ * households. A trip of one household has nobody to settle up with, so its accounts never show.
+ */
+fun hasSeveralHouseholds(participants: List<Member>): Boolean =
+    participants.map { it.householdId }.distinct().size > 1
+
 /** A participant removes a step; the admin principal too, to tidy up. */
 fun canDeleteStep(trip: Trip, me: Member, family: Family): Boolean = isParticipant(trip, me) || family.isOwner(me)
 

@@ -53,6 +53,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
 import java.util.Locale
 import androidx.compose.ui.unit.sp
+import fr.familia.app.feature.trips.hasSeveralHouseholds
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.carnet.flagOf
 import fr.familia.app.core.model.TravelPlace
@@ -470,7 +471,7 @@ private fun HeroCard(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 PartButton(stringResource(R.string.trips_part_steps), Modifier.weight(1f)) { onOpenPart(trip.id, TripPart.Steps) }
                 PartButton(stringResource(R.string.trips_part_to_bring), Modifier.weight(1f)) { onOpenPart(trip.id, TripPart.ToBring) }
-                if (expensesOn && summary.isParticipant) {
+                if (expensesOn && summary.isParticipant && hasSeveralHouseholds(summary.people)) {
                     PartButton(stringResource(R.string.trips_part_expenses), Modifier.weight(1f)) { onOpenPart(trip.id, TripPart.Expenses) }
                 }
             }
