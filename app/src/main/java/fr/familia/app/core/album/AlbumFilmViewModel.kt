@@ -3,6 +3,7 @@ package fr.familia.app.core.album
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.photo.PhotoStorage
+import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.core.video.PhotoFilmMaker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -36,6 +37,10 @@ class AlbumFilmViewModel(
     private val maker: PhotoFilmMaker?,
     private val fileName: String,
     private val filmsDir: File,
+    /** The look of the film: still photos for the albums, the slow zoom of the trips (récit 108). */
+    private val style: FilmStyle = FilmStyle.Album,
+    /** The time of each photo for this many photos: about a minute in all for an album. */
+    private val seconds: (Int) -> Double = ::secondsPerPhoto,
 ) : ViewModel() {
 
     private val state = MutableStateFlow<FilmState>(FilmState.Idle)
@@ -52,7 +57,7 @@ class AlbumFilmViewModel(
                 val ordered = photos.sortedWith(albumPhotoOrder).reversed()
                 val urls = ordered.map { files.downloadUrl(it.photoPath) }
                 val output = File(filmsDir, "$fileName.mp4")
-                film.make(urls, secondsPerPhoto(ordered.size), output)
+                film.make(urls, seconds(ordered.size), output, style)
                 FilmState.Ready(output.absolutePath)
             } catch (e: CancellationException) {
                 throw e
