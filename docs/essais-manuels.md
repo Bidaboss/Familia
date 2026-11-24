@@ -2372,3 +2372,11 @@ Sur un téléphone en Android 10 ou plus :
 7. Plein écran, après « Le trajet » : les boutons blancs « Comptes », « Valise » (avec le nombre de choses à faire), « Documents », sur deux colonnes.
 8. Pendant le voyage, pour ceux qui partent : le bouton d'ajout rapide est un rond blanc avec l'appareil photo.
 9. Avec TalkBack (pas de carte) : la même barre du haut et la bulle s'affichent en haut de l'écran, au-dessus du contenu ; « La carte » est dans les boutons du bas.
+
+## Voyage : plus de gros bouton « Sans heure » dans une étape (E-18)
+
+**Publier Firebase : non.**
+1. Modifier une étape : sous « Départ » et « Arrivée », le jour et l'heure côte à côte, sans gros bouton noir « Sans heure » qui prend une rangée.
+2. Sans heure choisie, la case dit « Choisir » : l'étape s'enregistre sans heure.
+3. Choisir une heure : un petit lien « Sans heure » apparaît à droite, dessous ; le toucher efface l'heure.
+4. Avec une très grande police : jour et heure l'un sous l'autre, le lien « Sans heure » toujours petit.
