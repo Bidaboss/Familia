@@ -37,7 +37,7 @@ class TripDestinationTest {
         assertEquals(null, suggestionQuery("La", null))
         assertEquals(null, suggestionQuery("  La  ", null))
         assertEquals("La P", suggestionQuery(" La P", null))
-        assertEquals("La Rochelle", suggestionQuery("La Rochelle ", null))
+        assertEquals("Samoure", suggestionQuery("Samoure ", null))
     }
 
     @Test

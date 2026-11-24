@@ -172,7 +172,7 @@ fun parseSummaryImage(json: String): SummaryImage? = runCatching {
 /** « …/thumb/a/ab/Port.jpg/320px-Port.jpg » asked at [PHOTO_WIDTH] pixels; an original stays as it is. */
 fun widened(url: String): String = url.replace(Regex("/\\d+px-([^/]+)$"), "/${PHOTO_WIDTH}px-$1")
 
-/** The file of a Commons address, decoded: « Port de La Rochelle.jpg ». */
+/** The file of a Commons address, decoded: « Port de Samoure.jpg ». */
 fun fileName(url: String): String? {
     val path = url.substringBefore('?')
     val name = if ("/thumb/" in path) path.substringAfter("/thumb/").split('/').getOrNull(2) else path.substringAfterLast('/')

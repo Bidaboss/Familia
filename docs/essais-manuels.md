@@ -1933,7 +1933,7 @@ Rien à publier côté Firebase. « APK de publication ».
 ## Voyage : vraies photos du lieu, plus de choix du paysage (récit 102, partie 1 : règles 10, 12, 13, 14)
 
 Rien à publier côté Firebase. « APK de publication » (le réseau est nécessaire pour les photos).
-1. Nouveau voyage : choisir « La Rochelle » puis Continuer. En haut du formulaire, une vraie photo de La Rochelle, avec « Photo : auteur, licence, Wikimedia Commons » dans le coin. Plus de tuile « Le paysage ».
+1. Nouveau voyage : choisir « Lyon » puis Continuer. En haut du formulaire, une vraie photo de Lyon, avec « Photo : auteur, licence, Wikimedia Commons » dans le coin. Plus de tuile « Le paysage ».
 2. Un lieu sans photo sur Wikipédia : la vue satellite du lieu ; sans réseau : le paysage dessiné, jamais un trou.
 3. Sous les dates : « 5 nuitées » (ou « Aller-retour dans la journée »). Sous le nom : « Il deviendra le nom du voyage… Tu pourras le changer plus tard. »
 4. Modifier un voyage existant : la photo du lieu de sa première étape.
@@ -2271,7 +2271,7 @@ Sur un téléphone en Android 10 ou plus :
 
 **Publier Firebase : non.**
 1. Un voyage vers La Samoure (sa page Wikipédia n'a pas de photo) : en tête de l'accueil, sur la carte « Prochain voyage » de la liste et à la création, une vraie photo prise tout près (moins de 10 km : par exemple le zoo ou le phare), avec son crédit. Plus jamais de vue satellite.
-2. Un voyage vers La Rochelle : la photo de sa page, comme avant.
+2. Un voyage vers Lyon : la photo de sa page, comme avant.
 3. Sans réseau, ou sans aucune photo autour : le paysage dessiné.
 
 ## Voyage : ajouter par les « + » du trajet (DESIGN-99 A, E-10, E-11, E-17)
@@ -2326,9 +2326,9 @@ Sur un téléphone en Android 10 ou plus :
 
 **Publier Firebase : non.**
 1. Nouveau voyage, « Où allez-vous ? » : taper « La R » sans toucher « Chercher ».
-2. Attendu : après une courte pause (moins d'une demi-seconde), « Recherche en cours… » puis jusqu'à 5 propositions (par exemple La Rochelle).
-3. Continuer à taper « La Rochelle » : les propositions se mettent à jour, sans clignoter à chaque lettre.
-4. Toucher une proposition puis « Continuer » : le voyage prend le nom « La Rochelle », avec sa majuscule.
+2. Attendu : après une courte pause (moins d'une demi-seconde), « Recherche en cours… » puis jusqu'à 5 propositions (par exemple Lyon).
+3. Continuer à taper « Lyon » : les propositions se mettent à jour, sans clignoter à chaque lettre.
+4. Toucher une proposition puis « Continuer » : le voyage prend le nom « Lyon », avec sa majuscule.
 5. Deux lettres seulement : pas de proposition, l'indication reste. « Chercher » marche toujours.
 6. Sans réseau : « Aucun lieu trouvé », comme avant.
 

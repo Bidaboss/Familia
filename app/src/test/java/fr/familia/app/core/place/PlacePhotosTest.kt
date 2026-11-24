@@ -6,16 +6,16 @@ import org.junit.Test
 
 class PlacePhotosTest {
     private val summary = """
-        {"type":"standard","title":"La Rochelle",
-         "thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_La_Rochelle.jpg/320px-Vieux_Port_La_Rochelle.jpg"},
-         "originalimage":{"source":"https://upload.wikimedia.org/wikipedia/commons/a/ab/Vieux_Port_La_Rochelle.jpg"}}
+        {"type":"standard","title":"Samoure",
+         "thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_Samoure.jpg/320px-Vieux_Port_Samoure.jpg"},
+         "originalimage":{"source":"https://upload.wikimedia.org/wikipedia/commons/a/ab/Vieux_Port_Samoure.jpg"}}
     """.trimIndent()
 
     @Test
     fun theImageOfASummaryIsAskedWideWithItsFile() {
         val image = parseSummaryImage(summary)!!
-        assertEquals("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_La_Rochelle.jpg/${PHOTO_WIDTH}px-Vieux_Port_La_Rochelle.jpg", image.url)
-        assertEquals("Vieux_Port_La_Rochelle.jpg", image.file)
+        assertEquals("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_Samoure.jpg/${PHOTO_WIDTH}px-Vieux_Port_Samoure.jpg", image.url)
+        assertEquals("Vieux_Port_Samoure.jpg", image.file)
     }
 
     @Test
