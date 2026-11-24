@@ -354,7 +354,7 @@
     <string name="place_article_title">À savoir sur %1$s</string>
     <string name="place_cover_photo">Photo de %1$s</string>
     <string name="place_cover_credit">Photo : %1$s</string>
-    <string name="globe_look_next">Globe : variante %1$s. Rouvre « Voyages » pour la voir.</string>
+    <string name="globe_look_next">Globe : variante %1$s.</string>
     <string name="trip_cover_planned">Voyage programmé</string>
     <string name="trip_cover_ongoing">En cours</string>
     <string name="trip_cover_over">Terminé</string>

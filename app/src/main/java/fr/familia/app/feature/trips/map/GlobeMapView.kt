@@ -146,3 +146,61 @@ internal fun cleanGlobe(style: Style) {
         style.styleLayers.filter { isWritingOrLine(it.type) }.forEach { layer -> runCatching { style.removeStyleLayer(layer.id) } }
     }
 }
+
+/** The beige of the lands and the blue of the seas of the drawn Earth under the satellite images (retour du 24/11, minuit). */
+internal const val DRAWN_LAND = "#D8C9A3"
+internal const val DRAWN_WATER = "#8FB8DE"
+internal const val DRAWN_WATER_LAYER = "globe-drawn-water"
+
+/** Where the drawn Earth goes in a satellite style: its background, its first raster layer, its vector source. */
+internal data class DrawnEarthPlan(val backgroundId: String?, val rasterId: String, val vectorSourceId: String?, val bottomId: String)
+
+/**
+ * Pure rule: [layers] and [sources] as (id, type), bottom first. Null when the style has no image
+ * layer (the drawn Earth of Standard needs nothing under it).
+ */
+internal fun drawnEarthPlan(layers: List<Pair<String, String>>, sources: List<Pair<String, String>>): DrawnEarthPlan? {
+    val raster = layers.firstOrNull { it.second == "raster" }?.first ?: return null
+    return DrawnEarthPlan(
+        backgroundId = layers.firstOrNull { it.second == "background" }?.first,
+        rasterId = raster,
+        vectorSourceId = sources.firstOrNull { it.second == "vector" }?.first,
+        bottomId = layers.first().first,
+    )
+}
+
+/**
+ * Retour du 24/11, minuit: the satellite images take a few seconds to come and the globe was black
+ * meanwhile. The style now paints its lands beige and its seas blue (from its own vector tiles,
+ * which come first) under the images, which cover them as they arrive.
+ */
+internal fun underlayDrawnEarth(style: Style) {
+    runCatching {
+        val plan = drawnEarthPlan(
+            style.styleLayers.map { it.id to it.type },
+            style.styleSources.map { it.id to it.type },
+        ) ?: return
+        if (plan.backgroundId != null) {
+            style.setStyleLayerProperty(plan.backgroundId, "background-color", Value.valueOf(DRAWN_LAND))
+        } else {
+            style.addStyleLayer(
+                Value.valueOf(hashMapOf("id" to Value.valueOf("globe-drawn-land"), "type" to Value.valueOf("background"), "paint" to Value.valueOf(hashMapOf("background-color" to Value.valueOf(DRAWN_LAND))))),
+                com.mapbox.maps.LayerPosition(null, plan.bottomId, null),
+            )
+        }
+        val vector = plan.vectorSourceId ?: return
+        if (style.styleLayerExists(DRAWN_WATER_LAYER)) return
+        style.addStyleLayer(
+            Value.valueOf(
+                hashMapOf(
+                    "id" to Value.valueOf(DRAWN_WATER_LAYER),
+                    "type" to Value.valueOf("fill"),
+                    "source" to Value.valueOf(vector),
+                    "source-layer" to Value.valueOf("water"),
+                    "paint" to Value.valueOf(hashMapOf("fill-color" to Value.valueOf(DRAWN_WATER))),
+                ),
+            ),
+            com.mapbox.maps.LayerPosition(null, plan.rasterId, null),
+        )
+    }.onFailure { android.util.Log.w("TripsGlobe", "drawn Earth under the images refused", it) }
+}

@@ -182,23 +182,6 @@ fun TripsScreen(
     val dark = globeOn
     val skyColor = if (dark) Color.Transparent else TripPathColors.Sky
     Box(Modifier.fillMaxSize().onGloballyPositioned { screenBottom = it.positionInRoot().y + it.size.height }.then(if (dark) Modifier.background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF0B1F45), Color(0xFF050B1A)))) else Modifier)) {
-    if (globeOn) {
-        TripsGlobe(
-            token = globeToken,
-            markers = markers,
-            handAdded = handAdded.map { GeoPoint(it.lat, it.lng) },
-            souvenirs = souvenirs,
-            stopped = globeStopped,
-            flight = flight,
-            onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
-            onOpenTrip = { id -> openTrip(id) },
-            cycleLook = true,
-            accent = fr.familia.app.core.theme.LocalClayStyle.current.tabPill,
-            // E-65: the whole screen, the camera keeping the sheet as its bottom padding.
-            bottomInsetDp = with(LocalDensity.current) { sheetFromBottom.toDp().value },
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
     CompositionLocalProvider(LocalContentColor provides TripPathColors.Ink) {
         Scaffold(
             containerColor = skyColor,
@@ -216,6 +199,25 @@ fun TripsScreen(
                 if (success?.canCreate == true && !(globeOn && level == 0)) Box(Modifier.navigationBarsPadding()) { NewTripButton(onAddTrip) }
             },
         ) { padding ->
+            // E-69: the globe lies inside the content of the Scaffold, not under it: the surface of a
+            // Scaffold takes every touch, and the globe never had its drag, its dots or its long touch.
+            if (globeOn) {
+                TripsGlobe(
+                    token = globeToken,
+                    markers = markers,
+                    handAdded = handAdded.map { GeoPoint(it.lat, it.lng) },
+                    souvenirs = souvenirs,
+                    stopped = globeStopped,
+                    flight = flight,
+                    onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
+                    onOpenTrip = { id -> openTrip(id) },
+                    cycleLook = true,
+                    accent = fr.familia.app.core.theme.LocalClayStyle.current.tabPill,
+                    // E-65: the whole screen, the camera keeping the sheet as its bottom padding.
+                    bottomInsetDp = with(LocalDensity.current) { sheetFromBottom.toDp().value },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             androidx.compose.foundation.layout.BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
               val sheet by androidx.compose.animation.core.animateDpAsState(
                   if (globeOn) maxHeight * backdropSheetShare(level) else maxHeight,
