@@ -1544,7 +1544,7 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 6. Sans voyage à venir. **Attendu :** le chemin mène à un point d'interrogation, avec « Et la prochaine aventure ? ».
 7. « Souvenirs ». **Attendu :** les voyages passés sur 2 colonnes, du plus récent au plus ancien, avec le paysage pâli, le titre et « Août 2026 · 8 jours ». Sur 1 colonne avec le texte à 130 %.
 8. Un voyage surprise que je ne dois pas voir. **Attendu :** il n'apparaît ni dans « À venir », ni dans « Souvenirs ».
-9. TalkBack sur la carte. **Attendu :** « La Palmyre, du dimanche 11 avril 2027 au vendredi 16 avril 2027, dans 142 jours, avec Inès, Hugo et Noé ».
+9. TalkBack sur la carte. **Attendu :** « La Samoure, du dimanche 11 avril 2027 au vendredi 16 avril 2027, dans 142 jours, avec Inès, Hugo et Noé ».
 
 ## L'olivier en mascotte (récit 84, DESIGN-58 variante A)
 
@@ -1740,7 +1740,7 @@ Cette partie : la story, ses écrans et leur navigation, le cœur, l'écran de f
 2. Touche le tiers droit de l'écran, la flèche ronde de droite, ou balaie vers la gauche : l'écran suivant. Le tiers gauche, la flèche de gauche ou un balayage vers la droite : le précédent. Il n'y a pas de flèche gauche sur le premier écran. **Attendu :** rien ne défile tout seul, même au bout d'une minute.
 3. Touche le cœur : il se remplit, le nombre monte ; de nouveau, il se retire. « Commentaires » ouvre la page de l'étape, où l'on répond ; en revenant, on retrouve la story au même endroit.
 4. Un jour dont le mot n'a pas de photo : le mot (grand, en gras) sur une carte blanche sur fond ciel, « Pas de photo ce jour-là », segments et « Fermer » en encre sombre.
-5. Dernier écran du jour : le trajet du jour (les étapes du jour placées, reliées), « Le trajet du jour », « Bordeaux → La Palmyre · 118 km à vol d'oiseau » ; si une étape du jour n'a pas de position : « … · Trajet non placé ». Un bouton blanc « Jour 3 » passe au jour suivant qui a un mot, « Revoir ce jour » revient au premier écran. Le dernier jour n'a que « Revoir ce jour » et « Fermer ».
+5. Dernier écran du jour : le trajet du jour (les étapes du jour placées, reliées), « Le trajet du jour », « Bordeaux → La Samoure · 118 km à vol d'oiseau » ; si une étape du jour n'a pas de position : « … · Trajet non placé ». Un bouton blanc « Jour 3 » passe au jour suivant qui a un mot, « Revoir ce jour » revient au premier écran. Le dernier jour n'a que « Revoir ce jour » et « Fermer ».
 6. Une photo retirée de l'album tombe de la story. Un mot retiré pendant la lecture : la story reste sur un écran qui existe.
 7. Texte à 130 % et plus et TalkBack : « Suivant » et « Précédent » sont annoncés (les zones invisibles ne le sont pas), chaque jour de la rangée se lit « Jour 2, 12 avril, à revoir » ou « rien à revoir ».
 
@@ -1785,7 +1785,7 @@ Rien à publier : aucune règle ni function. (Le module « Globe animé du voyag
 
 1. Ouvre la carte d'un voyage avec plusieurs étapes. Sous la carte, une tuile « Le trajet » : une ligne par étape (numéro, lieu, jour, « 1 mot », « 3 photos » quand il y en a). Un appui ouvre l'étape.
 2. Une étape sans position (« chez Mamie ») est aussi dans la liste.
-3. Active TalkBack : la liste passe au-dessus de la carte et chaque ligne est lue d'un bloc, « Étape 4 sur 5, La Palmyre, 14 avril, 1 mot, 3 photos, bouton ».
+3. Active TalkBack : la liste passe au-dessus de la carte et chaque ligne est lue d'un bloc, « Étape 4 sur 5, La Samoure, 14 avril, 1 mot, 3 photos, bouton ».
 4. Même chose en coupant les animations d'Android (Options pour les développeurs, échelle de durée d'animation à « Animation désactivée »).
 5. Un voyage vu par quelqu'un qui n'y participe pas : la liste montre ce qu'il peut déjà lire, rien de plus.
 
@@ -1805,8 +1805,8 @@ Rien à voir ni à essayer sur le téléphone : seul le moteur du vol (aperçu, 
 
 Rien à publier : aucune règle ni function. (Plus d'interrupteur depuis : actif pour tous.)
 1. « + » sur la liste des voyages : « Où allez-vous ? » s'ouvre d'abord.
-2.  Taper « La Palmyre », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
-3. Le formulaire s'ouvre avec le nom du voyage déjà rempli (« La Palmyre »), modifiable. Départ et Retour restent obligatoires.
+2.  Taper « La Samoure », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
+3. Le formulaire s'ouvre avec le nom du voyage déjà rempli (« La Samoure »), modifiable. Départ et Retour restent obligatoires.
 4. « Créer le voyage » : le voyage s'ouvre, puis le formulaire d'étape arrive avec le lieu déjà rempli. Le retour (flèche) laisse la première étape pour plus tard.
 5. « Je tape un nom » : on passe directement au formulaire d'avant, sans lieu ni première étape.
 6. Sans réseau ou lieu inconnu : « Aucun lieu trouvé », « Je tape un nom » reste possible.
@@ -1823,8 +1823,8 @@ Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivante
 ## « À savoir sur… » dans la page d'étape (récit 96, temps 2)
 
 Rien à publier : aucune règle ni function, rien n'est enregistré. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
-1. Ouvrir une étape d'un voyage dont le lieu est connu de Wikivoyage (« La Palmyre », « Lyon »), page « Le mot de l'étape ».
-2. Sous le mot : la tuile « À savoir sur La Palmyre » (3 lignes environ), « Lire la suite » (ouvre le navigateur) et « Source : Wikivoyage · CC BY-SA ».
+1. Ouvrir une étape d'un voyage dont le lieu est connu de Wikivoyage (« La Samoure », « Lyon »), page « Le mot de l'étape ».
+2. Sous le mot : la tuile « À savoir sur La Samoure » (3 lignes environ), « Lire la suite » (ouvre le navigateur) et « Source : Wikivoyage · CC BY-SA ».
 3. Pendant la recherche : des blocs gris et « On cherche des infos sur ce lieu… », jamais d'indicateur qui tourne.
 4. Lieu inconnu, sans réseau ou page qui nomme plusieurs lieux : la tuile ne s'affiche pas.
 ## Voyage : plus d'interrupteurs, tout est actif (décision de Kévin, 22/11)
@@ -2123,7 +2123,7 @@ Rien à publier côté Firebase. « APK de publication ».
 
 **Publier Firebase : non.**
 1. Voyages → « Nouveau voyage » : au-dessus de « Où allez-vous ? », le globe satellite tourne doucement.
-2. Chercher « La Palmyre » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
+2. Chercher « La Samoure » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
 3. « Continuer » mène à la suite de la création, comme avant, avec le nom du voyage déjà rempli.
 4. Avec TalkBack, sans réseau, ou si le globe a échoué récemment : le formulaire reste seul, sans globe, et tout marche pareil.
 
@@ -2270,7 +2270,7 @@ Sur un téléphone en Android 10 ou plus :
 ## Voyage : la photo de la destination, jamais une vue de carte (DESIGN-104 A)
 
 **Publier Firebase : non.**
-1. Un voyage vers La Palmyre (sa page Wikipédia n'a pas de photo) : en tête de l'accueil, sur la carte « Prochain voyage » de la liste et à la création, une vraie photo prise tout près (moins de 10 km : par exemple le zoo ou le phare), avec son crédit. Plus jamais de vue satellite.
+1. Un voyage vers La Samoure (sa page Wikipédia n'a pas de photo) : en tête de l'accueil, sur la carte « Prochain voyage » de la liste et à la création, une vraie photo prise tout près (moins de 10 km : par exemple le zoo ou le phare), avec son crédit. Plus jamais de vue satellite.
 2. Un voyage vers La Rochelle : la photo de sa page, comme avant.
 3. Sans réseau, ou sans aucune photo autour : le paysage dessiné.
 
@@ -2278,7 +2278,7 @@ Sur un téléphone en Android 10 ou plus :
 
 **Publier Firebase : non.**
 1. Accueil d'un voyage, pour quelqu'un qui y va : plus de bouton jaune « Ajouter une étape » qui flotte sur les cartes.
-2. Dans « Le trajet », un petit « + » rond (56 dp) sous « Le voyage commence » et sous chaque élément. TalkBack lit « Ajouter au début du voyage » ou « Ajouter après La Palmyre ».
+2. Dans « Le trajet », un petit « + » rond (56 dp) sous « Le voyage commence » et sous chaque élément. TalkBack lit « Ajouter au début du voyage » ou « Ajouter après La Samoure ».
 3. Toucher un « + » ouvre un menu : Destination, Transport, Hébergement, Restaurant, Spot et « Enrichir avec une IA ». Hébergement, Restaurant et Spot n'apparaissent que si le voyage a déjà une destination : ils vont sous la destination d'avant, ou sous la suivante pour le « + » du début.
 4. « Destination » ouvre le formulaire sans « Quel type d'étape ? », avec la date du jour où ce « + » se trouve (la fin de la destination d'avant). Une fois enregistrée, elle apparaît dans le trajet avec ses nuits − / +.
 5. « Transport » ouvre le formulaire avec seulement Avion, Train, Bus et Voiture.
@@ -2493,6 +2493,7 @@ Sur un téléphone en Android 10 ou plus :
 5. Taper vite plusieurs lettres : une seule recherche part à la fin (les précédentes sont arrêtées), ce qui évite le refus « trop de demandes ».
 6. Si OpenStreetMap ne répond pas, le message dit pourquoi : pas de réseau (ou Wi-Fi qui bloque), trop de demandes, ou trop lent. « Réessayer » est en encre.
 7. Retour d'Android ou rond retour : on revient à la destination, la carte et sa poignée réapparaissent.
+
 ## Voyage : documents privés par défaut, ou partagés avec les voyageurs choisis (DESIGN-105)
 
 **Publier Firebase : oui** (règles Firestore et Storage, fonction `arrivalReminder`).
@@ -2504,3 +2505,12 @@ Sur un téléphone en Android 10 ou plus :
 6. Un document d'un autre : pas de « Partager… », seulement ses visages ou rien.
 7. Quelqu'un qui suit le voyage sans partir : toujours « Les documents sont réservés à ceux qui partent. ».
 8. Seul sur un voyage : « Tu es seul à partir : le document reste privé. ».
+
+## Voyage : la photo d'un lieu qui ne s'affichait pas, retour E-47
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage dont la destination est une petite ville ou une station (pas une grande ville) : la couverture de la liste des voyages et celle de la destination montrent une vraie photo, avec son crédit, au lieu du paysage dessiné.
+2. Faire de même pour deux ou trois autres destinations déjà créées : leurs photos s'affichent toujours, nettes en plein écran (photo demandée en 960 px).
+3. Couper le réseau, vider le cache de l'appli puis ouvrir un voyage : le paysage dessiné s'affiche, sans erreur ni écran vide. Remettre le réseau et rouvrir : la photo revient.
+4. « À savoir sur… » d'une destination et son anecdote s'affichent comme avant.
+5. Pour qui suit les journaux (Logcat, filtre « PlaceCover ») : quand une photo ne s'affiche pas, une ligne dit son adresse et la cause, puis la photo suivante des environs est essayée une fois avant le dessin.

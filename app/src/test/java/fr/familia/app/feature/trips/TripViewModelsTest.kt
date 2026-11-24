@@ -279,8 +279,8 @@ class TripViewModelsTest {
 
     @Test
     fun `a new step can start with the destination just chosen`() {
-        val vm = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, presetPlace = "La Palmyre", zone = paris, now = beforeTrip)
-        assertEquals("La Palmyre", vm.editing().form.place)
+        val vm = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, presetPlace = "La Samoure", zone = paris, now = beforeTrip)
+        assertEquals("La Samoure", vm.editing().form.place)
         assertEquals(LocalDate.of(2027, 7, 10), vm.editing().form.departDate)
     }
 

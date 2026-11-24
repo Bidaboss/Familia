@@ -9,11 +9,11 @@ import org.junit.Test
 class PlaceLinksTest {
     @Test
     fun `three links for a place, with its name and nothing else`() {
-        val links = placeLinks("La Palmyre")!!
+        val links = placeLinks("La Samoure")!!
         assertEquals(listOf(PlaceLinkKind.Restaurants, PlaceLinkKind.Hotels, PlaceLinkKind.Tripadvisor), links.map { it.kind })
-        assertEquals("https://www.google.com/maps/search/?api=1&query=restaurants+La+Palmyre", links[0].url)
-        assertEquals("https://www.google.com/maps/search/?api=1&query=h%C3%B4tels+La+Palmyre", links[1].url)
-        assertEquals("https://www.tripadvisor.fr/Search?q=La+Palmyre", links[2].url)
+        assertEquals("https://www.google.com/maps/search/?api=1&query=restaurants+La+Samoure", links[0].url)
+        assertEquals("https://www.google.com/maps/search/?api=1&query=h%C3%B4tels+La+Samoure", links[1].url)
+        assertEquals("https://www.tripadvisor.fr/Search?q=La+Samoure", links[2].url)
     }
 
     @Test

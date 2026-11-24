@@ -2180,7 +2180,7 @@
     <string name="trip_step_tile_type">Quel type d\'étape ?</string>
     <string name="trip_step_tile_where">Où ?</string>
     <string name="trip_step_place_hint">D\'où à où : « Paris → Bordeaux »</string>
-    <string name="trip_step_place_hint_lodging">Une ville, une région ou un pays : « La Palmyre », « Toscane »</string>
+    <string name="trip_step_place_hint_lodging">Une ville, une région ou un pays : « La Samoure », « Toscane »</string>
     <string name="trip_step_tile_when">Quand ?</string>
     <string name="trip_step_day">Jour</string>
     <string name="trip_step_time">Heure</string>

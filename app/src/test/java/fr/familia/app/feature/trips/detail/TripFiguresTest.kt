@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 /** « Le voyage en chiffres » (récit 89). */
 class TripFiguresTest {
-    private val trip = Trip("t1", "La Palmyre", LocalDate.of(2026, 4, 11), LocalDate.of(2026, 4, 16), listOf("ines"), listOf("ines"), "ines", "ines")
+    private val trip = Trip("t1", "La Samoure", LocalDate.of(2026, 4, 11), LocalDate.of(2026, 4, 16), listOf("ines"), listOf("ines"), "ines", "ines")
 
     private fun step(id: String, place: String, lat: Double? = null, lng: Double? = null) =
         TripStep(id, StepType.Lodging, place, LocalDate.of(2026, 4, 11), null, null, null, null, lat = lat, lng = lng)
@@ -41,10 +41,10 @@ class TripFiguresTest {
 
     @Test
     fun `the distance adds the legs between the placed steps in order`() {
-        // Lyon -> Bordeaux is about 435 km, Bordeaux -> La Palmyre about 120 km.
+        // Lyon -> Bordeaux is about 435 km, Bordeaux -> La Samoure about 120 km.
         val figures = tripFigures(
             trip,
-            listOf(step("a", "Lyon", 45.76, 4.84), step("b", "Bordeaux", 44.84, -0.58), step("c", "La Palmyre", 45.68, -1.18)),
+            listOf(step("a", "Lyon", 45.76, 4.84), step("b", "Bordeaux", 44.84, -0.58), step("c", "La Samoure", 45.68, -1.18)),
             0,
         )!!
         val km = figures.distanceKm!!

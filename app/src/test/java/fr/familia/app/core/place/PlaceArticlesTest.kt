@@ -7,16 +7,16 @@ import org.junit.Test
 
 class PlaceArticlesTest {
     private val standard = """
-        {"type":"standard","title":"La Palmyre","extract":"La Palmyre est une station balnéaire de Charente-Maritime.",
-         "content_urls":{"desktop":{"page":"https://fr.wikivoyage.org/wiki/La_Palmyre"}}}
+        {"type":"standard","title":"La Samoure","extract":"La Samoure est une station balnéaire de Charente-Maritime.",
+         "content_urls":{"desktop":{"page":"https://fr.wikivoyage.org/wiki/La_Samoure"}}}
     """.trimIndent()
 
     @Test
     fun `a standard answer gives the title, the text and the page`() {
         val article = parseArticle(standard)!!
-        assertEquals("La Palmyre", article.title)
-        assertEquals("La Palmyre est une station balnéaire de Charente-Maritime.", article.extract)
-        assertEquals("https://fr.wikivoyage.org/wiki/La_Palmyre", article.url)
+        assertEquals("La Samoure", article.title)
+        assertEquals("La Samoure est une station balnéaire de Charente-Maritime.", article.extract)
+        assertEquals("https://fr.wikivoyage.org/wiki/La_Samoure", article.url)
     }
 
     @Test
@@ -47,7 +47,7 @@ class PlaceArticlesTest {
 
     @Test
     fun `the address of a page encodes the place`() {
-        assertEquals("https://fr.wikivoyage.org/api/rest_v1/page/summary/La_Palmyre", summaryUrl("La Palmyre"))
+        assertEquals("https://fr.wikivoyage.org/api/rest_v1/page/summary/La_Samoure", summaryUrl("La Samoure"))
         assertEquals("https://fr.wikivoyage.org/api/rest_v1/page/summary/%C3%8Ele_de_R%C3%A9", summaryUrl(" Île de Ré "))
     }
 }

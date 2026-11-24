@@ -20,10 +20,10 @@ class TripsGlobeTest {
     }
 
     @Test fun tripsAtTheSamePlaceShareOneDot() {
-        val palmyre = GeoPoint(45.6886, -1.1874)
+        val samoure = GeoPoint(45.6886, -1.1874)
         val spots = globeSpots(
             listOf(
-                GlobeMarker(palmyre, highlighted = true, tripId = "a"),
+                GlobeMarker(samoure, highlighted = true, tripId = "a"),
                 GlobeMarker(GeoPoint(43.7696, 11.2558), highlighted = false, tripId = "b"),
                 GlobeMarker(GeoPoint(45.6889, -1.1871), highlighted = false, tripId = "c"),
             ),

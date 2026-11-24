@@ -25,10 +25,16 @@ interface PlacePhotos {
     suspend fun of(place: String): PlacePhoto?
 
     /**
-     * The photo of [place], else, when its page has none (« La Palmyre », DESIGN-104 A), the photo
+     * The photo of [place], else, when its page has none (« La Samoure », DESIGN-104 A), the photo
      * of the nearest Wikipedia page around [lat], [lng] that has one. Null when none is found.
      */
     suspend fun of(place: String, lat: Double?, lng: Double?): PlacePhoto? = of(place)
+
+    /**
+     * The photo of the nearest Wikipedia page around [lat], [lng] that has one, other than [except]:
+     * the second chance of a cover whose image could not be shown (retour E-47).
+     */
+    suspend fun near(lat: Double, lng: Double, except: String? = null): PlacePhoto? = null
 }
 
 /** The summary service of Wikipedia in French then the image info of Commons: free, no key, a generic User-Agent. */
@@ -55,12 +61,16 @@ class WikimediaPlacePhotos : PlacePhotos {
     override suspend fun of(place: String, lat: Double?, lng: Double?): PlacePhoto? {
         of(place)?.let { return it }
         if (lat == null || lng == null) return null
-        val key = "@%.3f,%.3f".format(java.util.Locale.ROOT, lat, lng)
+        return near(lat, lng)
+    }
+
+    override suspend fun near(lat: Double, lng: Double, except: String?): PlacePhoto? {
+        val key = "@%.3f,%.3f".format(java.util.Locale.ROOT, lat, lng) + (except?.let { "-$it" }.orEmpty())
         known[key]?.let { return it.getOrNull() }
         val found = withContext(Dispatchers.IO) {
             withTimeoutOrNull(TIMEOUT_MS) {
                 runCatching {
-                    val image = read(nearbyPhotosUrl(lat, lng))?.let(::parseNearbyImage) ?: return@runCatching null
+                    val image = read(nearbyPhotosUrl(lat, lng))?.let { parseNearbyImage(it, except) } ?: return@runCatching null
                     val credit = read(commonsInfoUrl(image.file))?.let(::parseCredit) ?: DEFAULT_CREDIT
                     PlacePhoto(image.url, credit)
                 }
@@ -84,7 +94,7 @@ class WikimediaPlacePhotos : PlacePhotos {
     }
 
     companion object {
-        private const val USER_AGENT = "Familia/1.0 (application familiale)"
+        private const val USER_AGENT = WIKIMEDIA_USER_AGENT
         private const val TIMEOUT_MS = 8_000L
         private const val MAX_TITLE = 100
     }
@@ -93,8 +103,21 @@ class WikimediaPlacePhotos : PlacePhotos {
 /** Shown when Commons does not say who took the photo. */
 const val DEFAULT_CREDIT = "Wikimedia Commons"
 
-/** The width asked to Commons: sharp on a phone, light enough on mobile data. */
-const val PHOTO_WIDTH = 1080
+/**
+ * The width asked to Commons: sharp on a phone, light enough on mobile data. Wikimedia now serves
+ * its thumbnails only at standard widths (20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840);
+ * another one is refused, and the cover fell back on its drawing (retour E-47, 1080 before).
+ */
+const val PHOTO_WIDTH = 960
+
+/** The thumbnail widths Wikimedia serves (retour E-47). */
+val WIKIMEDIA_WIDTHS = listOf(20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840)
+
+/**
+ * The User-Agent of every call to Wikipedia, Wikivoyage and Commons, images included: the policy of
+ * Wikimedia refuses the default one of a library (« okhttp/… »). Generic: nothing about the family.
+ */
+const val WIKIMEDIA_USER_AGENT = "Familia/1.0 (application familiale Android)"
 
 /** The summary address of a Wikipedia page: spaces become underscores, the rest is encoded. */
 fun photoSummaryUrl(title: String): String =
@@ -115,7 +138,7 @@ fun nearbyPhotosUrl(lat: Double, lng: Double): String =
  * The first photo among the nearby pages (their order is « index », the nearest first): a real
  * photo (jpg, png, webp), never a drawing, a map or a flag. Null when none has one.
  */
-fun parseNearbyImage(json: String): SummaryImage? = runCatching {
+fun parseNearbyImage(json: String, except: String? = null): SummaryImage? = runCatching {
     val pages = Json.parseToJsonElement(json).jsonObject["query"]?.jsonObject?.get("pages")?.jsonArray ?: return@runCatching null
     pages.map { it.jsonObject }
         .sortedBy { it["index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: Int.MAX_VALUE }
@@ -125,7 +148,7 @@ fun parseNearbyImage(json: String): SummaryImage? = runCatching {
             val source = (thumb ?: original)?.takeIf { it.startsWith("https://upload.wikimedia.org/") } ?: return@firstNotNullOfOrNull null
             val file = fileName(original ?: source)?.takeIf { name -> name.lowercase().let { it.endsWith(".jpg") || it.endsWith(".jpeg") || it.endsWith(".png") || it.endsWith(".webp") } }
                 ?: return@firstNotNullOfOrNull null
-            SummaryImage(url = widened(source), file = file)
+            SummaryImage(url = widened(source), file = file).takeIf { it.url != except }
         }
 }.getOrNull()
 

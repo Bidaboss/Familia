@@ -14,7 +14,7 @@ class PlacePhotosTest {
     @Test
     fun theImageOfASummaryIsAskedWideWithItsFile() {
         val image = parseSummaryImage(summary)!!
-        assertEquals("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_La_Rochelle.jpg/1080px-Vieux_Port_La_Rochelle.jpg", image.url)
+        assertEquals("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_La_Rochelle.jpg/${PHOTO_WIDTH}px-Vieux_Port_La_Rochelle.jpg", image.url)
         assertEquals("Vieux_Port_La_Rochelle.jpg", image.file)
     }
 
@@ -42,7 +42,7 @@ class PlacePhotosTest {
 
     @Test
     fun addressesAreEncoded() {
-        assertEquals("https://fr.wikipedia.org/api/rest_v1/page/summary/La_Palmyre", photoSummaryUrl(" La Palmyre "))
+        assertEquals("https://fr.wikipedia.org/api/rest_v1/page/summary/La_Samoure", photoSummaryUrl(" La Samoure "))
         assertEquals(
             "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=imageinfo&iiprop=extmetadata&titles=File%3APort+%C3%A9t%C3%A9.jpg",
             commonsInfoUrl("Port été.jpg"),
