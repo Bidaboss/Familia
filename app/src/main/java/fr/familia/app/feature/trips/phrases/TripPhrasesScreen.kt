@@ -17,10 +17,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -88,6 +90,21 @@ private fun LanguageBlock(language: PhraseLanguage, codes: List<String>, speaker
         style = MaterialTheme.typography.titleLarge,
         modifier = Modifier.padding(top = 8.dp).semantics { heading() },
     )
+    // Règle 44: a missing voice is said, never just a speaker that is not there.
+    if (speaker != null && voiceMissing(speaker.checked, speaker.available, language)) {
+        val context = LocalContext.current
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.phrases_voice_missing, language.frenchName),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f).padding(end = 8.dp),
+            )
+            TextButton(onClick = { openVoiceInstall(context) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.phrases_voice_install))
+            }
+        }
+    }
     PhraseBook.phrases(language).forEach { phrase ->
         Row(Modifier.fillMaxWidth().heightIn(min = 72.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {

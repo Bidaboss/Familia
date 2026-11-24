@@ -3382,6 +3382,8 @@
     <string name="phrases_none">Aucune étape de ce voyage n\'est dans un pays avec des phrases pour l\'instant.</string>
     <string name="phrases_language">%1$s : %2$s</string>
     <string name="phrases_say">Écouter : %1$s</string>
+    <string name="phrases_voice_missing">La voix en %1$s n\'est pas installée sur ce téléphone : le haut-parleur reviendra une fois installée.</string>
+    <string name="phrases_voice_install">Installer</string>
     <string name="safety_title">Sécurité</string>
     <string name="safety_round_label">Sécurité</string>
     <string name="safety_round_description">Sécurité : numéros d\'urgence du pays et « Prévenir ma famille »</string>
