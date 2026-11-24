@@ -30,10 +30,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -44,18 +46,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
-import java.util.Locale
-import androidx.compose.ui.unit.sp
-import fr.familia.app.feature.trips.map.GeoPoint
-import fr.familia.app.feature.trips.carnet.flagOf
-import fr.familia.app.core.model.TravelPlace
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -72,9 +67,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.TravelPlace
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripLandscape
+import fr.familia.app.core.place.PlacePhotos
+import fr.familia.app.core.power.BatterySavingBanner
+import fr.familia.app.core.power.rememberBatterySaving
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayLink
@@ -85,15 +86,16 @@ import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
-import fr.familia.app.core.model.TripLandscape
+import fr.familia.app.feature.trips.PlaceCover
+import fr.familia.app.feature.trips.carnet.flagOf
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.drawLandscape
 import fr.familia.app.feature.trips.detail.palette
-import fr.familia.app.core.place.PlacePhotos
-import fr.familia.app.feature.trips.PlaceCover
 import fr.familia.app.feature.trips.joinNames
+import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.map.GlobeHealth
 import java.time.LocalDate
+import java.util.Locale
 
 /** A part of a trip that the card of the next trip opens directly. */
 enum class TripPart { Steps, ToBring, Expenses }
@@ -132,7 +134,9 @@ fun TripsScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val success = state as? TripsUiState.Success
     val globeAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
-    val globeOn = globeToken.isNotBlank() && globeAllowed && !globeFailed && success?.isEmpty == false
+    // Règle 46: no globe while the battery is saved (under 20 % unplugged, or Android's saver).
+    val saving = rememberBatterySaving()
+    val globeOn = globeToken.isNotBlank() && globeAllowed && !globeFailed && !saving && success?.isEmpty == false
     val markers = if (success == null || !globeOn) {
         emptyList()
     } else if (souvenirs) {
@@ -197,6 +201,7 @@ fun TripsScreen(
             },
         ) { padding ->
             Column(Modifier.padding(padding).fillMaxSize()) {
+              if (saving) BatterySavingBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
               if (globeOn) {
                 Box(Modifier.weight(0.4f).fillMaxWidth()) {
                     OutlinedButton(

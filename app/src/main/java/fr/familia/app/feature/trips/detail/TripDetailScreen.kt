@@ -1,22 +1,11 @@
 package fr.familia.app.feature.trips.detail
 
-import androidx.compose.ui.text.style.TextOverflow
-import fr.familia.app.core.data.FAMILY_ZONE
-import fr.familia.app.core.ui.ClayLink
-import fr.familia.app.core.ui.ClayCardTitle
-import fr.familia.app.core.ui.ClaySpacing
-import fr.familia.app.core.share.ShareButton
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,84 +16,97 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import fr.familia.app.feature.trips.map.GeoPoint
-import fr.familia.app.feature.trips.map.GlobeHealth
-import fr.familia.app.feature.trips.map.TripSatelliteMap
-import fr.familia.app.feature.trips.list.animationsOff
-import fr.familia.app.feature.trips.list.talkBackOn
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.text.font.FontWeight
-import fr.familia.app.feature.trips.TripCountdown
-import fr.familia.app.feature.trips.tripCountdown
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
-import fr.familia.app.feature.trips.list.TripPart
 import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.AlbumPhotosUiState
 import fr.familia.app.core.album.PhotoActions
 import fr.familia.app.core.album.previewAlbumPhotos
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.core.power.BatterySavingBanner
+import fr.familia.app.core.power.rememberBatterySaving
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.feature.trips.TripCountdown
 import fr.familia.app.feature.trips.TripSectionTitle
 import fr.familia.app.feature.trips.joinNames
+import fr.familia.app.feature.trips.list.TripPart
+import fr.familia.app.feature.trips.list.animationsOff
+import fr.familia.app.feature.trips.list.talkBackOn
+import fr.familia.app.feature.trips.map.GeoPoint
+import fr.familia.app.feature.trips.map.GlobeHealth
+import fr.familia.app.feature.trips.map.TripSatelliteMap
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.stepTypeLabel
+import fr.familia.app.feature.trips.tripCountdown
 import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Locale
-import fr.familia.app.core.ui.LoadingState
+import kotlinx.coroutines.launch
 
 /** One trip: its dates, who takes part, the steps and « bien arrivé ». Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -383,7 +385,9 @@ private fun PathContent(
     val placed = remember(state.steps) { state.steps.filter { it.hasPosition } }
     var mapFailed by rememberSaveable { mutableStateOf(false) }
     val mapAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
-    val satellite = satelliteToken.isNotBlank() && mapAllowed && !mapFailed && placed.isNotEmpty()
+    // Règle 46: under 20 % unplugged, or with Android's saver, no satellite map (the path instead).
+    val saving = rememberBatterySaving()
+    val satellite = satelliteToken.isNotBlank() && mapAllowed && !mapFailed && !saving && placed.isNotEmpty()
     // The sheet has three heights: low (the map above), high, and the whole screen (règle 8).
     var level by rememberSaveable(state.trip.id) { mutableStateOf(0) }
     val expanded = level >= 1
@@ -431,6 +435,9 @@ private fun PathContent(
         // Room at the bottom so the add button never hides the last line.
         contentPadding = PaddingValues(bottom = 96.dp),
     ) {
+        if (saving) {
+            item(key = "battery") { BatterySavingBanner(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }
+        }
         if (withCover && cover != null) {
             item(key = "cover") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { cover(state) } }
         }

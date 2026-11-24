@@ -2100,6 +2100,7 @@
     <string name="trip_step_type_flight">Vol</string>
     <string name="trip_step_type_train">Train</string>
     <string name="trip_step_type_bus">Bus</string>
+    <string name="battery_saving_banner">Économie de batterie : sous %1$d %% ou en mode économie, la carte satellite, le globe et les animations sont coupés. Ils reviennent une fois le téléphone branché.</string>
     <string name="trip_step_type_car">Voiture</string>
     <string name="trip_step_type_lodging">Destination</string>
     <string name="trip_step_type_activity">Activité</string>
