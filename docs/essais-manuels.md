@@ -2312,3 +2312,11 @@ Sur un téléphone en Android 10 ou plus :
 4. Toucher la poignée : passe de tout en bas au milieu, et inversement.
 5. Sans globe (TalkBack, économie de batterie, pas de jeton) : la liste prend tout l'écran comme avant, sans poignée.
 6. Avec « Supprimer les animations » dans les réglages du téléphone, ouvrir un voyage à plusieurs destinations éloignées : la carte s'ouvre cadrée sur toutes les étapes, pas sur leur milieu (C1 de #580).
+
+## Voyage : ni « 0 photo » ni « Le voyage en chiffres » sur l'accueil (E-7, E-12)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage sans photo : la carte « Jour 1 » n'a plus de bouton « 0 photo ». Avec la carte satellite au-dessus, elle n'a plus aucun bouton, seulement ses ronds (Comptes, Documents, Valise).
+2. Ajouter une photo : le bouton « 1 photo » apparaît et ouvre les photos.
+3. Sans carte (TalkBack) : « La carte » reste, seul s'il n'y a pas de photo.
+4. Plus de bloc « Le voyage en chiffres » (Étapes, Jours, Lieux, Distance) sous « Le trajet ». Les jours et les kilomètres restent sur l'image du voyage avant le départ.

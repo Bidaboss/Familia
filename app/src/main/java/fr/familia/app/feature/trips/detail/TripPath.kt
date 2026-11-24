@@ -260,9 +260,12 @@ fun TripDayCard(
             modifier = Modifier.semantics { heading() },
         )
         // The map and the photos; the program of the day is the list under (règle 23: no « Carnet »).
-        SideBySide { item ->
-            if (onMap != null) DayButton(stringResource(R.string.trip_map_open), onMap, item)
-            DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
+        // E-7: no « 0 photo » button, the prototype has none; the photos section below adds them.
+        if (onMap != null || photoCount > 0) {
+            SideBySide { item ->
+                if (onMap != null) DayButton(stringResource(R.string.trip_map_open), onMap, item)
+                if (photoCount > 0) DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
+            }
         }
         // Then the tools, for those who go: two round buttons with their word under them.
         if (onExpenses != null || onPacking != null || onDocuments != null) {

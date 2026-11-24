@@ -528,9 +528,7 @@ private fun PathContent(
                 }
             }
         }
-        tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
-            item(key = "figures") { TripFiguresTile(figures, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }
-        }
+        // E-12: no « Le voyage en chiffres » block on the path, as on the prototype (the cover keeps the days and kilometres).
         item(key = "photos-title") {
             TripSectionTitle(stringResource(R.string.trip_photos), Modifier.padding(horizontal = ClaySpacing.screen))
         }
