@@ -355,7 +355,7 @@ describe('film de la journée (récit 108, règle 32)', () => {
     assert.equal(filmNotice('t1', corse, null, '2027-07-12', null).body, 'par un participant. Touche pour le voir.');
   });
 
-  test('the followers with the app are told once, the author left out, and the burst of photos goes', async () => {
+  test('the followers with the app are told once, the author left out, and the burst of photos is kept', async () => {
     await seedMembers();
     await db.doc('trips/t1').set(corse);
     await db.doc('trips/t1/steps/s1').set(step({ place: 'Ajaccio, Corse' }));
@@ -366,7 +366,7 @@ describe('film de la journée (récit 108, règle 32)', () => {
     assert.deepEqual(sent.map((s) => s.token).sort(), ['token-ines', 'token-max', 'token-sam']);
     assert.equal(sent.every((s) => s.notice.title === 'Corse : le film du 12 juillet'), true);
     assert.equal(count, sent.length);
-    assert.equal((await db.collection(PHOTO_BURSTS).doc('t1').get()).exists, false);
+    assert.equal((await db.collection(PHOTO_BURSTS).doc('t1').get()).exists, true);
   });
 
   test('a trip hidden from someone never tells them', async () => {

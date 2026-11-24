@@ -120,6 +120,7 @@ export async function releaseBringOf(db: Firestore, memberId: string): Promise<v
  * A member was removed (a separation, for example): their answers, bags, alerts, documents and voice notes
  * of trips, phones, settings and days of use (PRD, récit 1 nonies) go too.
  * The family has a few hundred events at most, so going through them all stays cheap.
+ * Their trip films stay, like their photos: they belong to the trip and its followers (relecture #559).
  * Returns the Storage folders of their trip files, for the caller to empty: a file sent without its
  * document or note (the app cut off in between) is in none of them, and a passport must not stay.
  */

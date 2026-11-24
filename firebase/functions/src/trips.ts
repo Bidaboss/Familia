@@ -339,8 +339,8 @@ export async function notifyFilm(db: Firestore, send: Sender, tripId: string, da
   const tripDoc = await db.collection('trips').doc(tripId).get();
   if (!tripDoc.exists) return 0;
   const trip = tripDoc.data() as TripData;
-  // The film tells what the photos of the day would have told.
-  await db.collection(PHOTO_BURSTS).doc(tripId).delete();
+  // The burst of photos is left alone: it counts by author, not by step, and may hold the photos of
+  // another step still to be told (C1 of #559). A film is mostly published the next day, long after.
   const members = await loadMembers(db);
   const recipients = withApp(members, trip.readerIds ?? [], data.authorId);
   if (recipients.length === 0) return 0;
