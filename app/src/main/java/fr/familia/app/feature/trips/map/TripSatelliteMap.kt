@@ -551,3 +551,9 @@ internal fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>
     runCatching { showSelected(style, points, names, selected) }
     return refused
 }
+
+/** E-61: where the turn of the globe starts: [EditArrival.ARRIVAL_SPIN_DEGREES] west of the trip, in -180..180. */
+internal fun spinStartLongitude(target: Double): Double {
+    val start = target - EditArrival.ARRIVAL_SPIN_DEGREES
+    return ((start + 540.0) % 360.0) - 180.0
+}
