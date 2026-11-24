@@ -389,6 +389,7 @@ private fun PathContent(
     val placed = remember(state.steps) { state.steps.filter { it.hasPosition } }
     // A new try each time the trip opens (retour d'essai du 24/11): a failure is never kept for hours.
     var mapFailed by remember { mutableStateOf(false) }
+    var mapCause by remember { mutableStateOf<String?>(null) }
     var mapTry by remember { mutableStateOf(0) }
     val mapAllowed = remember { !talkBackOn(context) }
     // Règle 46: under 20 % unplugged, or with Android's saver, no satellite map (the path instead).
@@ -416,6 +417,7 @@ private fun PathContent(
     if (mapLayout && mapFailed) {
         MapUnavailableNotice(
             onRetry = { mapFailed = false; mapTry++ },
+            reason = mapCause,
             modifier = Modifier.fillMaxWidth().height(maxHeight - lowHeight),
         )
     }
@@ -435,7 +437,7 @@ private fun PathContent(
             intro = !animationsOff(context),
             sheetHigh = expanded,
             bottomPaddingDp = lowHeight.value.toDouble(),
-            onFailed = { mapFailed = true },
+            onFailed = { mapCause = it.detail; mapFailed = true },
             modifier = Modifier.fillMaxSize(),
         )
     }
@@ -685,16 +687,16 @@ private fun StepCard(
         // Not the day of the step (DESIGN-102 A): no « Bien arrivé » weeks before the departure.
         if (arrival != null) {
             ArrivedRow(arrival, today, isParticipant, onClearArrival)
-        } else if (!StepArrivalDay.isOpen(step, today)) {
-            Unit
-        } else if (isParticipant) {
-            FilledTonalButton(onClick = onArrived, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Icon(Icons.Outlined.CheckCircle, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.trip_arrived_action))
+        } else if (StepArrivalDay.isOpen(step, today)) {
+            if (isParticipant) {
+                FilledTonalButton(onClick = onArrived, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Icon(Icons.Outlined.CheckCircle, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.trip_arrived_action))
+                }
+            } else {
+                Text(stringResource(R.string.trip_not_arrived), style = MaterialTheme.typography.bodyMedium, color = variant)
             }
-        } else {
-            Text(stringResource(R.string.trip_not_arrived), style = MaterialTheme.typography.bodyMedium, color = variant)
         }
         // The word of the step (récit 88): written by a participant, read by the followers.
         if (onOpenWord != null && StepArrivalDay.hasStarted(step, today)) {

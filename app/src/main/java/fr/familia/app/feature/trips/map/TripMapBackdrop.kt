@@ -89,6 +89,7 @@ fun TripMapBackdrop(
     val placed = remember(steps) { steps.filter { it.hasPosition } }
     // A new try each time the screen opens (retour d'essai du 24/11), and « Réessayer » when it failed.
     var failed by remember { mutableStateOf(false) }
+    var cause by remember { mutableStateOf<String?>(null) }
     var mapTry by remember { mutableStateOf(0) }
     val allowed = remember { !talkBackOn(context) }
     // Règle 46: no satellite map while the battery is saved; the screen opens as a plain page.
@@ -121,7 +122,7 @@ fun TripMapBackdrop(
         val low = maxHeight * backdropSheetShare(0)
         val sheet by animateDpAsState(if (mapLayout) maxHeight * backdropSheetShare(level) else maxHeight, label = "backdrop-sheet")
         if (mapLayout && failed) {
-            MapUnavailableNotice(onRetry = { failed = false; mapTry++ }, modifier = Modifier.fillMaxWidth().height(maxHeight - low))
+            MapUnavailableNotice(onRetry = { failed = false; mapTry++ }, reason = cause, modifier = Modifier.fillMaxWidth().height(maxHeight - low))
         }
         if (withMap) key(mapTry) {
             TripSatelliteMap(
@@ -138,7 +139,7 @@ fun TripMapBackdrop(
                 introDelayMs = EditArrival.CAMERA_WAIT_MS,
                 sheetHigh = false,
                 bottomPaddingDp = low.value.toDouble(),
-                onFailed = { failed = true },
+                onFailed = { cause = it.detail; failed = true },
                 modifier = Modifier.fillMaxSize(),
             )
         }

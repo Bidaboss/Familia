@@ -30,8 +30,13 @@ sealed class MapUnavailable(val detail: String, cause: Throwable? = null) : Exce
     class Timeout(detail: String) : MapUnavailable(detail)
 
     /** The view of the map could not even start: its own error is the cause. */
-    class ViewFailed(cause: Throwable) : MapUnavailable(cause.javaClass.simpleName, cause)
+    class ViewFailed(cause: Throwable) : MapUnavailable(viewErrorLine(cause), cause)
 }
+
+/** The view's own error, short and without any token: « IllegalStateException: … ». */
+internal fun viewErrorLine(cause: Throwable): String =
+    listOfNotNull(cause.javaClass.simpleName, cause.message?.replace(Regex("access_token=[^&\\s]*"), "access_token=…"))
+        .joinToString(": ").take(60)
 
 /** How long the map waits for its style before it gives up, on a slow phone too. */
 const val MAP_STYLE_TIMEOUT_MS = 15_000L

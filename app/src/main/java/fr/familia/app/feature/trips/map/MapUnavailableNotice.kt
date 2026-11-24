@@ -27,10 +27,10 @@ import fr.familia.app.feature.trips.detail.TripSheetColors
 /**
  * Where the map should be, when it did not come (retour d'essai du 24/11): never a silent cut.
  * A discreet line, « Carte indisponible », and « Réessayer » (56 dp), on the sky of the trip; the
- * sheet below keeps its heights. The reason is in « Plantages » for the admin.
+ * sheet below keeps its heights. The reason shows small under it, and goes to « Plantages » for the admin.
  */
 @Composable
-fun MapUnavailableNotice(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+fun MapUnavailableNotice(onRetry: () -> Unit, modifier: Modifier = Modifier, reason: String? = null) {
     Box(modifier.background(TripPathColors.Sky).windowInsetsPadding(WindowInsets.statusBars), contentAlignment = Alignment.Center) {
         Column(
             Modifier.padding(horizontal = 24.dp).semantics { liveRegion = LiveRegionMode.Polite },
@@ -38,6 +38,8 @@ fun MapUnavailableNotice(onRetry: () -> Unit, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(stringResource(R.string.trip_map_unavailable), style = MaterialTheme.typography.bodyLarge, color = TripSheetColors.InkSoft)
+            // The reason, small, so that a screenshot is enough to say why (no waiting for « Plantages »).
+            reason?.let { Text(stringResource(R.string.trip_map_unavailable_reason, it), style = MaterialTheme.typography.bodySmall, color = TripSheetColors.InkSoft) }
             TextButton(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.trip_map_retry), color = TripSheetColors.Ink)
             }
