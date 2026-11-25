@@ -2729,3 +2729,14 @@ Sur un téléphone en Android 10 ou plus :
 1. Mettre le téléphone en mode avion, ouvrir « Voyages » puis un voyage : les vignettes montrent le dessin, comme avant.
 2. Relancer l'appli avec le réseau : « Administration > Plantages » ne montre aucune ligne « Photo du lieu : UnknownHostException ».
 3. Un vrai refus du site (429, 403) reste signalé comme avant.
+
+## Voyage : le calendrier des dates se ferme au dernier jour, sans jour passé (retours du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. « Nouveau voyage », toucher les dates : le calendrier commence au mois en cours ; les jours avant aujourd'hui sont pâles et ne réagissent pas.
+2. Toucher le premier jour puis le dernier : la bande des jours s'affiche un court instant, puis l'écran se ferme tout seul avec les deux dates remplies.
+3. Le même jour deux fois : un voyage d'un jour, l'écran se ferme aussi.
+4. « Enregistrer » est maintenant en haut à droite, à côté du titre : il reste visible sur tous les téléphones (en bas, il passait sous la barre de gestes).
+5. « Effacer les dates » en bas efface et laisse l'écran ouvert.
+6. Modifier un voyage déjà daté dans le passé : ses jours restent touchables à partir de son premier jour.
+7. « Départ » d'une destination dans un voyage : seuls les jours après l'arrivée sont touchables, et toucher le jour de départ ferme l'écran.
