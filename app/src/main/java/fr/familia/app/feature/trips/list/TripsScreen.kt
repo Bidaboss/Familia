@@ -144,7 +144,8 @@ fun TripsScreen(
     val globeAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
     // Règle 46: no globe while the battery is saved (under 20 % unplugged, or Android's saver).
     val saving = rememberBatterySaving()
-    val globeOn = globeToken.isNotBlank() && globeAllowed && !globeFailed && !saving && success?.isEmpty == false
+    // Retour du 25/11 soir : the globe turns even when no trip is planned yet, the sheet saying so under it.
+    val globeOn = globeToken.isNotBlank() && globeAllowed && !globeFailed && !saving && success != null
     val markers = if (success == null || !globeOn) {
         emptyList()
     } else if (souvenirs) {
