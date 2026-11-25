@@ -6,7 +6,7 @@
 // surprises/{sid}/takes/{pid}/shares/{memberId}       { amount: whole euros }
 //   → sharesTotal and sharesCount on the take (a joint gift).
 
-import type { DocumentReference, Firestore } from 'firebase-admin/firestore';
+import type { DocumentReference, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { giftAudience } from './gifts';
 import { Notice, parisDay } from './logic';
@@ -408,6 +408,83 @@ export async function cancelSurpriseOffered(db: Firestore, send: Sender, surpris
   const recipients = (await giftAudience(db))(others);
   if (recipients.length > 0) await notify(db, send, recipients, cancelNotice(surpriseId, String(surprise.get('title') ?? '')));
   return true;
+}
+
+// --- Les autres nouvelles d'une surprise (brief § 7, audit de fidélité point 2) -----------------------
+//
+// A member who withdraws, a wish of the person changed, the date moved: the other members who take
+// part learn it, never the beneficiary nor the author of the change. The reminders read the date each
+// morning, so a new date recalculates them by itself.
+
+export function withdrawNotice(surpriseId: string, title: string, name: string): Notice {
+  return { channel: 'gifts', title: `« ${title} »`, body: `${name} ne participe pas.`, surpriseId, tag: `surprise-${surpriseId}-members` };
+}
+
+export function wishChangedNotice(surpriseId: string, title: string, wishTitle: string): Notice {
+  return { channel: 'gifts', title: `« ${title} »`, body: `Une envie a changé : « ${wishTitle} ».`, surpriseId, tag: `surprise-${surpriseId}-wish` };
+}
+
+export function dateChangedNotice(surpriseId: string, title: string, date: string): Notice {
+  const [y, m, d] = date.split('-');
+  return { channel: 'gifts', title: `« ${title} »`, body: `Nouvelle date : le ${d}/${m}/${y}.`, surpriseId, tag: `surprise-${surpriseId}-date` };
+}
+
+async function tellOthers(db: Firestore, send: Sender, surprise: DocumentSnapshot, skip: string[], notice: Notice): Promise<number> {
+  const beneficiaryId = surprise.get('beneficiaryId');
+  const ids = (await activeMemberIds(db, surprise.id, surprise.get('memberIds')))
+    .filter((id) => id !== beneficiaryId && !skip.includes(id));
+  const recipients = (await giftAudience(db))(ids);
+  return recipients.length > 0 ? notify(db, send, recipients, notice) : 0;
+}
+
+/** « Je ne participe pas » (declined false → true on surprises/{sid}/members/{memberId}). */
+export async function onSurpriseMemberDeclined(
+  db: Firestore, send: Sender, surpriseId: string, memberId: string,
+  before: Record<string, unknown> | undefined, after: Record<string, unknown> | undefined,
+): Promise<number> {
+  if (before?.declined === true || after?.declined !== true) return 0;
+  const surprise = await db.collection('surprises').doc(surpriseId).get();
+  if (!surprise.exists || surprise.get('status') !== 'preparing') return 0;
+  const member = await db.collection('members').doc(memberId).get();
+  return tellOthers(db, send, surprise, [memberId],
+    withdrawNotice(surpriseId, String(surprise.get('title') ?? ''), String(member.get('firstName') ?? 'Quelqu\'un')));
+}
+
+/** The date of a surprise in preparation moved (its creator alone changes it). */
+export async function onSurpriseDateChanged(
+  db: Firestore, send: Sender, surpriseId: string, before: Record<string, unknown> | undefined, after: Record<string, unknown> | undefined,
+): Promise<number> {
+  if (!before || !after || after.status !== 'preparing' || before.date === after.date || typeof after.date !== 'string') return 0;
+  const surprise = await db.collection('surprises').doc(surpriseId).get();
+  return tellOthers(db, send, surprise, [String(after.creatorId ?? '')], dateChangedNotice(surpriseId, String(after.title ?? ''), after.date));
+}
+
+/**
+ * A wish of « Mes envies » changed (title, link, price, note): each surprise in preparation for its
+ * author that proposes it follows it (the proposal takes the live title, price and link, the notebooks
+ * too) and its members learn it.
+ */
+export async function onWishChangedForSurprises(
+  db: Firestore, send: Sender, listId: string, itemId: string,
+  before: Record<string, unknown> | undefined, after: Record<string, unknown> | undefined,
+): Promise<number> {
+  if (!listId.startsWith('wishes-') || !before || !after) return 0;
+  const keys = ['title', 'url', 'price', 'note'];
+  if (!keys.some((k) => (before[k] ?? null) !== (after[k] ?? null))) return 0;
+  const beneficiaryId = listId.slice('wishes-'.length);
+  const surprises = await db.collection('surprises').where('beneficiaryId', '==', beneficiaryId).where('status', '==', 'preparing').get();
+  let sent = 0;
+  for (const s of surprises.docs) {
+    const proposal = s.ref.collection('proposals').doc(`wish-${itemId}`);
+    if (!(await proposal.get()).exists) continue;
+    await proposal.update({
+      title: String(after.title ?? ''), price: typeof after.price === 'number' ? after.price : null,
+      url: typeof after.url === 'string' ? after.url : null,
+    });
+    await syncSurpriseNotebook(db, s.id, `wish-${itemId}`);
+    sent += await tellOthers(db, send, s, [], wishChangedNotice(s.id, String(s.get('title') ?? ''), String(after.title ?? '')));
+  }
+  return sent;
 }
 
 /** The members of a surprise who still take part: not « Je ne participe pas », the beneficiary never. */

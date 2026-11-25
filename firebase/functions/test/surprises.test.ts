@@ -8,7 +8,7 @@ import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import { sendBirthdayGiftReminders } from '../src/gifts';
 import {
-  cancelSurpriseOffered, daysUntil, deleteMemberSurprises, isCancelAsked, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isNewlyOffered, notebookHolders,
+  cancelSurpriseOffered, daysUntil, onSurpriseDateChanged, onSurpriseMemberDeclined, onWishChangedForSurprises, deleteMemberSurprises, isCancelAsked, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isNewlyOffered, notebookHolders,
   offeredGift, onSurpriseOffered, purgeOfferedSurprises, reminderKind, sendSurpriseReminders, surpriseEntryId, surpriseReminderNotice,
   syncSurpriseNotebook, updateRatingAverage, updateTakeTotal, validAmount, validStars,
 } from '../src/surprises';
@@ -297,6 +297,37 @@ describe('functions', () => {
     await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'jade' });
     assert.equal(await onSurpriseOffered(db, send, 's1'), 2);
     assert.equal((await db.doc('giftLists/wishes-camille/items/i1').get()).exists, false);
+  });
+
+  test('the other news: a member who withdraws, a new date, a changed wish', async () => {
+    const { sent, send } = fakeSender();
+    await db.doc('surprises/s1').update({ memberIds: ['ines', 'jade', 'hugo'] });
+    // « Je ne participe pas » by Jade: Inès and Hugo learn it, once.
+    assert.equal(await onSurpriseMemberDeclined(db, send, 's1', 'jade', { validated: false }, { declined: true }), 2);
+    assert.deepEqual(sent.map((x) => x.token).sort(), ['token-hugo', 'token-ines']);
+    assert.match(sent[0].notice.body, /Jade ne participe pas/);
+    assert.equal(await onSurpriseMemberDeclined(db, send, 's1', 'jade', { declined: true }, { declined: true }), 0);
+    await db.doc('surprises/s1/members/jade').set({ declined: true });
+    sent.length = 0;
+
+    // The creator moves the date: the others still in it, not Jade who declined.
+    const before = (await db.doc('surprises/s1').get()).data();
+    assert.equal(await onSurpriseDateChanged(db, send, 's1', before, { ...before, date: '2026-12-24' }), 1);
+    assert.deepEqual(sent.map((x) => x.token), ['token-hugo']);
+    assert.match(sent[0].notice.body, /24\/12\/2026/);
+    assert.equal(await onSurpriseDateChanged(db, send, 's1', before, { ...before, title: 'Autre' }), 0);
+    sent.length = 0;
+
+    // Camille changes a wish proposed in the surprise: the proposal follows, the members learn it.
+    await db.doc('surprises/s1/proposals/wish-i1').set({ kind: 'wish', wishItemId: 'i1', title: 'Un livre', price: 20, url: null, removed: false });
+    const wish = { title: 'Un livre', price: 20, url: null };
+    assert.equal(await onWishChangedForSurprises(db, send, 'wishes-camille', 'i1', wish, { ...wish, price: 20 }), 0);
+    assert.equal(await onWishChangedForSurprises(db, send, 'wishes-camille', 'i2', wish, { ...wish, title: 'Pas proposé' }), 0);
+    assert.equal(await onWishChangedForSurprises(db, send, 'wishes-camille', 'i1', wish, { ...wish, title: 'Un grand livre', price: 30 }), 2);
+    const p = await db.doc('surprises/s1/proposals/wish-i1').get();
+    assert.deepEqual([p.get('title'), p.get('price')], ['Un grand livre', 30]);
+    assert.match(sent[0].notice.body, /Une envie a changé : « Un grand livre »/);
+    assert.ok(!sent.some((x) => x.token === 'token-camille'));
   });
 
   test('the reminders: to who has not validated before the day, to all from the day, muted never, beneficiary never', async () => {
