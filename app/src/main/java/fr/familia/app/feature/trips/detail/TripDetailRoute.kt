@@ -178,6 +178,8 @@ fun TripDetailRoute(
         },
         placePhotos = container?.placePhotos,
     )
+    // Retour du 25/11 soir : the car and bus lines of « Le trajet » show their time by road.
+    androidx.compose.runtime.CompositionLocalProvider(LocalRoadRoutes provides sharedRoadRoutes) {
     val page = pageStay
     if (page != null && shown != null) {
         androidx.activity.compose.BackHandler { pageStay = null }
@@ -237,6 +239,7 @@ fun TripDetailRoute(
         },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
+    }
     val recordAt = voiceStep
     val recordStay = stay?.takeIf { it.step.id == recordAt }
     if (recordAt != null && voiceRepo != null) {
@@ -268,3 +271,8 @@ fun TripDetailViewModel.checklistActions(myId: String, packingOn: Boolean): Chec
     } else {
         ChecklistActions(this::addItem, this::editItem, this::setItemDone, this::deleteItem)
     }
+
+/** One for the whole app: the drives already asked are kept while it runs. */
+private val sharedRoadRoutes: fr.familia.app.core.place.RoadRoutes by lazy {
+    fr.familia.app.core.place.MapboxRoadRoutes(fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
+}
