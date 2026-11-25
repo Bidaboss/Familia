@@ -95,6 +95,27 @@ class TreeOfLifeTest {
         assertTrue(life.sprinkles(42, 10) == life.sprinkles(42, 10))
     }
 
+    @Test
+    fun `one line per generation, even with relatives on one side and an unlinked child`() {
+        val base = example()
+        val members = base.people.values.mapNotNull { (it as? TreePerson.OfMember)?.member } +
+            Member("z", "Lili", null, null, "h3", MemberProfile.ChildWithoutApp, false, emptyList(), null)
+        val kin = base.people.values.mapNotNull { (it as? TreePerson.OfKin)?.kin } +
+            Kin("k3", "Paul", living = true, householdId = "h2") + Kin("k4", "Rose", living = false, householdId = "h2")
+        val links = base.links + KinLink.parent("k3", "p1") + KinLink.parent("k4", "k3")
+        val tree = GenealogyTree(members, kin, links)
+        val life = TreeOfLife(tree)
+        val drawn = life.units.flatMap { it.ids }
+        val trunk = life.trunk!!.ids.first()
+        drawn.groupBy { tree.generations.getValue(it) }.forEach { (generation, ids) ->
+            val ys = ids.map { life.centers.getValue(it).second }.distinct()
+            assertEquals("generation $generation: $ids", 1, ys.size)
+            assertEquals(-(generation - tree.generations.getValue(trunk)) * TreeOfLife.LEVEL_GAP, ys.single())
+        }
+        assertEquals(life.centers.getValue("g1").second, life.centers.getValue("z").second)
+        assertApart(life)
+    }
+
     /** A couple of the app whose son-in-law added his parents as relatives (PRODUIT-108). */
     private fun inLaws(father: String, mother: String): GenealogyTree {
         val members = listOf(member("gp1", "Camille"), member("gp2", "Inès"), member("c1", "Lou", "h2"), member("p1", "Alix", "h2"), member("g1", "Tom", "h2"))

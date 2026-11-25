@@ -1,5 +1,6 @@
 package fr.familia.app.feature.recipes
 
+import fr.familia.app.core.model.RecipeCategory
 import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
@@ -43,7 +44,7 @@ class RecipeEditPhotosTest {
     }
 
     private fun RecipeEditViewModel.fill() = update {
-        it.copy(title = "Crêpes", ingredients = "farine\nlait", steps = "Mélanger.\nCuire.")
+        it.copy(title = "Crêpes", category = RecipeCategory.Dessert, ingredients = listOf("farine", "lait"), steps = listOf("Mélanger.", "Cuire."))
     }
 
     private val RecipeEditViewModel.editing get() = uiState.value as RecipeEditUiState.Editing

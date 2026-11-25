@@ -1,6 +1,21 @@
 package fr.familia.app.feature.recipes
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.input.ImeAction
+import fr.familia.app.core.model.RecipeCategory
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,7 +45,6 @@ import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.HistoryEdu
-import androidx.compose.material.icons.outlined.PersonOff
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Restaurant
@@ -67,7 +81,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -89,13 +102,14 @@ import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormLabel
 import fr.familia.app.core.ui.form.FormTile
-import fr.familia.app.core.ui.form.PeopleRow
-import fr.familia.app.core.ui.form.PersonChoice
-import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 
-/** Recipe form. Stateless: every change goes through [onChange]. */
+/**
+ * Recipe form (R6 new, R7 change): name, category, where it comes from, parts, tags, then the
+ * ingredients and the steps line by line, its story and the photos of the dish. Stateless: every
+ * change goes through [onChange].
+ */
 @Composable
 fun RecipeEditScreen(
     state: RecipeEditUiState,
@@ -116,13 +130,14 @@ fun RecipeEditScreen(
             onDismissRequest = { confirmLeave = false },
             title = { Text(stringResource(R.string.recipe_leave_title)) },
             text = { Text(stringResource(R.string.recipe_leave_body)) },
+            // R9: « Rester » and a filled « Quitter », 56 dp each.
             confirmButton = {
-                TextButton(onClick = { confirmLeave = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.trip_leave_keep)) }
+                Button(onClick = { confirmLeave = false; onBack() }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.recipe_leave_quit))
+                }
             },
             dismissButton = {
-                TextButton(onClick = { confirmLeave = false; onBack() }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.member_leave_discard))
-                }
+                TextButton(onClick = { confirmLeave = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.recipe_leave_stay)) }
             },
         )
     }
@@ -136,18 +151,19 @@ fun RecipeEditScreen(
                 actions = { HelpButton(ScreenHelp.Recipes) },
             )
         },
-        // The single black button at the bottom (refonte lot 4, maquette « Une recette »).
+        // Annuler | Ajouter la recette (or Enregistrer), fixed at the bottom (R6, R7).
         bottomBar = {
             if (editing != null) {
                 val sending = editing.sendingPhoto
-                StickyActionBar(
+                ActionBar(
                     text = when {
                         sending != null -> stringResource(R.string.recipe_edit_sending_photo, sending, editing.photos.size)
                         editing.isNew -> stringResource(R.string.recipe_add_confirm)
                         else -> stringResource(R.string.member_save)
                     },
-                    onClick = onSave,
-                    enabled = !editing.isSaving,
+                    onSave = onSave,
+                    onCancel = { if (hasChanges) confirmLeave = true else onBack() },
+                    enabled = !editing.isSaving && editing.form.canSubmit,
                     busy = editing.isSaving && sending == null,
                 )
             }
@@ -189,44 +205,36 @@ private fun Form(
         modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        if (photos != null && state.isNew) Photos(state, photos)
-
         FormTile(Icons.Outlined.Restaurant, stringResource(R.string.recipe_tile_main), Modifier.top(RecipeTile.Main)) {
             Field(form.title, { v -> onChange { it.copy(title = v) } }, R.string.recipe_field_title, errors, RecipeFormError.TitleMissing, RecipeFormError.TitleTooLong)
-            FormLabel(stringResource(R.string.recipe_pick_origin), Modifier.padding(top = 4.dp))
-            OriginRounds(state, onChange)
-            if (form.originMemberId == null) {
-                Field(form.origin, { v -> onChange { it.copy(origin = v) } }, R.string.recipe_field_origin, errors, RecipeFormError.OriginTooLong)
-            }
+            Categories(form.category, isError = RecipeFormError.CategoryMissing in errors) { c -> onChange { it.copy(category = c) } }
+            Field(
+                form.origin,
+                { v -> onChange { it.copy(origin = v) } },
+                R.string.recipe_field_origin,
+                errors,
+                RecipeFormError.OriginTooLong,
+                placeholder = R.string.recipe_field_origin_example,
+            )
             Servings(form.servings, isError = RecipeFormError.ServingsInvalid in errors) { v -> onChange { it.copy(servings = v) } }
             Field(form.tags, { v -> onChange { it.copy(tags = v) } }, R.string.recipe_field_tags, errors, help = R.string.recipe_field_tags_help)
         }
 
         FormTile(Icons.AutoMirrored.Outlined.FormatListBulleted, stringResource(R.string.recipe_field_ingredients), Modifier.top(RecipeTile.Ingredients)) {
-            Field(
-                form.ingredients,
-                { v -> onChange { it.copy(ingredients = v) } },
-                R.string.recipe_field_ingredients,
-                errors,
-                RecipeFormError.IngredientsMissing,
-                RecipeFormError.IngredientsTooLong,
-                help = R.string.recipe_field_lines_help,
-                singleLine = false,
-                showLabel = false,
+            LinesEditor(
+                lines = form.ingredients,
+                onLines = { lines -> onChange { it.copy(ingredients = lines) } },
+                kind = LineKind.Ingredient,
+                error = errors.firstOrNull { it == RecipeFormError.IngredientsMissing || it == RecipeFormError.IngredientsTooLong },
             )
         }
 
         FormTile(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.recipe_field_steps), Modifier.top(RecipeTile.Steps)) {
-            Field(
-                form.steps,
-                { v -> onChange { it.copy(steps = v) } },
-                R.string.recipe_field_steps,
-                errors,
-                RecipeFormError.StepsMissing,
-                RecipeFormError.StepsTooLong,
-                help = R.string.recipe_field_lines_help,
-                singleLine = false,
-                showLabel = false,
+            LinesEditor(
+                lines = form.steps,
+                onLines = { lines -> onChange { it.copy(steps = lines) } },
+                kind = LineKind.Step,
+                error = errors.firstOrNull { it == RecipeFormError.StepsMissing || it == RecipeFormError.StepsTooLong },
             )
         }
 
@@ -244,6 +252,8 @@ private fun Form(
                 )
             }
         }
+        // The photos of the dish last, as in the prototype (R6): the recipe first.
+        if (photos != null && state.isNew) Photos(state, photos)
         if (state.saveFailed) {
             Surface(shape = RoundedCornerShape(16.dp), color = LocalClayColors.current.card) {
                 FormHint(stringResource(R.string.recipe_save_failed), isError = true, modifier = Modifier.padding(14.dp))
@@ -253,12 +263,164 @@ private fun Form(
     }
 }
 
+/** « Annuler » and the one filled button, side by side, 56 dp, above the keyboard. */
+@Composable
+private fun ActionBar(text: String, onSave: () -> Unit, onCancel: () -> Unit, enabled: Boolean, busy: Boolean) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(18.dp), modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+            Text(stringResource(R.string.action_cancel), fontWeight = FontWeight.Bold)
+        }
+        Button(
+            onClick = onSave,
+            enabled = enabled && !busy,
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = colors.inverseSurface, contentColor = colors.inverseOnSurface),
+            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+        ) {
+            if (busy) {
+                CircularProgressIndicator(Modifier.size(24.dp), color = colors.inverseOnSurface)
+            } else {
+                Text(text, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            }
+        }
+    }
+}
+
+/** « Catégorie », 8 pills, one to choose (DESIGN-170): a radio group for TalkBack. */
+@Composable
+private fun Categories(chosen: RecipeCategory?, isError: Boolean, onPick: (RecipeCategory) -> Unit) {
+    FormLabel(stringResource(R.string.recipe_field_category), Modifier.padding(top = 4.dp))
+    ChipGroup {
+        RecipeCategory.entries.forEach { category ->
+            val look = category.look
+            val name = stringResource(look.labelRes)
+            FormChip(label = "${look.emoji} $name", selected = category == chosen, onClick = { onPick(category) }, description = name)
+        }
+    }
+    if (isError) FormHint(stringResource(R.string.error_recipe_category_missing), isError = true)
+}
+
+/** An ingredient (a bullet) or a step (its number). */
+private enum class LineKind { Ingredient, Step }
+
+/**
+ * Ingredients or steps typed line by line, like a shopping list (règle 18 du brief): a cross removes
+ * a line, « Entrée » opens the next one right below, « Ajouter un ingrédient / une étape » adds one
+ * at the end. A step wraps on several lines on screen but stays one step.
+ */
+@Composable
+private fun LinesEditor(lines: List<String>, onLines: (List<String>) -> Unit, kind: LineKind, error: RecipeFormError?) {
+    val focus = remember { mutableStateMapOf<Int, FocusRequester>() }
+    var goTo by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(goTo, lines.size) {
+        val index = goTo ?: return@LaunchedEffect
+        focus[index]?.let { runCatching { it.requestFocus() } }
+        goTo = null
+    }
+    val isStep = kind == LineKind.Step
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        lines.forEachIndexed { index, line ->
+            val requester = focus.getOrPut(index) { FocusRequester() }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (isStep) StepNumber(index + 1) else Text("•", style = MaterialTheme.typography.titleLarge, modifier = Modifier.clearAndSetSemantics {})
+                val placeholder = stringResource(
+                    when {
+                        isStep && index == 0 -> R.string.recipe_step_first
+                        isStep -> R.string.recipe_step_other
+                        index == 0 -> R.string.recipe_ingredient_first
+                        else -> R.string.recipe_ingredient_other
+                    },
+                )
+                val name = if (isStep) stringResource(R.string.recipe_step_n, index + 1) else stringResource(R.string.recipe_ingredient_n, index + 1)
+                OutlinedTextField(
+                    value = line,
+                    onValueChange = { typed ->
+                        val (next, target) = splitLine(lines, index, typed)
+                        onLines(next)
+                        if (target != null) goTo = target
+                    },
+                    placeholder = { Text(placeholder) },
+                    isError = error != null,
+                    singleLine = !isStep,
+                    minLines = if (isStep) 2 else 1,
+                    shape = RoundedCornerShape(16.dp),
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = if (isStep) ImeAction.Default else ImeAction.Next,
+                    ),
+                    keyboardActions = KeyboardActions(onNext = {
+                        val (next, target) = splitLine(lines, index, line + "\n")
+                        onLines(next)
+                        goTo = target
+                    }),
+                    modifier = Modifier.weight(1f).focusRequester(requester).semantics { contentDescription = name },
+                )
+                IconButton(onClick = { onLines(removeLine(lines, index)) }, modifier = Modifier.size(56.dp)) {
+                    val remove = if (isStep) stringResource(R.string.recipe_step_remove, index + 1) else stringResource(R.string.recipe_ingredient_remove, line.ifBlank { (index + 1).toString() })
+                    Icon(Icons.Outlined.Close, contentDescription = remove)
+                }
+            }
+        }
+        AddLineButton(
+            text = stringResource(if (isStep) R.string.recipe_step_add else R.string.recipe_ingredient_add),
+            onClick = {
+                onLines(lines + "")
+                goTo = lines.size
+            },
+        )
+        val help = if (isStep) R.string.recipe_steps_help else R.string.recipe_ingredients_help
+        FormHint(stringResource(error?.let { errorRes(it) } ?: help), isError = error != null)
+    }
+}
+
+@Composable
+private fun StepNumber(n: Int) {
+    Box(
+        Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer).clearAndSetSemantics {},
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(n.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+    }
+}
+
+/** « + Ajouter un ingrédient » in a dashed pill, 56 dp. */
+@Composable
+private fun AddLineButton(text: String, onClick: () -> Unit) {
+    val outline = MaterialTheme.colorScheme.outline
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .drawBehind {
+                drawRoundRect(
+                    color = outline,
+                    cornerRadius = CornerRadius(28.dp.toPx()),
+                    style = Stroke(width = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))),
+                )
+            }
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+    ) {
+        Icon(Icons.Outlined.Add, contentDescription = null)
+        Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+    }
+}
+
 /** The tiles that can hold an error, top to bottom. */
 private enum class RecipeTile { Main, Ingredients, Steps, Story }
 
 private val RecipeFormError.tile: RecipeTile
     get() = when (this) {
-        RecipeFormError.TitleMissing, RecipeFormError.TitleTooLong, RecipeFormError.OriginTooLong, RecipeFormError.ServingsInvalid -> RecipeTile.Main
+        RecipeFormError.TitleMissing, RecipeFormError.TitleTooLong, RecipeFormError.CategoryMissing,
+        RecipeFormError.OriginTooLong, RecipeFormError.ServingsInvalid,
+        -> RecipeTile.Main
         RecipeFormError.IngredientsMissing, RecipeFormError.IngredientsTooLong -> RecipeTile.Ingredients
         RecipeFormError.StepsMissing, RecipeFormError.StepsTooLong -> RecipeTile.Steps
         RecipeFormError.StoryTooLong -> RecipeTile.Story
@@ -388,6 +550,7 @@ private fun Field(
     keyboard: KeyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
     /** False when the tile already says it. */
     showLabel: Boolean = true,
+    placeholder: Int? = null,
 ) {
     val error = kinds.firstOrNull { it in errors }
     val label = stringResource(labelRes)
@@ -399,6 +562,7 @@ private fun Field(
             isError = error != null,
             singleLine = singleLine,
             minLines = if (singleLine) 1 else 4,
+            placeholder = placeholder?.let { { Text(stringResource(it)) } },
             shape = RoundedCornerShape(16.dp),
             keyboardOptions = keyboard,
             modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
@@ -409,6 +573,7 @@ private fun Field(
 
 private fun errorRes(error: RecipeFormError): Int = when (error) {
     RecipeFormError.TitleMissing -> R.string.error_recipe_title_missing
+    RecipeFormError.CategoryMissing -> R.string.error_recipe_category_missing
     RecipeFormError.TitleTooLong, RecipeFormError.OriginTooLong -> R.string.error_event_title_too_long
     RecipeFormError.ServingsInvalid -> R.string.error_recipe_servings
     RecipeFormError.IngredientsMissing -> R.string.error_recipe_ingredients_missing
@@ -416,51 +581,20 @@ private fun errorRes(error: RecipeFormError): Int = when (error) {
     RecipeFormError.IngredientsTooLong, RecipeFormError.StepsTooLong, RecipeFormError.StoryTooLong -> R.string.error_recipe_too_long
 }
 
-/**
- * « De qui vient la recette ? »: a member of the family, by household, or nobody in particular (then
- * a free origin). Rounds, as everywhere else (refonte lot 4), instead of a dialog of radio buttons.
- */
-@Composable
-private fun OriginRounds(state: RecipeEditUiState.Editing, onChange: ((RecipeForm) -> RecipeForm) -> Unit) {
-    val chosen = state.form.originMemberId
-    val pick: (String) -> Unit = { key -> onChange { it.copy(originMemberId = key.takeIf { k -> k != NOBODY }) } }
-    PeopleRow(
-        choices = listOf(
-            PersonChoice(NOBODY, stringResource(R.string.recipe_origin_none), selected = chosen == null, icon = Icons.Outlined.PersonOff),
-        ),
-        multiple = false,
-        onToggle = pick,
-    )
-    if (state.groups.isEmpty()) {
-        PeopleRow(
-            choices = state.members.map { PersonChoice(it.id, it.firstName, selected = it.id == chosen, memberId = it.id) },
-            multiple = false,
-            onToggle = pick,
-        )
-    }
-    // By household (règle de Kévin, 17/11): one choice, so no box for the household.
-    state.groups.forEach { group ->
-        if (group.name.isNotBlank()) FormHint(group.name, modifier = Modifier.semantics { heading() })
-        PeopleRow(
-            choices = group.members.map { PersonChoice(it.id, it.firstName, selected = it.id == chosen, memberId = it.id) },
-            multiple = false,
-            onToggle = pick,
-        )
-    }
-}
-
-/** The key of « Personne de la famille » among the rounds; the others are member ids. */
-private const val NOBODY = ""
-
 internal fun previewRecipeEdit(isNew: Boolean = false): RecipeEditUiState.Editing = RecipeEditUiState.Editing(
-    form = RecipeForm.from(previewRecipes().first()),
+    form = if (isNew) RecipeForm(title = "Gratin dauphinois") else RecipeForm.from(previewRecipes().first()),
     isNew = isNew,
-    members = listOf(OriginChoice("a", "Camille"), OriginChoice("b", "Inès")),
     errors = emptySet(),
 )
 
 @FamiliaPreviews
 @Composable
 private fun RecipeEditPreview() {
-    FamiliaTheme { Surface { RecipeEditScreen(previewRecipeEdit(), {}, {}, {}) } }
+    FamiliaTheme { Surface { RecipeEditScreen(previewRecipeEdit(), {}, {}, {}, showStory = true) } }
+}
+
+@FamiliaPreviews
+@Composable
+private fun RecipeNewPreview() {
+    FamiliaTheme { Surface { RecipeEditScreen(previewRecipeEdit(isNew = true), {}, {}, {}, showStory = true) } }
 }

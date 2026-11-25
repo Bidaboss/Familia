@@ -44,7 +44,8 @@ class RecipeScreenshotTest {
         }
     }
     private val detailOther: @Composable () -> Unit = { Surface { RecipeDetailScreen(previewRecipeDetail(canManage = false), {}, {}, {}) } }
-    private val edit: @Composable () -> Unit = { Surface { RecipeEditScreen(previewRecipeEdit(), {}, {}, {}) } }
+    private val edit: @Composable () -> Unit = { Surface { RecipeEditScreen(previewRecipeEdit(), {}, {}, {}, showStory = true) } }
+    private val new: @Composable () -> Unit = { Surface { RecipeEditScreen(previewRecipeEdit(isNew = true), {}, {}, {}) } }
 
     @Test
     fun recipesLight() = capture("recettes_clair", content = list)
@@ -76,6 +77,13 @@ class RecipeScreenshotTest {
 
     @Test
     fun recipeEditLight() = capture("recette_modifier_clair", content = edit)
+
+    @Test
+    fun recipeNewLight() = capture("recette_nouvelle_clair", content = new)
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun recipeEditDark() = capture("recette_modifier_sombre", darkTheme = true, content = edit)
 
     @Test
     @Config(fontScale = 2f)
