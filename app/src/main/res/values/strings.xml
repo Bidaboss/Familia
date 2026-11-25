@@ -1486,6 +1486,15 @@
     <string name="feed_detail_birthday">Anniversaire</string>
     <string name="feed_detail_help">Coup de main</string>
     <string name="feed_detail_weekly">Question de la semaine</string>
+    <string name="feed_detail_wishes">Envies</string>
+    <string name="feed_detail_deal">Bon plan</string>
+    <string name="feed_label_wishes">Envies</string>
+    <string name="feed_label_deal">Bon plan</string>
+    <string name="feed_label_address">Bonne adresse</string>
+    <plurals name="feed_wishes_added">
+        <item quantity="one">%1$s a ajouté %2$d envie</item>
+        <item quantity="other">%1$s a ajouté %2$d envies</item>
+    </plurals>
     <string name="feed_social_failed">Pas de réseau : réessaie dans un moment.</string>
     <string name="feed_comment_field">Écrire un commentaire</string>
     <plurals name="feed_comment_count">

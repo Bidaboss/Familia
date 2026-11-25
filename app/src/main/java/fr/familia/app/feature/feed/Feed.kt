@@ -99,6 +99,10 @@ class FeedNavigation(
     val onOpenCapsule: (String) -> Unit = {},
     val onOpenRecap: () -> Unit = {},
     val onOpenYear: (Int) -> Unit = {},
+    /** A wish list (the card « Envies », récit 116). */
+    val onOpenGiftList: (String) -> Unit = {},
+    /** A bon plan or a bonne adresse of Entraide (récit 116). */
+    val onOpenGoodDeal: (String) -> Unit = {},
 )
 
 val LocalFeedNavigation = staticCompositionLocalOf { FeedNavigation() }

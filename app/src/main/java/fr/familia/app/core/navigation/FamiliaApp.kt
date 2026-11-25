@@ -1034,6 +1034,7 @@ fun FamiliaApp(
                                     null
                                 },
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                                onOpenGoodDeal = { id -> navController.navigate(GoodDealDetailDestination(id)) },
                                 onOpenSurprise = if (features.isOnForFamily(Feature.SurpriseButton)) ({ id -> navController.navigate(SurpriseDestination(id)) }) else null,
                                 onOpenGifts = { navController.navigateToTab(TopLevelDestination.Gifts) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },

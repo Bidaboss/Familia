@@ -28,6 +28,9 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
     val tripsOn = flags.isOn(Feature.Trips)
     val eventAlbumsOn = flags.isOn(Feature.EventAlbums)
     val recipesOn = flags.isOn(Feature.Recipes)
+    // Envies et bons plans (récit 116): each under the switch of its module.
+    val giftsOn = flags.isOn(Feature.Gifts)
+    val dealsOn = flags.isOn(Feature.GoodDeals)
     // Se souvenir en un seul lieu (récit 71): each souvenir under the switch of its module.
     val capsulesOn = flags.isOn(Feature.Capsules)
     val recapOn = flags.isOn(Feature.Recap)
@@ -35,7 +38,7 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
     val reviewYear = openableReviewYear(today, forCard = true)
     return remember(
         container, me.id, family, today, commentsOn, wishesOn, goodNewsOn, helpOn, weeklyOn, tripsOn, eventAlbumsOn, recipesOn,
-        capsulesOn, recapOn, yearAgo, reviewYear,
+        capsulesOn, recapOn, yearAgo, reviewYear, giftsOn, dealsOn,
     ) {
         buildList {
             // Planning (fil principal): the events put in the Planning, with « J'y vais » and their last comment.
@@ -62,6 +65,10 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
             if (family != null && tripsOn) add(FilmFeedSource(container?.tripRepository, container?.tripFilmRepository, family, me.id, today))
             // Recettes ajoutées (fil voyage), with their last comment.
             container?.recipeRepository?.takeIf { recipesOn }?.let { add(RecipeFeedSource(it, container.albumPhotoRepository)) }
+            // Envies (récit 116): one card per person and per day, never the person's own.
+            if (giftsOn) container?.giftRepository?.let { add(WishesFeedSource(it, me.id)) }
+            // Bons plans et bonnes adresses d'Entraide (récit 116).
+            if (dealsOn) container?.goodDealRepository?.let { add(DealFeedSource(it)) }
             // Capsule ouverte, Il y a un an, La semaine de la famille (le dimanche), Notre année (récit 71).
             if (capsulesOn) container?.capsuleRepository?.let { add(CapsuleFeedSource(it, me.id)) }
             yearAgo?.let { add(YearAgoFeedSource(it, today)) }
