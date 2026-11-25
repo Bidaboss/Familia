@@ -16,6 +16,8 @@ import fr.familia.app.core.welcome.WelcomePreferences
 import fr.familia.app.core.photo.LocalOnline
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.viewas.ViewAsHost
+import fr.familia.app.feature.gifts.LinkImages
+import fr.familia.app.feature.gifts.LocalLinkImages
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.sharedWish
 import fr.familia.app.feature.auth.SessionRoute
@@ -75,6 +77,8 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) open(intent)
         val app = application as FamiliaApplication
         val container = app.container
+        // The pictures of the wishes' links, read once while the app lives.
+        val linkImages = LinkImages(container.linkPreviewRepository)
         setContent {
             val isOnline by app.networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
             val eventToOpen by openEventId
@@ -95,7 +99,7 @@ class MainActivity : ComponentActivity() {
             val wishToAdd by sharedWish
             val memberToOpen by openMemberId
             FamiliaTheme {
-                CompositionLocalProvider(LocalOnline provides isOnline) {
+                CompositionLocalProvider(LocalOnline provides isOnline, LocalLinkImages provides linkImages) {
                     SessionRoute(container = container) { member ->
                         // « Voir comme »: the admin principal may look at the app as another member.
                         ViewAsHost(container, member) { shownContainer, shownMember ->

@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -62,7 +61,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.Feature
@@ -79,7 +77,9 @@ import fr.familia.app.core.theme.photoCard
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.gifts.PictureOver
 import fr.familia.app.feature.gifts.formatEuros
+import fr.familia.app.feature.gifts.rememberLinkImage
 import fr.familia.app.feature.gifts.surpriseAccent
 import fr.familia.app.feature.gifts.surpriseDark
 import fr.familia.app.feature.gifts.wishOccasionLabel
@@ -430,15 +430,10 @@ private fun Vignette(seed: String, size: Int, content: @Composable () -> Unit) {
 @Composable
 private fun WishPicture(item: GiftItem) {
     val photo = item.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
-    when {
-        photo != null -> CoverThumbnail(photo, size = 52.dp)
-        item.imageUrl != null -> AsyncImage(
-            model = item.imageUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
-        else -> Text("🎁", fontSize = 24.sp)
+    if (photo != null) {
+        CoverThumbnail(photo, size = 52.dp)
+    } else {
+        PictureOver(rememberLinkImage(item), Modifier.fillMaxSize()) { Text("🎁", fontSize = 24.sp) }
     }
 }
 

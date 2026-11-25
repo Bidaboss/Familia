@@ -101,6 +101,7 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.gifts.formatEuros
+import fr.familia.app.feature.gifts.rememberLinkImage
 import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.gifts.listSubtitle
 import fr.familia.app.feature.gifts.listTitle
@@ -498,7 +499,7 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         val photo = item.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
         // The photo of its author (récit 44) comes before the picture of the shop page.
         if (photo != null) CoverBanner(photo)
-        item.imageUrl?.takeIf { photo == null }?.let { image ->
+        rememberLinkImage(item)?.takeIf { photo == null }?.let { image ->
             // The picture of the shop page of a shared link (récit 8 bis): decorative.
             AsyncImage(
                 model = image,

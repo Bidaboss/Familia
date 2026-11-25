@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -49,7 +48,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.GiftItem
@@ -58,9 +56,11 @@ import fr.familia.app.core.photo.CoverBanner
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.gifts.PictureOver
 import fr.familia.app.feature.gifts.WishLook
 import fr.familia.app.feature.gifts.WishPill
 import fr.familia.app.feature.gifts.formatEuros
+import fr.familia.app.feature.gifts.rememberLinkImage
 
 /**
  * The page of one of my wishes (correctif E9, E10, fiche K20): its picture wide, title, price and
@@ -187,7 +187,7 @@ private fun occasionLabel(occasion: GiftOccasion?): String = stringResource(
     },
 )
 
-/** The photo of its author first (récit 44), then the picture of the shop page, else a gift on a pastel. */
+/** The photo of its author first (récit 44), then the picture of its link, else a gift on a pastel. */
 @Composable
 private fun BigPicture(item: GiftItem) {
     val photo = item.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
@@ -195,15 +195,10 @@ private fun BigPicture(item: GiftItem) {
         Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(28.dp)).background(WishLook.pastel(item.title)),
         contentAlignment = Alignment.Center,
     ) {
-        when {
-            photo != null -> CoverBanner(photo, Modifier.fillMaxSize())
-            item.imageUrl != null -> AsyncImage(
-                model = item.imageUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-            else -> Text("🎁", fontSize = 72.sp)
+        if (photo != null) {
+            CoverBanner(photo, Modifier.fillMaxSize())
+        } else {
+            PictureOver(rememberLinkImage(item), Modifier.fillMaxSize()) { Text("🎁", fontSize = 72.sp) }
         }
     }
 }

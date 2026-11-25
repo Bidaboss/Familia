@@ -24,6 +24,8 @@ import fr.familia.app.feature.gifts.keepsListsOf
 import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.core.model.householdGroups
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -142,6 +144,8 @@ class GiftItemEditViewModel(
     /** The picture read for [previewedUrl]: dropped if the member changes the link. */
     private var previewImage: String? = null
     private var previewedUrl: String? = null
+    /** The reading of a link typed by hand, started once the member stops typing. */
+    private var typedPreview: Job? = null
 
     private val _uiState = MutableStateFlow<GiftItemEditUiState>(GiftItemEditUiState.Loading)
     val uiState: StateFlow<GiftItemEditUiState> = _uiState.asStateFlow()
@@ -244,6 +248,8 @@ class GiftItemEditViewModel(
             sharedByOther = if (sharedEditor) beneficiary.firstName else null,
         )
         if (shared != null && existing == null) readPreview(shared.url)
+        // A wish saved with a link but no picture (typed by hand before): its page gives one now.
+        if (existing != null && existing.imageUrl == null && existing.photo == null && existing.url != null) readPreview(existing.url, fillForm = false)
     }
 
     /**
@@ -318,7 +324,7 @@ class GiftItemEditViewModel(
     }
 
     /** Fills what the member has not typed yet with what the shop page says. */
-    private suspend fun readPreview(url: String) {
+    private suspend fun readPreview(url: String, fillForm: Boolean = true) {
         val repo = previews ?: return
         val preview = try {
             repo.preview(url)
@@ -334,9 +340,10 @@ class GiftItemEditViewModel(
         }
         previewImage = preview.imageUrl
         previewedUrl = url
-        val form = state.form.copy(
+        val form = if (!fillForm) state.form else state.form.copy(
             title = state.form.title.ifBlank { preview.title.orEmpty() },
             price = state.form.price.ifBlank { preview.price?.let(::priceText).orEmpty() },
+            whereToFind = state.form.whereToFind.ifBlank { onlineWhere(url).orEmpty() },
         )
         _uiState.value = state.copy(
             form = form,
@@ -400,6 +407,18 @@ class GiftItemEditViewModel(
             saveFailed = false,
             imageUrl = imageFor(form),
         )
+        if (form.url != state.form.url) readTypedLink(form.url)
+    }
+
+    /** A link typed or pasted from the keyboard is read too, as « Coller » does, once typing stops. */
+    private fun readTypedLink(url: String) {
+        typedPreview?.cancel()
+        val link = normalizeLink(url) ?: return
+        if (previews == null || link == previewedUrl?.let(::normalizeLink)) return
+        typedPreview = viewModelScope.launch {
+            delay(TYPED_LINK_PAUSE_MILLIS)
+            readPreview(link)
+        }
     }
 
     /**
@@ -408,6 +427,7 @@ class GiftItemEditViewModel(
      */
     fun pasteLink(url: String) {
         update { it.copy(url = url, whereToFind = it.whereToFind.ifBlank { onlineWhere(url).orEmpty() }) }
+        typedPreview?.cancel()
         val state = _uiState.value as? GiftItemEditUiState.Editing ?: return
         if (previews == null || normalizeLink(url) == null) return
         _uiState.value = state.copy(previewLoading = true)
@@ -502,6 +522,9 @@ class GiftItemEditViewModel(
         false
     }
 }
+
+/** The pause after the last letter of a typed link before its page is read. */
+private const val TYPED_LINK_PAUSE_MILLIS = 800L
 
 private const val DRAFT_TITLE = "draft.title"
 private const val DRAFT_URL = "draft.url"
