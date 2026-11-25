@@ -104,11 +104,14 @@ class WikidataPhotosTest {
     fun `an image much taller or much wider than a cover is skipped`() {
         assertTrue(hasCoverShape(null, null))
         assertTrue(hasCoverShape(960, 640))
-        assertFalse(hasCoverShape(600, 900))
+        // A photo in portrait stays; three photos stacked do not.
+        assertTrue(hasCoverShape(600, 900))
+        assertTrue(hasCoverShape(720, 1280))
+        assertFalse(hasCoverShape(400, 1000))
         assertFalse(hasCoverShape(4000, 1000))
         val tall = """{"query":{"pages":[{"imageinfo":[{
             "thumburl":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Ajaccio.jpg/960px-Ajaccio.jpg",
-            "thumbwidth":960,"thumbheight":1600}]}]}}"""
+            "thumbwidth":960,"thumbheight":2400}]}]}}"""
         assertNull(parseCommonsPhoto(tall))
     }
 }

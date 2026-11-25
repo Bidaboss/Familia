@@ -120,8 +120,12 @@ fun hasCoverShape(width: Int?, height: Int?): Boolean {
     return ratio in MIN_COVER_RATIO..MAX_COVER_RATIO
 }
 
-/** Taller than 4 × 5 is a stack of photos more often than a photo; wider than 3 × 1 a panorama strip. */
-const val MIN_COVER_RATIO = 0.8
+/**
+ * Taller than 1 × 2 is a stack of photos more often than a photo; wider than 3 × 1 a panorama strip.
+ * A photo in portrait (3 × 4, 2 × 3, 9 × 16: a lighthouse, a church, a street) passes: at 0,8 nearly
+ * no photo was left (retour du 25/11, « les photos ne chargent plus »).
+ */
+const val MIN_COVER_RATIO = 0.5
 const val MAX_COVER_RATIO = 3.0
 
 /** A Commons file at [PHOTO_WIDTH] pixels with its author and licence, in one call. */
