@@ -6,7 +6,7 @@ import fr.familia.app.core.model.Member
 import java.text.Normalizer
 
 /**
- * « @Prénom » in a text (Kévin, 19/11): typing « @ » suggests the members, a chosen one is written
+ * « @Prénom » in a text (l'admin, 19/11): typing « @ » suggests the members, a chosen one is written
  * « @Prénom », kept in mentionIds, and a backspace takes the whole name away. The text itself stays
  * plain: the names are found again from the members named.
  */

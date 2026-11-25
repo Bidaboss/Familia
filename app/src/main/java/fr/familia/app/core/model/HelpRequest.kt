@@ -57,16 +57,16 @@ data class HelpRequest(
     val thankedAt: Instant? = null,
     val createdAt: Instant? = null,
     /**
-     * A photo joined to the request (Kévin 16/11: the QR code of a parcel, a picture of what to
+     * A photo joined to the request (l'admin 16/11: the QR code of a parcel, a picture of what to
      * fetch): the base of its two files in Storage ([fr.familia.app.core.photo.SinglePhoto]),
      * read only by those who see the request.
      */
     val photo: String? = null,
     /** Changed on this phone without network (« Je m'en occupe »…): it goes by itself, once, when the network is back. */
     val pending: Boolean = false,
-    /** The members named « @Prénom » in [note] (Kévin, 19/11), all among [notifyIds]. */
+    /** The members named « @Prénom » in [note] (l'admin, 19/11), all among [notifyIds]. */
     val mentionIds: List<String> = emptyList(),
-    /** What [place] is (récit 74, Kévin 20/11): free text, an address, or a household of the family. */
+    /** What [place] is (récit 74, l'admin 20/11): free text, an address, or a household of the family. */
     val placeKind: PlaceKind = PlaceKind.Other,
     /** The household of « Chez un foyer »; [place] then holds its name. */
     val placeHouseholdId: String? = null,

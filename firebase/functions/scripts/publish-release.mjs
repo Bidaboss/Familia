@@ -48,7 +48,7 @@ if (versionCode <= published) {
   fail(`La version ${published} est déjà annoncée et rien de nouveau n'a été fusionné depuis : il n'y a rien à publier.`);
 }
 
-// What was merged since the last version (Kévin le 20/11): the commits after config/app.latestCommit,
+// What was merged since the last version (l'admin le 20/11): the commits after config/app.latestCommit,
 // or those of the last day the first time. Never blocks the publication.
 function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' });

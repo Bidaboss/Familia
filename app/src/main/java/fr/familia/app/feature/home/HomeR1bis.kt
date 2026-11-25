@@ -101,7 +101,7 @@ class HomeR1bisActions(
  * The Accueil of the R1 bis presentation (spec DESIGN du 17/11, §2), from top to bottom: the frise of
  * the 7 days, the chosen day, « À faire » with its buttons on the cards, the good news and the
  * challenge of the month side by side, « En ce moment » during a trip. « Tout Familia » stays fixed at
- * the bottom, just above the tabs, always in sight (Kévin, 17/11); « Où je suis » is in « + ». At
+ * the bottom, just above the tabs, always in sight (l'admin, 17/11); « Où je suis » is in « + ». At
  * most 4 blocks between the frise and that bar. The greeting, « + », « ? » and the avatar are in the
  * bar above.
  */
@@ -125,7 +125,7 @@ fun HomeR1bisScreen(
     firstSteps: (@Composable () -> Unit)? = null,
     /**
      * « Rejoignez-moi » (récit 33): the places I was sent in the last 24 h and the one I share, at the
-     * very top, above the frise, only while there is one (Kévin, 20/11).
+     * very top, above the frise, only while there is one (l'admin, 20/11).
      */
     joinMe: (@Composable () -> Unit)? = null,
     /** « Aujourd'hui » | « Le fil » (récit 67), at the top while the fil is on. */

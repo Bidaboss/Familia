@@ -22,7 +22,7 @@ import java.util.Locale
 /** Someone the poster may start from, as the list shows them. */
 data class PosterChoice(val id: String, val firstName: String)
 
-/** The people who may start the poster, under the name of their household (règle de Kévin, 17/11). */
+/** The people who may start the poster, under the name of their household (règle de l'admin, 17/11). */
 data class PosterChoiceGroup(val name: String, val choices: List<PosterChoice>)
 
 sealed interface TreePosterUiState {

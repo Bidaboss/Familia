@@ -1,15 +1,7 @@
 package fr.familia.app.feature.members.profile
 
-import androidx.compose.material.icons.outlined.TaskAlt
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
-import fr.familia.app.core.theme.LocalClayColors
-import fr.familia.app.core.ui.form.FormTile
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,26 +18,23 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cake
-import androidx.compose.material.icons.outlined.CardGiftcard
-import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Directions
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,10 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,8 +50,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -75,308 +60,336 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberCard
+import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.Souvenir
 import fr.familia.app.core.photo.StorageImage
-import fr.familia.app.core.ui.ClayCard
-import fr.familia.app.core.ui.ClayCardTitle
-import fr.familia.app.core.ui.ClayLink
-import fr.familia.app.core.ui.ClaySpacing
-import fr.familia.app.core.ui.KinAvatar
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.dayShortLabel
+import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.ui.frenchDate
-import fr.familia.app.core.ui.memberColor
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.members.photo.MemberPhotoEditor
 import fr.familia.app.feature.members.photo.MemberPhotoViewer
-import kotlinx.coroutines.launch
+import fr.familia.app.feature.souvenirs.SouvenirKind
 
-/** What the new page needs besides the old one: its data, and where its rows lead. */
+/** What the page needs besides the member: its data, and where its rows lead. */
 data class ProfileV2Ui(
     val state: ProfileV2State?,
-    val onOpenMember: (memberId: String) -> Unit = {},
     val onOpenEvent: (eventId: String) -> Unit = {},
     val onSavePhone: (String) -> Unit = {},
     val onSaveAddress: (String) -> Unit = {},
     /** « Changer ma photo » on the avatar of my page (P3); null hides the button. */
     val onSavePhoto: ((ByteArray) -> Unit)? = null,
     val onRemovePhoto: () -> Unit = {},
+    /** Saves the card (« À savoir », tastes, « En ce moment »); false when a field is too long. */
+    val onSaveCard: (MemberCard) -> Boolean = { false },
+    /** « Ses envies (4) », while Cadeaux is on. */
+    val onOpenWishes: (() -> Unit)? = null,
+    /** « Préparer une surprise » (never on my page nor in « Voir comme »). */
+    val onPrepareSurprise: (() -> Unit)? = null,
+    /** « Voir ses recettes », while the recipes are on. */
+    val onOpenRecipes: (() -> Unit)? = null,
+    /** « Ajouter une recette », on my own page only (DESIGN-172). */
+    val onAddRecipe: (() -> Unit)? = null,
+    /** « Renommer le foyer », for who may (see [ProfileV2State.canRenameHousehold]). */
+    val onRenameHousehold: (String) -> Unit = {},
+    /** Each letter typed in « Mes notes »; the model saves after a pause. */
+    val onEditNote: (String) -> Unit = {},
+    /** « En faire une idée »: a new idea of the carnet, about this member, with the note in it. Null while Cadeaux is off. */
+    val onMakeIdea: ((String) -> Unit)? = null,
+    /** « Modifier » open on my own page (règle 3), null while the page is only read. */
+    val edit: FicheEdit? = null,
+    /** Opens « Modifier » from an invitation of my page (« Remplir mes goûts », « Ajouter mon téléphone »). */
+    val onStartEdit: (() -> Unit)? = null,
+    val onDraft: (FicheDraft) -> Unit = {},
+    val onCancelEdit: () -> Unit = {},
+    val onSaveEdit: () -> Unit = {},
+    /** « + Nouveau foyer » and « Retirer de Familia », the admin principal's (F9, F11). */
+    val onAddHousehold: (String) -> Unit = {},
+    val onRemove: () -> Unit = {},
 )
 
 /**
- * « Une fiche de membre organisée » (PRD rév. 290, récit 66), redrawn after the maquettes P1 à P5
- * (PRODUIT-114 à 116): a band of the member's color, the round photo over it, then one Argile card
- * per section. An empty section is hidden, except on my own page, where it invites to fill it. The
- * gifts keep their own rules: nothing of what is given to someone shows on their page when they look
- * (« Voir comme » included).
+ * The member page (brief Famille-recettes, F6 à F8, prototype v157): lying on the photo of the theme,
+ * the round photo, the first name, the surnom and the birthday, « En ce moment », then one glass card
+ * per section in a fixed order (règle 7): À savoir, Goûts et passions, Cadeaux, Recettes, Moments,
+ * Réussites, Actualités, Coordonnées, Foyer (for who may rename it), Mes notes (on the others' pages). An empty section is hidden on someone else's page. Nothing of
+ * what is given to someone shows on their page (« Voir comme » included).
  */
 @Composable
 internal fun ContentV2(
     state: MemberProfileUiState.Ready,
     v2: ProfileV2Ui,
-    onSetShown: (String, Boolean) -> Unit,
-    onOpenRecipes: (() -> Unit)?,
+    /** The cards of vœux (récit 36), around the birthday. */
     wishes: (@Composable (Member) -> Unit)?,
-    card: (@Composable (Member) -> Unit)?,
-    gifts: (@Composable (Member) -> Unit)?,
+    scrollConnection: NestedScrollConnection? = null,
 ) {
     val member = state.member
     val data = v2.state
-    val scroll = rememberScrollState()
-    val scope = rememberCoroutineScope()
-    var wishesAt by remember { mutableIntStateOf(-1) }
     val today = data?.today ?: java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris"))
-    val mayFill = state.isMe && LocalViewAs.current.viewed == null
-    Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
-        Header(
-            state, data, today, mayFill,
-            onSavePhoto = v2.onSavePhoto?.takeIf { mayFill },
-            onRemovePhoto = v2.onRemovePhoto,
-            onWish = if (wishes != null && !state.isMe && birthdayToday(member.birthDate, today)) ({ scope.launch { scroll.animateScrollTo(wishesAt.coerceAtLeast(0)) }; Unit }) else null,
-        )
-        Column(
-            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            if (mayFill && data != null) FillGauge(member, data, state.souvenirs.any { it.shown })
-            // On the day, and until the next birthday, the cards of vœux (récit 36): « Vœux » leads here.
-            wishes?.let { slot -> Box(Modifier.onGloballyPositioned { wishesAt = it.positionInParent().y.toInt() }) { slot(member) } }
-            val tastes: @Composable () -> Unit = { card?.let { slot -> CompositionLocalProvider(LocalProfileSection provides true) { slot(member) } } }
-            // The only exception to the fixed order (PRODUIT-97).
-            if (giftsFirst(member.birthDate, today)) {
-                GiftsPart(member, state.isMe, today, gifts)
-                tastes()
-            } else {
-                tastes()
-                GiftsPart(member, state.isMe, today, gifts)
+    val viewingAs = LocalViewAs.current.viewed != null
+    val mayFill = state.isMe && !viewingAs
+    val mayEditCard = data?.canEditCard == true && !viewingAs
+    val card = data?.card
+    val edit = v2.edit?.takeIf { !viewingAs }
+    Column(
+        Modifier
+            .fillMaxSize()
+            .then(if (scrollConnection != null) Modifier.nestedScroll(scrollConnection) else Modifier)
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, end = 16.dp, bottom = if (edit != null) 24.dp else 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Header(state, today, onSavePhoto = v2.onSavePhoto?.takeIf { mayFill }, onRemovePhoto = v2.onRemovePhoto)
+        if (edit != null) {
+            // « Modifier » in place (F10): the same tiles, only their fields open.
+            IdentityEdit(member, edit, hasCard = card != null, v2.onDraft)
+            if (card != null) {
+                KnowEdit(edit.draft, state.isMe, v2.onDraft)
+                TastesEdit(edit.draft, kid = member.profile != MemberProfile.Adult, isMe = state.isMe, v2.onDraft)
             }
-            data?.let { FamilyPart(it.kinship, state.isMe, v2.onOpenMember) }
-            data?.let { MomentsPart(it, state.isMe, v2.onOpenEvent) }
-            RecipesAndSouvenirs(state, data, onSetShown, onOpenRecipes)
-            data?.let { CoordinatesPart(member, it, state.isMe, mayFill, v2.onSavePhone, v2.onSaveAddress) }
-            data?.let { if (!state.isMe) ReachThroughParents(member, it.kinship) }
-            if (state.saveFailed) {
-                Text(stringResource(R.string.notifications_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+        } else {
+            card?.let { NowCard(it, editable = mayFill && mayEditCard, onSave = { text -> v2.onSaveCard(it.copy(now = text)) }) }
+            member.phone?.takeIf { hasCoordinates(member) && !state.isMe }?.let { ContactButtons(it) }
+            if (mayFill && data != null) FillGauge(member, data, state.souvenirs.isNotEmpty())
+            wishes?.invoke(member)
+            // Everything changes through the one « Modifier » (règle 3): no pencil on a tile.
+            card?.let { KnowPart(it, state.isMe, onEdit = null) }
+            card?.let { TastesPart(it, state.isMe, onEdit = null, invite = if (mayFill && mayEditCard) v2.onStartEdit else null) }
+        }
+        GiftsPart(member, state.isMe, today, data?.wishCount ?: 0, v2.onOpenWishes, v2.onPrepareSurprise?.takeIf { !state.isMe && !viewingAs })
+        v2.onOpenRecipes?.let { open -> RecipesPart(state.isMe, data?.recipeCount ?: 0, open, v2.onAddRecipe?.takeIf { mayFill }) }
+        data?.let { MomentsPart(it, state.isMe, v2.onOpenEvent) }
+        SuccessesPart(state.souvenirs, state.isMe)
+        data?.let { NewsPart(it) }
+        if (edit != null) {
+            if (hasCoordinates(member)) CoordinatesEdit(member, state.isMe, data?.household?.address, edit, v2.onDraft)
+            if (edit.admin != null) {
+                ProfileEdit(edit, v2.onDraft)
+                HouseholdEdit(edit, v2.onDraft, v2.onAddHousehold)
+                RemovePart(member.firstName, edit, v2.onRemove)
             }
+        } else {
+            data?.let { CoordinatesPart(member, it, state.isMe, mayFill, v2.onStartEdit, v2.onSaveAddress) }
+        }
+        data?.household?.takeIf { data.canRenameHousehold && !viewingAs && edit == null }?.let { HouseholdPart(it, data.householdSize, v2.onRenameHousehold) }
+        data?.note?.takeIf { !state.isMe && !viewingAs }?.let { NotesPart(member.firstName, it, v2.onEditNote, v2.onMakeIdea) }
+        if (data?.adminKeeps == true && edit == null) {
+            // A parent sees why there is no « Modifier » on their child's page, never a refusal (récit 114).
+            Text(stringResource(R.string.profile_admin_keeps), style = onPhotoStyle(MaterialTheme.typography.bodyLarge), modifier = Modifier.padding(horizontal = 8.dp))
+        }
+        if (state.saveFailed || data?.saveFailed == true) {
+            Text(
+                stringResource(R.string.profile_v2_save_failed),
+                style = onPhotoStyle(MaterialTheme.typography.bodyLarge),
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
     }
 }
 
-/** A sentence inside a section that has nothing to show yet: only on my page. */
-@Composable
-private fun EmptyInvite(text: String) {
-    Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-}
-
 /**
- * The top of the page (PRODUIT-114, calmed by DESIGN-60): a flat band of the member's color, the round photo
- * of 96 dp over its edge, the first name, the age and the birthday, a pill « Anniversaire dans N
- * jours », then the buttons Vœux, Appeler, Itinéraire (none on my own page).
+ * The top of the page (F6 à F8): the round photo with its white ring, a camera on my own page, the
+ * first name, « Mamie » in quotes, the age of a child and the birthday, and « Anniversaire dans 12
+ * jours » in the 30 days before.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Header(
     state: MemberProfileUiState.Ready,
-    data: ProfileV2State?,
     today: java.time.LocalDate,
-    mine: Boolean,
     onSavePhoto: ((ByteArray) -> Unit)?,
     onRemovePhoto: () -> Unit,
-    onWish: (() -> Unit)?,
 ) {
     val member = state.member
     val photo = LocalMemberPhotos.current[member.id]
     var fullPhoto by rememberSaveable { mutableStateOf(false) }
     var changePhoto by rememberSaveable { mutableStateOf(false) }
-    val context = LocalContext.current
-    val color = memberColor(member)
-    val soon = birthdaySoon(member.birthDate, today)
-    Box(Modifier.fillMaxWidth()) {
-        // The calm band under the bar (DESIGN-60, option A): one flat color, no bubbles, 22 dp corners.
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(BAND_HEIGHT)
-                .clip(RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp))
-                .background(calmBandColor(color)),
-        )
-        Column(
-            Modifier.fillMaxWidth().padding(top = BAND_HEIGHT - AVATAR_SIZE / 2, start = 16.dp, end = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Box {
-                val photoLabel = stringResource(R.string.profile_v2_photo_open, member.firstName)
-                // A single white ring, like the other tiles.
-                Box(Modifier.border(4.dp, Color.White, CircleShape)) {
-                    MemberAvatar(
-                        member,
-                        size = AVATAR_SIZE,
-                        modifier = if (photo != null) Modifier.clip(CircleShape).clickable(onClickLabel = photoLabel) { fullPhoto = true } else Modifier,
-                    )
-                }
-                if (onSavePhoto != null) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.inverseSurface,
-                        modifier = Modifier.align(Alignment.BottomEnd).size(56.dp).clip(CircleShape)
-                            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.profile_v2_photo_change)) { changePhoto = true },
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                Icons.Outlined.PhotoCamera,
-                                contentDescription = stringResource(R.string.profile_v2_photo_change),
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
-                            )
-                        }
+    Column(
+        Modifier.fillMaxWidth().padding(top = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box {
+            val photoLabel = stringResource(R.string.profile_v2_photo_open, member.firstName)
+            Box(Modifier.border(4.dp, Color.White, CircleShape)) {
+                MemberAvatar(
+                    member,
+                    size = AVATAR_SIZE,
+                    modifier = if (photo != null) Modifier.clip(CircleShape).clickable(onClickLabel = photoLabel) { fullPhoto = true } else Modifier,
+                )
+            }
+            if (onSavePhoto != null) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.inverseSurface,
+                    modifier = Modifier.align(Alignment.BottomEnd).size(56.dp).clip(CircleShape)
+                        .clickable(role = Role.Button, onClickLabel = stringResource(R.string.profile_v2_photo_change)) { changePhoto = true },
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Outlined.PhotoCamera, contentDescription = stringResource(R.string.profile_v2_photo_change), tint = MaterialTheme.colorScheme.inverseOnSurface)
                     }
                 }
             }
-            Text(member.firstName, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { heading() })
-            member.birthDate?.let { birth ->
-                val age = pluralStringResource(R.plurals.birthday_age, ageOn(birth, today), ageOn(birth, today))
-                Text(
-                    stringResource(R.string.profile_v2_age_line, age, birthdayLabel(birth)),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                BirthdayPill(daysUntilBirthday(birth, today), soon)
+        }
+        Text(
+            member.firstName,
+            style = onPhotoStyle(MaterialTheme.typography.headlineLarge),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
+        )
+        member.nickname?.takeIf { it.isNotBlank() }?.let {
+            Text(stringResource(R.string.profile_v2_nickname, it), style = onPhotoStyle(MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)))
+        }
+        member.birthDate?.let { birth ->
+            val line = if (member.profile == MemberProfile.Adult) {
+                stringResource(R.string.profile_v2_birthday_line, birthdayLabel(birth))
+            } else {
+                val age = ageOn(birth, today)
+                stringResource(R.string.profile_v2_age_line, pluralStringResource(R.plurals.birthday_age, age, age), birthdayLabel(birth))
             }
-            val phone = member.phone?.takeIf { hasCoordinates(member) && !state.isMe }
-            val address = data?.household?.address?.takeIf { hasCoordinates(member) && !state.isMe }
-            if (onWish != null || phone != null || address != null) {
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    onWish?.let { ActionButton(Icons.Outlined.Cake, stringResource(R.string.profile_v2_wishes_button), Modifier.weight(1f), dark = soon, onClick = it) }
-                    phone?.let { number -> ActionButton(Icons.Outlined.Phone, stringResource(R.string.profile_v2_call), Modifier.weight(1f)) { dial(context, number) } }
-                    address?.let { place -> ActionButton(Icons.Outlined.Directions, stringResource(R.string.profile_v2_directions), Modifier.weight(1f)) { directions(context, place) } }
-                }
-            }
+            Text(line, style = onPhotoStyle(MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)), textAlign = TextAlign.Center)
+            if (birthdaySoon(birth, today)) BirthdayPill(daysUntilBirthday(birth, today))
         }
     }
-    // The same full screen as the Famille tab, with its zoom (retour d'essai, 20/11: it opened too small here).
+    // The same full screen as the Famille tab, with its zoom (retour d'essai, 20/11).
     if (fullPhoto && photo != null) {
         MemberPhotoViewer(
             member = member,
             photo = photo,
             onDismiss = { fullPhoto = false },
-            onChange = if (onSavePhoto != null) {
-                {
-                    fullPhoto = false
-                    changePhoto = true
-                }
-            } else {
-                null
-            },
+            onChange = if (onSavePhoto != null) ({ fullPhoto = false; changePhoto = true }) else null,
         )
     }
     if (changePhoto && onSavePhoto != null) {
-        MemberPhotoEditor(
-            member = member,
-            hasPhoto = photo != null,
-            onSave = onSavePhoto,
-            onRemove = onRemovePhoto,
-            onDismiss = { changePhoto = false },
-        )
+        MemberPhotoEditor(member = member, hasPhoto = photo != null, onSave = onSavePhoto, onRemove = onRemovePhoto, onDismiss = { changePhoto = false })
     }
 }
 
-/** The bar is above the band now: the band only needs the upper half of the photo. */
-private val BAND_HEIGHT = 64.dp
-private val AVATAR_SIZE = 96.dp
+private val AVATAR_SIZE = 112.dp
 
-/** The color of the member at about 35 % over the page, the same under the bar and in the band. */
+/** « 🎂 Anniversaire dans 12 jours », a yellow pill (F7). */
 @Composable
-internal fun calmBandColor(color: Color): Color = color.copy(alpha = 0.35f).compositeOver(MaterialTheme.colorScheme.background)
-
-/** « Anniversaire dans 114 jours », dark in the 30 days before (P2). */
-@Composable
-private fun BirthdayPill(days: Int, dark: Boolean) {
+private fun BirthdayPill(days: Int) {
     val text = if (days == 0) {
         stringResource(R.string.profile_v2_birthday_pill_today)
     } else {
         stringResource(R.string.profile_v2_birthday_pill, pluralStringResource(R.plurals.gifts_in_days, days, days))
     }
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = if (dark) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surface,
-        contentColor = if (dark) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface,
-        border = if (dark) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Icon(Icons.Outlined.Cake, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text(text, style = MaterialTheme.typography.labelLarge)
-        }
+    Surface(shape = RoundedCornerShape(16.dp), color = PillYellow, contentColor = Color(0xFF3A2A1A)) {
+        Text("🎂 $text", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
     }
 }
+
+private val PillYellow = Color(0xFFFFE7A3)
 
 /**
- * Vœux, Appeler, Itinéraire (DESIGN-60): a button of 56 dp or more with a 1.5 dp edge, the icon then
- * the text; from 130 % of text the icon goes above the text. Dark in the 30 days before a birthday.
+ * « En ce moment » (récit 114): one free line under the name. On my own page, « Changer » stays on
+ * the page, outside « Modifier » (règle 6): it changes more often. Hidden on someone else's page
+ * when they wrote nothing.
  */
 @Composable
-private fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, dark: Boolean = false, onClick: () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    val content = if (dark) colors.inverseOnSurface else colors.onSurface
-    val stacked = LocalDensity.current.fontScale >= 1.3f
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        color = if (dark) colors.inverseSurface else LocalClayColors.current.card,
-        contentColor = content,
-        border = BorderStroke(1.5.dp, if (dark) colors.inverseSurface else colors.outlineVariant),
-        modifier = modifier.heightIn(min = 56.dp),
-    ) {
-        val inner: @Composable () -> Unit = {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, maxLines = 1, textAlign = TextAlign.Center)
+private fun NowCard(card: MemberCard, editable: Boolean, onSave: (String) -> Boolean) {
+    if (card.now.isBlank() && !editable) return
+    var changing by rememberSaveable { mutableStateOf(false) }
+    FicheCard {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(stringResource(R.string.profile_v2_now).uppercase(), style = MaterialTheme.typography.labelLarge, color = ficheInkSoft())
+            if (card.now.isNotBlank()) Text(card.now, style = MaterialTheme.typography.titleMedium)
+            if (editable) {
+                TextButton(onClick = { changing = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(
+                        stringResource(if (card.now.isBlank()) R.string.profile_v2_now_write else R.string.profile_v2_now_change),
+                        color = ficheInk(),
+                        textDecoration = TextDecoration.Underline,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+            }
         }
-        if (stacked) {
-            Column(Modifier.padding(horizontal = 6.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) { inner() }
-        } else {
-            Row(Modifier.padding(horizontal = 6.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)) { inner() }
-        }
+    }
+    if (changing) {
+        TextDialog(
+            title = stringResource(R.string.profile_v2_now),
+            initial = card.now,
+            max = MemberCard.NOW_MAX,
+            hint = stringResource(R.string.profile_v2_now_hint),
+            onSave = { if (onSave(it)) changing = false },
+            onDismiss = { changing = false },
+        )
     }
 }
 
+/** Appeler and Message (F7), side by side, for an adult who gave a phone, never on my own page. */
+@Composable
+private fun ContactButtons(phone: String) {
+    val context = LocalContext.current
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        GlassButton(Icons.Outlined.Phone, stringResource(R.string.profile_v2_call), Modifier.weight(1f)) { dial(context, phone) }
+        GlassButton(Icons.Outlined.ChatBubbleOutline, stringResource(R.string.profile_v2_message), Modifier.weight(1f)) { message(context, phone) }
+    }
+}
+
+@Composable
+private fun GlassButton(icon: ImageVector, label: String, modifier: Modifier, onClick: () -> Unit) {
+    CompositionLocalProvider(LocalContentColor provides ficheInk()) {
+        Row(
+            modifier
+                .heightIn(min = 56.dp)
+                .ficheCard(28.dp)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        ) {
+            Icon(icon, contentDescription = null)
+            Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+    }
+}
 
 private fun dial(context: android.content.Context, number: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + number.filter { c -> c.isDigit() || c == '+' }))) }
+}
+
+private fun message(context: android.content.Context, number: String) {
+    runCatching { context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + number.filter { c -> c.isDigit() || c == '+' }))) }
 }
 
 private fun directions(context: android.content.Context, place: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(place)))) }
 }
 
-/**
- * « Ta fiche est remplie à 70 % » (PRODUIT-116), with what is missing. Gone once everything is there.
- * See [fillParts] for what counts.
- */
+/** « Ta fiche est remplie à 80 % » (PRODUIT-116), with what is missing. Gone once everything is there. */
 @Composable
-private fun FillGauge(member: Member, data: ProfileV2State, souvenirShown: Boolean) {
-    val parts = fillParts(member, LocalMemberPhotos.current[member.id] != null, data, souvenirShown)
+private fun FillGauge(member: Member, data: ProfileV2State, hasSouvenir: Boolean) {
+    val parts = fillParts(member, LocalMemberPhotos.current[member.id] != null, data, hasSouvenir)
     val percent = fillPercent(parts)
     if (percent == 100) return
     val missing = parts.filter { !it.second }.map { fillPartLabel(it.first) }
-    FormTile(icon = Icons.Outlined.TaskAlt, title = stringResource(R.string.profile_v2_fill_title, percent)) {
-        LinearProgressIndicator(
-            progress = { percent / 100f },
-            drawStopIndicator = {},
-            gapSize = 0.dp,
-            modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
-        )
-        Text(
-            stringResource(R.string.profile_v2_fill_missing, joinNames(missing)),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    FicheCard {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(R.string.profile_v2_fill_title, percent), style = MaterialTheme.typography.titleMedium)
+            LinearProgressIndicator(
+                progress = { percent / 100f },
+                color = ficheInk(),
+                trackColor = ficheInk().copy(alpha = 0.15f),
+                drawStopIndicator = {},
+                gapSize = 0.dp,
+                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
+            )
+            Text(stringResource(R.string.profile_v2_fill_missing, joinNames(missing)), style = MaterialTheme.typography.bodyMedium, color = ficheInkSoft())
+        }
     }
 }
 
@@ -393,314 +406,307 @@ private fun fillPartLabel(part: FillPart): String = stringResource(
 )
 
 /**
- * « Cadeaux »: their wishes, what I give them, and my notebook on my own page. In the 30 days before
- * someone else's birthday: « Bientôt » and a dark band (P2).
+ * « À savoir » (DESIGN-165): allergies, diet and what not to offer, seen by the whole family, under
+ * the name. A blank field says « Non précisé », never « Aucune »: nobody should read « no allergy »
+ * where nothing was written. Hidden on someone else's page while all three are blank.
  */
 @Composable
-private fun GiftsPart(member: Member, isMe: Boolean, today: java.time.LocalDate, gifts: (@Composable (Member) -> Unit)?) {
-    val slot = gifts ?: return
-    val days = member.birthDate?.takeIf { !isMe && birthdaySoon(it, today) }?.let { daysUntilBirthday(it, today) }
-    ProfileSectionCard(
-        title = stringResource(R.string.profile_v2_gifts),
-        icon = Icons.Outlined.CardGiftcard,
-        accent = SectionAccent.Peach,
-        badge = days?.let { stringResource(R.string.profile_v2_soon) },
-    ) {
-        days?.let { d ->
-            Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.inverseSurface, modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(Icons.Outlined.Cake, contentDescription = null, tint = MaterialTheme.colorScheme.inverseOnSurface, modifier = Modifier.size(18.dp))
-                    Text(
-                        if (d == 0) {
-                            stringResource(R.string.profile_v2_birthday_band_today)
-                        } else {
-                            stringResource(R.string.profile_v2_birthday_band, pluralStringResource(R.plurals.gifts_in_days, d, d))
-                        },
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.inverseOnSurface,
-                    )
-                }
-            }
-        }
-        CompositionLocalProvider(LocalProfileSection provides true) { slot(member) }
+private fun KnowPart(card: MemberCard, isMe: Boolean, onEdit: (() -> Unit)?) {
+    val blank = card.allergies.isBlank() && card.diet.isBlank() && card.avoid.isBlank()
+    if (blank && !isMe) return
+    val unknown = stringResource(R.string.profile_v2_unknown)
+    FicheSection(stringResource(R.string.profile_v2_know), onEdit = onEdit, editLabel = stringResource(R.string.profile_v2_know_edit)) {
+        FicheRows(
+            listOf<@Composable () -> Unit>(
+                { FicheRow("⚠️", stringResource(R.string.profile_v2_allergies), card.allergies.ifBlank { unknown }) },
+                { FicheRow("🥗", stringResource(R.string.profile_v2_diet), card.diet.ifBlank { unknown }) },
+                { FicheRow("🚫", stringResource(if (isMe) R.string.profile_v2_avoid_mine else R.string.profile_v2_avoid), card.avoid.ifBlank { unknown }) },
+            ),
+        )
+        if (isMe) FicheSmall(stringResource(R.string.profile_v2_know_seen))
     }
 }
 
-/** « Sa famille »: parents, partners, children from the tree, side by side; a member opens their page. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * « Goûts et passions » (DESIGN-166): the shoe size, the sizes of top and bottom, the ring size, the
+ * tastes and the passions, each on its row when written. Empty, it shows on my page only, as an
+ * invitation.
+ */
 @Composable
-private fun FamilyPart(kin: Kinship, isMe: Boolean, onOpenMember: (String) -> Unit) {
-    if (kin.isEmpty && !isMe) return
-    ProfileSectionCard(
-        title = stringResource(if (isMe) R.string.profile_v2_family_mine else R.string.profile_v2_family),
-        icon = Icons.Outlined.Groups,
-        accent = SectionAccent.Lilac,
-    ) {
-        if (kin.isEmpty) EmptyInvite(stringResource(R.string.profile_v2_family_empty))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            kin.partners.forEach { KinChip(it, stringResource(R.string.profile_v2_role_partner), onOpenMember) }
-            kin.children.forEach { KinChip(it, stringResource(R.string.profile_v2_role_child), onOpenMember) }
-            kin.parents.forEach { KinChip(it, stringResource(R.string.profile_v2_role_parent), onOpenMember) }
-        }
-        if (kin.parents.isNotEmpty()) {
-            Text(stringResource(R.string.profile_v2_child_of, joinNames(kin.parents.map { it.name })), style = MaterialTheme.typography.titleSmall)
-        }
+private fun TastesPart(card: MemberCard, isMe: Boolean, onEdit: (() -> Unit)?, invite: (() -> Unit)? = null) {
+    val rows = buildList<@Composable () -> Unit> {
+        if (card.shoes.isNotBlank()) add { FicheRow("👟", stringResource(R.string.member_card_shoes), card.shoes) }
+        if (card.top.isNotBlank()) add { FicheRow("👕", stringResource(R.string.profile_v2_size_top), card.top) }
+        if (card.bottom.isNotBlank()) add { FicheRow("👖", stringResource(R.string.profile_v2_size_bottom), card.bottom) }
+        if (card.ring.isNotBlank()) add { FicheRow("💍", stringResource(R.string.profile_v2_size_ring), card.ring) }
+        if (card.tastes.isNotBlank()) add { FicheRow("❤️", stringResource(R.string.member_card_tastes), card.tastes) }
+        if (card.hobbies.isNotBlank()) add { FicheRow("✨", stringResource(R.string.profile_v2_passions), card.hobbies) }
     }
-}
-
-/** A relative: their avatar, first name and role; a member of the app opens their page. */
-@Composable
-private fun KinChip(person: KinPerson, role: String, onOpenMember: (String) -> Unit) {
-    val member = person.member
-    val label = member?.let { stringResource(R.string.profile_v2_open_page, person.name) }
-    Column(
-        Modifier
-            .widthIn(min = 72.dp, max = 112.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .then(if (member != null) Modifier.clickable(onClickLabel = label) { onOpenMember(member.id) } else Modifier)
-            .padding(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val fill = invite ?: onEdit
+    if (rows.isEmpty() && !(isMe && fill != null)) return
+    FicheSection(
+        stringResource(if (isMe) R.string.member_card_section_mine else R.string.member_card_section),
+        onEdit = onEdit,
+        editLabel = stringResource(R.string.profile_v2_tastes_edit),
     ) {
-        val kinPhoto = LocalMemberPhotos.current[person.id].takeIf { member == null }
-        if (member != null) {
-            MemberAvatar(member, size = 56.dp)
-        } else if (kinPhoto != null) {
-            // A relative of the tree with a photo (récit 79).
-            KinAvatar(kinPhoto, person.name, size = 56.dp)
+        if (rows.isEmpty()) {
+            FicheRow("❤️", stringResource(R.string.member_card_fill_mine), stringResource(R.string.member_card_invite), onClick = fill)
         } else {
-            Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape), contentAlignment = Alignment.Center) {
-                Text(person.name.take(1).uppercase(), style = MaterialTheme.typography.titleMedium)
-            }
+            FicheRows(rows)
         }
-        Text(person.name, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
-        Text(role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
     }
 }
 
-/** « Ses moments »: the next events they come to, and their last photos of Bonnes nouvelles. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * « Cadeaux » (F7, F9): their wishes, then « Préparer une surprise » (never on my page). In the 30
+ * days before someone else's birthday, a dark row « Son anniversaire est dans 9 jours ». Only the
+ * number of wishes: never « Réservé » nor « Pris », above all on my own page.
+ */
+@Composable
+private fun GiftsPart(
+    member: Member,
+    isMe: Boolean,
+    today: java.time.LocalDate,
+    wishCount: Int,
+    onOpenWishes: (() -> Unit)?,
+    onPrepareSurprise: (() -> Unit)?,
+) {
+    val open = onOpenWishes ?: return
+    val days = member.birthDate?.takeIf { !isMe && birthdaySoon(it, today) }?.let { daysUntilBirthday(it, today) }
+    FicheSection(stringResource(R.string.profile_v2_gifts)) {
+        days?.let { d ->
+            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.inverseSurface, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+                Text(
+                    "🎂 " + if (d == 0) {
+                        stringResource(R.string.profile_v2_birthday_band_today)
+                    } else {
+                        stringResource(R.string.profile_v2_birthday_band, pluralStringResource(R.plurals.gifts_in_days, d, d))
+                    },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                )
+            }
+        }
+        val rows = buildList<@Composable () -> Unit> {
+            add {
+                FicheRow(
+                    "🎁",
+                    stringResource(if (isMe) R.string.profile_v2_my_wishes_count else R.string.profile_v2_wishes_count, wishCount),
+                    stringResource(
+                        when {
+                            wishCount > 0 -> R.string.profile_v2_wishes_open
+                            isMe -> R.string.profile_v2_wishes_first
+                            else -> R.string.profile_v2_wishes_none
+                        },
+                    ),
+                    onClick = open,
+                )
+            }
+            onPrepareSurprise?.let { prepare ->
+                add { FicheRow("🎉", stringResource(R.string.profile_v2_surprise), stringResource(R.string.profile_v2_surprise_hidden, member.firstName), onClick = prepare) }
+            }
+        }
+        FicheRows(rows)
+    }
+}
+
+/** « Recettes » (règle 19): the recipes this member wrote, and « Ajouter une recette » on my own page. */
+@Composable
+private fun RecipesPart(isMe: Boolean, count: Int, onOpen: () -> Unit, onAdd: (() -> Unit)?) {
+    FicheSection(stringResource(if (isMe) R.string.profile_v2_recipes_mine else R.string.profile_v2_recipes)) {
+        val rows = buildList<@Composable () -> Unit> {
+            add {
+                FicheRow(
+                    "🍲",
+                    stringResource(if (isMe) R.string.profile_recipes_mine else R.string.profile_recipes),
+                    if (count == 0) stringResource(R.string.profile_v2_recipes_none) else pluralStringResource(R.plurals.profile_v2_recipes_count, count, count),
+                    onClick = onOpen,
+                )
+            }
+            onAdd?.let { add { FicheRow("➕", stringResource(R.string.profile_v2_recipes_add), stringResource(R.string.profile_v2_recipes_add_hint), onClick = it) } }
+        }
+        FicheRows(rows)
+    }
+}
+
+/** « Ses moments »: the next events they come to (« Je viens »), three at most. */
 @Composable
 private fun MomentsPart(data: ProfileV2State, isMe: Boolean, onOpenEvent: (String) -> Unit) {
-    val empty = data.moments.isEmpty() && data.photos.isEmpty()
-    if (empty && !isMe) return
-    ProfileSectionCard(
-        title = stringResource(if (isMe) R.string.profile_v2_moments_mine else R.string.profile_v2_moments),
-        icon = Icons.Outlined.PhotoCamera,
-        accent = SectionAccent.Green,
-    ) {
-        if (empty) EmptyInvite(stringResource(R.string.profile_v2_moments_empty))
-        data.moments.forEach { event ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(onClickLabel = stringResource(R.string.profile_v2_open_event)) { onOpenEvent(event.id) },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                DateBox(event.date)
-                Column(Modifier.weight(1f)) {
-                    Text(event.title, style = MaterialTheme.typography.titleSmall)
-                    Text(dayShortLabel(event.date, data.today), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-        if (data.photos.isNotEmpty()) {
-            ProfileSectionLabel(stringResource(R.string.profile_v2_good_news))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                data.photos.forEach { news ->
-                    StorageImage(
-                        news.thumbnailPath(news.photoIds.first()),
-                        stringResource(R.string.profile_v2_photo_news),
-                        Modifier.width(88.dp).aspectRatio(1f).clip(RoundedCornerShape(12.dp)),
-                    )
-                }
-            }
+    if (data.moments.isEmpty() && !isMe) return
+    FicheSection(stringResource(if (isMe) R.string.profile_v2_moments_mine else R.string.profile_v2_moments)) {
+        if (data.moments.isEmpty()) {
+            FicheSmall(stringResource(R.string.profile_v2_moments_empty))
+        } else {
+            FicheRows(
+                data.moments.map<Event, @Composable () -> Unit> { event ->
+                    {
+                        val time = event.time?.let { " · " + formatTime(it) }.orEmpty()
+                        FicheRow(
+                            "📅",
+                            event.title,
+                            dayShortLabel(event.date, data.today) + time,
+                            onClick = { onOpenEvent(event.id) },
+                            onClickLabel = stringResource(R.string.profile_v2_open_event),
+                        )
+                    }
+                },
+            )
         }
     }
 }
 
-/** « SAM 28 NOV. » in a small box, as on the planning. */
+/**
+ * « Réussites » (ex-souvenirs, règle 8): public for the whole family, with no switch any more. The
+ * date it was earned shows too, the first « bien arrivé » included (lot A3).
+ */
 @Composable
-private fun DateBox(date: java.time.LocalDate) {
-    Column(
-        Modifier.widthIn(min = 48.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp)).padding(horizontal = 6.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(frenchDate(date, "EEE").uppercase(), style = MaterialTheme.typography.labelSmall)
-        Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.titleMedium)
-        Text(frenchDate(date, "MMM").uppercase(), style = MaterialTheme.typography.labelSmall)
-    }
-}
-
-/** « Recettes et souvenirs »: « Voir ses recettes » and the souvenirs they show; an invitation on my empty page. */
-@Composable
-private fun RecipesAndSouvenirs(state: MemberProfileUiState.Ready, data: ProfileV2State?, onSetShown: (String, Boolean) -> Unit, onOpenRecipes: (() -> Unit)?) {
-    val shown = state.souvenirs.any { it.shown }
-    if (!state.isMe && onOpenRecipes == null && !shown) return
-    val title = stringResource(if (state.isMe) R.string.profile_v2_recipes_souvenirs_mine else R.string.profile_v2_recipes_souvenirs)
-    if (state.isMe && onOpenRecipes != null && state.souvenirs.isEmpty() && data?.hasRecipe != true) {
-        ProfileInviteCard(
-            title = title,
-            icon = Icons.Outlined.Description,
-            accent = SectionAccent.Green,
-            text = stringResource(R.string.profile_v2_recipes_invite),
-            action = stringResource(R.string.profile_v2_recipes_add),
-            onAction = onOpenRecipes,
+private fun SuccessesPart(souvenirs: List<Souvenir>, isMe: Boolean) {
+    val earned = souvenirs.mapNotNull { s -> SouvenirKind.of(s.key)?.let { it to s } }
+    if (earned.isEmpty()) return
+    FicheSection(stringResource(if (isMe) R.string.profile_v2_successes_mine else R.string.profile_v2_successes)) {
+        FicheRows(
+            earned.map<Pair<SouvenirKind, Souvenir>, @Composable () -> Unit> { (kind, souvenir) ->
+                { FicheRow("🏅", stringResource(kind.title), souvenir.earnedAt?.let { stringResource(R.string.profile_v2_success_on, frenchDate(it, "d MMMM yyyy")) }) }
+            },
         )
-        return
-    }
-    ProfileSectionCard(title = title, icon = Icons.Outlined.Description, accent = SectionAccent.Green) {
-        onOpenRecipes?.let { open ->
-            OutlinedButton(onClick = open, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(if (state.isMe) R.string.profile_recipes_mine else R.string.profile_recipes))
-            }
-        }
-        if (state.isMe || shown) SouvenirsContent(state, onSetShown)
+        if (isMe) FicheSmall(stringResource(R.string.profile_v2_successes_seen))
     }
 }
 
-/** « Coordonnées » (PRODUIT-98): a phone per adult, an address per household, never for a child. */
+/** « Actualités »: the last photos of Bonnes nouvelles about them. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun NewsPart(data: ProfileV2State) {
+    if (data.photos.isEmpty()) return
+    FicheSection(stringResource(R.string.profile_v2_good_news)) {
+        FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            data.photos.forEach { news ->
+                StorageImage(
+                    news.thumbnailPath(news.photoIds.first()),
+                    stringResource(R.string.profile_v2_photo_news),
+                    Modifier.width(96.dp).aspectRatio(1f).clip(RoundedCornerShape(16.dp)),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * « Coordonnées » (PRODUIT-98): a phone per adult, the address of the household; a child has none
+ * (« Pour joindre Noé, passe par ses parents : Inès et Hugo », with « Appeler » for each parent who
+ * gave a phone).
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CoordinatesPart(
     member: Member,
     data: ProfileV2State,
     isMe: Boolean,
     mayFill: Boolean,
-    onSavePhone: (String) -> Unit,
+    /** My phone changes through « Modifier » (règle 3). */
+    onStartEdit: (() -> Unit)?,
     onSaveAddress: (String) -> Unit,
 ) {
-    if (!hasCoordinates(member)) return
+    val context = LocalContext.current
+    if (!hasCoordinates(member)) {
+        val parents = data.kinship.parents
+        if (parents.isEmpty()) return
+        FicheSection(stringResource(R.string.profile_v2_coordinates)) {
+            FicheSmall(stringResource(R.string.profile_v2_reach_parents_named, member.firstName, joinNames(parents.map { it.name })))
+            val phones = parents.mapNotNull { p -> p.member?.takeIf { hasCoordinates(it) }?.phone?.let { p.name to it } }
+            if (phones.isNotEmpty()) {
+                FlowRow(Modifier.padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    phones.forEach { (name, phone) ->
+                        FilledTonalButton(onClick = { dial(context, phone) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                            Text(stringResource(R.string.profile_v2_call_name, name))
+                        }
+                    }
+                }
+            }
+        }
+        return
+    }
     val phone = member.phone
     val address = data.household?.address
     val mayAddress = mayFill && data.managesHousehold
     if (phone == null && address == null && !mayFill) return
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
-    ProfileSectionCard(
-        title = stringResource(if (isMe) R.string.profile_v2_coordinates_mine else R.string.profile_v2_coordinates),
-        icon = Icons.Outlined.Phone,
-        accent = SectionAccent.Lilac,
-        onEdit = if (mayFill) ({ editing = "phone" }) else null,
-        editLabel = stringResource(if (phone == null) R.string.profile_v2_phone_add else R.string.profile_v2_phone_edit),
-    ) {
-        if (mayFill && phone == null && address == null) EmptyInvite(stringResource(R.string.profile_v2_coordinates_help))
-        phone?.let {
-            CoordinateRow(it, stringResource(R.string.profile_v2_phone_of, member.firstName), action = if (isMe) null else stringResource(R.string.profile_v2_call)) {
-                dial(context, it)
+    FicheSection(stringResource(if (isMe) R.string.profile_v2_coordinates_mine else R.string.profile_v2_coordinates)) {
+        val rows = buildList<@Composable () -> Unit> {
+            if (phone != null || mayFill) {
+                add {
+                    FicheRow(
+                        "📞",
+                        stringResource(if (isMe) R.string.profile_v2_phone_title else R.string.profile_v2_phone),
+                        phone ?: stringResource(R.string.profile_v2_phone_add),
+                        onClick = if (mayFill) onStartEdit else null,
+                        onClickLabel = stringResource(if (phone == null) R.string.profile_v2_phone_add else R.string.profile_v2_phone_edit),
+                        trailing = if (phone != null && !isMe) ({ RoundAction(Icons.Outlined.Phone, stringResource(R.string.profile_v2_call)) { dial(context, phone) } }) else null,
+                    )
+                }
+            }
+            if (address != null || mayAddress) {
+                add {
+                    FicheRow(
+                        "🏠",
+                        stringResource(R.string.profile_v2_address_of),
+                        address ?: stringResource(R.string.profile_v2_address_add),
+                        onClick = if (mayAddress) ({ editing = "address" }) else null,
+                        onClickLabel = stringResource(if (address == null) R.string.profile_v2_address_add else R.string.profile_v2_address_edit),
+                        trailing = if (address != null && !isMe) ({ RoundAction(Icons.Outlined.Directions, stringResource(R.string.profile_v2_directions)) { directions(context, address) } }) else null,
+                    )
+                }
             }
         }
-        if (mayFill && phone == null) {
-            ClayLink(stringResource(R.string.profile_v2_phone_add), onClick = { editing = "phone" })
-        }
-        address?.let {
-            CoordinateRow(it, stringResource(R.string.profile_v2_address_of), action = if (isMe) null else stringResource(R.string.profile_v2_directions)) {
-                directions(context, it)
-            }
-        }
-        if (mayAddress) {
-            ClayLink(stringResource(if (address == null) R.string.profile_v2_address_add else R.string.profile_v2_address_edit), onClick = { editing = "address" })
-        }
-        if (data.saveFailed) {
-            Text(
-                stringResource(R.string.profile_v2_save_failed),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        }
+        FicheRows(rows)
+        if (isMe) FicheSmall(stringResource(R.string.profile_v2_coordinates_help))
     }
     when (editing) {
-        "phone" -> CoordinateDialog(
-            title = stringResource(R.string.profile_v2_phone_title),
-            initial = phone.orEmpty(),
-            keyboard = KeyboardType.Phone,
-            valid = { it.isBlank() || isPhone(it.trim()) },
-            onSave = { onSavePhone(it); editing = null },
-            onDismiss = { editing = null },
-        )
-        "address" -> CoordinateDialog(
+        "address" -> TextDialog(
             title = stringResource(R.string.profile_v2_address_title),
             initial = address.orEmpty(),
-            keyboard = KeyboardType.Text,
-            valid = { it.length <= 200 },
+            max = 200,
+            hint = stringResource(R.string.profile_v2_coordinates_empty_removes),
             onSave = { onSaveAddress(it); editing = null },
             onDismiss = { editing = null },
         )
     }
 }
 
-/** « 06 12 34 56 78 / Téléphone de Hugo » with « Appeler » on its right; it wraps rather than cuts at 130 %. */
+/** A round button of 56 dp at the end of a row: « Appeler », « Itinéraire ». */
 @Composable
-private fun CoordinateRow(value: String, caption: String, action: String?, onAction: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Column(Modifier.weight(1f)) {
-            Text(value, style = MaterialTheme.typography.titleSmall)
-            Text(caption, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        action?.let {
-            FilledTonalButton(onClick = onAction, modifier = Modifier.heightIn(min = 56.dp)) { Text(it) }
-        }
+private fun RoundAction(icon: ImageVector, label: String, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(56.dp)) {
+        Icon(icon, contentDescription = label)
     }
 }
 
-/**
- * A child has no coordinates (PRODUIT-98, P4): « Pour joindre Noé, passe par ses parents », with
- * « Appeler » for each parent who gave a phone. Nothing when none did.
- */
-@OptIn(ExperimentalLayoutApi::class)
+/** A short text in a dialog: « En ce moment », the phone, the address. */
 @Composable
-private fun ReachThroughParents(member: Member, kin: Kinship) {
-    if (hasCoordinates(member)) return
-    val parents = kin.parents.mapNotNull { p -> p.member?.takeIf { hasCoordinates(it) }?.phone?.let { phone -> p.name to phone } }
-    if (parents.isEmpty()) return
-    val context = LocalContext.current
-    ClayCard(Modifier.fillMaxWidth(), contentPadding = ClaySpacing.card) {
-        Text(stringResource(R.string.profile_v2_reach_parents, member.firstName), style = MaterialTheme.typography.bodyLarge)
-        FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            parents.forEach { (name, phone) ->
-                FilledTonalButton(onClick = { dial(context, phone) }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.profile_v2_call_name, name))
-                }
-            }
-        }
-    }
-}
-
-/** « Enfant de A et B », « Conjoint ou conjointe de C », « Parent de D, E et F ». */
-@Composable
-internal fun relationLines(kin: Kinship): List<String> = buildList {
-    if (kin.parents.isNotEmpty()) add(stringResource(R.string.profile_v2_child_of, joinNames(kin.parents.map { it.name })))
-    if (kin.partners.isNotEmpty()) add(stringResource(R.string.profile_v2_partner_of, joinNames(kin.partners.map { it.name })))
-    if (kin.children.isNotEmpty()) add(stringResource(R.string.profile_v2_parent_of, joinNames(kin.children.map { it.name })))
-}
-
-/** « A », « A et B », « A, B et C ». */
-@Composable
-internal fun joinNames(names: List<String>): String = when (names.size) {
-    0 -> ""
-    1 -> names[0]
-    else -> stringResource(R.string.profile_v2_and, names.dropLast(1).joinToString(", "), names.last())
-}
-
-@Composable
-private fun CoordinateDialog(title: String, initial: String, keyboard: KeyboardType, valid: (String) -> Boolean, onSave: (String) -> Unit, onDismiss: () -> Unit) {
+internal fun TextDialog(
+    title: String,
+    initial: String,
+    max: Int,
+    hint: String,
+    keyboard: KeyboardType = KeyboardType.Text,
+    valid: (String) -> Boolean = { true },
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
     var text by rememberSaveable { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it.take(200) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = keyboard),
-                    isError = !valid(text),
-                    supportingText = { Text(stringResource(R.string.profile_v2_coordinates_empty_removes)) },
-                )
-            }
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it.take(max) },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = keyboard, capitalization = KeyboardCapitalization.Sentences),
+                isError = !valid(text),
+                supportingText = { Text(hint) },
+            )
         },
         confirmButton = {
             TextButton(onClick = { onSave(text) }, enabled = valid(text), modifier = Modifier.heightIn(min = 56.dp)) {
@@ -712,3 +718,14 @@ private fun CoordinateDialog(title: String, initial: String, keyboard: KeyboardT
         },
     )
 }
+
+/** « A », « A et B », « A, B et C ». */
+@Composable
+internal fun joinNames(names: List<String>): String = when (names.size) {
+    0 -> ""
+    1 -> names[0]
+    else -> stringResource(R.string.profile_v2_and, names.dropLast(1).joinToString(", "), names.last())
+}
+
+/** « 7 décembre ». */
+internal fun birthdayLabel(date: java.time.LocalDate): String = frenchDate(date, "d MMMM")

@@ -61,7 +61,7 @@ class SouvenirsTest {
     }
 
     @Test
-    fun `on my page every souvenir, and I choose which the family sees`() = runTest {
+    fun `on my page every souvenir`() = runTest {
         val repo = FakeSouvenirs(earned, SouvenirCounters(reactions = 4))
         val vm = MemberProfileViewModel(FakeMembers(), repo, "adult1", "adult1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
@@ -69,9 +69,6 @@ class SouvenirsTest {
         assertTrue(mine.isMe)
         assertEquals(2, mine.souvenirs.size)
         assertEquals(4, mine.counters.reactions)
-
-        vm.setShown("firstGoodNews", true)
-        assertTrue(repo.souvenirs.value.all { it.shown })
     }
 
     @Test

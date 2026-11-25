@@ -99,7 +99,11 @@ data object RecapDestination
 
 /** A member's page, read-only, opened from Famille while the Souvenirs module is on (récit 34). */
 @Serializable
-data class MemberProfileDestination(val memberId: String)
+data class MemberProfileDestination(
+    val memberId: String,
+    /** « Modifier sa fiche » from Gérer or the tree: the page opens in « Modifier » (récit 114, F9). */
+    val edit: Boolean = false,
+)
 
 /** « Nos réponses »: the questions of the week already asked (récit 37). */
 @Serializable
@@ -204,6 +208,8 @@ data class NotebookIdeaDestination(
     val bought: Boolean = false,
     /** A new idea from the page of this member (retour d'essai, 17/11). */
     val personId: String? = null,
+    /** « En faire une idée » from « Mes notes » (récit 114): the note the new idea starts with. */
+    val note: String? = null,
 )
 
 /** « Préparer une surprise » (récit 63): who the surprise is for. */
@@ -249,7 +255,7 @@ enum class TopLevelDestination(
     Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
     Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
     HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
-    /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (Kévin 22/11). */
+    /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (l'admin 22/11). */
     Trips(TripsDestination, R.string.nav_trips, Icons.Outlined.CardTravel, Icons.Outlined.CardTravel, Feature.Trips),
     Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
     ;

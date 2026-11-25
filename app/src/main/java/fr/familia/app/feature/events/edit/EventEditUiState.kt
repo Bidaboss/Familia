@@ -31,7 +31,7 @@ sealed interface EventEditUiState {
         val isOccurrence: Boolean = false,
         /** The households of « Chez un foyer » (récit 74), by name. */
         val households: List<Household> = emptyList(),
-        /** Whom « @ » suggests in the note (Kévin, 19/11): everyone else, by household. */
+        /** Whom « @ » suggests in the note (l'admin, 19/11): everyone else, by household. */
         val mentionGroups: List<PickGroup> = emptyList(),
     ) : EventEditUiState
 

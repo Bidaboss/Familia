@@ -68,7 +68,7 @@ data class RecipeComment(
     val authorName: String,
     /** Null just after this phone sent it, until the server time arrives. */
     val createdAt: Instant?,
-    /** The members named « @Prénom » in [text] (Kévin, 19/11). */
+    /** The members named « @Prénom » in [text] (l'admin, 19/11). */
     val mentionIds: List<String> = emptyList(),
 ) {
     companion object {

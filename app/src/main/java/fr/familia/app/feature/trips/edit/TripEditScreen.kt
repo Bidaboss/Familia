@@ -219,7 +219,7 @@ private fun FormContent(
         }
 
         TripTile(Icons.Outlined.Groups, stringResource(R.string.trip_field_participants), Modifier.part(TripPart.Who)) {
-            // By household, a box per household ticks all of its members (règle de Kévin, 17/11).
+            // By household, a box per household ticks all of its members (règle de l'admin, 17/11).
             // The creator always takes part: unticking them, alone or with their household, does nothing.
             val locked = state.participants.filter { it.locked }.map { it.id }.toSet()
             HouseholdFaces(

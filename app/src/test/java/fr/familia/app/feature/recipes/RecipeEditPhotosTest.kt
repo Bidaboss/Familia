@@ -19,7 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-/** The photos chosen while creating a recipe (retour de Kévin, 17/11), with the fictional test family. */
+/** The photos chosen while creating a recipe (retour de l'admin, 17/11), with the fictional test family. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecipeEditPhotosTest {
 

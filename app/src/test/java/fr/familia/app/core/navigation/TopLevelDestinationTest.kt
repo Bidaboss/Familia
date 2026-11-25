@@ -29,7 +29,7 @@ class TopLevelDestinationTest {
 
     @Test
     fun `the bar holds 4 tabs around Tout Familia, Voyages in place of Entraide, the planning being a page`() {
-        // « La base » has no switch (Kévin le 18/11), and Voyages joined it on 22/11 with no switch either.
+        // « La base » has no switch (l'admin le 18/11), and Voyages joined it on 22/11 with no switch either.
         val bar = listOf(TopLevelDestination.Home, TopLevelDestination.Gifts, TopLevelDestination.Trips, TopLevelDestination.Members)
         assertEquals(bar, TopLevelDestination.visible(FeatureFlags()))
         assertEquals(bar, TopLevelDestination.visible(FeatureFlags(mapOf("trips" to false, "gifts" to false))))

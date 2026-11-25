@@ -1,4 +1,4 @@
-// « @Prénom » dans une description (Kévin, 19/11): who is newly named, the event notice against the
+// « @Prénom » dans une description (l'admin, 19/11): who is newly named, the event notice against the
 // Firestore emulator, and the coup de main messages. Fictional data only.
 import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';

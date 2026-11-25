@@ -597,7 +597,7 @@ service cloud.firestore {
     }
 
     // The members named « @Prénom » in a comment or in the note of an event or a coup de main
-    // (Kévin, 19/11): optional, at most 20, no duplicate. The server tells each of them once.
+    // (l'admin, 19/11): optional, at most 20, no duplicate. The server tells each of them once.
     function hasCommentMentions(data) {
       return !('mentionIds' in data) || isIdList(data.mentionIds, 0, 20);
     }
@@ -916,10 +916,10 @@ service cloud.firestore {
         && isHelpTime(r.startTime) && isHelpTime(r.endTime)
         && (r.startTime == null || r.endTime == null || r.startTime < r.endTime)
         && (r.place == null || (r.place is string && r.place.size() <= 120))
-        // « Où » like the events (récit 74, Kévin 20/11): autre, une adresse, or chez un foyer.
+        // « Où » like the events (récit 74, l'admin 20/11): autre, une adresse, or chez un foyer.
         && isValidPlace(r)
         && (r.note == null || (r.note is string && r.note.size() <= 1000))
-        // « @Prénom » in the note names only people who are warned (Kévin, 19/11).
+        // « @Prénom » in the note names only people who are warned (l'admin, 19/11).
         && hasCommentMentions(r) && r.notifyIds.hasAll(r.get('mentionIds', []))
         && r.authorName is string && r.authorName.size() > 0 && r.authorName.size() <= 40
         && r.forMemberId is string && exists(memberPath(r.forMemberId))
@@ -929,7 +929,7 @@ service cloud.firestore {
         && hasValidAudience(r);
     }
 
-    // The image of a request (Kévin 16/11, a QR code): optional, the base of a photo sent beforehand
+    // The image of a request (l'admin 16/11, a QR code): optional, the base of a photo sent beforehand
     // to helpRequests/{requestId}/{memberId}/{photoId} (storage.rules). Whoever writes the request
     // adds, changes or removes it, but only names a photo of their own folder.
     function isValidHelpPhoto(requestId, r, before) {

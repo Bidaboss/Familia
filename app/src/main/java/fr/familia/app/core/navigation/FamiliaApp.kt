@@ -450,7 +450,7 @@ fun FamiliaApp(
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     // The welcome plays at each opening while « Longue » is chosen in Apparence, the default
-    // (Kévin, 17/11), before the tutorial and before « Quoi de neuf ? »; never in « Voir comme ».
+    // (l'admin, 17/11), before the tutorial and before « Quoi de neuf ? »; never in « Voir comme ».
     val welcome = remember(context) { WelcomePreferences(context.applicationContext) }
     var openingStyle by remember { mutableStateOf(welcome.style) }
     var showWelcome by rememberSaveable { mutableStateOf(welcome.style == OpeningStyle.Long) }
@@ -816,7 +816,7 @@ fun FamiliaApp(
         LocalFeatureFlags provides features,
         // « Économie de batterie » (récit 112, règle 46): one receiver for the whole app.
         LocalBatterySaving provides watchBatterySaving(),
-        // « @Prénom » in the texts and comments (Kévin, 19/11).
+        // « @Prénom » in the texts and comments (l'admin, 19/11).
         LocalMentionFamily provides liveFamily,
         LocalOpenMember provides { id -> navController.navigate(MemberProfileDestination(id)) },
         LocalDiscoverOrder provides remember(appConfig?.discoverOrder) { Discover.order(appConfig?.discoverOrder.orEmpty()) },
@@ -845,7 +845,7 @@ fun FamiliaApp(
                     // « Une photo » chooses its album (DESIGN, 17/11).
                     onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,
                     onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
-                    // « Ajouter une envie » only on the screen of the wishes (retour de Kévin, 18/11).
+                    // « Ajouter une envie » only on the screen of the wishes (retour de l'admin, 18/11).
                     onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
                 ),
                 onDismiss = { addOpen = false },
@@ -1096,7 +1096,7 @@ fun FamiliaApp(
                     }
                     composable<AllFamiliaDestination> {
                         // Se souvenir en un seul lieu (récit 71): only with the fil on; off, nothing moves.
-                        // No green note about the memories that moved (Kévin le 18/11, 23 h 47).
+                        // No green note about the memories that moved (l'admin le 18/11, 23 h 47).
                         val memoriesInFeed = features.isOnForFamily(Feature.NewsFeed)
                         AllFamiliaScreen(
                             modules = allModules(
@@ -1752,6 +1752,7 @@ fun FamiliaApp(
                             onDone = { navController.popBackStack() },
                             startBought = route.bought,
                             startPersonId = route.personId,
+                            startNote = route.note,
                         )
                     }
                     composable<GiftListDestination> { entry ->
@@ -1943,22 +1944,25 @@ fun FamiliaApp(
                         )
                     }
                     composable<MemberProfileDestination> { entry ->
-                        val memberId = entry.toRoute<MemberProfileDestination>().memberId
+                        val route = entry.toRoute<MemberProfileDestination>()
+                        val memberId = route.memberId
                         MemberProfileRoute(
                             container = container,
                             currentMember = currentMember,
                             memberId = memberId,
                             onBack = { navController.popBackStack() },
-                            onEdit = { navController.navigate(MemberEditDestination(memberId)) },
+                            startEditing = route.edit,
+                            onRemoved = { name ->
+                                navController.popBackStack()
+                                scope.launch { snackbar.showConfirmation(context.getString(R.string.profile_removed, name)) }
+                            },
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination(memberId)) }) else null,
+                            onAddRecipe = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipeEditDestination()) }) else null,
                             giftActions = ProfileGiftActions(
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
-                                onOpenNotebook = { navController.navigate(NotebookDestination) },
-                                onAddIdea = { id -> navController.navigate(NotebookIdeaDestination(personId = id)) },
-                                onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
-                                onProposeIdea = { id -> navController.navigate(ProposeIdeaDestination(id)) },
+                                onPrepareSurprise = { id -> navController.navigate(SurpriseEditDestination(beneficiaryId = id)) },
+                                onMakeIdea = { id, note -> navController.navigate(NotebookIdeaDestination(personId = id, note = note)) },
                             ),
-                            onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                         )
                     }
@@ -1984,7 +1988,7 @@ fun FamiliaApp(
                         MembersRoute(
                             container = container,
                             currentMember = currentMember,
-                            onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                            onEditMember = { id -> if (id == null) navController.navigate(MemberEditDestination()) else navController.navigate(MemberProfileDestination(id, edit = true)) },
                             onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
                             onManage = { navController.navigate(ManageFamilyDestination) { launchSingleTop = true } },
                             // Famille > Arbre (brief Famille-recettes, règle 1), while the module Arbre is on.
@@ -2144,7 +2148,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
-                            onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                            onEditMember = { id -> if (id == null) navController.navigate(MemberEditDestination()) else navController.navigate(MemberProfileDestination(id, edit = true)) },
                         )
                     }
                     composable<MemberEditDestination> { entry ->
@@ -2388,7 +2392,7 @@ private fun allModules(
     module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
     }
-    // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (Kévin).
+    // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (l'admin).
     val whoIsItFamily = if (memoriesInFeed) ModuleFamily.Treat else ModuleFamily.Remember
     module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, whoIsItFamily) {
         navController.navigate(WhoIsItDestination) { launchSingleTop = true }

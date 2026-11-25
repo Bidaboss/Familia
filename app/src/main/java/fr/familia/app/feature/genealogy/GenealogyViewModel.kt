@@ -221,7 +221,7 @@ class GenealogyViewModel(
 }
 
 /**
- * The line of [person] in a list to pick from (retour d'essai du 17/11, deux « José ») : the first
+ * The line of [person] in a list to pick from (retour d'essai du 17/11, deux homonymes) : the first
  * name alone when nobody else in [among] has it, else with what tells them apart. A relative: their
  * last name, else their years, else « en souvenir » ([remembered]) or « sans compte » ([noAccount]).
  * A member: the name of their household (a member has no last name).

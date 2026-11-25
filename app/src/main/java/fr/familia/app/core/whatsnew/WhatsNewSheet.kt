@@ -223,7 +223,7 @@ fun WhatsNewCardView(card: WhatsNewCard, child: Boolean, onTry: ((WhatsNewTarget
 }
 
 /**
- * The corrections of a version (Kévin le 20/11): told apart from the new features, a small tool on
+ * The corrections of a version (l'admin le 20/11): told apart from the new features, a small tool on
  * the side, a « Corrections » label, and the lines as a list, read from the left.
  */
 @Composable

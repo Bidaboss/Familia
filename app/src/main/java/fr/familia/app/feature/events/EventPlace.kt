@@ -17,7 +17,7 @@ data class EventPlaceView(val text: String, val directions: String?)
 fun eventPlaceView(event: Event, households: List<Household>, placesOn: Boolean): EventPlaceView? =
     placeView(event.placeKind, event.place, event.placeHouseholdId, households, placesOn)
 
-/** The same for any place of récit 74: an event or a coup de main (Kévin 20/11). */
+/** The same for any place of récit 74: an event or a coup de main (l'admin 20/11). */
 fun placeView(kind: PlaceKind, place: String?, householdId: String?, households: List<Household>, placesOn: Boolean): EventPlaceView? = when (kind) {
     PlaceKind.Household -> {
         val household = households.firstOrNull { it.id == householdId }

@@ -16,7 +16,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
 
-/** A photo joined to a coup de main (Kévin 16/11): a QR code, a parcel, a place. */
+/** A photo joined to a coup de main (l'admin 16/11): a QR code, a parcel, a place. */
 class HelpRequestPhotoTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()

@@ -5,7 +5,7 @@ import java.time.YearMonth
 
 /**
  * A challenge of the list the admin principal chooses from (récit 35). [hint] says in one sentence
- * what to share, under the title of the Accueil card (Kévin, 20/11); the app only, not the server.
+ * what to share, under the title of the Accueil card (l'admin, 20/11); the app only, not the server.
  */
 data class ChallengeChoice(val id: String, val title: String, val emoji: String, val hint: String = "")
 

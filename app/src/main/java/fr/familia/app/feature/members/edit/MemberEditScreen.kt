@@ -269,7 +269,7 @@ private fun MemberFormContent(
         if (form.needsParents) {
             FormTile(icon = Icons.Outlined.FamilyRestroom, title = stringResource(R.string.member_parents), modifier = part(MemberPart.Parents)) {
                 FormHint(stringResource(R.string.member_parents_help))
-                // By household, the child's first; a household ticks its adults (règle de Kévin, 17/11).
+                // By household, the child's first; a household ticks its adults (règle de l'admin, 17/11).
                 HouseholdMemberPicker(
                     groups = pickGroups(state.adults, state.households, form.householdId),
                     selected = form.parentIds,
@@ -442,7 +442,7 @@ private fun HouseholdSection(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate, onPick: (LocalDate?) -> Unit) {
+internal fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate, onPick: (LocalDate?) -> Unit) {
     var pickerOpen by rememberSaveable { mutableStateOf(false) }
     // A box like the other fields: the label, then the date; a tap opens the calendar.
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -503,7 +503,7 @@ private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ColorChoices(selected: Int?, onPick: (Int) -> Unit) {
+internal fun ColorChoices(selected: Int?, onPick: (Int) -> Unit) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -532,7 +532,7 @@ private fun ColorChoices(selected: Int?, onPick: (Int) -> Unit) {
 
 /** Supporting text showing the first of [kinds] present in [errors], or null if none is. */
 @Composable
-private fun errorText(errors: Set<FormError>, vararg kinds: FormError): (@Composable () -> Unit)? {
+internal fun errorText(errors: Set<FormError>, vararg kinds: FormError): (@Composable () -> Unit)? {
     val error = kinds.firstOrNull { it in errors } ?: return null
     val message = stringResource(error.messageRes())
     return { Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
@@ -551,7 +551,7 @@ private fun FormError.part(): MemberPart = when (this) {
     FormError.ParentsMissing, FormError.TooManyParents, FormError.SoleParentOfChild -> MemberPart.Parents
 }
 
-private fun FormError.messageRes(): Int = when (this) {
+internal fun FormError.messageRes(): Int = when (this) {
     FormError.FirstNameMissing -> R.string.error_first_name_missing
     FormError.FirstNameTooLong -> R.string.error_first_name_too_long
     FormError.EmailInvalid -> R.string.error_email_invalid
@@ -563,7 +563,7 @@ private fun FormError.messageRes(): Int = when (this) {
     FormError.BirthDateInFuture -> R.string.error_birth_date_future
 }
 
-private fun MemberProfile.labelRes(): Int = when (this) {
+internal fun MemberProfile.labelRes(): Int = when (this) {
     MemberProfile.Adult -> R.string.profile_adult
     MemberProfile.ChildWithApp -> R.string.profile_child_with_app
     MemberProfile.ChildWithoutApp -> R.string.profile_child_without_app

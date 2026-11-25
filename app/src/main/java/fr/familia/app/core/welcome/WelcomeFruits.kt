@@ -13,7 +13,7 @@ import kotlin.math.PI
 import kotlin.math.atan2
 
 /**
- * What plays at each opening (retour de Kévin, 17/11), chosen in Apparence and kept on the phone.
+ * What plays at each opening (retour de l'admin, 17/11), chosen in Apparence and kept on the phone.
  * [Long] is the welcome with the family (the default), [Short] the tree of the start screen alone,
  * [None] nothing: the app opens as soon as it is ready.
  */

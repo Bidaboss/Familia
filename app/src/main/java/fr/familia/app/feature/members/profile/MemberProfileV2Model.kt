@@ -7,6 +7,7 @@ import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.MemberCardRepository
+import fr.familia.app.core.data.MemberNoteRepository
 import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RecipeRepository
@@ -19,21 +20,36 @@ import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberCard
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
+import fr.familia.app.core.model.canChangePhoto
+import fr.familia.app.core.model.cleaned
 import fr.familia.app.core.model.concerns
+import fr.familia.app.core.model.managesHousehold
 import fr.familia.app.core.model.nextBirthday
 import fr.familia.app.core.model.wishesListId
+import fr.familia.app.feature.members.MembersViewModel
+import fr.familia.app.feature.members.edit.FormError
+import fr.familia.app.feature.members.edit.MAX_FIRST_NAME
+import fr.familia.app.feature.members.edit.MemberForm
+import fr.familia.app.feature.members.edit.validate
+import fr.familia.app.core.ui.sendWrite
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -67,13 +83,84 @@ data class ProfileV2State(
     val managesHousehold: Boolean,
     val saving: Boolean = false,
     val saveFailed: Boolean = false,
-    /** My own page only (PRODUIT-116), for « Ta fiche est remplie à N % »: what the page cannot read itself. */
+    /** For « Ta fiche est remplie à N % » (PRODUIT-116), on my own page. */
     val hasTastes: Boolean = false,
+    /** « Ses envies (4) »: what the person sees of their list, never a reservation. */
     val wishCount: Int = 0,
-    val hasRecipe: Boolean = false,
+    /** The recipes this member wrote (brief Famille-recettes, règle 19): the gauge counts one as done. */
+    val recipeCount: Int = 0,
+    /** The card of the member (récit 7 bis, récit 114): « En ce moment », « À savoir », the tastes. Null while its module is off. */
+    val card: MemberCard? = null,
+    /** I may change that card: the member, an adult of their household for a child, the admin principal. */
+    val canEditCard: Boolean = false,
     /** The parts the gauge counts: a module that is off never counts against me. */
     val fillable: Set<FillPart> = FillPart.entries.toSet(),
+    /** How many people live in [household], for the « Foyer » tile. */
+    val householdSize: Int = 0,
+    /**
+     * « Foyer » with « Renommer le foyer » (règle 7, brief Famille-recettes): a chef de famille on
+     * their own page, or the admin principal on the page of a chef. Nothing else of the household.
+     */
+    val canRenameHousehold: Boolean = false,
+    /**
+     * « Mes notes » (règle 9): my private note about this member, empty when none. Null on my own
+     * page, in « Voir comme » and while it is loading: the tile is not shown.
+     */
+    val note: String? = null,
+    /** The member of the page, as the family list has them (surnom and phone for « Modifier »). */
+    val member: Member? = null,
+    /** A parent on their child's page: « C'est l'administrateur qui tient la fiche à jour » (récit 114). */
+    val adminKeeps: Boolean = false,
 )
+
+/**
+ * What « Modifier » changes on my own page (règle 3, F10), typed but not saved yet: my surnom, my
+ * phone (an adult only) and my card. The first name, the birth date and the address stay the
+ * admin principal's.
+ */
+data class FicheDraft(
+    val nickname: String,
+    val phone: String,
+    val card: MemberCard,
+    /** The address of the household: the admin principal's only. */
+    val address: String = "",
+    /** Profil, first name, birth date, household, parents and color: the admin principal's only (règle 4), null for anyone else. */
+    val form: MemberForm? = null,
+)
+
+/** What the admin principal chooses from while « Modifier » is open (F9). */
+data class FicheAdmin(
+    val households: List<Household>,
+    /** Who can be responsible for a child: the adults, never the member themselves. */
+    val adults: List<Member>,
+    /** Shown once « Enregistrer » was tried, so nothing is red from the start. */
+    val errors: Set<FormError>,
+    /** My own page: « Tu es l'administrateur principal : tu ne peux pas être retiré. » */
+    val isSelf: Boolean,
+    /** Children for whom this member is the only responsible adult: removal waits until another is added. */
+    val soleParentOf: List<String>,
+)
+
+/** « Modifier » under way: the draft, whether it differs from the page, and whether it can be saved. */
+data class FicheEdit(
+    val draft: FicheDraft,
+    val changed: Boolean,
+    val phoneValid: Boolean,
+    val saving: Boolean = false,
+    /** The choices of the admin principal, null for anyone else. */
+    val admin: FicheAdmin? = null,
+) {
+    val canSave: Boolean get() = changed && phoneValid && !saving
+}
+
+/** Le compteur de « Mes notes » s'arrête là (prototype v157), comme la note d'une idée de cadeau. */
+internal const val NOTE_MAX = 500
+
+/** A note is saved once the typing pauses this long, never at each letter. */
+internal const val NOTE_PAUSE = 800L
+
+/** What the page reads besides the family: the card, the wishes, the recipes, my note. */
+private data class Extras(val card: MemberCard?, val wishes: Int, val recipes: Int, val note: String?)
 
 /**
  * What « Ta fiche est remplie à N % » counts (PRODUIT-116), each part worth the same: a photo, my
@@ -89,7 +176,7 @@ internal fun fillParts(member: Member, hasPhoto: Boolean, data: ProfileV2State, 
         add(FillPart.Tastes to data.hasTastes)
         add(FillPart.Wishes to (data.wishCount > 0))
         add(FillPart.Family to !data.kinship.isEmpty)
-        add(FillPart.RecipeOrSouvenir to (data.hasRecipe || souvenirShown))
+        add(FillPart.RecipeOrSouvenir to (data.recipeCount > 0 || souvenirShown))
         if (hasCoordinates(member)) add(FillPart.Phone to (member.phone != null))
     }.filter { it.first in data.fillable }
 
@@ -108,19 +195,17 @@ internal fun birthdaySoon(birthDate: LocalDate?, today: LocalDate): Boolean =
 internal const val MOMENTS_MAX = 3
 internal const val PHOTOS_MAX = 6
 
+/** The longest phone the rules take. */
+private const val PHONE_MAX = 24
+
+/** The longest address of a household. */
+private const val ADDRESS_MAX = 200
+
+/** Offline, a write shows at once and leaves with the network: past this, it is taken as sent. */
+private const val WRITE_TIMEOUT = 4_000L
+
 /** How far « Ses moments » looks for an event: half a year, never the whole planning. */
 private const val MOMENTS_DAYS = 180L
-
-/**
- * Cadeaux comes before Goûts et passions in the 30 days before the birthday and from the 1st to the
- * 24th of December (PRODUIT-97); Goûts et passions comes first the rest of the year.
- */
-internal fun giftsFirst(birthDate: LocalDate?, today: LocalDate): Boolean {
-    if (today.monthValue == 12 && today.dayOfMonth <= 24) return true
-    val birth = birthDate ?: return false
-    val days = ChronoUnit.DAYS.between(today, nextBirthday(birth, today))
-    return days in 0..30
-}
 
 /** The age on [today]. */
 internal fun ageOn(birthDate: LocalDate, today: LocalDate): Int {
@@ -129,13 +214,6 @@ internal fun ageOn(birthDate: LocalDate, today: LocalDate): Int {
         (today.monthValue == birthDate.monthValue && today.dayOfMonth >= birthDate.dayOfMonth)
     return if (hadIt) years else years - 1
 }
-
-/**
- * « Lui souhaiter » only on the day of the birthday: before it, the cards of vœux are not open yet
- * and the button did nothing (Kévin, 19/11).
- */
-internal fun birthdayToday(birthDate: LocalDate?, today: LocalDate): Boolean =
-    birthDate != null && daysUntilBirthday(birthDate, today) == 0
 
 /** Days until the next birthday, 0 on the day. */
 internal fun daysUntilBirthday(birthDate: LocalDate, today: LocalDate): Int =
@@ -177,7 +255,7 @@ internal fun isPhone(text: String): Boolean = Regex("^[+]?[0-9 .()-]{6,24}$").ma
 /** Who may see a phone or an address on a page: never for a child (PRODUIT-98). */
 internal fun hasCoordinates(member: Member): Boolean = member.profile == MemberProfile.Adult
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class MemberProfileV2ViewModel(
     private val members: MemberRepository?,
     genealogy: GenealogyRepository?,
@@ -187,11 +265,13 @@ class MemberProfileV2ViewModel(
     private val readerId: String,
     private val memberId: String,
     private val today: LocalDate,
-    /** Read on my own page only, for the gauge (PRODUIT-116). */
+    /** The card, the wishes and the recipes: their sections and the gauge (PRODUIT-116). */
     memberCards: MemberCardRepository? = null,
     gifts: GiftRepository? = null,
     recipes: RecipeRepository? = null,
     private val photos: MemberPhotoRepository? = null,
+    /** « Mes notes »: null in « Voir comme » (nobody but the author reads a note). */
+    private val notes: MemberNoteRepository? = null,
 ) : ViewModel() {
     private val saving = MutableStateFlow(false)
     private val failed = MutableStateFlow(false)
@@ -211,7 +291,7 @@ class MemberProfileV2ViewModel(
     }
     private val news = (goodNews?.observeLatest(40) ?: flowOf(emptyList())).orElse(emptyList())
 
-    private val mine = readerId == memberId
+    private val cards = memberCards
     private val fillable: Set<FillPart> = buildSet {
         if (photos != null) add(FillPart.Photo)
         if (memberCards != null) add(FillPart.Tastes)
@@ -221,21 +301,23 @@ class MemberProfileV2ViewModel(
         add(FillPart.Phone)
     }
 
-    /** What the gauge counts that this page does not read otherwise; nothing for someone else's page. */
-    private val filled: Flow<Triple<Boolean, Int, Boolean>> = if (!mine) {
-        flowOf(Triple(false, 0, false))
-    } else {
-        val tastes = (memberCards?.observeCard(memberId)?.map { it?.isEmpty == false } ?: flowOf(false)).orElse(false).onStart { emit(false) }
+    /** The card, the number of wishes and of recipes written, read on every page; my note on the others'. */
+    private val extras: Flow<Extras> = run {
+        val card = (memberCards?.observeCard(memberId)?.map<MemberCard?, MemberCard?> { it ?: MemberCard(memberId) } ?: flowOf(null))
+            .orElse(null).onStart { emit(null) }
         val wishes = (gifts?.observeItems(wishesListId(memberId), hiddenFromMe = true)?.map { it.size } ?: flowOf(0)).orElse(0).onStart { emit(0) }
-        val recipe = (recipes?.observeRecipes()?.map { list -> list.any { it.originMemberId == memberId || it.authorId == memberId } } ?: flowOf(false))
-            .orElse(false).onStart { emit(false) }
-        combine(tastes, wishes, recipe) { t, w, r -> Triple(t, w, r) }
+        val recipe = (recipes?.observeRecipes()?.map { list -> list.count { it.authorId == memberId } } ?: flowOf(0))
+            .orElse(0).onStart { emit(0) }
+        val note = (notes?.takeIf { readerId != memberId }?.observe(readerId, memberId)?.map<String, String?> { it } ?: flowOf(null))
+            .orElse(null).onStart { emit(null) }
+        combine(card, wishes, recipe, note) { c, w, r, n -> Extras(c, w, r, n) }
     }
 
-    private val tree = combine(kin, links, words, filled) { k, l, w, f -> Pair(Triple(k, l, w), f) }
+    private val tree = combine(kin, links, words, extras) { k, l, w, f -> Pair(Triple(k, l, w), f) }
     private val moments = combine(upcoming, answers) { e, a -> e to a }
 
     val state: StateFlow<ProfileV2State?> = combine(family, tree, moments, news, combine(saving, failed) { s, f -> s to f }) { fam, t, m, n, sf ->
+        lastFamily = fam
         val member = fam.members.firstOrNull { it.id == memberId } ?: return@combine null
         val reader = fam.members.firstOrNull { it.id == readerId }
         ProfileV2State(
@@ -247,10 +329,19 @@ class MemberProfileV2ViewModel(
             managesHousehold = reader != null && fam.ownerId == reader.id,
             saving = sf.first,
             saveFailed = sf.second,
-            hasTastes = t.second.first,
-            wishCount = t.second.second,
-            hasRecipe = t.second.third,
+            hasTastes = t.second.card?.let { !it.isEmpty } == true,
+            wishCount = t.second.wishes,
+            recipeCount = t.second.recipes,
+            card = t.second.card.takeIf { memberCards != null },
+            canEditCard = reader != null && memberCards != null && fam.canChangePhoto(reader, member),
             fillable = fillable,
+            householdSize = fam.members.count { it.householdId == member.householdId },
+            canRenameHousehold = reader != null && fam.households.any { it.id == member.householdId } &&
+                fam.managesHousehold(reader, member.householdId) &&
+                (reader.id == memberId || (fam.ownerId == reader.id && member.isAdmin)),
+            note = t.second.note,
+            member = member,
+            adminKeeps = reader != null && member.profile != MemberProfile.Adult && fam.ownerId != reader.id && reader.id in member.parentIds,
         )
     }.orElse(null).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -268,6 +359,246 @@ class MemberProfileV2ViewModel(
         val household = state.value?.household ?: return
         val value = address.trim().take(200).ifEmpty { null }
         write { repo.saveHousehold(household.copy(address = value)) }
+    }
+
+    /** Saves the card as typed. False when a field is too long: nothing is saved, the form stays open. */
+    fun saveCard(typed: MemberCard): Boolean {
+        val repo = cards ?: return false
+        if (state.value?.canEditCard != true) return false
+        val card = typed.copy(memberId = memberId).cleaned() ?: return false
+        write { if (sendWrite(WRITE_TIMEOUT) { repo.saveCard(card, readerId) } == null) error("refused") }
+        return true
+    }
+
+    private val draft = MutableStateFlow<FicheDraft?>(null)
+    private var draftStart: FicheDraft? = null
+    /** The admin tried « Enregistrer »: the fields in error turn red from then on, not before. */
+    private val tried = MutableStateFlow(false)
+    private val removedName = MutableStateFlow<String?>(null)
+
+    /** The first name of the member once removed from their page: the page closes and says so. */
+    val removed: StateFlow<String?> = removedName
+
+    /** « Modifier » open, null while the page is only read. */
+    val edit: StateFlow<FicheEdit?> = combine(draft, saving, tried) { d, s, t ->
+        d?.let { typed ->
+            val admin = typed.form?.let { form -> adminOf(form, t) }
+            FicheEdit(typed, changed = typed != draftStart, phoneValid = typed.phone.isBlank() || isPhone(typed.phone.trim()), saving = s, admin = admin)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** The family as last read, for the choices of the admin (households, responsible adults). */
+    private var lastFamily: Family? = null
+
+    private fun adminOf(form: MemberForm, showErrors: Boolean): FicheAdmin? {
+        val fam = lastFamily ?: return null
+        val original = fam.members.firstOrNull { it.id == memberId } ?: return null
+        val children = fam.members.filter { memberId in it.parentIds }
+        return FicheAdmin(
+            households = fam.households.sortedBy { it.name.lowercase() },
+            adults = fam.members.filter { it.profile == MemberProfile.Adult && it.id != memberId }.sortedBy { it.firstName.lowercase() },
+            errors = if (showErrors) validate(form, fam, memberId, today, emailRequired = original.uid != null) else emptySet(),
+            isSelf = memberId == readerId,
+            soleParentOf = children
+                .filter { child -> child.parentIds.none { id -> id != memberId && fam.members.any { it.id == id } } }
+                .map { it.firstName }
+                .sorted(),
+        )
+    }
+
+    /**
+     * « Modifier » (règle 3): the same page, its fields open. My own page, and every page for the
+     * admin principal (règle 4: Profil, Foyer et parents). Never in « Voir comme ».
+     */
+    fun startEdit() {
+        if (draft.value != null) return
+        val current = state.value ?: return
+        val member = current.member ?: return
+        val fam = lastFamily ?: return
+        val owner = fam.ownerId == readerId
+        if (readerId != memberId && !owner) return
+        val start = FicheDraft(
+            nickname = member.nickname.orEmpty(),
+            phone = member.phone.orEmpty(),
+            card = current.card ?: MemberCard(memberId),
+            address = current.household?.address.orEmpty(),
+            form = if (owner) MemberForm.from(member) else null,
+        )
+        draftStart = start
+        tried.value = false
+        failed.value = false
+        draft.value = start
+    }
+
+    fun updateDraft(typed: FicheDraft) {
+        if (draft.value == null) return
+        draft.value = typed.copy(
+            nickname = typed.nickname.take(Member.NICKNAME_MAX),
+            phone = typed.phone.take(PHONE_MAX),
+            card = typed.card.copy(memberId = memberId),
+            address = typed.address.take(ADDRESS_MAX),
+            form = typed.form?.copy(firstName = typed.form.firstName.take(MAX_FIRST_NAME)).takeIf { draftStart?.form != null },
+        )
+    }
+
+    /** « Annuler », or « Quitter » after « Quitter sans enregistrer ? »: nothing is saved. */
+    fun cancelEdit() {
+        draft.value = null
+        draftStart = null
+        tried.value = false
+    }
+
+    /** « + Nouveau foyer » (F9): created at once, then chosen for this member. The admin principal only. */
+    fun addHousehold(name: String) {
+        val repo = members ?: return
+        val typed = draft.value ?: return
+        val form = typed.form ?: return
+        val trimmed = name.trim().take(MembersViewModel.MAX_HOUSEHOLD_NAME)
+        if (trimmed.isEmpty()) return
+        val household = Household(repo.newHouseholdId(), trimmed)
+        lastFamily = lastFamily?.let { it.copy(households = it.households + household) }
+        draft.value = typed.copy(form = form.copy(householdId = household.id))
+        write { if (sendWrite(WRITE_TIMEOUT) { repo.saveHousehold(household) } == null) error("refused") }
+    }
+
+    /**
+     * « Enregistrer »: only what changed is sent, each part on its own write. Once all are taken (or
+     * queued offline), the page goes back to reading; a refusal keeps the fields open and says so.
+     * For the admin principal, the member (first name, surnom, birth date, profile, household,
+     * parents, color) goes in one write, checked like the rules check it.
+     */
+    fun saveEdit() {
+        val typed = draft.value ?: return
+        val start = draftStart ?: return
+        if (typed == start) return cancelEdit()
+        val phone = typed.phone.trim()
+        if (phone.isNotEmpty() && !isPhone(phone)) return
+        val card = typed.card.cleaned() ?: return run { failed.value = true }
+        val nickname = typed.nickname.trim()
+        val fam = lastFamily
+        val original = fam?.members?.firstOrNull { it.id == memberId }
+        val adult = original?.let(::hasCoordinates) == true
+        val repo = members
+        val member = typed.form?.let { form ->
+            if (fam == null || original == null) return
+            if (validate(form, fam, memberId, today, emailRequired = original.uid != null).isNotEmpty()) {
+                tried.value = true
+                return
+            }
+            memberToSave(form, fam, original, nickname, phone)
+        }
+        val household = start.address.trim().let { before ->
+            typed.address.trim().takeIf { typed.form != null && it != before }
+        }?.let { address -> state.value?.household?.copy(address = address.ifEmpty { null }) }
+        saving.value = true
+        failed.value = false
+        viewModelScope.launch {
+            val sent = buildList {
+                if (repo != null && member != null && original != null) {
+                    if (member != original) add(sendWrite(WRITE_TIMEOUT) { repo.saveMember(member, original.email) })
+                } else {
+                    if (repo != null && nickname != start.nickname.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.saveNickname(memberId, nickname.ifEmpty { null }) })
+                    if (repo != null && adult && phone != start.phone.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.savePhone(memberId, phone.ifEmpty { null }) })
+                }
+                if (repo != null && household != null) add(sendWrite(WRITE_TIMEOUT) { repo.saveHousehold(household) })
+                cards?.let { c -> if (card != start.card.cleaned()) add(sendWrite(WRITE_TIMEOUT) { c.saveCard(card, readerId) }) }
+            }
+            saving.value = false
+            if (sent.all { it != null }) cancelEdit() else failed.value = true
+        }
+    }
+
+    /**
+     * The member as the admin principal saves them: the form, the surnom, and my own phone on my own
+     * page (another's phone is theirs, récit 66). Chefs are named in Administration only, and only
+     * current adults stay responsible for a child (the rules refuse any other).
+     */
+    private fun memberToSave(form: MemberForm, fam: Family, original: Member, nickname: String, phone: String): Member {
+        val adults = fam.members.filter { it.profile == MemberProfile.Adult && it.id != memberId }.map { it.id }.toSet()
+        val kept = form.copy(isAdmin = original.isAdmin, parentIds = form.parentIds.filter { it in adults }.toSet())
+        val myPhone = if (memberId == readerId) phone.ifEmpty { null } else original.phone
+        return kept.toMember(memberId, original.uid).let { m ->
+            m.copy(phone = myPhone?.takeIf { m.profile == MemberProfile.Adult }, nickname = nickname.ifEmpty { null })
+        }
+    }
+
+    /**
+     * « Retirer de Familia » (F11): the admin principal, never on their own page, never while this
+     * member is a child's only responsible adult. Their children keep their other adults.
+     */
+    fun removeMember() {
+        val repo = members ?: return
+        val fam = lastFamily ?: return
+        if (fam.ownerId != readerId || memberId == readerId) return
+        val admin = draft.value?.form?.let { adminOf(it, false) } ?: return
+        if (admin.soleParentOf.isNotEmpty()) return
+        val member = fam.members.firstOrNull { it.id == memberId } ?: return
+        val children = fam.members.filter { memberId in it.parentIds }.map { it.copy(parentIds = it.parentIds - memberId) }
+        saving.value = true
+        failed.value = false
+        viewModelScope.launch {
+            val sent = sendWrite(WRITE_TIMEOUT) { repo.removeMember(member, children) }
+            saving.value = false
+            if (sent == null) {
+                failed.value = true
+            } else {
+                cancelEdit()
+                removedName.value = member.firstName
+            }
+        }
+    }
+
+    /** « Renommer le foyer »: 1 to 40 characters, the rules check who may. */
+    fun renameHousehold(name: String) {
+        val repo = members ?: return
+        val current = state.value ?: return
+        val household = current.household?.takeIf { current.canRenameHousehold } ?: return
+        val trimmed = name.trim().take(MembersViewModel.MAX_HOUSEHOLD_NAME)
+        if (trimmed.isEmpty() || trimmed == household.name) return
+        write { repo.saveHousehold(household.copy(name = trimmed)) }
+    }
+
+    /** What I typed last in « Mes notes », not yet saved; null when nothing waits. */
+    private val noteDraft = MutableStateFlow<String?>(null)
+    private var noteSaved: String? = null
+
+    init {
+        viewModelScope.launch { noteDraft.filterNotNull().debounce(NOTE_PAUSE).collect { saveNote(it) } }
+    }
+
+    /** « enregistré tout seul » (règle 9): saved after a pause, apart from « Modifier ». Empty removes it. */
+    fun editNote(text: String) {
+        if (notes == null || readerId == memberId) return
+        noteDraft.value = text.take(NOTE_MAX)
+    }
+
+    private suspend fun saveNote(text: String) {
+        val repo = notes ?: return
+        if (text == noteSaved) return
+        try {
+            repo.save(readerId, memberId, text)
+            noteSaved = text
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            failed.value = true
+        }
+    }
+
+    /** Leaving the page within the pause still keeps what was typed. */
+    override fun onCleared() {
+        val pending = noteDraft.value ?: return
+        val repo = notes ?: return
+        if (pending == noteSaved) return
+        CoroutineScope(SupervisorJob()).launch {
+            try {
+                repo.save(readerId, memberId, pending)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Nobody is left to tell; the next visit shows the note as it was.
+            }
+        }
     }
 
     /** My photo, from « Changer ma photo » on the avatar of my page (P3). */

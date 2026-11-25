@@ -144,6 +144,10 @@ data class GiftListActions(
     val onAddIdea: (() -> Unit)? = null,
     /** One of my private ideas for the person, opened in my notebook. */
     val onOpenIdea: (entryId: String) -> Unit = {},
+    /** The page of one of my wishes (correctif E9): its occasion in one touch. */
+    val onSetWishOccasion: (itemId: String, occasion: GiftOccasion?) -> Unit = { _, _ -> },
+    /** « Retirer de mes envies », once confirmed (correctif E10). */
+    val onRemoveWish: (itemId: String) -> Unit = {},
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */

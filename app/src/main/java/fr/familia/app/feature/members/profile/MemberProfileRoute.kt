@@ -1,6 +1,10 @@
 package fr.familia.app.feature.members.profile
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -11,29 +15,30 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
-import fr.familia.app.feature.gifts.profile.ProfileGivingSection
-import fr.familia.app.feature.gifts.profile.ProfileNotebookSection
-import fr.familia.app.feature.gifts.profile.ProfileWishesSection
-import fr.familia.app.feature.members.card.MemberCardSection
+import fr.familia.app.core.model.wishesListId
+import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.wishes.BirthdayCardsSection
 import fr.familia.app.feature.souvenirs.SouvenirCelebrationPreferences
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** Connects a member's page to its ViewModel. */
+/** Connects a member's page to its ViewModels. */
 @Composable
 fun MemberProfileRoute(
     container: AppContainer?,
     currentMember: Member,
     memberId: String,
     onBack: () -> Unit,
-    onEdit: () -> Unit,
+    /** Opened from « Modifier sa fiche » (Gérer, the tree): the page starts in « Modifier ». */
+    startEditing: Boolean = false,
+    /** The admin removed this member from their page: it closes, with « X est retiré de Familia… ». */
+    onRemoved: (firstName: String) -> Unit = {},
     /** « Voir ses recettes » (récit 38), when the recipe book is on. */
     onOpenRecipes: (() -> Unit)? = null,
-    /** What the Cadeaux sections of the page open (retour d'essai, 17/11). */
+    /** « Ajouter une recette » on my own page (DESIGN-172), when the recipe book is on. */
+    onAddRecipe: (() -> Unit)? = null,
+    /** What the Cadeaux section of the page opens. */
     giftActions: ProfileGiftActions = ProfileGiftActions(),
-    /** The new page (récit 66): « Sa famille » opens a page, « Ses moments » an event. */
-    onOpenMember: (memberId: String) -> Unit = {},
     onOpenEvent: (eventId: String) -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
@@ -49,77 +54,87 @@ fun MemberProfileRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
-    val cardOn = LocalFeatureFlags.current.isOn(Feature.MemberCard)
-    val giftsOn = LocalFeatureFlags.current.isOn(Feature.Gifts)
-    val notebookOn = LocalFeatureFlags.current.isOn(Feature.GiftNotebook)
-    // The page organised in sections (récit 66), the only one since the 18/11 (PRODUIT-131).
-    val v2 = run {
-        val genealogyOn = LocalFeatureFlags.current.isOn(Feature.Genealogy)
-        val goodNewsOn = LocalFeatureFlags.current.isOn(Feature.GoodNews)
-        val v2Model: MemberProfileV2ViewModel = viewModel(
-            key = "profile-v2-$memberId-$genealogyOn-$goodNewsOn-$cardOn-$giftsOn-${onOpenRecipes != null}",
-            factory = viewModelFactory {
-                initializer {
-                    MemberProfileV2ViewModel(
-                        container?.memberRepository,
-                        container?.genealogyRepository?.takeIf { genealogyOn },
-                        container?.eventRepository,
-                        container?.rsvpRepository,
-                        container?.goodNewsRepository?.takeIf { goodNewsOn },
-                        readerId = currentMember.id,
-                        memberId = memberId,
-                        today = LocalDate.now(ZoneId.of("Europe/Paris")),
-                        memberCards = container?.memberCardRepository?.takeIf { cardOn },
-                        gifts = container?.giftRepository?.takeIf { giftsOn },
-                        recipes = container?.recipeRepository?.takeIf { onOpenRecipes != null },
-                        photos = container?.memberPhotoRepository,
-                    )
-                }
-            },
-        )
-        val v2State by v2Model.state.collectAsStateWithLifecycle()
-        ProfileV2Ui(
-            v2State, onOpenMember, onOpenEvent, v2Model::savePhone, v2Model::saveAddress,
-            onSavePhoto = v2Model::savePhoto,
-            onRemovePhoto = v2Model::removePhoto,
-        )
-    }
-    MemberProfileScreen(
-        state = state,
-        onBack = onBack,
-        onEdit = onEdit,
-        onSetShown = viewModel::setShown,
-        onDismissBravo = viewModel::dismissBravo,
-        onOpenRecipes = onOpenRecipes,
-        wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
-        card = if (cardOn) ({ person -> MemberCardSection(container, currentMember, person) }) else null,
-        gifts = if (giftsOn) {
-            { person ->
-                ProfileWishesSection(container, currentMember, person, giftActions.onOpenList)
-                // My private notebook, under my wishes, on my own page only (PRD rév. 293).
-                ProfileNotebookSection(currentMember, person, notebookOn, giftActions.onOpenNotebook)
-                ProfileGivingSection(
-                    container, currentMember, person, notebookOn,
-                    onOpenList = giftActions.onOpenList,
-                    onOpenNotebook = giftActions.onOpenNotebook,
-                    onAddIdea = giftActions.onAddIdea,
-                    onEditIdea = giftActions.onEditIdea,
-                    onProposeIdea = giftActions.onProposeIdea,
+    val flags = LocalFeatureFlags.current
+    val wishesOn = flags.isOn(Feature.BirthdayWishes)
+    val cardOn = flags.isOn(Feature.MemberCard)
+    val giftsOn = flags.isOn(Feature.Gifts)
+    val genealogyOn = flags.isOn(Feature.Genealogy)
+    val goodNewsOn = flags.isOn(Feature.GoodNews)
+    val recipesOn = onOpenRecipes != null
+    val v2Model: MemberProfileV2ViewModel = viewModel(
+        key = "profile-v2-$memberId-$genealogyOn-$goodNewsOn-$cardOn-$giftsOn-$recipesOn",
+        factory = viewModelFactory {
+            initializer {
+                MemberProfileV2ViewModel(
+                    container?.memberRepository,
+                    container?.genealogyRepository?.takeIf { genealogyOn },
+                    container?.eventRepository,
+                    container?.rsvpRepository,
+                    container?.goodNewsRepository?.takeIf { goodNewsOn },
+                    readerId = currentMember.id,
+                    memberId = memberId,
+                    today = LocalDate.now(ZoneId.of("Europe/Paris")),
+                    memberCards = container?.memberCardRepository?.takeIf { cardOn },
+                    gifts = container?.giftRepository?.takeIf { giftsOn },
+                    recipes = container?.recipeRepository?.takeIf { recipesOn },
+                    photos = container?.memberPhotoRepository,
+                    notes = container?.memberNoteRepository,
                 )
             }
-        } else {
-            null
         },
-        v2 = v2,
+    )
+    val v2State by v2Model.state.collectAsStateWithLifecycle()
+    val edit by v2Model.edit.collectAsStateWithLifecycle()
+    val removed by v2Model.removed.collectAsStateWithLifecycle()
+    val viewingAs = LocalViewAs.current.viewed != null
+    // « Modifier » in place (règle 3): on my own page (F10), and on every page for the admin principal (F9).
+    val ready = state as? MemberProfileUiState.Ready
+    val mayEdit = !viewingAs && ready != null && (memberId == currentMember.id || ready.canEdit)
+    val shown = ready?.copy(canEdit = mayEdit) ?: state
+    var started by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(mayEdit, v2State != null) {
+        if (startEditing && !started && mayEdit && v2State != null) {
+            started = true
+            v2Model.startEdit()
+        }
+    }
+    LaunchedEffect(removed) { removed?.let(onRemoved) }
+    MemberProfileScreen(
+        state = shown,
+        onBack = onBack,
+        onEdit = v2Model::startEdit,
+        onDismissBravo = viewModel::dismissBravo,
+        wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
+        v2 = ProfileV2Ui(
+            v2State,
+            onOpenEvent = onOpenEvent,
+            onSavePhone = v2Model::savePhone,
+            onSaveAddress = v2Model::saveAddress,
+            onSavePhoto = v2Model::savePhoto,
+            onRemovePhoto = v2Model::removePhoto,
+            onSaveCard = v2Model::saveCard,
+            onOpenWishes = if (giftsOn) ({ giftActions.onOpenList(wishesListId(memberId)) }) else null,
+            onPrepareSurprise = if (giftsOn && !viewingAs && memberId != currentMember.id) ({ giftActions.onPrepareSurprise(memberId) }) else null,
+            onOpenRecipes = onOpenRecipes,
+            onAddRecipe = onAddRecipe?.takeIf { memberId == currentMember.id },
+            onRenameHousehold = v2Model::renameHousehold,
+            onEditNote = v2Model::editNote,
+            onMakeIdea = if (giftsOn && !viewingAs) ({ note -> giftActions.onMakeIdea(memberId, note) }) else null,
+            edit = edit?.takeIf { mayEdit },
+            onStartEdit = if (mayEdit) v2Model::startEdit else null,
+            onDraft = v2Model::updateDraft,
+            onCancelEdit = v2Model::cancelEdit,
+            onSaveEdit = v2Model::saveEdit,
+            onAddHousehold = v2Model::addHousehold,
+            onRemove = v2Model::removeMember,
+        ),
     )
 }
 
-/** Where the « Ses envies » and « Ce que je lui offre » sections of a page lead. */
+/** Where the Cadeaux section of a page leads: the wishes, and a new surprise for them. */
 data class ProfileGiftActions(
     val onOpenList: (listId: String) -> Unit = {},
-    val onOpenNotebook: () -> Unit = {},
-    val onAddIdea: (personId: String) -> Unit = {},
-    val onEditIdea: (entryId: String) -> Unit = {},
-    val onProposeIdea: (entryId: String) -> Unit = {},
+    val onPrepareSurprise: (beneficiaryId: String) -> Unit = {},
+    /** « En faire une idée » from « Mes notes »: a new idea of the carnet about this member. */
+    val onMakeIdea: (personId: String, note: String) -> Unit = { _, _ -> },
 )

@@ -76,7 +76,7 @@ describe('write', () => {
   });
 });
 
-describe('« @Prénom » (Kévin, 19/11)', () => {
+describe('« @Prénom » (l’admin, 19/11)', () => {
   test('a comment names up to 20 members, each once, and its author changes them with the text', async () => {
     const db = as(env, ADULT);
     await assertSucceeds(setDoc(comment(db), newComment(ADULT, { text: '@Noé bravo', mentionIds: ['adult2'] })));

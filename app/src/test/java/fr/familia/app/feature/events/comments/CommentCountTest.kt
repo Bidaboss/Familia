@@ -4,7 +4,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** The counter under a comment field only shows near the limit (Kévin, 19/11). */
+/** The counter under a comment field only shows near the limit (l'admin, 19/11). */
 class CommentCountTest {
     @Test
     fun `no counter for an empty or short comment`() {
