@@ -141,7 +141,7 @@ class AlbumFeedCard(
     override val key: String = "album:${album.folder}:$day"
 
     /** J'aime and comments on its thread (récit 115). */
-    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key), title = R.string.feed_detail_photos, dark = true)
     override val at: Instant = photos.first().createdAt ?: Instant.EPOCH
     override val authorId: String = photos.first().authorId
 

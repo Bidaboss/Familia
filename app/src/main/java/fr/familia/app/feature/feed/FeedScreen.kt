@@ -85,7 +85,7 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
         unseen = cards?.let { unseenCount(it, seenAt, me.id) } ?: 0,
         canLoadMore = pages < MAX_PAGES,
         social = remember(container, me, readOnly) {
-            container?.gazetteThreadRepository?.let { FeedSocialEnv(it, container.gazetteCommentRepository, me, readOnly) }
+            container?.gazetteThreadRepository?.let { FeedSocialEnv(it, container.gazetteCommentRepository, me, readOnly, container) }
         },
         onMore = { pages += 1 },
         onSeen = {
@@ -112,8 +112,12 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable 
     }
     val todayLabel = stringResource(R.string.feed_day_today)
     val yesterdayLabel = stringResource(R.string.feed_day_yesterday)
+    // The card opened by its counter of comments (brief §4), over the gazette; kept by its key.
+    var detailKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val detail = detailKey?.let { key -> cards.firstOrNull { it.key == key } }
+    Box(modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp),
         // 8 dp between two actualités of a day (PRODUIT-127); the day titles keep their 12 dp.
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -134,7 +138,13 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable 
                 FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel), Modifier.padding(vertical = 4.dp))
             }
             items(onDay, key = { it.key }) { card ->
-                CompositionLocalProvider(LocalFeedSocialEnv provides state.social, LocalFeedCardSocial provides card.social) {
+                // Only a card whose comments live on its thread has a detail; the others open their page.
+                val openDetail: (() -> Unit)? = if (state.social != null && card.social?.own == null) ({ detailKey = card.key }) else null
+                CompositionLocalProvider(
+                    LocalFeedSocialEnv provides state.social,
+                    LocalFeedCardSocial provides card.social,
+                    LocalFeedCardDetail provides openDetail,
+                ) {
                     card.Content(context)
                 }
             }
@@ -146,5 +156,10 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable 
                 }
             }
         }
+    }
+    val social = detail?.social
+    if (detail != null && social != null && state.social != null) {
+        FeedCardDetail(detail, social, context, state.social, onClose = { detailKey = null })
+    }
     }
 }

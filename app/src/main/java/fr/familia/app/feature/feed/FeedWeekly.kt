@@ -47,7 +47,7 @@ class WeeklyFeedCard(
     override val key: String = "weekly:${question.id}"
 
     /** J'aime and comments on its thread (récit 115). */
-    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key), title = R.string.feed_detail_weekly)
     override val at: Instant = question.publishedAt
 
     /** Familia asks it: it counts in the badge for everyone. */

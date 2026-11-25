@@ -62,7 +62,7 @@ class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRe
     override val key: String = "help:${request.id}"
 
     /** J'aime and comments on its thread (récit 115). */
-    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key), title = R.string.feed_detail_help)
     override val at: Instant = request.createdAt ?: Instant.EPOCH
     override val authorId: String = request.authorId
 

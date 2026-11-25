@@ -108,7 +108,7 @@ private val TILE_CORNER = 22.dp
 private fun FeedCardSocial(onOpen: (() -> Unit)?) {
     val social = LocalFeedCardSocial.current ?: return
     val env = LocalFeedSocialEnv.current ?: return
-    FeedSocialBar(social, env, onOpen)
+    FeedSocialBar(social, env, onOpen, onDetail = LocalFeedCardDetail.current)
 }
 
 /**

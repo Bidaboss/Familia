@@ -1,6 +1,7 @@
 package fr.familia.app.feature.feed
 
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,6 +60,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.R
+import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.GazetteReactions
 import fr.familia.app.core.data.GazetteThread
@@ -126,6 +128,10 @@ class FeedSocial(
     val threadId: String,
     val own: FeedOwnComments? = null,
     val commentable: Boolean = true,
+    /** The title of its detail (brief §4, D1 à D9), opened by the counter of comments. */
+    @StringRes val title: Int = R.string.feed_detail_title,
+    /** Its detail lies on black (photos and films, brief §3): « un seul fond noir ». */
+    val dark: Boolean = false,
 )
 
 /** What the bar needs from the app, provided by the gazette around its cards. */
@@ -135,6 +141,8 @@ class FeedSocialEnv(
     val me: Member,
     /** « Voir comme »: the counters show, nothing is written. */
     val readOnly: Boolean,
+    /** For the comments of a detail (their ViewModel reads the family); null in the previews. */
+    val container: AppContainer? = null,
 )
 
 /** Null outside the gazette (or without Firebase): the cards draw no bar. */
@@ -142,6 +150,9 @@ val LocalFeedSocialEnv = staticCompositionLocalOf<FeedSocialEnv?> { null }
 
 /** The social part of the card being drawn, set by the gazette around each card. */
 val LocalFeedCardSocial = staticCompositionLocalOf<FeedSocial?> { null }
+
+/** Opens the detail of the card being drawn, with all its comments; null: the card has no detail of its own. */
+val LocalFeedCardDetail = staticCompositionLocalOf<(() -> Unit)?> { null }
 
 /** Two comments under a card (brief §4: « les 2 derniers commentaires »). */
 const val FEED_COMMENTS_SHOWN = 2
@@ -158,7 +169,17 @@ fun reactionSummary(thread: GazetteThread): List<String> =
 /** The bar under a card: J'aime, Commenter, the 2 latest comments, and the field once opened. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FeedSocialBar(social: FeedSocial, env: FeedSocialEnv, onOpen: (() -> Unit)?) {
+fun FeedSocialBar(
+    social: FeedSocial,
+    env: FeedSocialEnv,
+    onOpen: (() -> Unit)?,
+    /** The detail of the card (its thread's comments); the cards with comments of their own open their page. */
+    onDetail: (() -> Unit)? = null,
+    /** In the detail itself: the J'aime only, the comments are under it in full. */
+    inDetail: Boolean = false,
+) {
+    // Where the counter of comments leads (brief §4): the detail with all of them, or the page that has them.
+    val openComments = if (social.own == null) onDetail ?: onOpen else onOpen
     val threadFlow = remember(social.threadId, env.threads) { env.threads.observe(social.threadId).catch { emit(GazetteThread()) } }
     val thread by threadFlow.collectAsStateWithLifecycle(initialValue = GazetteThread())
     val ownFlow: Flow<FeedCommentsState?> = remember(social) { social.own?.observe()?.catch { emit(FeedCommentsState(0, emptyList())) } ?: flowOf(null) }
@@ -248,7 +269,7 @@ fun FeedSocialBar(social: FeedSocial, env: FeedSocialEnv, onOpen: (() -> Unit)?)
                     }
                 }
             }
-            if (social.own != null || social.commentable) {
+            if (!inDetail && (social.own != null || social.commentable)) {
                 val commentLabel = stringResource(R.string.feed_comment)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -259,7 +280,7 @@ fun FeedSocialBar(social: FeedSocial, env: FeedSocialEnv, onOpen: (() -> Unit)?)
                             when {
                                 // 💬 opens the field in the card (brief §4); without it, the card.
                                 canComment -> Modifier.combinedClickable(onClick = { writing = true })
-                                onOpen != null -> Modifier.combinedClickable(onClick = onOpen)
+                                openComments != null -> Modifier.combinedClickable(onClick = openComments)
                                 else -> Modifier
                             },
                         )
@@ -274,7 +295,7 @@ fun FeedSocialBar(social: FeedSocial, env: FeedSocialEnv, onOpen: (() -> Unit)?)
                     Text(commentLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold)
                 }
                 Spacer(Modifier.weight(1f))
-                if (comments.count > 0 && onOpen != null) {
+                if (comments.count > 0 && openComments != null) {
                     // The counter opens the card and all its comments (brief §4).
                     val countText = pluralStringResource(R.plurals.feed_comment_count, comments.count, comments.count)
                     Box(
@@ -282,7 +303,7 @@ fun FeedSocialBar(social: FeedSocial, env: FeedSocialEnv, onOpen: (() -> Unit)?)
                         modifier = Modifier
                             .heightIn(min = 56.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .combinedClickable(onClick = onOpen)
+                            .combinedClickable(onClick = openComments)
                             .padding(horizontal = 8.dp)
                             .clearAndSetSemantics {
                                 contentDescription = countText
@@ -298,8 +319,8 @@ fun FeedSocialBar(social: FeedSocial, env: FeedSocialEnv, onOpen: (() -> Unit)?)
                 }
             }
         }
-        comments.last.takeLast(FEED_COMMENTS_SHOWN).forEach { FeedCommentText(it) }
-        if (writing && canComment) {
+        if (!inDetail) comments.last.takeLast(FEED_COMMENTS_SHOWN).forEach { FeedCommentText(it) }
+        if (!inDetail && writing && canComment) {
             FeedCommentField(
                 onSend = { text ->
                     try {

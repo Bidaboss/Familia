@@ -231,7 +231,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     }
     override val gazetteThreadRepository: GazetteThreadRepository? by lazy { firestore?.let { FirestoreGazetteThreadRepository(it) } }
     override val gazetteCommentRepository: EventCommentRepository? by lazy {
-        firestore?.let { FirestoreEventCommentRepository(it, parent = "gazetteThreads", expires = false) }
+        firestore?.let { FirestoreEventCommentRepository(it, parent = "gazetteThreads", expires = false, mutes = false) }
     }
 
     override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it, sendJournal) } }

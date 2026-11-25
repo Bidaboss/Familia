@@ -89,7 +89,7 @@ class FilmFeedCard(
     override val key: String = "film:$tripId:${film.id}"
 
     /** J'aime and comments on its thread (récit 115). */
-    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key), title = R.string.feed_detail_film, dark = true)
     override val at: Instant = film.createdAt ?: Instant.EPOCH
     override val authorId: String = film.authorId
 
