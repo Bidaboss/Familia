@@ -2568,6 +2568,18 @@
     <string name="home_r1_greeting">Bonjour %1$s</string>
     <string name="home_photo_greeting">Bonjour %1$s 👋</string>
     <string name="home_photo_my_day">Ma journée</string>
+    <!-- Ligne de l'en-tête de la gazette qui ouvre « Ma journée » (récit 115) -->
+    <string name="home_myday_nothing">Rien de prévu</string>
+    <plurals name="home_myday_events">
+        <item quantity="one">%1$d événement</item>
+        <item quantity="other">%1$d événements</item>
+    </plurals>
+    <plurals name="home_myday_to_answer">
+        <item quantity="one">%1$d à répondre</item>
+        <item quantity="other">%1$d à répondre</item>
+    </plurals>
+    <string name="home_myday_open_a11y">Ouvrir Ma journée : %1$s</string>
+    <string name="home_myday_close">Fermer Ma journée</string>
     <string name="home_photo_today">Aujourd\'hui</string>
     <string name="home_photo_planning">Planning ›</string>
     <string name="home_photo_nothing">Rien de prévu</string>
@@ -4079,15 +4091,6 @@
     <string name="announcement_gone_body">Il a été retiré, ou il ne t\'était pas adressé.</string>
 
     <!-- Fil d'actualité (récit 67) -->
-    <string name="feed_tab_today">Aujourd\'hui</string>
-    <string name="feed_tab_feed">La gazette</string>
-    <string name="feed_switch_feed_title">La gazette de la famille</string>
-    <string name="feed_switch_back">Revenir à Aujourd\'hui</string>
-    <string name="feed_switch_open">Voir la gazette</string>
-    <plurals name="feed_tab_new">
-        <item quantity="one">%1$d nouveauté</item>
-        <item quantity="other">%1$d nouveautés</item>
-    </plurals>
     <string name="feed_day_today">Aujourd\'hui</string>
     <string name="feed_day_yesterday">Hier</string>
     <string name="feed_empty">Rien de nouveau dans la famille ces deux dernières semaines.</string>
