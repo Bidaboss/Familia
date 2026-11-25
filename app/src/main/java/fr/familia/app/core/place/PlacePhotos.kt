@@ -240,11 +240,16 @@ fun parseNearbyImage(json: String, except: String? = null): SummaryImage? = runC
             val thumb = page["thumbnail"]?.jsonObject?.get("source")?.jsonPrimitive?.contentOrNull
             val original = page["original"]?.jsonObject?.get("source")?.jsonPrimitive?.contentOrNull
             val source = (thumb ?: original)?.takeIf { it.startsWith("https://upload.wikimedia.org/") } ?: return@firstNotNullOfOrNull null
-            val file = fileName(original ?: source)?.takeIf { name -> name.lowercase().let { it.endsWith(".jpg") || it.endsWith(".jpeg") || it.endsWith(".png") || it.endsWith(".webp") } }
-                ?: return@firstNotNullOfOrNull null
+            val file = fileName(original ?: source)?.takeIf(::isPhotoFile) ?: return@firstNotNullOfOrNull null
+            // A montage of several photos (retour du 25/11 soir): the next page is tried.
+            if (!hasCoverShape(page.size("thumbnail", "width"), page.size("thumbnail", "height"))) return@firstNotNullOfOrNull null
             SummaryImage(url = widened(source), file = file).takeIf { it.url != except }
         }
 }.getOrNull()
+
+/** A size of an image in an answer of Wikipedia (« thumbnail » → « width »), or null. */
+private fun JsonObject.size(image: String, key: String): Int? =
+    this[image]?.jsonObject?.get(key)?.jsonPrimitive?.contentOrNull?.toIntOrNull()
 
 /** The image of a summary: its address at [PHOTO_WIDTH] and the name of its Commons file. */
 data class SummaryImage(val url: String, val file: String)
@@ -259,7 +264,9 @@ fun parseSummaryImage(json: String): SummaryImage? = runCatching {
     if (!source.startsWith("https://upload.wikimedia.org/")) return@runCatching null
     // Drawings (svg, maps, flags, coats of arms) are not photos of the place.
     val file = fileName(original ?: source) ?: return@runCatching null
-    if (!file.lowercase().let { it.endsWith(".jpg") || it.endsWith(".jpeg") || it.endsWith(".png") || it.endsWith(".webp") }) return@runCatching null
+    if (!isPhotoFile(file)) return@runCatching null
+    // A montage of several photos (retour du 25/11 soir): the search and the pages around are tried next.
+    if (!hasCoverShape(root.size("thumbnail", "width"), root.size("thumbnail", "height"))) return@runCatching null
     SummaryImage(url = widened(source), file = file)
 }.getOrNull()
 

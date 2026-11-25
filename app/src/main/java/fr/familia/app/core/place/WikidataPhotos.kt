@@ -94,8 +94,35 @@ fun parseWikidataImage(json: String): String? = runCatching {
     }
 }.getOrNull()
 
-/** A real photo (jpg, png, webp), never a drawing, a map or a flag (svg). */
-fun isPhotoFile(file: String): Boolean = file.lowercase().let { it.endsWith(".jpg") || it.endsWith(".jpeg") || it.endsWith(".png") || it.endsWith(".webp") }
+/**
+ * One real photo (jpg, png, webp): never a drawing, a map or a flag (svg), never a montage of
+ * several photos (retour du 25/11 soir: the infobox of a town is often « Montage Ajaccio.jpg »).
+ */
+fun isPhotoFile(file: String): Boolean =
+    file.lowercase().let { it.endsWith(".jpg") || it.endsWith(".jpeg") || it.endsWith(".png") || it.endsWith(".webp") } && !isMontageName(file)
+
+/** The words of a file name that say it puts several photos together, in French, English, Italian, Spanish, German. */
+private val MONTAGE_WORDS = Regex(
+    "(montage|collage|mosa[iï]que|mosaic|mosaico|composite|compilation|collag|fotomontage|photomontage|kolaz|vues? de |views? of )",
+    RegexOption.IGNORE_CASE,
+)
+
+/** « Montage Ajaccio.jpg », « Lyon collage 2.jpg », « Mosaïque de Nice.jpg »: several photos in one file. */
+fun isMontageName(file: String): Boolean = MONTAGE_WORDS.containsMatchIn(file.replace('_', ' '))
+
+/**
+ * True when an image of [width] × [height] can fill a cover: a montage is often much taller than
+ * wide (three or four photos stacked), a panorama much wider. Unknown sizes pass.
+ */
+fun hasCoverShape(width: Int?, height: Int?): Boolean {
+    if (width == null || height == null || width <= 0 || height <= 0) return true
+    val ratio = width.toDouble() / height
+    return ratio in MIN_COVER_RATIO..MAX_COVER_RATIO
+}
+
+/** Taller than 4 × 5 is a stack of photos more often than a photo; wider than 3 × 1 a panorama strip. */
+const val MIN_COVER_RATIO = 0.8
+const val MAX_COVER_RATIO = 3.0
 
 /** A Commons file at [PHOTO_WIDTH] pixels with its author and licence, in one call. */
 fun commonsPhotoUrl(file: String): String =
@@ -108,5 +135,8 @@ fun parseCommonsPhoto(json: String): PlacePhoto? = runCatching {
         ?.get("imageinfo")?.jsonArray?.firstOrNull()?.jsonObject ?: return@runCatching null
     val url = (info["thumburl"] ?: info["url"])?.jsonPrimitive?.contentOrNull
         ?.takeIf { it.startsWith("https://upload.wikimedia.org/") } ?: return@runCatching null
+    val width = (info["thumbwidth"] ?: info["width"])?.jsonPrimitive?.contentOrNull?.toIntOrNull()
+    val height = (info["thumbheight"] ?: info["height"])?.jsonPrimitive?.contentOrNull?.toIntOrNull()
+    if (!hasCoverShape(width, height)) return@runCatching null
     PlacePhoto(url, parseCredit(json) ?: DEFAULT_CREDIT)
 }.getOrNull()

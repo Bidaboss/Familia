@@ -2755,3 +2755,10 @@ Sur un téléphone en Android 10 ou plus :
 5. « Effacer les dates » en bas efface et laisse l'écran ouvert.
 6. Modifier un voyage déjà daté dans le passé : ses jours restent touchables à partir de son premier jour.
 7. « Départ » d'une destination dans un voyage : seuls les jours après l'arrivée sont touchables, et toucher le jour de départ ferme l'écran.
+
+## Voyage : une seule photo par destination, jamais un montage (demande du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Ajouter une destination dans une grande ville dont la page Wikipédia montre un montage (par exemple Ajaccio, Lyon ou Nice) : la vignette montre une seule photo, pas trois ou quatre photos collées.
+2. Si aucune autre photo n'existe, le dessin habituel remplace la photo, sans erreur.
+3. Les destinations qui avaient déjà une vraie photo la gardent.
