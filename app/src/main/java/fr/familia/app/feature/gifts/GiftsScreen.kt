@@ -1,12 +1,6 @@
 package fr.familia.app.feature.gifts
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import fr.familia.app.core.theme.LocalClayColors
-import fr.familia.app.core.theme.LocalPhotoTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -68,22 +62,7 @@ fun GiftsScreen(
     surprises: List<SurpriseTile>? = null,
     onOpenSurprise: (String) -> Unit = {},
 ) {
-    // On a photo theme (règle 20, as Famille): the tab in a card, its top corners round, laid over
-    // the bottom of the banner of the photo.
-    Box(
-        modifier
-            .fillMaxSize()
-            .then(
-                if (LocalPhotoTheme.current != null) {
-                    Modifier
-                        .padding(top = BANNER_CARD_TOP, start = 12.dp, end = 12.dp)
-                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(LocalClayColors.current.card)
-                } else {
-                    Modifier
-                },
-            ),
-    ) {
+    Box(modifier.fillMaxSize()) {
         when (state) {
             GiftsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
             GiftsUiState.Error -> EmptyState(
@@ -210,6 +189,3 @@ internal fun wishesSubtitle(preview: WishPreview?, empty: Boolean, keptByMe: Boo
         pluralStringResource(R.plurals.gifts_wishes_preview, preview.count, preview.count, titles)
     }
 }
-
-/** Where the card starts under the banner of the photo, as on Famille. */
-private val BANNER_CARD_TOP = 56.dp

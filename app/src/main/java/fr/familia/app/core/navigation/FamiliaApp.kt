@@ -871,19 +871,23 @@ fun FamiliaApp(
         // draws its own header in place of the title bar (règles 2, 3, 9 à 11).
         val photoTheme = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Home) && features.isOn(Feature.Home) }
         val photoScroll = remember { PhotoScroll() }
-        // Règle 20 (DESIGN-157 A): Famille and Cadeaux show the same photo in a banner at their top.
-        val bannerTab = listOf(TopLevelDestination.Members, TopLevelDestination.Gifts).firstOrNull { currentDestination.isOn(it) }
-        val onMembers = bannerTab != null
+        // Règle 20 (DESIGN-157 A): Famille shows the same photo in a banner at its top.
+        val onMembers = currentDestination.isOn(TopLevelDestination.Members)
         val bannerScroll = remember { PhotoScroll() }
-        LaunchedEffect(bannerTab) { bannerScroll.reset() }
+        LaunchedEffect(onMembers) { bannerScroll.reset() }
+        // Cadeaux lies on the whole photo, its tiles in frosted glass (brief Cadeaux et Surprise §0, fiche C1).
+        val giftsPhoto = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Gifts) }
+        val giftsScroll = remember { PhotoScroll() }
         Box(if (photoTheme != null) Modifier.fillMaxSize() else Modifier.fillMaxSize().themeBackground()) {
         if (photoTheme != null) PhotoBackdrop(photoTheme, photoScroll)
+        if (giftsPhoto != null) PhotoBackdrop(giftsPhoto, giftsScroll)
         if (onMembers) PhotoBanner(bannerScroll)
         Scaffold(
-            // The theme's background and its pattern show behind the tabs, the photo behind the Accueil.
+            // The theme's background and its pattern show behind the tabs, the photo behind the Accueil and Cadeaux.
             modifier = Modifier
                 .nestedScroll(topBarScroll.nestedScrollConnection)
-                .then(if (onMembers) Modifier.nestedScroll(bannerScroll.connection) else Modifier),
+                .then(if (onMembers) Modifier.nestedScroll(bannerScroll.connection) else Modifier)
+                .then(if (giftsPhoto != null) Modifier.nestedScroll(giftsScroll.connection) else Modifier),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
@@ -902,7 +906,7 @@ fun FamiliaApp(
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
-                        onPhoto = onMembers && LocalPhotoTheme.current != null,
+                        onPhoto = (onMembers || giftsPhoto != null) && LocalPhotoTheme.current != null,
                         onOpenTrips = onTrips,
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,

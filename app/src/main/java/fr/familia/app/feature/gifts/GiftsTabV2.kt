@@ -4,6 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
+import fr.familia.app.core.theme.LocalPhotoTheme
+import fr.familia.app.core.theme.PhotoSectionShadow
+import fr.familia.app.core.theme.PhotoSectionText
+import fr.familia.app.core.theme.photoCard
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -109,7 +116,8 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
         item(key = "family-title") { Title(stringResource(R.string.gifts_v2_family)) }
         householdBlocks(others, mine?.member?.householdId).forEach { block ->
             item(key = "household-${block.key}-label") {
-                SectionLabel(block.name ?: stringResource(R.string.members_other_household))
+                val label = block.name ?: stringResource(R.string.members_other_household)
+                if (LocalPhotoTheme.current != null) SectionLabel(label, color = PhotoSectionText) else SectionLabel(label)
             }
             block.sections.forEach { section ->
                 item(key = "person-${section.member.id}") {
@@ -147,7 +155,40 @@ internal fun birthdaysSoon(state: GiftsUiState.Success): List<Birthday> {
 
 @Composable
 private fun Title(text: String) {
-    Text(text, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
+    // On the photo (fiche C1): white with a shadow, dark on the cream of « Le haut seulement ».
+    val onPhoto = LocalPhotoTheme.current != null
+    Text(
+        text,
+        style = if (onPhoto) MaterialTheme.typography.titleLarge.copy(shadow = PhotoSectionShadow) else MaterialTheme.typography.titleLarge,
+        color = if (onPhoto) PhotoSectionText else Color.Unspecified,
+        modifier = Modifier.padding(top = 8.dp).semantics { heading() },
+    )
+}
+
+/**
+ * A tile of Cadeaux: a [ClayCard], or on a photo theme frosted glass over the photo (fiche C1,
+ * cream at 85 % until the blur of Android 12, as the cards of the Accueil).
+ */
+@Composable
+private fun GiftCard(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    if (LocalPhotoTheme.current == null) {
+        ClayCard(modifier, onClick = onClick, onClickLabel = onClickLabel, contentPadding = ClaySpacing.card, content = content)
+        return
+    }
+    CompositionLocalProvider(LocalContentColor provides GlassInk) {
+        Column(
+            modifier
+                .photoCard(20.dp)
+                .then(if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick) else Modifier)
+                .padding(ClaySpacing.card),
+            content = content,
+        )
+    }
 }
 
 @Composable
@@ -273,11 +314,10 @@ private fun wishesFor(state: GiftsUiState.Success, memberId: String): String =
 private fun SoonRow(state: GiftsUiState.Success, birthday: Birthday, onOpenList: (String) -> Unit) {
     val member = birthday.member
     val name = member.firstName
-    ClayCard(
+    GiftCard(
         Modifier.fillMaxWidth().heightIn(min = 56.dp),
         onClick = { onOpenList(wishesFor(state, member.id)) },
         onClickLabel = stringResource(R.string.gifts_v2_open_wishes, name),
-        contentPadding = ClaySpacing.card,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MemberAvatar(member, size = 48.dp)
@@ -338,7 +378,7 @@ private fun PersonRow(state: GiftsUiState.Success, section: GiftPersonSection, f
 /** A card with a thick edge of [edge] on its left; with [onClick], the whole card is one button. */
 @Composable
 private fun EdgedCard(edge: Color, onClick: (() -> Unit)? = null, onClickLabel: String? = null, content: @Composable () -> Unit) {
-    ClayCard(Modifier.fillMaxWidth(), onClick = onClick, onClickLabel = onClickLabel, contentPadding = ClaySpacing.card) {
+    GiftCard(Modifier.fillMaxWidth(), onClick = onClick, onClickLabel = onClickLabel) {
         Column(
             Modifier
                 .fillMaxWidth()
@@ -351,7 +391,7 @@ private fun EdgedCard(edge: Color, onClick: (() -> Unit)? = null, onClickLabel: 
 
 @Composable
 private fun PlainRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, onClick: () -> Unit) {
-    ClayCard(Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = onClick, contentPadding = ClaySpacing.card) {
+    GiftCard(Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -382,3 +422,6 @@ private fun ArchivedRow(state: GiftsUiState.Success, onOpenList: (String) -> Uni
 /** The yellow of « Mes envies » and of the surprise pictogram, and the ink drawn on it. */
 private val Sun = Color(0xFFF5C451)
 private val Ink = Color(0xFF2B1D10)
+
+/** The text on the glass tiles (fiche C1: #1E1B18). */
+private val GlassInk = Color(0xFF1E1B18)
