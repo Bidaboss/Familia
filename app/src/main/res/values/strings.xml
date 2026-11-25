@@ -1465,6 +1465,22 @@
     <string name="feed_good_news_photo">Photo de l\'actualité</string>
     <string name="feed_read_more">Lire la suite</string>
     <string name="feed_comment">Commenter</string>
+    <!-- La gazette : J'aime et commentaires sous chaque carte (récit 115) -->
+    <string name="feed_social_like">J\'aime</string>
+    <plurals name="feed_social_likes">
+        <item quantity="one">%d J\'aime</item>
+        <item quantity="many">%d J\'aime</item>
+        <item quantity="other">%d J\'aime</item>
+    </plurals>
+    <string name="feed_social_choose">Choisir une réaction</string>
+    <plurals name="feed_social_comments">
+        <item quantity="one">%d commentaire</item>
+        <item quantity="many">%d commentaires</item>
+        <item quantity="other">%d commentaires</item>
+    </plurals>
+    <string name="feed_social_field">Écrire un commentaire…</string>
+    <string name="feed_social_send">Envoyer le commentaire</string>
+    <string name="feed_social_failed">Pas de réseau : réessaie dans un moment.</string>
     <string name="feed_comment_field">Écrire un commentaire</string>
     <plurals name="feed_comment_count">
         <item quantity="one">%d commentaire, les lire</item>

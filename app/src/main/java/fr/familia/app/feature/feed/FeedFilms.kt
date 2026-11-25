@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,6 +87,9 @@ class FilmFeedCard(
     val film: TripFilm,
 ) : FeedCard {
     override val key: String = "film:$tripId:${film.id}"
+
+    /** J'aime and comments on its thread (récit 115). */
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
     override val at: Instant = film.createdAt ?: Instant.EPOCH
     override val authorId: String = film.authorId
 

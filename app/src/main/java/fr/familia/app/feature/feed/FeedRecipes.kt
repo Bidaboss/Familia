@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,14 +62,13 @@ class RecipeFeedCard(
     override val at: Instant = recipe.createdAt ?: Instant.EPOCH
     override val authorId: String = recipe.authorId
 
+    /** J'aime on its thread; its comments stay those of the recipe (récit 66). */
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key), own = RecipeOwnComments(recipes, recipe.id), commentable = false)
+
     @Composable
     override fun Content(context: FeedContext) {
         val navigation = LocalFeedNavigation.current
         val tone = FeedTone.Peach
-        val lastFlow = remember(recipe.id) {
-            recipes.observeComments(recipe.id).map { it.lastOrNull() }.catch { emit(null) }
-        }
-        val lastComment by lastFlow.collectAsStateWithLifecycle(initialValue = null)
         val photoFlow = remember(recipe.id, photos) {
             photos?.observePhotos(recipePhotoFolder(recipe.id))?.map { it.firstOrNull() }?.catch { emit(null) } ?: flowOf(null)
         }
@@ -107,7 +107,6 @@ class RecipeFeedCard(
                     }
                 }
             }
-            lastComment?.let { FeedLastComment(it.authorName, it.text) }
         }
     }
 }

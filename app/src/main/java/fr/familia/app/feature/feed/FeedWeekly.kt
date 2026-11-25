@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +45,9 @@ class WeeklyFeedCard(
     private val meId: String,
 ) : FeedCard {
     override val key: String = "weekly:${question.id}"
+
+    /** J'aime and comments on its thread (récit 115). */
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
     override val at: Instant = question.publishedAt
 
     /** Familia asks it: it counts in the badge for everyone. */

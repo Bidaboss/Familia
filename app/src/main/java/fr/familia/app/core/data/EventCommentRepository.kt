@@ -27,4 +27,7 @@ interface EventCommentRepository {
     fun observeMuted(eventId: String, memberId: String): Flow<Boolean>
 
     suspend fun setMuted(eventId: String, memberId: String, muted: Boolean)
+
+    /** How many comments in all, for the counter of a card of the gazette (récit 115); null: unknown. */
+    suspend fun count(eventId: String): Int? = null
 }
