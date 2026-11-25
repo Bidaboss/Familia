@@ -62,6 +62,20 @@ service cloud.firestore {
       return isOwner() || isChefOf(householdId);
     }
 
+    // Récit 114 (l'admin, 25/11 19 h 52): an adult who looks after a child, with or without the app:
+    // one of its responsible adults (parentIds) or a chef de famille of its household. They write
+    // its surnom, its card, its photo and its wishes, never its profile, household or parents
+    // (the admin principal's), and never anything of another adult.
+    function caresFor(memberId) {
+      return isMember()
+        && memberId is string
+        && exists(memberPath(memberId))
+        && get(memberPath(memberId)).data.profile != 'adult'
+        && get(memberPath(myMemberId())).data.profile == 'adult'
+        && (myMemberId() in get(memberPath(memberId)).data.parentIds
+            || isChefOf(get(memberPath(memberId)).data.householdId));
+    }
+
     // A real calendar day as AAAA-MM-JJ (month 01 to 12, day 01 to 31).
     function isDay(value) {
       return value is string && value.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$');
@@ -155,6 +169,12 @@ service cloud.firestore {
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone'])
             || (resource.data.profile == 'adult'
                 && (!('phone' in request.resource.data) || isPhone(request.resource.data.phone))))
+        && (!('nickname' in request.resource.data) || isNickname(request.resource.data.nickname));
+
+      // Récit 114 (l'admin, 25/11 19 h 52): whoever looks after a child sets or removes its surnom.
+      // Its first name, birth date, profile, household and parents stay the admin principal's.
+      allow update: if caresFor(memberId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nickname'])
         && (!('nickname' in request.resource.data) || isNickname(request.resource.data.nickname));
 
       // Only the admin principal adds a member (the family rarely grows, so the chefs have no
@@ -2249,6 +2269,26 @@ service cloud.firestore {
         && (request.resource.data.get('alreadyBought', false) == true
             || resource.data.get('contributedTotal', 0) == 0);
 
+      // Récit 114 (l'admin, 25/11 19 h 52): whoever looks after a child (caresFor) edits a wish of its
+      // « Mes envies » that it sees, as its author would: its author, who shares it and its total
+      // stay. Never an idea kept from it, never refused for a reservation: it would tell.
+      allow update: if isMember()
+        && list().kind == 'wishes'
+        && list().revealed == false
+        && resource.data.visibleToBeneficiary == true
+        && caresFor(list().beneficiaryId)
+        && isValidGiftItem(request.resource.data)
+        && isValidItemPhoto(listId, request.resource.data, resource.data)
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.authorName == resource.data.authorName
+        && request.resource.data.visibleToBeneficiary == true
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.get('coBeneficiaryId', null) == resource.data.get('coBeneficiaryId', null)
+        && request.resource.data.get('contributedTotal', 0) == resource.data.get('contributedTotal', 0)
+        && isValidAlreadyBought(request.resource.data)
+        && (request.resource.data.get('alreadyBought', false) == true
+            || resource.data.get('contributedTotal', 0) == 0);
+
       // Récit 73: whoever shares the wish, or keeps the lists of a child who does, edits it too, as its
       // author would, without changing who shares it. Never refused for a reservation: it would tell.
       allow update: if isMember()
@@ -2283,6 +2323,15 @@ service cloud.firestore {
         && resource.data.authorId == myMemberId()
         && list().revealed == false
         && (resource.data.visibleToBeneficiary == true || !exists(claimPath()));
+
+      // Récit 114 (l'admin, 25/11 19 h 52): whoever looks after a child (caresFor: a responsible adult
+      // or the chef of its household, with or without the app) removes a wish of its « Mes envies »
+      // that it sees, whoever wrote it. Never an idea kept from it, never refused for a reservation.
+      allow delete: if isMember()
+        && list().kind == 'wishes'
+        && list().revealed == false
+        && resource.data.visibleToBeneficiary == true
+        && caresFor(list().beneficiaryId);
     }
 
     // giftLists/{listId}/claims/{itemId}: the reservation of an item, one at most (PRD, récit 9).
@@ -2616,7 +2665,9 @@ service cloud.firestore {
             || isOwner()
             || (get(memberPath(memberId)).data.profile != 'adult'
                 && get(memberPath(myMemberId())).data.profile == 'adult'
-                && get(memberPath(myMemberId())).data.householdId == get(memberPath(memberId)).data.householdId));
+                && get(memberPath(myMemberId())).data.householdId == get(memberPath(memberId)).data.householdId)
+            // Récit 114: a responsible adult of another household too.
+            || caresFor(memberId));
     }
 
     // memberPhotos/{memberId} -> { jpeg, updatedAt }: a square JPEG of about 100 KB, made by the
