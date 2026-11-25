@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
@@ -19,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,6 +37,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.ChoiceTile
 import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.model.GenealogyTree
 import fr.familia.app.core.model.Kin
@@ -105,8 +104,8 @@ internal fun LinkDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.genealogy_link_title, person.firstName)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                Column(Modifier.selectableGroup()) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Relation.entries.forEach { r ->
                         Choice(stringResource(relationLabel(r), person.firstName), selected = relation == r) { relation = r }
                     }
@@ -116,7 +115,7 @@ internal fun LinkDialog(
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.heightIn(min = 40.dp),
                 )
-                Column(Modifier.selectableGroup()) {
+                Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Choice(stringResource(R.string.genealogy_link_new_kin), selected = picked == NEW_KIN) { other = NEW_KIN }
                     val label = rememberPickLabel(tree.people.values, householdNames)
                     others.forEach { p -> Choice(label(p), selected = picked == p.id) { other = p.id } }
@@ -154,7 +153,7 @@ internal fun PickPersonDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.genealogy_join_title)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
+            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 people.forEach { p -> Choice(label(p), selected = picked == p.id) { picked = p.id } }
             }
         },
@@ -185,19 +184,16 @@ private fun relationLabel(relation: Relation): Int = when (relation) {
     Relation.Partner -> R.string.genealogy_relation_partner
 }
 
+/** One choice of a dialog, as a tile (refonte, DESIGN-57): no more radio buttons. */
 @Composable
 private fun Choice(label: String, selected: Boolean, onSelect: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(12.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-    }
+    ChoiceTile(
+        title = label,
+        selected = selected,
+        onClick = onSelect,
+        modifier = Modifier.fillMaxWidth(),
+        titleStyle = MaterialTheme.typography.bodyLarge,
+    )
 }
 
 /**
