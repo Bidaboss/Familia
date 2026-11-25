@@ -30,10 +30,7 @@ import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.managesHousehold
 import fr.familia.app.core.model.nextBirthday
 import fr.familia.app.core.model.wishesListId
-<<<<<<< HEAD
 import fr.familia.app.feature.members.MembersViewModel
-=======
->>>>>>> origin/claude/project-thread-kju5gm
 import fr.familia.app.core.ui.sendWrite
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -250,25 +247,16 @@ class MemberProfileV2ViewModel(
         add(FillPart.Phone)
     }
 
-<<<<<<< HEAD
     /** The card, the number of wishes and of recipes written, read on every page; my note on the others'. */
     private val extras: Flow<Extras> = run {
-=======
-    /** The card, the number of wishes and of recipes written, read on every page. */
-    private val extras: Flow<Triple<MemberCard?, Int, Int>> = run {
->>>>>>> origin/claude/project-thread-kju5gm
         val card = (memberCards?.observeCard(memberId)?.map<MemberCard?, MemberCard?> { it ?: MemberCard(memberId) } ?: flowOf(null))
             .orElse(null).onStart { emit(null) }
         val wishes = (gifts?.observeItems(wishesListId(memberId), hiddenFromMe = true)?.map { it.size } ?: flowOf(0)).orElse(0).onStart { emit(0) }
         val recipe = (recipes?.observeRecipes()?.map { list -> list.count { it.authorId == memberId } } ?: flowOf(0))
             .orElse(0).onStart { emit(0) }
-<<<<<<< HEAD
         val note = (notes?.takeIf { readerId != memberId }?.observe(readerId, memberId)?.map<String, String?> { it } ?: flowOf(null))
             .orElse(null).onStart { emit(null) }
         combine(card, wishes, recipe, note) { c, w, r, n -> Extras(c, w, r, n) }
-=======
-        combine(card, wishes, recipe) { c, w, r -> Triple(c, w, r) }
->>>>>>> origin/claude/project-thread-kju5gm
     }
 
     private val tree = combine(kin, links, words, extras) { k, l, w, f -> Pair(Triple(k, l, w), f) }
@@ -286,17 +274,10 @@ class MemberProfileV2ViewModel(
             managesHousehold = reader != null && fam.ownerId == reader.id,
             saving = sf.first,
             saveFailed = sf.second,
-<<<<<<< HEAD
             hasTastes = t.second.card?.let { !it.isEmpty } == true,
             wishCount = t.second.wishes,
             recipeCount = t.second.recipes,
             card = t.second.card.takeIf { memberCards != null },
-=======
-            hasTastes = t.second.first?.let { !it.isEmpty } == true,
-            wishCount = t.second.second,
-            recipeCount = t.second.third,
-            card = t.second.first.takeIf { memberCards != null },
->>>>>>> origin/claude/project-thread-kju5gm
             canEditCard = reader != null && memberCards != null && fam.canChangePhoto(reader, member),
             fillable = fillable,
             householdSize = fam.members.count { it.householdId == member.householdId },
@@ -332,7 +313,6 @@ class MemberProfileV2ViewModel(
         return true
     }
 
-<<<<<<< HEAD
     /** « Renommer le foyer »: 1 to 40 characters, the rules check who may. */
     fun renameHousehold(name: String) {
         val repo = members ?: return
@@ -386,8 +366,6 @@ class MemberProfileV2ViewModel(
         }
     }
 
-=======
->>>>>>> origin/claude/project-thread-kju5gm
     /** My photo, from « Changer ma photo » on the avatar of my page (P3). */
     fun savePhoto(jpeg: ByteArray) {
         val repo = photos ?: return

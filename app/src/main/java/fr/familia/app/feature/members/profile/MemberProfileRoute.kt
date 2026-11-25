@@ -71,10 +71,7 @@ fun MemberProfileRoute(
                     gifts = container?.giftRepository?.takeIf { giftsOn },
                     recipes = container?.recipeRepository?.takeIf { recipesOn },
                     photos = container?.memberPhotoRepository,
-<<<<<<< HEAD
                     notes = container?.memberNoteRepository,
-=======
->>>>>>> origin/claude/project-thread-kju5gm
                 )
             }
         },
@@ -99,12 +96,9 @@ fun MemberProfileRoute(
             onPrepareSurprise = if (giftsOn && !viewingAs && memberId != currentMember.id) ({ giftActions.onPrepareSurprise(memberId) }) else null,
             onOpenRecipes = onOpenRecipes,
             onAddRecipe = onAddRecipe?.takeIf { memberId == currentMember.id },
-<<<<<<< HEAD
             onRenameHousehold = v2Model::renameHousehold,
             onEditNote = v2Model::editNote,
             onMakeIdea = if (giftsOn && !viewingAs) ({ note -> giftActions.onMakeIdea(memberId, note) }) else null,
-=======
->>>>>>> origin/claude/project-thread-kju5gm
         ),
     )
 }
@@ -113,9 +107,6 @@ fun MemberProfileRoute(
 data class ProfileGiftActions(
     val onOpenList: (listId: String) -> Unit = {},
     val onPrepareSurprise: (beneficiaryId: String) -> Unit = {},
-<<<<<<< HEAD
     /** « En faire une idée » from « Mes notes »: a new idea of the carnet about this member. */
     val onMakeIdea: (personId: String, note: String) -> Unit = { _, _ -> },
-=======
->>>>>>> origin/claude/project-thread-kju5gm
 )
