@@ -1943,7 +1943,8 @@
     <string name="recipe_remove_failed">La recette n\'a pas pu être retirée. Vérifie la connexion et réessaie.</string>
     <string name="recipe_missing_title">Recette introuvable</string>
     <string name="recipe_missing_body">Elle a peut-être été retirée du carnet.</string>
-    <string name="recipe_unavailable_body">Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier.</string>
+    <string name="recipe_author_only">Seule la personne qui l\'a notée peut la modifier ou la retirer.</string>
+    <string name="recipe_story_quote">« %1$s »</string>
     <string name="recipe_leave_title">Quitter sans enregistrer ?</string>
     <string name="recipe_leave_body">Ce que tu as écrit sera perdu.</string>
     <string name="recipe_tile_main">La recette</string>

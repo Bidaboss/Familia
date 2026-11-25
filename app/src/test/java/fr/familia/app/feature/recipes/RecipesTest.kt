@@ -159,6 +159,15 @@ class RecipesTest {
     }
 
     @Test
+    fun `a recipe without origin says « De » who noted it, and names its author by today's first name`() = runTest {
+        val repo = FakeRecipes(listOf(apple.copy(authorName = "Ancien prénom")))
+        val vm = RecipeDetailViewModel(repo, FakeMembers(), "adult2", "r1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val ready = vm.uiState.value as RecipeDetailUiState.Ready
+        assertEquals("Adult1" to "Adult1", ready.origin to ready.authorName)
+    }
+
+    @Test
     fun `a new recipe is checked, then saved line by line in the author's name`() = runTest {
         val repo = FakeRecipes()
         val vm = RecipeEditViewModel(repo, FakeMembers(), "adult2", recipeId = null)
