@@ -96,18 +96,22 @@ describe('functions', () => {
     await ratings.doc('pirate').set({ stars: 9 });
     await updateRatingAverage(db, 's1', 'p1');
     let p = await db.doc('surprises/s1/proposals/p1').get();
-    assert.equal(p.get('ratingSum'), 9);
+    assert.equal(p.get('ratingSum'), null); // 2 ratings: the sum would tell them.
     assert.equal(p.get('ratingCount'), 2);
+    await ratings.doc('hugo').set({ stars: 3 });
+    await updateRatingAverage(db, 's1', 'p1');
+    p = await db.doc('surprises/s1/proposals/p1').get();
+    assert.equal(p.get('ratingSum'), 12);
+    assert.equal(p.get('ratingCount'), 3);
     await ratings.doc('jade').set({ stars: 2 }); // Changed her mind.
     await updateRatingAverage(db, 's1', 'p1');
     p = await db.doc('surprises/s1/proposals/p1').get();
-    assert.equal(p.get('ratingSum'), 6);
-    assert.equal(p.get('ratingCount'), 2);
+    assert.equal(p.get('ratingSum'), 9);
     await ratings.doc('ines').delete();
     await updateRatingAverage(db, 's1', 'p1');
     p = await db.doc('surprises/s1/proposals/p1').get();
-    assert.equal(p.get('ratingSum'), 2);
-    assert.equal(p.get('ratingCount'), 1);
+    assert.equal(p.get('ratingSum'), null);
+    assert.equal(p.get('ratingCount'), 2);
     await updateRatingAverage(db, 's1', 'missing'); // A removed proposal: nothing to keep.
     assert.equal((await db.doc('surprises/s1/proposals/missing').get()).exists, false);
   });

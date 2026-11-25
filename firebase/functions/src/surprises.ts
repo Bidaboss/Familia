@@ -24,6 +24,9 @@ export function validAmount(value: unknown): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+/** The average shows from 3 ratings (anonymat des notes). */
+export const MIN_RATINGS = 3;
+
 /**
  * The sum and the number of the ratings of a proposal. Only the server reads every rating, so the
  * members see the average and never who rated what (the app shows it from 3 ratings).
@@ -35,7 +38,9 @@ export async function updateRatingAverage(db: Firestore, surpriseId: string, pro
     const [snapshot, ratings] = await Promise.all([tx.get(proposal), tx.get(proposal.collection('ratings'))]);
     if (!snapshot.exists) return;
     const stars = ratings.docs.map((r) => validStars(r.get('stars'))).filter((n): n is number => n !== null);
-    const sum = stars.reduce((total, n) => total + n, 0);
+    // Below 3 ratings, no sum: with one rating the sum would tell it (C1 de #619), the app shows the
+    // average from 3 ratings only.
+    const sum = stars.length >= MIN_RATINGS ? stars.reduce((total, n) => total + n, 0) : null;
     if (snapshot.get('ratingSum') === sum && snapshot.get('ratingCount') === stars.length) return;
     tx.update(proposal, { ratingSum: sum, ratingCount: stars.length });
   });
