@@ -173,12 +173,20 @@ class RecipesTest {
         val vm = RecipeEditViewModel(repo, FakeMembers(), "adult2", recipeId = null)
         vm.save()
         assertEquals(
-            setOf(RecipeFormError.TitleMissing, RecipeFormError.IngredientsMissing, RecipeFormError.StepsMissing),
+            setOf(RecipeFormError.TitleMissing, RecipeFormError.CategoryMissing, RecipeFormError.IngredientsMissing, RecipeFormError.StepsMissing),
             (vm.uiState.value as RecipeEditUiState.Editing).errors,
         )
 
         vm.update {
-            it.copy(title = " Crêpes ", servings = "4", ingredients = "farine\n\n  lait ", steps = "Mélanger.\nCuire.", tags = "goûter", origin = "Mamie Jeanne")
+            it.copy(
+                title = " Crêpes ",
+                category = RecipeCategory.Dessert,
+                servings = "4",
+                ingredients = listOf("farine", "", "  lait "),
+                steps = listOf("Mélanger.", "Cuire."),
+                tags = "goûter",
+                origin = "Mamie Jeanne",
+            )
         }
         vm.save()
 
@@ -189,24 +197,55 @@ class RecipesTest {
         assertEquals(4, saved.servings)
         assertEquals(listOf("goûter"), saved.tags)
         assertEquals("adult2" to "Adult2", saved.authorId to saved.authorName)
-        assertEquals("Mamie Jeanne", saved.origin)
+        assertEquals("Mamie Jeanne" to null, saved.origin to saved.originMemberId)
+        assertEquals(RecipeCategory.Dessert, saved.category)
+        assertEquals("Mélanger.\nCuire.", saved.steps)
         assertEquals(RecipeEditUiState.Done("r-new"), vm.uiState.value)
     }
 
     @Test
-    fun `a member of the family as origin replaces the free one, and parts are 1 to 50`() = runTest {
-        val repo = FakeRecipes(listOf(apple))
-        val vm = RecipeEditViewModel(repo, FakeMembers(), "adult1", recipeId = "r1")
+    fun `the origin is a free text, an old member origin comes as their first name, and parts are 1 to 50`() = runTest {
+        val repo = FakeRecipes(listOf(soup))
+        val vm = RecipeEditViewModel(repo, FakeMembers(), "adult1", recipeId = "r2")
+        val form = (vm.uiState.value as RecipeEditUiState.Editing).form
+        assertEquals("Adult2", form.origin)
+        assertEquals(listOf("1 potiron", "1 oignon"), form.ingredients)
+        assertEquals(listOf("Cuire.", ""), form.steps)
+        assertEquals(RecipeCategory.Divers, form.category)
+
         vm.update { it.copy(servings = "60") }
         vm.save()
         assertEquals(setOf(RecipeFormError.ServingsInvalid), (vm.uiState.value as RecipeEditUiState.Editing).errors)
 
-        vm.update { it.copy(servings = "6", origin = "Mamie Jeanne", originMemberId = "adult2") }
+        vm.update { it.copy(servings = "6", origin = "Mamie Jeanne") }
         vm.save()
 
         val (saved, isNew) = repo.saved.single()
         assertFalse(isNew)
-        assertEquals("" to "adult2", saved.origin to saved.originMemberId)
+        assertEquals("Mamie Jeanne" to null, saved.origin to saved.originMemberId)
+    }
+
+    @Test
+    fun `a new recipe starts with two empty lines, and « Ajouter la recette » waits for a name and a category`() = runTest {
+        val vm = RecipeEditViewModel(FakeRecipes(), FakeMembers(), "adult1", recipeId = null)
+        val form = (vm.uiState.value as RecipeEditUiState.Editing).form
+        assertEquals(listOf("", "") to listOf("", ""), form.ingredients to form.steps)
+        assertFalse(form.canSubmit)
+        vm.update { it.copy(title = "Crêpes") }
+        assertFalse((vm.uiState.value as RecipeEditUiState.Editing).form.canSubmit)
+        vm.update { it.copy(category = RecipeCategory.Dessert) }
+        assertTrue((vm.uiState.value as RecipeEditUiState.Editing).form.canSubmit)
+    }
+
+    @Test
+    fun `« Entrée » opens the next line right below, and the cross removes a line but never the last field`() {
+        assertEquals(listOf("farine", "", "lait") to 1, splitLine(listOf("farine", "lait"), 0, "farine\n"))
+        assertEquals(listOf("250 g", "de farine") to 1, splitLine(listOf("250 g de farine"), 0, "250 g\nde farine"))
+        assertEquals(listOf("a", "b", "c", "d") to 3, splitLine(listOf("a", "x"), 1, "b\nc\nd"))
+        assertEquals(listOf("oeufs") to null, splitLine(listOf("oeu"), 0, "oeufs"))
+        assertEquals(listOf("lait"), removeLine(listOf("farine", "lait"), 0))
+        assertEquals(listOf(""), removeLine(listOf("farine"), 0))
+        assertEquals(listOf("a", "b"), filledLines(listOf(" a ", "", "  ", "b")))
     }
 
     @Test
@@ -256,12 +295,13 @@ class RecipesTest {
     fun `the draft comes back after Android stopped the app`() = runTest {
         val saved = SavedStateHandle()
         val first = RecipeEditViewModel(FakeRecipes(), FakeMembers(), "adult1", recipeId = null, savedState = saved)
-        first.update { it.copy(title = "Crêpes", steps = "Mélanger.\nCuire.") }
+        first.update { it.copy(title = "Crêpes", category = RecipeCategory.Dessert, steps = listOf("Mélanger.", "Cuire.")) }
 
         val again = RecipeEditViewModel(FakeRecipes(), FakeMembers(), "adult1", recipeId = null, savedState = saved)
 
         val editing = again.uiState.value as RecipeEditUiState.Editing
-        assertEquals("Crêpes" to "Mélanger.\nCuire.", editing.form.title to editing.form.steps)
+        assertEquals("Crêpes" to listOf("Mélanger.", "Cuire."), editing.form.title to editing.form.steps)
+        assertEquals(RecipeCategory.Dessert, editing.form.category)
         assertTrue(editing.hasChanges)
     }
 
