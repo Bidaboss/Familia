@@ -2660,7 +2660,7 @@ Sur un téléphone en Android 10 ou plus :
 4. Dès l'ouverture, avant les images satellite : le globe est une Terre dessinée (terres beiges, mers bleues), plus jamais noir ; les images la recouvrent en quelques secondes. Ensuite le globe reste en satellite, il ne passe pas sur la Terre dessinée, et « Plantages » n'a pas de ligne « globe : imagerie absente ».
 5. Sans réseau dès l'ouverture : au bout de 8 s, Terre dessinée, et la ligne « globe : imagerie absente 8 s (0 sources), Terre dessinée ».
 6. Une destination dont le nom exact n'a pas de page Wikipédia (« Samoure, Charente », un camping…) : la photo vient du nom avant la virgule, sinon de la recherche Wikipédia, sinon d'une page à moins de 10 km. « Plantages » ne montre plus « refusé 404 ».
-7. Si aucune photo n'est trouvée : une ligne « Photo du lieu : aucune photo : nom, recherche et 10 km autour » (ou « lieu sans position »), sans le nom du lieu.
+7. Si aucune photo n'est trouvée : une ligne « Photo du lieu : aucune photo : nom, recherche, Wikidata et 10 km » (ou « lieu sans position »), sans le nom du lieu.
 
 ## Voyages : l'avatar en haut à droite, retour E-62
 
@@ -2707,3 +2707,11 @@ Sur un téléphone en Android 10 ou plus :
 3. Toucher ce « + » : le menu d'ajout s'ouvre ; ce qui est ajouté se place avant le transport.
 4. Deux transports qui se suivent : chacun a son « + » au-dessus de lui.
 5. Les « + » après une destination ne changent pas.
+
+## Voyage : photo d'une destination par OpenStreetMap et Wikidata (DEV-1, 25/11)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Une destination placée sur la carte, dont le nom n'a pas de page Wikipédia en français (un village à l'étranger, une petite île) : la photo vient maintenant de l'élément Wikidata du village ou du site d'OpenStreetMap à cet endroit, avec son auteur et sa licence en crédit.
+2. Une destination qui avait déjà une photo par Wikipédia : la même photo qu'avant.
+3. Si rien n'est trouvé : la photo d'une page à moins de 10 km, sinon le dessin, comme avant. « Plantages » ne montre rien pour ce cas.
+
