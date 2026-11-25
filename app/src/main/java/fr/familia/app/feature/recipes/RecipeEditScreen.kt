@@ -159,7 +159,7 @@ fun RecipeEditScreen(
                 RecipeEditUiState.Unavailable -> EmptyState(
                     icon = Icons.Outlined.Restaurant,
                     title = stringResource(R.string.recipe_missing_title),
-                    body = stringResource(R.string.recipe_unavailable_body),
+                    body = stringResource(R.string.recipe_author_only),
                 )
                 is RecipeEditUiState.Editing -> Form(state, onChange, showStory, photos)
             }
