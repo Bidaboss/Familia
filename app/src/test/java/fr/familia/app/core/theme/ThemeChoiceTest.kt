@@ -66,4 +66,22 @@ class ThemeChoiceTest {
         context.getSharedPreferences("familia", 0).edit().putString("theme", "spain").commit()
         assertFalse(ThemePreferences(context).highContrast)
     }
+
+    @Test
+    fun `the extent of the photo is the whole screen at first, and kept once chosen`() {
+        val context = RuntimeEnvironment.getApplication()
+        val prefs = ThemePreferences(context)
+        assertEquals(PhotoExtent.Full, prefs.photoExtent)
+        prefs.photoExtent = PhotoExtent.Top
+        assertEquals(PhotoExtent.Top, ThemePreferences(context).photoExtent)
+    }
+
+    @Test
+    fun `every photo theme has its author and its Unsplash page, and no photo is loaded yet`() {
+        FamiliaThemeId.photos.forEach { theme ->
+            val credit = ThemePhotos.credit(theme)
+            assertTrue(theme.key, credit != null && credit.author.isNotBlank() && credit.page.startsWith("https://unsplash.com/photos/"))
+        }
+        assertTrue(FamiliaThemeId.entries.none { ThemePhotos.url(it) != null })
+    }
 }

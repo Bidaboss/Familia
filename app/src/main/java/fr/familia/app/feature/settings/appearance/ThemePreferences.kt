@@ -3,6 +3,7 @@ package fr.familia.app.feature.settings.appearance
 import android.content.Context
 import androidx.core.content.edit
 import fr.familia.app.core.theme.BodyFont
+import fr.familia.app.core.theme.PhotoExtent
 import fr.familia.app.core.theme.ThemeChoice
 import fr.familia.app.core.theme.TitleFont
 
@@ -30,6 +31,11 @@ class ThemePreferences(context: Context) {
         get() = prefs.getBoolean(HIGH_CONTRAST_KEY, prefs.getString(THEME_KEY, null) == OLD_HIGH_CONTRAST)
         set(value) = prefs.edit { putBoolean(HIGH_CONTRAST_KEY, value) }
 
+    /** « Étendue de la photo » (Kévin, 25/11): the whole screen by default, or the top only. */
+    var photoExtent: PhotoExtent
+        get() = PhotoExtent.fromKey(prefs.getString(PHOTO_EXTENT_KEY, null))
+        set(value) = prefs.edit { putString(PHOTO_EXTENT_KEY, value.key) }
+
     var titleFont: TitleFont
         get() = TitleFont.fromKey(prefs.getString(TITLE_FONT_KEY, null))
         set(value) = prefs.edit { putString(TITLE_FONT_KEY, value.key) }
@@ -44,6 +50,7 @@ class ThemePreferences(context: Context) {
 
         /** The key of « Contraste fort » when it was one of the 7 themes. */
         const val OLD_HIGH_CONTRAST = "contrast"
+        const val PHOTO_EXTENT_KEY = "photoExtent"
         const val TITLE_FONT_KEY = "titleFont"
         const val BODY_FONT_KEY = "bodyFont"
     }

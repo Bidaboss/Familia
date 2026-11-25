@@ -229,6 +229,7 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.theme.LocalPhotoTheme
+import fr.familia.app.core.theme.LocalPhotoExtent
 import fr.familia.app.core.theme.PhotoBackdrop
 import fr.familia.app.core.theme.PhotoScroll
 import fr.familia.app.feature.home.PhotoHome
@@ -435,6 +436,7 @@ fun FamiliaApp(
     val themePrefs = remember(context) { ThemePreferences(context.applicationContext) }
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
     var highContrast by remember { mutableStateOf(themePrefs.highContrast) }
+    var photoExtent by remember { mutableStateOf(themePrefs.photoExtent) }
     var chosenTitleFont by remember { mutableStateOf(themePrefs.titleFont) }
     var chosenBodyFont by remember { mutableStateOf(themePrefs.bodyFont) }
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
@@ -781,9 +783,10 @@ fun FamiliaApp(
         today = LocalDate.now()
         onStopOrDispose { }
     }
+    // « Contraste fort » is an accessibility setting: it holds even with the Thèmes module off (C1 de #615).
     val shownTheme = when {
-        !themesOn -> FamiliaThemeId.Classic
         highContrast -> FamiliaThemeId.HighContrast
+        !themesOn -> FamiliaThemeId.Classic
         else -> chosenTheme.on(today)
     }
     FamiliaTheme(
@@ -812,6 +815,7 @@ fun FamiliaApp(
         LocalInAppUpdater provides updater,
         LocalSnackbarHost provides snackbar,
         LocalPhotoStorage provides container?.photoStorage,
+        LocalPhotoExtent provides photoExtent,
     ) {
         // Pinned: the title bar stays, and takes the surface color once the content scrolls under it
         // (audit DESIGN n°4), so the theme's pattern no longer mixes with the title.
@@ -2022,6 +2026,11 @@ fun FamiliaApp(
                             onHighContrast = { on ->
                                 highContrast = on
                                 themePrefs.highContrast = on
+                            },
+                            photoExtent = photoExtent,
+                            onChoosePhotoExtent = { extent ->
+                                photoExtent = extent
+                                themePrefs.photoExtent = extent
                             },
                             titleFont = chosenTitleFont,
                             onChooseTitleFont = { font ->

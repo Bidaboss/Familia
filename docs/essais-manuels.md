@@ -160,6 +160,14 @@ Tant que les photos ne sont pas branchées, l'accueil montre un dégradé des de
 8. Passe le téléphone en mode sombre. **Attendu :** même rendu qu'en clair (DESIGN-160).
 9. Active Contraste fort ou repasse le module Thèmes à éteint. **Attendu :** l'accueil d'avant, sans photo.
 
+## Réglages > Thème : galerie, étendue de la photo, crédits (récit 113, PR 3)
+
+1. Touche ton avatar puis Apparence. **Attendu :** « Étendue de la photo » (Tout l'écran choisi), puis une galerie de 3 colonnes, « Selon la saison » d'abord, puis les 8 thèmes ; la vignette choisie a un liseré de sa couleur et une coche ronde ; sous chaque vignette, son nom et une pastille de couleur.
+2. Touche une autre vignette. **Attendu :** la coche passe dessus, « Photo actuelle : … » change, et l'accueil prend le nouveau thème au retour.
+3. Choisis « Le haut seulement » et reviens à l'accueil. **Attendu :** la photo ne couvre que le haut et se fond dans le crème ; les cartes sont blanches et les titres de section bruns. Reviens sur « Tout l'écran » : la photo couvre de nouveau tout l'écran.
+4. Ouvre « Crédits des photos ». **Attendu :** une ligne par photo, « Photo de … sur Unsplash · Licence Unsplash » ; un appui ouvre la page de la photo dans le navigateur. Ferme-le : il se replie.
+5. Active Contraste fort, puis éteins le module « Thèmes au choix » dans Administration. **Attendu :** le Contraste fort reste appliqué.
+
 ## Thèmes au choix (récit 113, thèmes photo du 25/11 ; polices DESIGN-45 et 46)
 
 1. Dans Administration > Modules, allume « Thèmes au choix ». Dans l'onglet Famille, **attendu :** une ligne « Apparence » apparaît sous les réglages.

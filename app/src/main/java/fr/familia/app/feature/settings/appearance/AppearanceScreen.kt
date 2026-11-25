@@ -3,7 +3,6 @@ package fr.familia.app.feature.settings.appearance
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,7 +53,7 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.theme.FamiliaThemeId
+import fr.familia.app.core.theme.PhotoExtent
 import fr.familia.app.core.theme.ThemeChoice
 import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.core.theme.sample
@@ -70,10 +69,10 @@ import fr.familia.app.core.welcome.OpeningStyle
 import java.time.LocalDate
 
 /**
- * Ma photo › Apparence: the theme (récit 113, règles 14 à 18), « Selon la saison » first, then the 8
- * photo themes with their two colors, and « Contraste fort » apart; then the title font and the text
- * font (DESIGN-45 and 46), each name written in its own font. Every choice applies at once and stays
- * on this phone. The gallery of pictures comes with the photos (règle 15).
+ * Ma photo › Apparence: the theme (récit 113, règles 12, 14 à 19, fiche A3): « Étendue de la photo »,
+ * the gallery, « Selon la saison » first, the photo shown now, « Contraste fort » apart, and the
+ * credits of the photos, closed; then the title font and the text font (DESIGN-45 and 46), each name
+ * written in its own font. Every choice applies at once and stays on this phone.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +83,8 @@ fun AppearanceScreen(
     today: LocalDate = LocalDate.now(),
     highContrast: Boolean = false,
     onHighContrast: (Boolean) -> Unit = {},
+    photoExtent: PhotoExtent = PhotoExtent.Full,
+    onChoosePhotoExtent: (PhotoExtent) -> Unit = {},
     titleFont: TitleFont = TitleFont.Round,
     onChooseTitleFont: (TitleFont) -> Unit = {},
     bodyFont: BodyFont = BodyFont.Normal,
@@ -113,20 +114,22 @@ fun AppearanceScreen(
         ) {
             item(key = "theme") {
                 FormTile(icon = Icons.Outlined.Palette, title = stringResource(R.string.appearance_theme_title)) {
-                    ChoiceTiles(ThemeChoice.all, columns = 2) { choice, tileModifier ->
-                        val shown = choice.on(today)
-                        val season = choice == ThemeChoice.Season
+                    // « Étendue de la photo » before the gallery (Kévin, 25/11 10 h 42).
+                    Text(stringResource(R.string.appearance_extent_title), style = MaterialTheme.typography.titleSmall)
+                    ChoiceTiles(PhotoExtent.entries, columns = 2) { extent, tileModifier ->
                         ChoiceTile(
-                            title = if (season) stringResource(R.string.theme_season) else stringResource(shown.labelRes),
-                            selected = choice == current,
-                            onClick = { onChoose(choice) },
+                            title = stringResource(if (extent == PhotoExtent.Full) R.string.appearance_extent_full else R.string.appearance_extent_top),
+                            selected = extent == photoExtent,
+                            onClick = { onChoosePhotoExtent(extent) },
                             modifier = tileModifier,
-                            subtitle = if (season) stringResource(R.string.theme_season_now, stringResource(shown.labelRes)) else null,
-                            top = { ThemeDots(shown) },
                         )
                     }
+                    FormHint(stringResource(R.string.appearance_extent_help))
+                    ThemeGallery(current, today, onChoose)
                     FormHint(stringResource(R.string.appearance_theme_help))
+                    CurrentPhotoLine(current, today)
                     HighContrastRow(highContrast, onHighContrast)
+                    PhotoCredits()
                 }
             }
             item(key = "titleFont") {
@@ -249,23 +252,6 @@ private fun IconPicture(icon: AppIcon) {
             contentDescription = null,
             modifier = Modifier.requiredSize(72.dp).align(Alignment.Center),
         )
-    }
-}
-
-/** The two colors of a photo theme (règle 15): its accent and its dark color. */
-@Composable
-private fun ThemeDots(theme: FamiliaThemeId) {
-    val outline = MaterialTheme.colorScheme.outlineVariant
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        listOfNotNull(theme.accent, theme.dark).forEach {
-            Box(
-                Modifier
-                    .size(18.dp)
-                    .clip(CircleShape)
-                    .background(Color(it))
-                    .border(1.dp, outline, CircleShape),
-            )
-        }
     }
 }
 
