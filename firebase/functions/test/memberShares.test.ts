@@ -10,7 +10,7 @@ describe('what a removed member shared, against the emulator', () => {
   const app = initializeApp({ projectId: 'demo-familia' }, 'member-shares-test');
   const db = getFirestore(app);
   after(() => deleteApp(app));
-  const roots = ['recipes', 'goodNews', 'goodDeals', 'whoIsIt', 'events', 'trips', 'memberPhotos', 'capsules'];
+  const roots = ['recipes', 'goodNews', 'goodDeals', 'whoIsIt', 'events', 'trips', 'memberPhotos', 'capsules', 'gazetteThreads'];
 
   beforeEach(async () => {
     for (const root of roots) await db.recursiveDelete(db.collection(root));
@@ -43,6 +43,15 @@ describe('what a removed member shared, against the emulator', () => {
     b.set(db.doc('memberPhotos/noe'), { jpeg: 'x' });
     b.set(db.doc('memberPhotos/ines'), { jpeg: 'y' });
     b.set(db.doc('capsules/k1'), { authorId: 'noe' });
+    // La gazette: a card of the others, with their J'aime and comments; the cards about noe.
+    b.set(db.doc('gazetteThreads/help:h1'), { reactions: { noe: '💛', ines: '🎉' }, commentCount: 2 });
+    b.set(db.doc('gazetteThreads/help:h1/comments/c1'), { text: 'Je peux', authorId: 'noe' });
+    b.set(db.doc('gazetteThreads/help:h1/comments/c2'), { text: 'Moi aussi', authorId: 'ines' });
+    b.set(db.doc('gazetteThreads/wishes:noe'), { reactions: { ines: '🔥' } });
+    b.set(db.doc('gazetteThreads/wishes:noe:2026-11-25'), { reactions: { ines: '💛' } });
+    b.set(db.doc('gazetteThreads/wishes:noe/comments/c1'), { text: 'Noté', authorId: 'ines' });
+    b.set(db.doc('gazetteThreads/birthday:noe:2026-03-02'), { reactions: { ines: '🎉' } });
+    b.set(db.doc('gazetteThreads/wishes:ines'), { reactions: { noe: '👏' } });
     await b.commit();
   });
 
@@ -55,10 +64,13 @@ describe('what a removed member shared, against the emulator', () => {
     for (const gone of ['recipes/r1', 'recipes/r2/comments/c1', 'goodNews/g1', 'goodNews/g2/comments/c1', 'goodDeals/d1',
       'whoIsIt/w1', 'events/e1/photos/noe_1', 'events/e1/comments/c1', 'trips/t1/photos/p1', 'trips/t1/words/s1',
       'trips/t1/films/f1', 'memberPhotos/noe', 'trips/t1/words/s1/comments/c1', 'trips/t1/words/s2/comments/c1',
-      'trips/t1/words/s2/commentMutes/noe']) {
+      'trips/t1/words/s2/commentMutes/noe', 'gazetteThreads/help:h1/comments/c1', 'gazetteThreads/wishes:noe',
+      'gazetteThreads/wishes:noe/comments/c1', 'gazetteThreads/wishes:noe:2026-11-25', 'gazetteThreads/birthday:noe:2026-03-02']) {
       assert.equal(await exists(gone), false, gone);
     }
-    assert.equal(result.documents, 14);
+    assert.equal(result.documents, 18);
+    assert.deepEqual((await db.doc('gazetteThreads/help:h1').get()).get('reactions'), { ines: '🎉' });
+    assert.deepEqual((await db.doc('gazetteThreads/wishes:ines').get()).get('reactions'), {});
     assert.deepEqual(folders.sort(), ['events/e1/noe/', 'goodNews/noe/', 'trips/t1/noe/', 'whoIsIt/noe/']);
   });
 
@@ -66,7 +78,8 @@ describe('what a removed member shared, against the emulator', () => {
     await deleteSharedBy(db, 'noe', async () => {});
     for (const kept of ['recipes/r2', 'recipes/r2/comments/c2', 'goodNews/g2', 'whoIsIt/w2', 'events/e1',
       'events/e1/photos/ines_1', 'trips/t1', 'trips/t1/photos/p2', 'trips/t1/words/s2', 'trips/t1/words/s2/comments/c2',
-      'memberPhotos/ines', 'capsules/k1']) {
+      'memberPhotos/ines', 'capsules/k1', 'gazetteThreads/help:h1', 'gazetteThreads/help:h1/comments/c2',
+      'gazetteThreads/wishes:ines']) {
       assert.equal(await exists(kept), true, kept);
     }
   });

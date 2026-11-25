@@ -2730,6 +2730,14 @@ Sur un téléphone en Android 10 ou plus :
 2. Relancer l'appli avec le réseau : « Administration > Plantages » ne montre aucune ligne « Photo du lieu : UnknownHostException ».
 3. Un vrai refus du site (429, 403) reste signalé comme avant.
 
+## Voyage : les dates de début et de fin sur la carte du prochain voyage (demande du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Ouvrir « Voyages », onglet « À venir » : sous le nom du prochain voyage, une ligne « Du 11 au 16 avril 2027 » (premier et dernier jour), puis le mois, les jours et les kilomètres comme avant.
+2. Un voyage sur deux mois : « Du 28 mars au 2 avril 2027 ». Sur deux années : « Du 30 décembre 2026 au 3 janvier 2027 ».
+3. Un voyage d'un seul jour : « Le 11 avril 2027 ».
+4. Un nom de voyage sur deux lignes : la carte est un peu plus haute, rien n'est coupé.
+
 ## Voyage : le calendrier des dates se ferme au dernier jour, sans jour passé (retours du 25/11 soir)
 
 **Publier Firebase : non.** Seulement « APK de publication ».

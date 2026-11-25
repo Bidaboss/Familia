@@ -1234,6 +1234,102 @@ service cloud.firestore {
       allow delete: if isMember() && memberId == myMemberId();
     }
 
+    // --- La gazette : J'aime et commentaires des cartes (récits 115, 116) -----------------------
+    //
+    // gazetteThreads/{threadId}: the J'aime of one card of the gazette, and its comments under it.
+    // threadId is the key of the card with « / » turned into « : » (« help:r1 », « wishes:m3:2026-11-25 »,
+    // « album:trips:t1:2026-11-20 »). Who reads a thread is who sees its card: every member, except
+    // a coup de main (its viewerIds), the photos and the films of a trip (its readerIds), and the
+    // envies of a member, never shown to that member (PRD 67 quater). Unknown kinds are refused.
+    //
+    // reactions is a map memberId -> one of 💛 🎉 👏 🔥 (PRD 119 f): each member sets or removes only
+    // their own. commentCount and last (the 2 latest comments, for the card) are kept by the server
+    // alone (onGazetteCommentWritten). The events and the recipes keep their own comments: their
+    // thread takes the J'aime only. The words of a step (hearts and comments of their own) and the
+    // old bonnes nouvelles (lot 2) have no thread. A removed thing takes its threads with it
+    // (deleteGazetteThreadsOfThing), a removed member their comments and J'aime (deleteSharedBy). Comments: 1 to 500 characters, @mentions, a
+    // child with the app too, without approval (PRD 119 a); its author changes the text; its
+    // author, a responsible adult of its author and the admin principal remove it.
+    function threadKind(threadId) {
+      return threadId.split(':')[0];
+    }
+
+    function threadPart(threadId, index) {
+      let parts = threadId.split(':');
+      return parts.size() > index ? parts[index] : '';
+    }
+
+    function seesTripOf(tripId) {
+      let path = /databases/$(database)/documents/trips/$(tripId);
+      return tripId != '' && exists(path) && myMemberId() in get(path).data.readerIds;
+    }
+
+    function seesThread(threadId) {
+      let kind = threadKind(threadId);
+      return kind in ['post', 'event', 'recipe', 'birthday', 'weekly', 'deal']
+        || (kind == 'album' && threadPart(threadId, 1) == 'events')
+        || (kind == 'album' && threadPart(threadId, 1) == 'trips' && seesTripOf(threadPart(threadId, 2)))
+        || (kind == 'film' && seesTripOf(threadPart(threadId, 1)))
+        || (kind == 'wishes' && threadPart(threadId, 1) != '' && threadPart(threadId, 1) != myMemberId())
+        || (kind == 'help' && threadPart(threadId, 1) != ''
+            && exists(/databases/$(database)/documents/helpRequests/$(threadPart(threadId, 1)))
+            && (myMemberId() in get(/databases/$(database)/documents/helpRequests/$(threadPart(threadId, 1))).data.viewerIds || isOwner()));
+    }
+
+    function takesComments(threadId) {
+      return !(threadKind(threadId) in ['event', 'recipe']);
+    }
+
+    function isReaction(value) {
+      return value in ['💛', '🎉', '👏', '🔥'];
+    }
+
+    // Only my own J'aime moves: added, changed or removed, and nothing else of the thread.
+    function isMyReaction(before, after) {
+      let changed = after.diff(before).affectedKeys();
+      return changed.hasOnly([myMemberId()])
+        && (!(myMemberId() in after) || isReaction(after[myMemberId()]));
+    }
+
+    match /gazetteThreads/{threadId} {
+      allow read: if isMember() && seesThread(threadId);
+      allow create: if isMember()
+        && seesThread(threadId)
+        && request.resource.data.keys().hasOnly(['reactions'])
+        && request.resource.data.reactions is map
+        && isMyReaction({}, request.resource.data.reactions);
+      allow update: if isMember()
+        && seesThread(threadId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        && request.resource.data.reactions is map
+        && isMyReaction(resource.data.get('reactions', {}), request.resource.data.reactions);
+    }
+
+    match /gazetteThreads/{threadId}/comments/{commentId} {
+      allow read: if isMember() && seesThread(threadId);
+      allow create: if isMember()
+        && seesThread(threadId)
+        && takesComments(threadId)
+        && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt', 'mentionIds'])
+        && isCommentText(request.resource.data.text)
+        && hasCommentMentions(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow update: if isMember()
+        && seesThread(threadId)
+        && resource.data.authorId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt', 'mentionIds'])
+        && isCommentText(request.resource.data.text)
+        && hasCommentMentions(request.resource.data)
+        && request.resource.data.editedAt == request.time;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId()
+            || isParentOf(resource.data.authorId)
+            || isOwner());
+    }
+
     // --- Bons plans et bonnes adresses (PRD, récit 45, PRODUIT-60) ------------------------------
     //
     // goodDeals/{dealId}: kind 'deal' (a bon plan: it leaves the list at endsAt, and the server
