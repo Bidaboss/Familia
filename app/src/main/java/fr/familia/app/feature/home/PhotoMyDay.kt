@@ -111,8 +111,8 @@ internal fun PhotoSection(
         }
         Spacer(Modifier.weight(1f))
         if (pill != null && onPill != null) {
-            // 26 dp drawn, 48 dp to touch (règle 5).
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onPill)) {
+            // 26 dp drawn, 56 dp to touch (règle 5).
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.heightIn(min = 56.dp).clickable(role = Role.Button, onClick = onPill)) {
                 Text(
                     pill,
                     color = PhotoBrown,
@@ -251,7 +251,7 @@ private fun PhotoButton(text: String, background: Color, ink: Color, onClick: ()
 /** « Et 3 autres » under the 2 answers shown (règle 1): a tap shows them all. */
 @Composable
 internal fun PhotoMoreLine(more: Int, onClick: () -> Unit) {
-    Box(contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onClick)) {
+    Box(contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button, onClick = onClick)) {
         Text(
             pluralStringResource(R.plurals.home_photo_more_answers, more, more),
             color = PhotoSectionText,

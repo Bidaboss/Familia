@@ -101,13 +101,15 @@ internal val PhotoBrown = Color(0xFF5A3A2E)
  */
 @Composable
 fun PhotoFeedSwitch(onFeed: Boolean, unseen: Int, accent: Color, dark: Color, onChoose: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+    // The bar is drawn 54 dp high, but each segment is touchable on 56 dp (règle 5, B1 de #616).
+    Box(modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+    Box(Modifier.matchParentSize().padding(vertical = 1.dp).photoCard(24.dp))
     Row(
-        modifier
+        Modifier
             .fillMaxWidth()
-            .heightIn(min = 54.dp)
-            .photoCard(24.dp)
+            .heightIn(min = 56.dp)
             .selectableGroup()
-            .padding(5.dp),
+            .padding(horizontal = 5.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Segment(stringResource(R.string.home_photo_my_day), chosen = !onFeed, dark = dark, onClick = { onChoose(false) }, modifier = Modifier.weight(1f))
@@ -127,6 +129,7 @@ fun PhotoFeedSwitch(onFeed: Boolean, unseen: Int, accent: Color, dark: Color, on
             }
         }
     }
+    }
 }
 
 @Composable
@@ -138,17 +141,25 @@ private fun Segment(
     modifier: Modifier = Modifier,
     badge: @Composable () -> Unit = {},
 ) {
-    Row(
-        modifier
-            .heightIn(min = 44.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(if (chosen) dark else Color.Transparent)
-            .selectable(selected = chosen, role = Role.Tab, onClick = onClick)
-            .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
+    // 56 dp to touch, the pill of the chosen one drawn 44 dp high in it.
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .heightIn(min = 56.dp)
+            .selectable(selected = chosen, role = Role.Tab, onClick = onClick),
     ) {
-        Text(text, color = if (chosen) Color.White else PhotoBrown, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-        badge()
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 44.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(if (chosen) dark else Color.Transparent)
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text, color = if (chosen) Color.White else PhotoBrown, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+            badge()
+        }
     }
 }
