@@ -132,6 +132,50 @@ fun PhotoFeedSwitch(onFeed: Boolean, unseen: Int, accent: Color, dark: Color, on
     }
 }
 
+/**
+ * The same pill switch (.seg) for another screen, such as the two tabs of a surprise (fiche C4):
+ * [labels], an [accent] count pill on each one above 0, [chosen] drawn [dark].
+ */
+@Composable
+fun PhotoSegmentedSwitch(
+    labels: List<String>,
+    counts: List<Int>,
+    chosen: Int,
+    accent: Color,
+    dark: Color,
+    onChoose: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        Box(Modifier.matchParentSize().padding(vertical = 1.dp).photoCard(24.dp))
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .selectableGroup()
+                .padding(horizontal = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            labels.forEachIndexed { index, label ->
+                Segment(label, chosen = index == chosen, dark = dark, onClick = { onChoose(index) }, modifier = Modifier.weight(1f)) {
+                    val count = counts.getOrElse(index) { 0 }
+                    if (count > 0) {
+                        Box(
+                            Modifier
+                                .padding(start = 8.dp)
+                                .clip(CircleShape)
+                                .background(accent)
+                                .padding(horizontal = 7.dp, vertical = 2.dp),
+                        ) {
+                            Text(count.toString(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun Segment(
     text: String,

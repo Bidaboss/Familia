@@ -413,7 +413,8 @@ private fun ValidationCard(state: SurpriseUiState.Ready, actions: SurpriseAction
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                 )
             }
-            state.statuses.forEach { MemberLine(it) }
+            val reinvite = if (state.isCreator) actions.onReinvite else null
+            state.statuses.forEach { MemberLine(it, reinvite) }
             if (state.validated) {
                 Text("✓ " + stringResource(R.string.surprise_validated), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = DoneText)
                 OutlinedButton(onClick = { actions.onValidate(false) }, shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
@@ -437,7 +438,7 @@ private fun ValidationCard(state: SurpriseUiState.Ready, actions: SurpriseAction
 }
 
 @Composable
-private fun MemberLine(status: MemberStatus) {
+private fun MemberLine(status: MemberStatus, onReinvite: ((String) -> Unit)?) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             if (status.isMe) stringResource(R.string.surprise_me) else status.name,
@@ -450,5 +451,11 @@ private fun MemberLine(status: MemberStatus) {
             MemberState.Declined -> Triple(stringResource(R.string.surprise_member_declined), ChipBack, QuietText)
         }
         Pill(label, back, text)
+        // « Seul le créateur réinvite » (brief §4).
+        if (onReinvite != null && status.state == MemberState.Declined && !status.isMe) {
+            TextButton(onClick = { onReinvite(status.memberId) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.surprise_reinvite), fontWeight = FontWeight.ExtraBold)
+            }
+        }
     }
 }

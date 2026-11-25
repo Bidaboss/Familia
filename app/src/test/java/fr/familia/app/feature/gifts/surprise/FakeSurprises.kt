@@ -129,6 +129,16 @@ class FakeSurprises(initial: List<Surprise> = emptyList(), private val failWith:
         updateRow(surpriseId, memberId) { it.copy(validated = validated) }
     }
 
+    override suspend fun setMuted(surpriseId: String, memberId: String, muted: Boolean) {
+        failWith?.let { throw it }
+        updateRow(surpriseId, memberId) { it.copy(muted = muted) }
+    }
+
+    override suspend fun reinvite(surpriseId: String, memberId: String) {
+        failWith?.let { throw it }
+        rows.value = rows.value + (surpriseId to rows.value[surpriseId].orEmpty().filter { it.memberId != memberId })
+    }
+
     override suspend fun decline(surpriseId: String, memberId: String) {
         failWith?.let { throw it }
         updateRow(surpriseId, memberId) { it.copy(declined = true, validated = false) }
