@@ -216,7 +216,7 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable 
                 Text(
                     stringResource(R.string.feed_empty),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (LocalFeedGlass.current) fr.familia.app.core.theme.PhotoSectionText else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 24.dp),
                 )
             }
