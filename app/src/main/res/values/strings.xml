@@ -617,7 +617,7 @@
     <string name="member_remove">Retirer de la famille</string>
     <string name="member_remove_blocked">Ajoute d\'abord un autre adulte responsable pour : %1$s.</string>
     <string name="member_remove_title">Retirer %1$s de la famille ?</string>
-    <string name="member_remove_body">La fiche de %1$s disparaît et cette adresse n\'ouvre plus l\'appli. Tu pourras l\'ajouter à nouveau plus tard.</string>
+    <string name="member_remove_body">La fiche de %1$s, ses envies, ses photos, ses commentaires et les recettes notées disparaissent de Familia, et cette adresse n\'ouvre plus l\'appli. Cela ne peut pas se défaire.</string>
     <string name="member_remove_confirm">Retirer</string>
     <string name="feedback_title">Une idée ? Un souci ?</string>
     <string name="feedback_intro">Dis-nous ce qui te plaît, ce qui manque ou ce qui ne marche pas : l\'admin de la famille le reçoit.</string>
