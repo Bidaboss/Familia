@@ -77,11 +77,13 @@ class ThemeChoiceTest {
     }
 
     @Test
-    fun `every photo theme has its author and its Unsplash page, and no photo is loaded yet`() {
+    fun `every photo theme has its author, its Unsplash page and its picture, the others none`() {
         FamiliaThemeId.photos.forEach { theme ->
             val credit = ThemePhotos.credit(theme)
             assertTrue(theme.key, credit != null && credit.author.isNotBlank() && credit.page.startsWith("https://unsplash.com/photos/"))
+            assertEquals("${credit!!.page}/download?force=true&w=1080", ThemePhotos.url(theme))
         }
-        assertTrue(FamiliaThemeId.entries.none { ThemePhotos.url(it) != null })
+        assertEquals(8, FamiliaThemeId.photos.map { ThemePhotos.credit(it)!!.id }.distinct().size)
+        assertTrue(FamiliaThemeId.entries.filterNot { it.isPhoto }.none { ThemePhotos.url(it) != null })
     }
 }
