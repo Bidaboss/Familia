@@ -121,6 +121,7 @@ internal fun MyWishDetail(
                     }
                 }
             }
+            item.whereToFind?.let { Text(stringResource(R.string.wish_where, it), style = MaterialTheme.typography.bodyLarge) }
             item.url?.let { url -> LinkCard(url) }
             Surface(shape = RoundedCornerShape(24.dp), color = WishLook.Field, contentColor = WishLook.Ink, modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

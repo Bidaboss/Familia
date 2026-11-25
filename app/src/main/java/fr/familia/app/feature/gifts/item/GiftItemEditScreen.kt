@@ -183,7 +183,8 @@ private enum class ItemPart { Link, Wish }
 
 private fun GiftItemFormError.part(): ItemPart = when (this) {
     GiftItemFormError.BadLink -> ItemPart.Link
-    GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong, GiftItemFormError.NoteTooLong, GiftItemFormError.BadPrice -> ItemPart.Wish
+    GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong, GiftItemFormError.NoteTooLong, GiftItemFormError.BadPrice,
+    GiftItemFormError.WhereTooLong -> ItemPart.Wish
 }
 
 /**
@@ -252,6 +253,15 @@ private fun FormContent(
                 error = errorText(errors, GiftItemFormError.BadPrice),
                 keyboard = KeyboardType.Decimal,
                 suffix = "€",
+            )
+            // « Où trouver le cadeau ? » (K8): a shop, a town or a site; « En ligne · … » from a pasted link.
+            Label(stringResource(R.string.wish_form_where))
+            WhiteField(
+                value = form.whereToFind,
+                onValue = { value -> onChange { it.copy(whereToFind = value) } },
+                placeholder = stringResource(R.string.wish_form_where_hint),
+                error = errorText(errors, GiftItemFormError.WhereTooLong),
+                capitalize = true,
             )
         }
         if (state.showAlreadyBought) {
@@ -610,6 +620,7 @@ private fun errorText(errors: Set<GiftItemFormError>, vararg kinds: GiftItemForm
         GiftItemFormError.BadLink -> R.string.error_gift_bad_link
         GiftItemFormError.BadPrice -> R.string.error_gift_bad_price
         GiftItemFormError.NoteTooLong -> R.string.error_gift_note_too_long
+        GiftItemFormError.WhereTooLong -> R.string.error_gift_where_too_long
     }
     return { Text(stringResource(res), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
 }

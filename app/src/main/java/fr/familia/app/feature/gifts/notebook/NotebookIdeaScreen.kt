@@ -308,6 +308,7 @@ private fun itemError(errors: Set<GiftItemFormError>, vararg kinds: GiftItemForm
             GiftItemFormError.BadLink -> R.string.error_gift_bad_link
             GiftItemFormError.BadPrice -> R.string.error_gift_bad_price
             GiftItemFormError.NoteTooLong -> R.string.error_gift_note_too_long
+            GiftItemFormError.WhereTooLong -> R.string.error_gift_where_too_long
         },
     )
 }

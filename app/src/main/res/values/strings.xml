@@ -4353,4 +4353,8 @@
     <string name="wish_detail_remove_body">Elle disparaît de ta liste, pour toute la famille.</string>
     <string name="wish_detail_remove_confirm">Retirer</string>
     <string name="wish_detail_keep">Garder</string>
+    <string name="wish_form_where">Où trouver le cadeau ?</string>
+    <string name="wish_form_where_hint">Magasin, ville, site…</string>
+    <string name="wish_where">📍 Où le trouver : %1$s</string>
+    <string name="error_gift_where_too_long">120 caractères au plus.</string>
 </resources>
