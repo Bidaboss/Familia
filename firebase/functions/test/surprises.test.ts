@@ -284,6 +284,15 @@ describe('functions', () => {
     assert.deepEqual(sent.map((x) => x.token).sort(), ['token-ines', 'token-jade']);
     assert.match(sent[0].notice.title, /à confirmer de nouveau/);
 
+    // A run cut after the surprise went back: the next one finishes the steps, nobody told twice.
+    await db.doc('offeredSurprises/s1').set({ title: 'Noël de Camille', beneficiaryId: 'camille', cancelAsked: true });
+    await db.doc('surprises/s1/offered/wish-i9').set({ path: 'giftLists/wishes-camille/items/i9', data: { title: 'Un disque' } });
+    sent.length = 0;
+    assert.equal(await cancelSurpriseOffered(db, send, 's1'), true);
+    assert.equal((await db.doc('giftLists/wishes-camille/items/i9').get()).get('title'), 'Un disque');
+    assert.equal((await db.doc('offeredSurprises/s1').get()).exists, false);
+    assert.equal(sent.length, 0);
+
     // Offered again later: handled again, from scratch.
     await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'jade' });
     assert.equal(await onSurpriseOffered(db, send, 's1'), 2);

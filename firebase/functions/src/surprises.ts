@@ -349,17 +349,21 @@ export function isCancelAsked(before: Record<string, unknown> | undefined, after
 export async function cancelSurpriseOffered(db: Firestore, send: Sender, surpriseId: string): Promise<boolean> {
   const surpriseRef = db.collection('surprises').doc(surpriseId);
   const listed = db.collection('offeredSurprises').doc(surpriseId);
-  // Once only: the surprise goes back to « preparing » in a transaction.
-  const mine = await db.runTransaction(async (tx) => {
-    const current = await tx.get(surpriseRef);
-    if (!current.exists || current.get('status') !== 'offered') return false;
-    tx.update(surpriseRef, {
-      status: 'preparing', offeredAt: FieldValue.delete(), offeredBy: FieldValue.delete(),
-      offeredHandledAt: FieldValue.delete(), updatedAt: FieldValue.serverTimestamp(),
-    });
-    return true;
+  // The surprise goes back to « preparing » once, in a transaction. A run cut after it (its line still
+  // asked) does the steps again, which are all safe twice, without telling anyone a second time (C2 de #631).
+  const pass = await db.runTransaction(async (tx) => {
+    const [current, line] = await Promise.all([tx.get(surpriseRef), tx.get(listed)]);
+    if (current.exists && current.get('status') === 'offered') {
+      tx.update(surpriseRef, {
+        status: 'preparing', offeredAt: FieldValue.delete(), offeredBy: FieldValue.delete(),
+        offeredHandledAt: FieldValue.delete(), updatedAt: FieldValue.serverTimestamp(),
+      });
+      return 'first';
+    }
+    if (current.exists && line.get('cancelAsked') === true) return 'again';
+    return null;
   });
-  if (!mine) {
+  if (!pass) {
     await listed.delete();
     return false;
   }
@@ -390,7 +394,7 @@ export async function cancelSurpriseOffered(db: Firestore, send: Sender, surpris
         await ref.update({ status: before[id] ?? 'bought', updatedAt: FieldValue.serverTimestamp() });
       }
     }
-    await r.ref.update({ statusBefore: FieldValue.delete() });
+    if (r.get('statusBefore') !== undefined) await r.ref.update({ statusBefore: FieldValue.delete() });
   }
   // Back on « Pour qui » and on the tile of Cadeaux.
   await db.collection('openSurprises').doc(surpriseId).set({
@@ -398,6 +402,7 @@ export async function cancelSurpriseOffered(db: Firestore, send: Sender, surpris
     updatedAt: FieldValue.serverTimestamp(),
   });
   await listed.delete();
+  if (pass === 'again') return true;
   const owner = (await db.doc('config/family').get()).get('ownerMemberId');
   const others = (await activeMemberIds(db, surpriseId, surprise.get('memberIds'))).filter((id) => id !== owner && id !== beneficiaryId);
   const recipients = (await giftAudience(db))(others);
