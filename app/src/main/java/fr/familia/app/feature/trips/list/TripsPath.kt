@@ -22,6 +22,8 @@ data class TripSummary(
     val placeName: String? = null,
     /** From step to step as the crow flies, for the card of the next trip (E-31); null: fewer than two placed steps. */
     val distanceKm: Int? = null,
+    /** The photo chosen for that destination with « Autre photo », the same for the whole family; null: the one found. */
+    val cover: fr.familia.app.core.place.PlacePhoto? = null,
 )
 
 /**

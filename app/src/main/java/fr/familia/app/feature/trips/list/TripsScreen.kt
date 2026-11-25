@@ -527,6 +527,7 @@ private fun HeroCard(
             landscape = trip.landscape,
             photos = photos,
             modifier = Modifier.fillMaxSize(),
+            chosen = summary.cover,
             // Retour du 25/11 soir : the credit is inside the trip, at its bottom.
             showCredit = false,
         )
