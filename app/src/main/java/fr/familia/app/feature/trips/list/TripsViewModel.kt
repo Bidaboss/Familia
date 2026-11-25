@@ -77,7 +77,7 @@ class TripsViewModel(
         attempt.update { it + 1 }
     }
 
-    /** Where it goes (its first step with a position) and how far (E-31). A trip whose steps cannot be read has neither. */
+    /** Where it goes (its first destination with a position, else its first step with one) and how far (E-31). A trip whose steps cannot be read has neither. */
     private fun placesOf(repo: TripRepository, list: List<Trip>): Flow<Map<String, TripWhere>> =
         if (list.isEmpty()) {
             flowOf(emptyMap())
@@ -86,9 +86,13 @@ class TripsViewModel(
                 list.map { trip ->
                     repo.observeSteps(trip.id)
                         .map { steps ->
+                            // The photo is the one of the first destination, never of a transport nor its departure (retour du 25/11 soir).
+                            val destination = fr.familia.app.feature.trips.detail.tripTimeline(trip, steps).destinations
+                                .map { it.step }.firstOrNull { it.hasPosition }
+                            val where = destination ?: steps.firstOrNull { it.hasPosition }
                             trip.id to TripWhere(
-                                point = steps.firstOrNull { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) },
-                                name = steps.firstOrNull { it.hasPosition }?.place?.substringBefore('→')?.substringBefore(',')?.trim(),
+                                point = where?.let { GeoPoint(it.lat!!, it.lng!!) },
+                                name = destination?.let(fr.familia.app.feature.trips.detail::placeName),
                                 km = fr.familia.app.feature.trips.detail.tripFigures(trip, steps, 0)?.distanceKm,
                             )
                         }

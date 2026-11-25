@@ -2771,3 +2771,4 @@ Sur un téléphone en Android 10 ou plus :
 1. Ajouter une destination dans une grande ville dont la page Wikipédia montre un montage (par exemple Ajaccio, Lyon ou Nice) : la vignette montre une seule photo, pas trois ou quatre photos collées.
 2. Si aucune autre photo n'existe, le dessin habituel remplace la photo, sans erreur.
 3. Les destinations qui avaient déjà une vraie photo la gardent.
+4. Dans un voyage avec un trajet en voiture puis une destination, le diaporama de la grande photo ne montre que les destinations : jamais le lieu de départ du trajet. Dans la liste des voyages, la photo du prochain voyage est celle de sa première destination.

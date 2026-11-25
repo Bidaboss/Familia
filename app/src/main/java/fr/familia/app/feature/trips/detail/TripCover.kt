@@ -58,15 +58,19 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.map.GeoPoint
 import kotlinx.coroutines.delay
 
-/** One image of the cover: a place and its point, when the step has one. */
-data class CoverPlace(val name: String, val point: GeoPoint?)
+/** One image of the cover: a place and its point, when the step has one; [fromStep] false for the title of a trip without a destination. */
+data class CoverPlace(val name: String, val point: GeoPoint?, val fromStep: Boolean = true)
 
-/** The places of the cover (règle 10): the main one first (the first step), then the others, at most [MAX_COVER_PLACES], each once. */
+/**
+ * The places of the cover (règle 10): the destinations only, in the order of the trip, never a transport
+ * nor its departure (retour du 25/11 soir), at most [MAX_COVER_PLACES], each once. Without a destination,
+ * the title of the trip and the drawn landscape.
+ */
 fun coverPlaces(trip: Trip, steps: List<TripStep>): List<CoverPlace> {
-    val places = steps.map { step ->
-        CoverPlace(step.place.substringBefore('→').substringBefore(',').trim(), step.takeIf { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) })
+    val places = tripTimeline(trip, steps).destinations.map { row ->
+        CoverPlace(placeName(row.step), row.step.takeIf { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) })
     }.filter { it.name.isNotEmpty() }.distinctBy { it.name.lowercase() }
-    return places.ifEmpty { listOf(CoverPlace(trip.title, null)) }.take(MAX_COVER_PLACES)
+    return places.ifEmpty { listOf(CoverPlace(trip.title, null, fromStep = false)) }.take(MAX_COVER_PLACES)
 }
 
 const val MAX_COVER_PLACES = 5
@@ -118,7 +122,7 @@ fun TripCoverCarousel(
             ) {
                 PlaceCover(
                     // Without a step, the name is the free title of the trip: it never goes to Wikipedia (B1 of #586).
-                    place.name.takeIf { steps.isNotEmpty() }, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
+                    place.name.takeIf { place.fromStep }, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
                     // Under « Voyage programmé », away from the pause button and the title: the licence asks for it to be read.
                     creditAlignment = Alignment.TopStart,
                     creditTop = 44.dp,
