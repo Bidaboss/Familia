@@ -1767,6 +1767,9 @@ fun FamiliaApp(
                             onOpenList = { other -> navController.navigate(GiftListDestination(other)) },
                             onOpenSurprise = { id -> navController.navigate(SurpriseDestination(id)) },
                             onPrepareSurprise = { id -> navController.navigate(SurpriseEditDestination(beneficiaryId = id)) },
+                            // « Mes idées » of a list of wishes (correctif E4): my notebook, for that person.
+                            onAddIdea = if (features.isOn(Feature.GiftNotebook)) ({ id -> navController.navigate(NotebookIdeaDestination(personId = id)) }) else null,
+                            onOpenIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
                             showClaimOccasion = features.isOn(Feature.WishesReveal),
                             onOpenBeneficiary = if (features.isOn(Feature.MemberCard)) {
                                 { id -> navController.navigate(MemberProfileDestination(id)) }

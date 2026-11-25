@@ -132,7 +132,7 @@ class ProfileGiftsTest {
     }
 
     @Test
-    fun `in the Cadeaux tab, my wishes lead to my page`() {
+    fun `in the Cadeaux tab, my wishes open my list, never my page`() {
         val opened = mutableListOf<String>()
         var page = 0
         compose.setContent {
@@ -140,9 +140,10 @@ class ProfileGiftsTest {
                 GiftsScreen(previewGifts(), onOpenList = { opened += it }, onRetry = {}, onOpenMyPage = { page++ })
             }
         }
-        compose.onNodeWithText("Ma fiche").performClick()
-        assertEquals(1, page)
-        assertTrue(opened.isEmpty())
+        compose.onNodeWithText("Mes envies").performClick()
+        assertEquals(0, page)
+        assertEquals(1, opened.size)
+        assertEquals(0, compose.onAllNodesWithText("Ma fiche").fetchSemanticsNodes().size)
     }
 
     @Test

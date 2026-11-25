@@ -18,9 +18,17 @@ class GiftSeenPreferences(context: Context) {
     val seen: StateFlow<Map<String, Long>> = state
 
     fun markSeen(listId: String, at: Instant = Instant.now()) {
-        prefs.edit { putLong(listId, at.toEpochMilli()) }
+        val before = state.value[listId]
+        prefs.edit {
+            putLong(listId, at.toEpochMilli())
+            // The visit before, for the « nouveau » of the list just opened (correctif E3).
+            if (before != null) putLong(PREVIOUS + listId, before) else remove(PREVIOUS + listId)
+        }
         state.value = read()
     }
+
+    /** The visit before the last one: what the list itself counts as new. Null before a second visit. */
+    fun previousVisit(listId: String): Long? = prefs.getLong(PREVIOUS + listId, -1L).takeIf { it >= 0 }
 
     /** The first time the tab shows a list, nothing in it is new yet. */
     fun markFirstSeen(listIds: Collection<String>, at: Instant = Instant.now()) {
@@ -30,5 +38,10 @@ class GiftSeenPreferences(context: Context) {
         state.value = read()
     }
 
-    private fun read(): Map<String, Long> = prefs.all.mapNotNull { (key, value) -> (value as? Long)?.let { key to it } }.toMap()
+    private fun read(): Map<String, Long> =
+        prefs.all.filterKeys { !it.startsWith(PREVIOUS) }.mapNotNull { (key, value) -> (value as? Long)?.let { key to it } }.toMap()
+
+    private companion object {
+        const val PREVIOUS = "previous:"
+    }
 }
