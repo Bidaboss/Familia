@@ -31,20 +31,16 @@ abstract class ThemeLooksContrastTest(private val screens: List<Pair<String, @Co
     @Config(qualifiers = "+night")
     fun `Classique, dark`() = check(allLooks.first { it.dark })
 
+    // The photo themes differ only by their two colors (récit 113): the lightest accent, the
+    // warmest and a cold one stand for the 8; ThemeContrastTest checks the colors of each.
     @Test
-    fun olive() = check(look(FamiliaThemeId.Olive))
+    fun sunset() = check(look(FamiliaThemeId.Sunset))
 
     @Test
-    fun lavender() = check(look(FamiliaThemeId.Lavender))
+    fun lake() = check(look(FamiliaThemeId.Lake))
 
     @Test
-    fun night() = check(look(FamiliaThemeId.Night))
-
-    @Test
-    fun winter() = check(look(FamiliaThemeId.Winter))
-
-    @Test
-    fun spain() = check(look(FamiliaThemeId.Spain))
+    fun christmas() = check(look(FamiliaThemeId.Christmas))
 
     @Test
     fun `high contrast`() = check(look(FamiliaThemeId.HighContrast))

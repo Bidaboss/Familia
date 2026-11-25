@@ -6,7 +6,7 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.navigation.AccountActions
 import fr.familia.app.core.navigation.AccountButton
 import fr.familia.app.core.navigation.AccountSheet
-import fr.familia.app.core.theme.FamiliaThemeId
+import fr.familia.app.core.theme.ThemeChoice
 import fr.familia.app.core.ui.checkAccessibility
 import fr.familia.app.feature.events.detail.EventDetailScreen
 import fr.familia.app.feature.events.detail.previewEventDetail
@@ -124,5 +124,5 @@ class MainScreensAccessibilityTest {
     }
 
     @Test
-    fun `the Apparence`() = compose.checkAccessibility { AppearanceScreen(FamiliaThemeId.Spain, {}, {}) }
+    fun `the Apparence`() = compose.checkAccessibility { AppearanceScreen(ThemeChoice.Season, {}, {}) }
 }

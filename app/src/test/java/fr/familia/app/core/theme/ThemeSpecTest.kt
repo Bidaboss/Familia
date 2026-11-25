@@ -17,36 +17,32 @@ class ThemeSpecTest {
     }
 
     @Test
-    fun `seven themes, Argile first and by default`() {
-        assertEquals(7, FamiliaThemeId.entries.size)
+    fun `eight photo themes between Argile and Contraste fort, each with its two colors`() {
         assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.entries.first())
-        assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey(null))
-        assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey("unknown"))
-        assertEquals(FamiliaThemeId.Spain, FamiliaThemeId.fromKey("spain"))
-        assertEquals(7, FamiliaThemeId.entries.map { it.key }.toSet().size)
+        assertEquals(FamiliaThemeId.HighContrast, FamiliaThemeId.entries.last())
+        assertEquals(
+            listOf("u_nuages", "u_alpes", "u_plage", "u_noel", "u_automne", "u_lac", "u_lavande", "u_cote"),
+            FamiliaThemeId.photos.map { it.key },
+        )
+        assertEquals(FamiliaThemeId.entries.size, FamiliaThemeId.entries.map { it.key }.toSet().size)
+        assertEquals(0xFFE8875A, FamiliaThemeId.Sunset.accent)
+        assertEquals(0xFF4E2E3A, FamiliaThemeId.Sunset.dark)
+        assertNull(FamiliaThemeId.Classic.accent)
+        assertNull(FamiliaThemeId.HighContrast.dark)
     }
 
     @Test
-    fun `a phone set on a removed theme goes to the closest one`() {
-        assertEquals(FamiliaThemeId.Night, FamiliaThemeId.fromKey("arcade"))
-        assertEquals(FamiliaThemeId.Night, FamiliaThemeId.fromKey("cosmos"))
-        assertEquals(FamiliaThemeId.Olive, FamiliaThemeId.fromKey("garden"))
-        assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey("retro"))
-        assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey("travel"))
-    }
-
-    @Test
-    fun `a theme changes the mood only, with the look of Argile until the 21st`() {
+    fun `a photo theme keeps the look of Argile, in its dark color`() {
         FamiliaThemeId.entries.forEach { id ->
             val style = themeSpec(id).style
             assertEquals(id.name, 28.dp, style.cardRadius)
             if (id != FamiliaThemeId.HighContrast) assertNull(id.name, style.border)
         }
-        assertEquals(Color(0xFFC9DBA8), themeSpec(FamiliaThemeId.Olive).style.tabPill)
-        assertEquals(Color(0xFFAA151B), themeSpec(FamiliaThemeId.Spain).light.primary)
-        val night = themeSpec(FamiliaThemeId.Night).light
-        assertEquals(Color(0xFF1E1511), night.background)
-        assertEquals(Color(0xFF1E1511), night.onPrimary)
+        val lake = themeSpec(FamiliaThemeId.Lake)
+        assertEquals(Color(0xFF1C3940), lake.light.primary)
+        assertEquals(Color(0xFF1C3940), lake.style.dayColor)
+        assertEquals(Color(0xFFFFFAF2), lake.light.background)
+        assertEquals(ThemePattern.None, lake.style.pattern)
     }
 
     @Test
