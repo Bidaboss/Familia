@@ -379,7 +379,11 @@ internal class PhotoSlots(
     val goodNews: (@Composable (Modifier, compact: Boolean) -> Unit)?,
     val end: @Composable () -> Unit,
     val surprises: List<fr.familia.app.core.model.Surprise> = emptyList(),
+    val toRate: List<PhotoSurpriseToRate> = emptyList(),
 )
+
+/** A surprise of mine with proposals I have not rated yet: who it is for, and how many. */
+data class PhotoSurpriseToRate(val surpriseId: String, val beneficiaryName: String, val count: Int)
 
 /**
  * « Ma journée » on the photo (récit 113, règles 1 à 8, fiche A1): « Aujourd'hui » and its card, « À
@@ -409,6 +413,7 @@ internal fun PhotoDayList(
     val more = shownTodos.size - answers.size
     val surprise = remember(slots.surprises, ready.today) { fr.familia.app.core.model.surprisesToConfirm(slots.surprises, ready.today) }
         ?.takeIf { actions.onOpenSurprise != null }
+    val toRate = slots.toRate.takeIf { actions.onOpenSurprise != null }.orEmpty()
     val answering = HomeR1bisActions(
         onAnswer = { id, going ->
             ready.todos.firstOrNull { it is HomeTodo.Answer && it.event.id == id }?.let { todo ->
@@ -430,7 +435,7 @@ internal fun PhotoDayList(
         }
         item(key = "today") { PhotoTodayCard(days, ready.today, chosen, onChoose, colors, actions) }
         slots.firstSteps?.let { item(key = "firstSteps") { it() } }
-        item(key = "answer-title") { PhotoSection(stringResource(R.string.home_photo_to_answer), colors, count = ready.todos.size + (surprise?.count ?: 0)) }
+        item(key = "answer-title") { PhotoSection(stringResource(R.string.home_photo_to_answer), colors, count = ready.todos.size + (surprise?.count ?: 0) + toRate.size) }
         surprise?.let { s ->
             item(key = "answer-surprise") {
                 PhotoSurpriseCard(s, colors) {
@@ -447,9 +452,12 @@ internal fun PhotoDayList(
                 onChange = { (todo as? HomeTodo.Answer)?.let { a -> given[a.event.id]?.let { given = given + (a.event.id to it.copy(changing = true)) } } },
             )
         }
+        items(toRate, key = { "answer-rate-" + it.surpriseId }) { rate ->
+            PhotoSurpriseToRateCard(rate) { actions.onOpenSurprise?.invoke(rate.surpriseId) }
+        }
         if (more > 0) item(key = "answer-more") { PhotoMoreLine(more) { allAnswers = true } }
         slots.helpTodos?.let { item(key = "help") { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { it() } } }
-        if (shownTodos.isEmpty() && slots.helpTodos == null && surprise == null) item(key = "answer-none") { PhotoNothingToAnswer() }
+        if (shownTodos.isEmpty() && slots.helpTodos == null && surprise == null && toRate.isEmpty()) item(key = "answer-none") { PhotoNothingToAnswer() }
         slots.nowTravelling?.let { item(key = "now") { it() } }
         item(key = "upcoming-title") {
             PhotoSection(stringResource(R.string.home_photo_upcoming), colors, pill = stringResource(R.string.home_photo_see_all), onPill = actions.onOpenPlanning)
@@ -499,6 +507,34 @@ private fun PhotoSurpriseCard(surprise: fr.familia.app.core.model.SurprisesToCon
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier.padding(start = 8.dp).clip(RoundedCornerShape(20.dp)).background(colors.filled).padding(horizontal = 14.dp, vertical = 8.dp),
         )
+    }
+}
+
+/** « Surprise de X : n idées à noter »: opens the surprise, on its « Propositions » before the day. */
+@Composable
+private fun PhotoSurpriseToRateCard(rate: PhotoSurpriseToRate, onOpen: () -> Unit) {
+    val title = if (rate.beneficiaryName.isBlank()) {
+        stringResource(R.string.home_photo_surprise_rate_anonymous)
+    } else {
+        stringResource(R.string.home_photo_surprise_rate_title, rate.beneficiaryName)
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .photoCard()
+            .clickable(role = Role.Button, onClick = onOpen)
+            .heightIn(min = 72.dp)
+            .padding(16.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFF1E6))) {
+            Text("🎁", fontSize = 20.sp, modifier = Modifier.clearAndSetSemantics { })
+        }
+        Column(Modifier.padding(start = 14.dp).weight(1f)) {
+            Text(title, color = PhotoBrown, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(pluralStringResource(R.plurals.home_photo_surprise_rate_count, rate.count, rate.count), color = PhotoSoftBrown, fontSize = 13.sp)
+        }
+        Text("›", color = PhotoBrown, fontSize = 20.sp, modifier = Modifier.width(16.dp).clearAndSetSemantics { })
     }
 }
 
