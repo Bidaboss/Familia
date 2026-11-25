@@ -35,7 +35,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -234,9 +234,10 @@ private fun PostHeader(post: GazettePost, context: FeedContext, onMenu: (() -> U
  */
 @Composable
 private fun PostPlaceLine(post: GazettePost, place: PostPlace, canStop: Boolean, onStop: (String) -> Unit) {
-    val now by produceState(Instant.now(), post.id, post.shareEndsAt) {
+    var now by remember { mutableStateOf(Instant.now()) }
+    LaunchedEffect(post.id, post.shareEndsAt) {
         while (true) {
-            value = Instant.now()
+            now = Instant.now()
             delay(30_000)
         }
     }
