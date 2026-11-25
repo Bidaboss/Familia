@@ -150,6 +150,7 @@ import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
 import fr.familia.app.feature.gifts.surprise.SurprisePickRoute
+import fr.familia.app.feature.gifts.surprise.SurpriseEditRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -1652,6 +1653,18 @@ fun FamiliaApp(
                                 navController.popBackStack()
                                 navController.navigate(GiftListDestination(ideasListId(id)))
                             },
+                        )
+                    }
+                    composable<SurpriseEditDestination> { entry ->
+                        val args = entry.toRoute<SurpriseEditDestination>()
+                        SurpriseEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            beneficiaryId = args.beneficiaryId,
+                            surpriseId = args.surpriseId,
+                            // The surprise itself opens here with its tabs (next PR); until then, back to Cadeaux.
+                            onDone = { navController.popBackStack() },
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<NotebookDestination> {

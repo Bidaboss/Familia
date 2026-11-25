@@ -1778,6 +1778,88 @@ service cloud.firestore {
                     || (!(l.beneficiaryId in l.viewerIds) && l.beneficiaryId != myMemberId()))));
     }
 
+    // --- Surprises (brief Cadeaux et Surprise du 25/11, PRD récit 9 réécrit) ---
+    // surprises/{surpriseId}: prepared by its members for one person, the beneficiary, who never
+    // reads it, before, on the day or after, even as admin principal: no owner exception here.
+    // The beneficiary is never in memberIds, so « a member reads » is enough.
+    function surprisePath(surpriseId) {
+      return /databases/$(database)/documents/surprises/$(surpriseId);
+    }
+
+    function isValidSurprise(s) {
+      return s.keys().hasOnly(['beneficiaryId', 'title', 'occasion', 'date', 'memberIds', 'creatorId', 'creatorName',
+          'status', 'createdAt', 'updatedAt'])
+        && s.beneficiaryId is string
+        && s.title is string && s.title.size() > 0 && s.title.size() <= 60
+        && s.occasion in ['christmas', 'birthday', 'other']
+        && isDay(s.date)
+        && s.memberIds is list && s.memberIds.size() >= 1 && s.memberIds.size() <= 30
+        && !(s.beneficiaryId in s.memberIds)
+        && s.creatorId in s.memberIds
+        && s.status == 'preparing'
+        && s.updatedAt == request.time;
+    }
+
+    // Who may be in a surprise: a member with the app (a child with the app too, PRODUIT-19).
+    function canJoinSurprise(memberId) {
+      return get(memberPath(memberId)).data.profile in ['adult', 'childWithApp'];
+    }
+
+    // The fields a non-member may know, to join rather than start a second surprise for the same person.
+    function isValidOpenSurprise(o, surpriseId) {
+      return o.keys().hasOnly(['beneficiaryId', 'title', 'creatorName', 'updatedAt'])
+        && o.beneficiaryId == getAfter(surprisePath(surpriseId)).data.beneficiaryId
+        && o.title == getAfter(surprisePath(surpriseId)).data.title
+        && o.creatorName == getAfter(surprisePath(surpriseId)).data.creatorName
+        && o.updatedAt == request.time;
+    }
+
+    match /surprises/{surpriseId} {
+      allow read: if isMember() && myMemberId() in resource.data.memberIds;
+
+      // Only an adult starts a surprise (PRODUIT, 25/11), for someone else who exists.
+      allow create: if isMember()
+        && isValidSurprise(request.resource.data)
+        && request.resource.data.creatorId == myMemberId()
+        && request.resource.data.creatorName == me().firstName
+        && me().profile == 'adult'
+        && request.resource.data.beneficiaryId != myMemberId()
+        && exists(memberPath(request.resource.data.beneficiaryId))
+        && request.resource.data.createdAt == request.time;
+
+      // The creator changes the settings and who sees it; the beneficiary and the creator never change.
+      // Anyone else with the app adds only themselves (« Rejoindre »), without reading it first.
+      allow update: if isMember()
+        && isValidSurprise(request.resource.data)
+        && request.resource.data.beneficiaryId == resource.data.beneficiaryId
+        && request.resource.data.creatorId == resource.data.creatorId
+        && request.resource.data.creatorName == resource.data.creatorName
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (resource.data.creatorId == myMemberId()
+            || (resource.data.beneficiaryId != myMemberId()
+                && !(myMemberId() in resource.data.memberIds)
+                && canJoinSurprise(myMemberId())
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds', 'updatedAt'])
+                && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+                && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                && myMemberId() in request.resource.data.memberIds));
+
+      allow delete: if isMember() && resource.data.creatorId == myMemberId();
+    }
+
+    // openSurprises/{surpriseId}: the title of a surprise in preparation, readable by the whole family
+    // but its beneficiary, written by its creator with the surprise itself.
+    match /openSurprises/{surpriseId} {
+      allow read: if isMember() && resource.data.beneficiaryId != myMemberId();
+      allow create, update: if isMember()
+        && getAfter(surprisePath(surpriseId)).data.creatorId == myMemberId()
+        && isValidOpenSurprise(request.resource.data, surpriseId);
+      allow delete: if isMember()
+        && exists(surprisePath(surpriseId))
+        && get(surprisePath(surpriseId)).data.creatorId == myMemberId()
+        && !existsAfter(surprisePath(surpriseId));
+    }
+
     // giftLists/{listId}. « Mes envies » of a member has the id wishes-{memberId}, so there is one.
     match /giftLists/{listId} {
       allow read: if isMember() && canSeeList(resource.data);
