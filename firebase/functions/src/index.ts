@@ -17,7 +17,7 @@ import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
 import { RECURRING_EVENTS, ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
 import { CARPOOL, clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
 import {
-  deleteClaimShares, deleteItemContributions, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
+  deleteClaimShares, deleteItemContributions, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
 import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
@@ -64,13 +64,14 @@ import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } fro
 import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
 import { eraseTurns } from './turns';
 import { shareOldDocuments, unshareDocuments } from './documentsShared';
-import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
+import { keepReceivedPhoto, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
 import { dropBags, leftTheTrip, sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 import { deleteStepPlaces } from './tripPlaces';
+import { resetOldReservationsOnce } from './surpriseSwitch';
 import {
   cancelSurpriseOffered, deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isCancelAsked, isNewlyOffered,
   onSurpriseOffered,
@@ -490,17 +491,15 @@ export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', asyn
   await deleteMemberNotebook(getFirestore(), event.params.memberId);
 });
 
-// The morning after an occasion, its lists are revealed, then each taken wish whose occasion
-// was yesterday or before (PRD, récit 10 bis, rév. 186).
-export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris' }, async () => {
-  const now = new Date();
-  // Each on its own: a failure of the lists never holds back the wishes, nor the reverse.
-  for (const [what, reveal] of [['lists', revealGiftLists], ['wishes', revealWishes]] as const) {
-    try {
-      await reveal(getFirestore(), send, now);
-    } catch (e) {
-      console.error(`revealGifts: ${what}`, e);
-    }
+// La bascule vers les surprises (plan Cadeaux et Surprise, PR 3): the beneficiary never sees what
+// they get any more, so nothing is revealed. The morning task only wipes the old reservations,
+// once (décision de l'admin du 25/11), then does nothing. revealGiftLists and revealWishes stay for
+// their tests, unused.
+export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris', timeoutSeconds: 540 }, async () => {
+  try {
+    await resetOldReservationsOnce(getFirestore());
+  } catch (e) {
+    console.error('surpriseReset', e);
   }
 });
 

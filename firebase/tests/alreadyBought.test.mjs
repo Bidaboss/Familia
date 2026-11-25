@@ -99,17 +99,19 @@ describe('the keeper checks « Déjà acheté »', () => {
 });
 
 describe('« Je participe »', () => {
-  test('an adult takes part, the total grows by as much', async () => {
-    await assertSucceeds(contribute(as(env, OTHER_ADULT), OTHER_ADULT, 45));
+  // La bascule vers les surprises (plan Cadeaux et Surprise, PR 3): « Je participe » goes into the
+  // surprises; here nobody takes part any more, nor changes a part. An old part may be taken back.
+  test('since the switch to surprises, nobody takes part nor changes a part', async () => {
+    await assertFails(contribute(as(env, OTHER_ADULT), OTHER_ADULT, 45));
+    await assertFails(contribute(as(env, NEIGHBOUR), NEIGHBOUR, 50, 30));
   });
 
-  test('changes their part, then takes it back', async () => {
+  test('an old part is still taken back', async () => {
     const db = as(env, NEIGHBOUR);
-    await assertSucceeds(contribute(db, NEIGHBOUR, 50, 30));
     const batch = writeBatch(db);
     batch.delete(doc(db, `${BOUGHT}/contributions/adult3`));
     batch.delete(doc(db, `${BOUGHT}/contributors/adult3`));
-    batch.update(doc(db, BOUGHT), { contributedTotal: increment(-50) });
+    batch.update(doc(db, BOUGHT), { contributedTotal: increment(-30) });
     await assertSucceeds(batch.commit());
   });
 
@@ -150,15 +152,16 @@ describe('« Je participe »', () => {
     await assertFails(contribute(as(env, KID), KID, 10));
     // The keeper of a child without the app does not take part in what they already bought.
     await assertFails(contribute(as(env, OTHER_ADULT), OTHER_ADULT, 10, 0, 'giftLists/wishes-kid2/items/k1'));
-    await assertSucceeds(contribute(as(env, NEIGHBOUR), NEIGHBOUR, 10, 0, 'giftLists/wishes-kid2/items/k1'));
+    // Since the switch to surprises, nobody else either.
+    await assertFails(contribute(as(env, NEIGHBOUR), NEIGHBOUR, 10, 0, 'giftLists/wishes-kid2/items/k1'));
   });
 
-  test('« Je le prends » is refused on a wish already bought', async () => {
+  test('« Je le prends » is refused on a wish already bought, and since the switch on any wish', async () => {
     const claim = (itemId) => setDoc(doc(as(env, OTHER_ADULT), `${WISHES}/claims/${itemId}`), {
       type: 'solo', holderId: 'adult2', holderName: 'adult2', createdAt: serverTimestamp(),
     });
     await assertFails(claim('bought'));
-    await assertSucceeds(claim('plain'));
+    await assertFails(claim('plain'));
   });
 });
 
@@ -201,12 +204,12 @@ describe('who reads the parts', () => {
     await assertFails(other.commit());
   });
 
-  test('an old part without its name gets one later, written by its author alone', async () => {
+  test('an old part without its name gets none any more: the old system is closed', async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), `${BOUGHT}/contributions/adult2`), { amount: 5, memberName: 'adult2', updatedAt: OLD });
     });
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), `${BOUGHT}/contributors/adult2`), { memberName: 'adult2', updatedAt: serverTimestamp() }));
-    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), `${BOUGHT}/contributors/adult2`), { memberName: 'adult2', updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), `${BOUGHT}/contributors/adult2`), { memberName: 'adult2', updatedAt: serverTimestamp() }));
   });
 
   test('taking one\'s name back is not possible while the part stands', async () => {

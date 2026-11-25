@@ -2303,7 +2303,11 @@ service cloud.firestore {
         && readsReservationOf(list(), listId, itemId);
       allow list: if isMember() && canSeeList(list()) && !isKeptFromMe(list()) && !sharesAWishOf(list());
 
-      allow create: if isMember()
+      // La bascule vers les surprises (plan Cadeaux et Surprise, PR 3): a gift is reserved only in a
+      // surprise now, the card of a wish is read only. No new reservation, nor a change of one; the
+      // old ones were wiped once on the server (surpriseSwitch.ts), what is left may only be released.
+      allow create: if false
+        && isMember()
         && exists(giftListPath(listId))
         && canSeeList(list())
         && list().revealed == false
@@ -2323,7 +2327,8 @@ service cloud.firestore {
       // On « Mes envies », the holder chooses the occasion the gift is meant for (PRD rév. 186):
       // the next birthday or the next Christmas after the reservation, revealed the day after.
       // Without a choice, the server takes whichever comes first.
-      allow update: if isMember()
+      allow update: if false
+        && isMember()
         && resource.data.holderId == myMemberId()
         && isPermanentList(list().kind)
         && list().revealed == false
@@ -2360,7 +2365,9 @@ service cloud.firestore {
         && readsReservationOf(list(), listId, itemId)
         && (memberId == myMemberId() || claim().holderId == myMemberId());
 
-      allow create: if isMember()
+      // La bascule: no new part in the old system, nor a change of one (see the reservations above).
+      allow create: if false
+        && isMember()
         && memberId == myMemberId()
         && me().profile == 'adult'
         && canSeeList(list())
@@ -2373,7 +2380,8 @@ service cloud.firestore {
         && request.resource.data.received == false;
 
       // The member changes their amount; the responsible marks the share received or not.
-      allow update: if isMember()
+      allow update: if false
+        && isMember()
         && list().revealed == false
         && isValidShare(request.resource.data)
         && ((memberId == myMemberId()
@@ -2412,7 +2420,9 @@ service cloud.firestore {
         && list().kind == 'wishes'
         && memberId == myMemberId();
 
-      allow create, update: if isMember()
+      // La bascule: « Je participe » goes into the surprises too; no new part here.
+      allow create, update: if false
+        && isMember()
         && memberId == myMemberId()
         && me().profile == 'adult'
         && canSeeList(list())
@@ -2451,7 +2461,8 @@ service cloud.firestore {
         && list().kind == 'wishes'
         && (memberId == myMemberId() || keepsListsOf(list().beneficiaryId));
 
-      allow create, update: if isMember()
+      allow create, update: if false
+        && isMember()
         && memberId == myMemberId()
         && me().profile == 'adult'
         && canSeeList(list())
