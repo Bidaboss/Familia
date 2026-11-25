@@ -26,22 +26,10 @@ fun GenealogyRoute(
     onOpenProfile: ((String) -> Unit)? = null,
     onMakePoster: (() -> Unit)? = null,
 ) {
-    val viewModel: GenealogyViewModel = viewModel(
-        factory = viewModelFactory {
-            initializer { GenealogyViewModel(container?.genealogyRepository, container?.memberRepository, currentMember.id) }
-        },
-    )
+    val viewModel = genealogyViewModel(container, currentMember)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val failed by viewModel.actionFailed.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) {
-        GenealogyActions(
-            onAddLink = viewModel::addLink,
-            onRemoveLink = viewModel::removeLink,
-            onSaveKin = viewModel::saveKin,
-            onDeleteKin = viewModel::deleteKin,
-            onSetWord = viewModel::setWord,
-        )
-    }
+    val actions = rememberGenealogyActions(viewModel)
     GenealogyScreen(
         state,
         onBack,
@@ -52,5 +40,48 @@ fun GenealogyRoute(
         // Not in « Voir comme »: the poster would be made with someone else's rights (récit 53).
         onMakePoster = onMakePoster?.takeIf { LocalFeatureFlags.current.isOn(Feature.TreePoster) && LocalViewAs.current.viewed == null },
         treeOfLife = LocalFeatureFlags.current.isOn(Feature.ArbreDeVie),
+    )
+}
+
+/**
+ * The « Arbre » tab of Famille (brief Famille-recettes, règle 1): the same tree as the page, without
+ * its title bar, its « Liste » nor its way back.
+ */
+@Composable
+fun GenealogyTab(
+    container: AppContainer?,
+    currentMember: Member,
+    onOpenProfile: ((String) -> Unit)? = null,
+) {
+    val viewModel = genealogyViewModel(container, currentMember)
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val failed by viewModel.actionFailed.collectAsStateWithLifecycle()
+    GenealogyContent(
+        state = state,
+        onOpenProfile = onOpenProfile,
+        actions = rememberGenealogyActions(viewModel),
+        onMakePoster = null,
+        onBack = null,
+        treeOfLife = LocalFeatureFlags.current.isOn(Feature.ArbreDeVie),
+        inFamilyTab = true,
+    )
+    GenealogyFailure(failed, viewModel::failureShown)
+}
+
+@Composable
+private fun genealogyViewModel(container: AppContainer?, currentMember: Member): GenealogyViewModel = viewModel(
+    factory = viewModelFactory {
+        initializer { GenealogyViewModel(container?.genealogyRepository, container?.memberRepository, currentMember.id) }
+    },
+)
+
+@Composable
+private fun rememberGenealogyActions(viewModel: GenealogyViewModel): GenealogyActions = remember(viewModel) {
+    GenealogyActions(
+        onAddLink = viewModel::addLink,
+        onRemoveLink = viewModel::removeLink,
+        onSaveKin = viewModel::saveKin,
+        onDeleteKin = viewModel::deleteKin,
+        onSetWord = viewModel::setWord,
     )
 }
