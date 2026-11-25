@@ -34,6 +34,11 @@ describe('what a removed member shared, against the emulator', () => {
     b.set(db.doc('trips/t1/photos/p1'), { authorId: 'noe' });
     b.set(db.doc('trips/t1/photos/p2'), { authorId: 'ines' });
     b.set(db.doc('trips/t1/words/s1'), { text: 'Superbe', authorId: 'noe' });
+    b.set(db.doc('trips/t1/words/s1/comments/c1'), { text: 'Oui !', authorId: 'ines' });
+    b.set(db.doc('trips/t1/words/s2'), { text: 'Pluie', authorId: 'ines' });
+    b.set(db.doc('trips/t1/words/s2/comments/c1'), { text: 'Dommage', authorId: 'noe' });
+    b.set(db.doc('trips/t1/words/s2/comments/c2'), { text: 'Bof', authorId: 'ines' });
+    b.set(db.doc('trips/t1/words/s2/commentMutes/noe'), { at: 1 });
     b.set(db.doc('trips/t1/films/f1'), { authorId: 'noe' });
     b.set(db.doc('memberPhotos/noe'), { jpeg: 'x' });
     b.set(db.doc('memberPhotos/ines'), { jpeg: 'y' });
@@ -49,17 +54,19 @@ describe('what a removed member shared, against the emulator', () => {
 
     for (const gone of ['recipes/r1', 'recipes/r2/comments/c1', 'goodNews/g1', 'goodNews/g2/comments/c1', 'goodDeals/d1',
       'whoIsIt/w1', 'events/e1/photos/noe_1', 'events/e1/comments/c1', 'trips/t1/photos/p1', 'trips/t1/words/s1',
-      'trips/t1/films/f1', 'memberPhotos/noe']) {
+      'trips/t1/films/f1', 'memberPhotos/noe', 'trips/t1/words/s1/comments/c1', 'trips/t1/words/s2/comments/c1',
+      'trips/t1/words/s2/commentMutes/noe']) {
       assert.equal(await exists(gone), false, gone);
     }
-    assert.equal(result.documents, 12);
+    assert.equal(result.documents, 14);
     assert.deepEqual(folders.sort(), ['events/e1/noe/', 'goodNews/noe/', 'trips/t1/noe/', 'whoIsIt/noe/']);
   });
 
   test('what the others shared stays, and so do the events and trips they created, and their capsules', async () => {
     await deleteSharedBy(db, 'noe', async () => {});
     for (const kept of ['recipes/r2', 'recipes/r2/comments/c2', 'goodNews/g2', 'whoIsIt/w2', 'events/e1',
-      'events/e1/photos/ines_1', 'trips/t1', 'trips/t1/photos/p2', 'memberPhotos/ines', 'capsules/k1']) {
+      'events/e1/photos/ines_1', 'trips/t1', 'trips/t1/photos/p2', 'trips/t1/words/s2', 'trips/t1/words/s2/comments/c2',
+      'memberPhotos/ines', 'capsules/k1']) {
       assert.equal(await exists(kept), true, kept);
     }
   });

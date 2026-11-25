@@ -6,7 +6,8 @@
 //   events/*/photos he added         → and their files events/{eventId}/{memberId}/
 //   events/*/comments he wrote
 //   trips/*/photos he added          → and their files trips/{tripId}/{memberId}/
-//   trips/*/words he wrote           (« Le mot de l'étape »)
+//   trips/*/words he wrote           (« Le mot de l'étape »), with their comments and mutes
+//   trips/*/words/*/comments he wrote under the words of the others, and his mute there
 //   trips/*/films he made            → their files go with them (onTripFilmDeleted)
 //   goodNews/{id} he posted          → with comments, reactions and files (onGoodNewsDeleted)
 //   goodNews/*/comments he wrote     → the count of the news follows (onGoodNewsCommentRemoved)
@@ -91,7 +92,18 @@ export async function deleteSharedBy(db: Firestore, memberId: string, removeFold
   await attempt(async () => {
     for (const t of (await db.collection('trips').select().get()).docs) {
       await remove(await authoredIn(db, `trips/${t.id}/photos`, memberId));
-      await remove(await authoredIn(db, `trips/${t.id}/words`, memberId));
+      // A word takes its comments and mutes with it: its id is the step's, so they would come
+      // back under the next word written on that step (B1 du renfort sur #651).
+      for (const word of (await db.collection(`trips/${t.id}/words`).select('authorId').get()).docs) {
+        if (word.get('authorId') === memberId) {
+          await db.recursiveDelete(word.ref);
+          result.documents++;
+          continue;
+        }
+        await remove(await authoredIn(db, `trips/${t.id}/words/${word.id}/comments`, memberId));
+        const mute = word.ref.collection('commentMutes').doc(memberId);
+        if ((await mute.get()).exists) await remove([mute]);
+      }
       await remove(await authoredIn(db, `trips/${t.id}/films`, memberId));
       await folder(`trips/${t.id}/${memberId}/`);
     }
