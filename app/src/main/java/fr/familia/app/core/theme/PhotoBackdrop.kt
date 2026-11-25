@@ -72,11 +72,16 @@ object ThemePhotos {
 }
 
 /**
- * Puts the 8 photos in the disk cache of Coil once (retour d'essai du 25/11: « charger les photos une fois pour
- * toutes »): a photo already there is not downloaded again, so a change of theme or a season shows its
- * photo at once, even offline. About 2 Mo in all.
+ * Puts the 8 photos in the disk cache of Coil once (retour d'essai du 25/11: « charger les photos une
+ * fois pour toutes »): a photo already there is not downloaded again, so a change of theme or a season
+ * shows its photo at once, even offline. About 2 Mo in all. Called when the Accueil shows a photo, and
+ * only on a network that is not metered (Wi-Fi): on mobile data, only the photo shown is loaded. Never
+ * under Robolectric, where these requests would wait for a network that is not there.
  */
 fun prefetchThemePhotos(context: android.content.Context) {
+    if (android.os.Build.FINGERPRINT == "robolectric") return
+    val connectivity = context.getSystemService(android.net.ConnectivityManager::class.java) ?: return
+    if (connectivity.activeNetwork == null || connectivity.isActiveNetworkMetered) return
     val loader = coil.Coil.imageLoader(context)
     ThemePhotos.urls.forEach { url ->
         loader.enqueue(coil.request.ImageRequest.Builder(context).data(url).memoryCachePolicy(coil.request.CachePolicy.DISABLED).build())
