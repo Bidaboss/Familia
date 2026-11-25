@@ -1,6 +1,13 @@
 package fr.familia.app.feature.gifts
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -97,6 +104,20 @@ fun GiftsScreen(
                     showPreparing = !someListsHidden,
                 )
             }
+        }
+        // « Préparer une surprise », the floating button of the brief (§2, fiche C1), in place of the
+        // line of the black bar once the surprises are there.
+        val prepare = onOpenSurprisePicker
+        if (state is GiftsUiState.Success && surprises != null && !someListsHidden && state.canPrepareSurprise && prepare != null) {
+            ExtendedFloatingActionButton(
+                onClick = prepare,
+                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.gifts_prepare_surprise), fontWeight = FontWeight.ExtraBold) },
+                containerColor = surpriseDark(),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(ClaySpacing.screen),
+            )
         }
     }
 }

@@ -91,10 +91,8 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
     if (tiles != null) {
         // The surprises (brief §2): never in « Voir comme ».
         if (showPreparing) {
+            // « Préparer une surprise » is the floating button of GiftsScreen (fiche C1).
             tiles.forEach { tile -> item(key = "surprise-${tile.id}") { SurpriseTileCard(tile, state.today, actions.onOpenSurprise) } }
-            if (state.canPrepareSurprise && actions.onOpenSurprisePicker != null) {
-                item(key = "surprise-bar") { SurpriseBar(emptyList(), true, actions.onOpenSurprisePicker, actions.onOpenList) }
-            }
         }
     } else {
         val lines = if (showPreparing && state.surpriseButton) preparingLines(state) else emptyList()

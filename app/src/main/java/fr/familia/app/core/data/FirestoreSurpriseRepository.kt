@@ -310,6 +310,15 @@ class FirestoreSurpriseRepository(private val db: FirebaseFirestore) : SurpriseR
             .set(mapOf("validated" to validated, "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()
     }
 
+    override suspend fun setMuted(surpriseId: String, memberId: String, muted: Boolean) {
+        surprises.document(surpriseId).collection("members").document(memberId)
+            .set(mapOf("muted" to muted, "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()
+    }
+
+    override suspend fun reinvite(surpriseId: String, memberId: String) {
+        surprises.document(surpriseId).collection("members").document(memberId).delete().await()
+    }
+
     override suspend fun decline(surpriseId: String, memberId: String) {
         surprises.document(surpriseId).collection("members").document(memberId)
             .set(mapOf("declined" to true, "validated" to false, "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()

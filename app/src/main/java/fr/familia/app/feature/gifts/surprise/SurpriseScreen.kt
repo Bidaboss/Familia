@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -61,7 +60,18 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Switch
 import fr.familia.app.R
+import fr.familia.app.feature.home.PhotoSegmentedSwitch
+import fr.familia.app.feature.gifts.surpriseAccent
+import fr.familia.app.feature.gifts.surpriseDark
 import fr.familia.app.core.model.GiftHistoryItem
 import fr.familia.app.core.model.ProposalKind
 import fr.familia.app.core.theme.themeBackground
@@ -81,8 +91,9 @@ private val StarOff = Color(0xFFD9C9A8)
 internal val StarOn = Color(0xFFD98A2B)
 
 /** The dark brown of the full buttons and of the tab on, the orange of the counts (fiches §0). */
-internal val Brown = Color(0xFF3A2A1A)
-internal val Accent = Color(0xFFE08A3C)
+// The dark and the accent follow the photo theme chosen (fiches, § 0).
+internal val Brown: Color @Composable get() = surpriseDark()
+internal val Accent: Color @Composable get() = surpriseAccent()
 
 /** What the surprise screen leads to. */
 class SurpriseActions(
@@ -99,6 +110,8 @@ class SurpriseActions(
     val onValidate: (Boolean) -> Unit = {},
     val onDecline: () -> Unit = {},
     val onOffered: () -> Unit = {},
+    val onMute: (Boolean) -> Unit = {},
+    val onReinvite: (String) -> Unit = {},
 )
 
 /**
@@ -113,6 +126,8 @@ fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
     // opens it, brief §2), « Propositions » before.
     var chosen by rememberSaveable { mutableStateOf<SurpriseTab?>(null) }
     val tab = chosen ?: if (ready?.isDay == true) SurpriseTab.Results else SurpriseTab.Proposals
+    val proposalsList = rememberLazyListState()
+    val proposalsTop by remember { derivedStateOf { proposalsList.firstVisibleItemIndex == 0 } }
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.themeBackground(),
@@ -121,9 +136,31 @@ fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
                 title = { Text(ready?.surprise?.title.orEmpty(), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = actions.onBack) },
                 actions = {
-                    if (ready?.isCreator == true) {
-                        IconButton(onClick = actions.onSettings, modifier = Modifier.size(56.dp)) {
-                            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.surprise_settings))
+                    // ⚙ for everyone: the mute of my reminders (réglage personnel, brief § 9) and, for
+                    // the creator, « Modifier la surprise ».
+                    if (ready != null && (ready.isCreator || !ready.declined)) {
+                        var menu by remember { mutableStateOf(false) }
+                        Box {
+                            IconButton(onClick = { menu = true }, modifier = Modifier.size(56.dp)) {
+                                Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.surprise_settings))
+                            }
+                            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                if (ready.isCreator) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.surprise_edit_title)) },
+                                        onClick = { menu = false; actions.onSettings() },
+                                        modifier = Modifier.heightIn(min = 56.dp),
+                                    )
+                                }
+                                if (!ready.declined) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.surprise_mute)) },
+                                        trailingIcon = { Switch(checked = ready.muted, onCheckedChange = null) },
+                                        onClick = { actions.onMute(!ready.muted) },
+                                        modifier = Modifier.heightIn(min = 56.dp),
+                                    )
+                                }
+                            }
                         }
                     }
                 },
@@ -131,14 +168,17 @@ fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
         },
         floatingActionButton = {
             // « + Ajouter une idée » belongs to « Propositions » (fiche C4).
+            // It shrinks to a round « + » of 56 dp once the list scrolls down (fiches, § 0).
             if (ready != null && tab == SurpriseTab.Proposals && !ready.declined) {
+                val label = stringResource(R.string.surprise_add_idea)
                 ExtendedFloatingActionButton(
                     onClick = actions.onAddIdea,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.surprise_add_idea), fontWeight = FontWeight.ExtraBold) },
-                    containerColor = MaterialTheme.colorScheme.inverseSurface,
-                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    shape = RoundedCornerShape(24.dp),
+                    expanded = proposalsTop,
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = if (proposalsTop) null else label) },
+                    text = { Text(label, fontWeight = FontWeight.ExtraBold) },
+                    containerColor = Brown,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(28.dp),
                 )
             }
         },
@@ -160,7 +200,7 @@ fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
                         }
                     }
                     when (tab) {
-                        SurpriseTab.Proposals -> Proposals(state, actions, head)
+                        SurpriseTab.Proposals -> Proposals(state, actions, head, proposalsList)
                         SurpriseTab.Results -> Results(state, actions, head)
                     }
                 }
@@ -219,44 +259,29 @@ private val DayTo = Color(0xFFE08A3C)
 enum class SurpriseTab { Proposals, Results }
 
 /**
- * « Propositions (n) | Résultats (n) », the pill switch of the Accueil (.seg): the tab on is dark,
- * its count in an orange pill.
+ * « Propositions (n) | Résultats (n) »: the pill switch of the Accueil (.seg, fiche C4), shared with
+ * it, in the dark and the accent of the theme.
  */
 @Composable
 internal fun Tabs(state: SurpriseUiState.Ready, tab: SurpriseTab, onTab: (SurpriseTab) -> Unit) {
-    Surface(shape = RoundedCornerShape(50), color = Color.White, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(4.dp)) {
-            SurpriseTab.entries.forEach { t ->
-                val on = t == tab
-                val count = if (t == SurpriseTab.Proposals) state.proposalCount else state.takenCount
-                val label = stringResource(if (t == SurpriseTab.Proposals) R.string.surprise_tab_proposals else R.string.surprise_tab_results)
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = if (on) Brown else Color.Transparent,
-                    contentColor = if (on) Color.White else Brown,
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp)
-                        .selectable(selected = on, role = Role.Tab) { onTab(t) },
-                ) {
-                    Row(Modifier.padding(horizontal = 8.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, maxLines = 1)
-                        if (count > 0) {
-                            Surface(shape = RoundedCornerShape(50), color = Accent, contentColor = Color.White, modifier = Modifier.padding(start = 8.dp)) {
-                                Text(count.toString(), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    PhotoSegmentedSwitch(
+        labels = listOf(stringResource(R.string.surprise_tab_proposals), stringResource(R.string.surprise_tab_results)),
+        counts = listOf(state.proposalCount, state.takenCount),
+        chosen = tab.ordinal,
+        accent = Accent,
+        dark = Brown,
+        onChoose = { onTab(SurpriseTab.entries[it]) },
+    )
 }
 
 @Composable
-private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions, tabs: @Composable () -> Unit) {
+private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions, tabs: @Composable () -> Unit, listState: LazyListState) {
     val name = state.beneficiary.firstName
     var ideasOpen by rememberSaveable { mutableStateOf(true) }
     var historyOpen by rememberSaveable { mutableStateOf(false) }
+    Box(Modifier.fillMaxSize()) {
     LazyColumn(
+        state = listState,
         // Room under the last tile for the floating button.
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 110.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -303,6 +328,18 @@ private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions, ta
             }
             if (historyOpen) items(state.history, key = { "given-${it.id}" }) { HistoryRow(it) }
         }
+    }
+    // The cream gradient of 110 dp between the list and the floating button (fiches, § 0).
+    if (!state.declined) {
+        val cream = MaterialTheme.colorScheme.background
+        Box(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(110.dp)
+                .background(Brush.verticalGradient(listOf(cream.copy(alpha = 0f), cream))),
+        )
+    }
     }
 }
 

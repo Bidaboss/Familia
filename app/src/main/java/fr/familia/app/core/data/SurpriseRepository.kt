@@ -89,6 +89,12 @@ interface SurpriseRepository {
     /** « Je ne participe pas »: final, only the creator invites again. */
     suspend fun decline(surpriseId: String, memberId: String)
 
+    /** The reminders of this surprise on mute for [memberId] (réglage personnel, brief § 9). */
+    suspend fun setMuted(surpriseId: String, memberId: String, muted: Boolean)
+
+    /** « Réinviter », by the creator alone: the line of [memberId] goes, with its « Je ne participe pas ». */
+    suspend fun reinvite(surpriseId: String, memberId: String)
+
     /**
      * « C'est offert », from the day itself: one member confirms it for all. The server does the
      * rest (« Déjà offert à X », the notebooks, the end of the reminders).

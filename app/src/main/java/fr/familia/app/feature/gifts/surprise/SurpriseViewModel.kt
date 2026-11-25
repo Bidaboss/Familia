@@ -91,6 +91,8 @@ sealed interface SurpriseUiState {
         val isAdult: Boolean = true,
         val validated: Boolean = false,
         val declined: Boolean = false,
+        /** My reminders of this surprise on mute (⚙). */
+        val muted: Boolean = false,
         /** The day itself or after: the big orange card « C'est offert » (fiche C7). */
         val isDay: Boolean = false,
     ) : SurpriseUiState {
@@ -251,6 +253,18 @@ class SurpriseViewModel(
         write { repo.setValidated(surpriseId, currentMemberId, validated) }
     }
 
+    /** The reminders of this surprise on mute, for me alone. */
+    fun setMuted(muted: Boolean) {
+        val repo = surprises ?: return
+        write { repo.setMuted(surpriseId, currentMemberId, muted) }
+    }
+
+    /** « Réinviter » a member who said « Je ne participe pas »: the creator alone (brief §4). */
+    fun reinvite(memberId: String) {
+        val repo = surprises ?: return
+        write { repo.reinvite(surpriseId, memberId) }
+    }
+
     /** « Je ne participe pas »: final. What I took is released first, so the others can take it. */
     fun decline(state: SurpriseUiState.Ready) {
         val repo = surprises ?: return
@@ -369,6 +383,7 @@ private fun surpriseState(
         isAdult = sources.members.firstOrNull { it.id == meId }?.profile == MemberProfile.Adult,
         validated = validated,
         declined = myRow?.declined == true,
+        muted = myRow?.muted == true,
         isDay = gifts.today?.let { surprise.isToConfirm(it) } == true,
     )
 }
