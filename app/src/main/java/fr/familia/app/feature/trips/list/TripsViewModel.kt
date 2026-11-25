@@ -92,7 +92,7 @@ class TripsViewModel(
                             val where = destination ?: steps.firstOrNull { it.hasPosition }
                             trip.id to TripWhere(
                                 point = where?.let { GeoPoint(it.lat!!, it.lng!!) },
-                                name = destination?.let(fr.familia.app.feature.trips.detail::placeName),
+                                name = destination?.let { fr.familia.app.feature.trips.detail.placeName(it) },
                                 km = fr.familia.app.feature.trips.detail.tripFigures(trip, steps, 0)?.distanceKm,
                             )
                         }
