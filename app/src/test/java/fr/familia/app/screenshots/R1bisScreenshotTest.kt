@@ -1,10 +1,5 @@
 package fr.familia.app.screenshots
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CardGiftcard
-import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
@@ -13,14 +8,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
-import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
-import fr.familia.app.feature.all.ModuleFamily
+import fr.familia.app.feature.all.ModuleSpec
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.home.DayItem
 import fr.familia.app.feature.home.DayOpen
@@ -76,10 +70,10 @@ class R1bisScreenshotTest {
         Surface {
             AllFamiliaScreen(
                 listOf(
-                    AllModule("planning", R.string.all_planning, Icons.Outlined.CalendarMonth, ModuleFamily.Organise) {},
-                    AllModule("help", R.string.all_help, Icons.Outlined.VolunteerActivism, ModuleFamily.Organise, badge = 2) {},
-                    AllModule("gifts", R.string.all_gifts, Icons.Outlined.CardGiftcard, ModuleFamily.Treat) {},
-                    AllModule("albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {},
+                    AllModule(ModuleSpec.Planning) {},
+                    AllModule(ModuleSpec.Help, badge = 2) {},
+                    AllModule(ModuleSpec.Gifts) {},
+                    AllModule(ModuleSpec.Albums) {},
                 ),
                 onBack = {},
             )

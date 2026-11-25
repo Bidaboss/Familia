@@ -11,11 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.familyToday
-import androidx.compose.material.icons.outlined.PhotoAlbum
-import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,23 +19,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRail
-import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Category
-import androidx.compose.material.icons.outlined.LocalOffer
-import androidx.compose.material.icons.outlined.CardGiftcard
-import androidx.compose.material.icons.outlined.HourglassTop
-import androidx.compose.material.icons.outlined.MenuBook
-import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.VolunteerActivism
-import androidx.compose.ui.graphics.vector.ImageVector
 import fr.familia.app.feature.albums.FeedPhotosDestination
 import fr.familia.app.feature.albums.FeedPhotosRoute
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
-import fr.familia.app.feature.all.ModuleFamily
-import fr.familia.app.feature.feed.FeedOpenRequest
+import fr.familia.app.feature.all.ModuleSpec
+import fr.familia.app.core.ui.ModuleEmoji
 import fr.familia.app.feature.home.HomeAddOptions
 import fr.familia.app.feature.home.HomeAddSheet
 import androidx.compose.runtime.mutableStateOf
@@ -106,7 +91,6 @@ import fr.familia.app.core.theme.LocalClayColors
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Celebration
-import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.text.style.TextOverflow
@@ -960,10 +944,8 @@ fun FamiliaApp(
                             icon = {
                                 val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
                                 BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
-                                    Icon(
-                                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                        contentDescription = null, // The label below already names the tab.
-                                    )
+                                    // The label below already names the tab: the emoji is decorative.
+                                    TabEmoji(destination)
                                 }
                             },
                             label = { TabLabel(stringResource(destination.labelFor(currentMember))) },
@@ -1002,10 +984,8 @@ fun FamiliaApp(
                             icon = {
                                 val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
                                 BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
-                                    Icon(
-                                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                        contentDescription = null,
-                                    )
+                                    // The label below already names the tab: the emoji is decorative.
+                                    TabEmoji(destination)
                                 }
                             },
                             label = { TabLabel(stringResource(destination.labelFor(currentMember))) },
@@ -1117,9 +1097,7 @@ fun FamiliaApp(
                                 features,
                                 helpBadge,
                                 navController,
-                                currentMember.id,
                                 reviewYear = openableReviewYear(LocalDate.now(), forCard = memoriesInFeed),
-                                memoriesInFeed = memoriesInFeed,
                                 onEntraideTab = { tab ->
                                     entraideTab = tab
                                     navController.leaveAllFamiliaFor(TopLevelDestination.HelpRequests)
@@ -2346,91 +2324,78 @@ private fun TabLabel(text: String) {
 
 private const val MIN_TAB_LABEL_SP = 9f
 
+/** The picto of a tab (récit 120): an emoji in color, 24 sp, or the double one of Cadeaux and Voyages. */
+@Composable
+private fun TabEmoji(destination: TopLevelDestination) {
+    ModuleEmoji(destination.emoji, size = if (destination.double) 20.sp else 24.sp, double = destination.double)
+}
+
 
 /**
- * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes stays out
+ * The modules of « Tout Familia » (récit 120), each only while it is on for me. Comptes stays out
  * for the 21 (DESIGN); the Entraide badge is the one of its tab.
  */
 private fun allModules(
     features: FeatureFlags,
     helpBadge: Int,
     navController: NavHostController,
-    meId: String,
     /** « Notre année », findable all year long under « Se souvenir » (PRD rév. 259); null: not yet. */
     reviewYear: Int? = null,
     /** Bons plans, On se prête: Entraide, turned to that sub-tab (PRODUIT-118). */
     onEntraideTab: (EntraideTab) -> Unit = {},
-    /**
-     * Se souvenir en un seul lieu (récit 71), with the fil on: « Se souvenir » keeps Le fil, Albums,
-     * Arbre and Capsule (to write one); « Qui est-ce ? » goes to « Se faire plaisir »; Souvenirs and
-     * Bonnes nouvelles are cards of the fil; « Notre année » only from 26/12 to 10/01.
-     */
-    memoriesInFeed: Boolean = false,
 ): List<AllModule> = buildList {
-    fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
-        if (on) this.add(AllModule(key, label, icon, family, badge, open))
+    // Récit 120: one screen, in the order of ModuleSpec. Gone from the menu: La gazette (the Accueil),
+    // Actualités, Souvenirs (it only opened my own page); « Qui est-ce ? » stays in « Se souvenir ».
+    fun module(on: Boolean, spec: ModuleSpec, badge: Int = 0, open: () -> Unit) {
+        if (on) this.add(AllModule(spec, badge, open))
     }
-    module(true, "planning", R.string.all_planning, Icons.Outlined.CalendarMonth, ModuleFamily.Organise) {
+    module(true, ModuleSpec.Planning) {
         navController.leaveAllFamiliaFor(TopLevelDestination.Planning)
     }
-    module(features.isOn(Feature.HelpRequests), "help", R.string.all_help, Icons.Outlined.VolunteerActivism, ModuleFamily.Organise, helpBadge) {
+    module(features.isOn(Feature.HelpRequests), ModuleSpec.Help, helpBadge) {
         navController.leaveAllFamiliaFor(TopLevelDestination.HelpRequests)
     }
     // Each sub-tab of Entraide also by itself (PRODUIT-118), while its module and Entraide are on.
     val entraideOn = features.isOn(Feature.HelpRequests)
-    module(entraideOn && features.isOn(Feature.GoodDeals), "goodDeals", R.string.entraide_tab_good_deals, Icons.Outlined.LocalOffer, ModuleFamily.Organise) {
+    module(entraideOn && features.isOn(Feature.GoodDeals), ModuleSpec.GoodDeals) {
         onEntraideTab(EntraideTab.GoodDeals)
     }
-    module(entraideOn && features.isOn(Feature.Lending), "lending", R.string.entraide_tab_lending, Icons.Outlined.Category, ModuleFamily.Organise) {
+    module(entraideOn && features.isOn(Feature.Lending), ModuleSpec.Lending) {
         onEntraideTab(EntraideTab.Lending)
     }
-    module(features.isOn(Feature.Polls), "polls", R.string.all_polls, Icons.Outlined.Poll, ModuleFamily.Organise) {
+    module(features.isOn(Feature.Polls), ModuleSpec.Polls) {
         navController.navigate(PollsDestination) { launchSingleTop = true }
     }
-    module(features.isOn(Feature.Places) && features.isOn(Feature.Home), "where", R.string.all_where, Icons.Outlined.Place, ModuleFamily.Organise) {
+    // Until « Dire où je suis » of the gazette (récit 117): the screen has no other way in yet.
+    module(features.isOn(Feature.Places) && features.isOn(Feature.Home), ModuleSpec.Where) {
         navController.navigate(JoinMeDestination) { launchSingleTop = true }
     }
-    module(features.isOn(Feature.Gifts), "gifts", R.string.all_gifts, Icons.Outlined.CardGiftcard, ModuleFamily.Treat) {
+    module(features.isOn(Feature.Gifts), ModuleSpec.Gifts) {
         navController.leaveAllFamiliaFor(TopLevelDestination.Gifts)
     }
-    module(features.isOn(Feature.Trips), "trips", R.string.all_trips, Icons.Outlined.CardTravel, ModuleFamily.Treat) {
+    module(features.isOn(Feature.Trips), ModuleSpec.Trips) {
         navController.leaveAllFamiliaFor(TopLevelDestination.Trips)
     }
-    module(features.isOn(Feature.Recipes), "recipes", R.string.all_recipes, Icons.Outlined.MenuBook, ModuleFamily.Treat) {
+    module(features.isOn(Feature.Recipes), ModuleSpec.Recipes) {
         navController.navigate(RecipesDestination()) { launchSingleTop = true }
     }
-    module(features.isOn(Feature.Tree), "challenges", R.string.all_challenges, Icons.Outlined.EmojiEvents, ModuleFamily.Treat) {
+    module(features.isOn(Feature.Tree), ModuleSpec.Challenges) {
         navController.navigate(ChallengesDestination) { launchSingleTop = true }
     }
-    module(memoriesInFeed, "feed", R.string.all_feed, Icons.Outlined.DynamicFeed, ModuleFamily.Remember) {
-        FeedOpenRequest.ask()
-        // Back down to the Accueil under Tout Familia: going to the tab would bring Tout Familia back,
-        // saved with the Accueil, and nothing seemed to happen (retour d'essai, 20/11).
-        if (!navController.popBackStack(HomeRoute, inclusive = false)) navController.leaveAllFamiliaFor(TopLevelDestination.Home)
-    }
-    module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
+    module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), ModuleSpec.Albums) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }
     }
     // No « Arbre » here any more: the tree lives in Famille > Arbre (brief Famille-recettes, règle 15 bis).
-    module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
+    module(features.isOn(Feature.Capsules), ModuleSpec.Capsule) {
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
     }
-    // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (l'admin).
-    val whoIsItFamily = if (memoriesInFeed) ModuleFamily.Treat else ModuleFamily.Remember
-    module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, whoIsItFamily) {
-        navController.navigate(WhoIsItDestination) { launchSingleTop = true }
-    }
-    // My own profile, whose souvenirs are never empty (DESIGN, 17/11).
-    module(!memoriesInFeed && features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
-        navController.navigate(MemberProfileDestination(meId)) { launchSingleTop = true }
-    }
-    module(!memoriesInFeed && features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
-        navController.navigate(GoodNewsFeedDestination) { launchSingleTop = true }
-    }
     reviewYear?.let { year ->
-        module(true, "yearInReview", R.string.all_year_in_review, Icons.Outlined.AutoAwesome, ModuleFamily.Remember) {
+        module(true, ModuleSpec.YearInReview) {
             navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true }
         }
+    }
+    module(features.isOn(Feature.WhoIsIt), ModuleSpec.WhoIsIt) {
+        navController.navigate(WhoIsItDestination) { launchSingleTop = true }
     }
 }
 

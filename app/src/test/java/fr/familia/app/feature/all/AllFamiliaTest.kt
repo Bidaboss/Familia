@@ -1,25 +1,24 @@
 package fr.familia.app.feature.all
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Search
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AllFamiliaTest {
 
-    private fun module(key: String) = AllModule(key, 0, Icons.Outlined.Search, ModuleFamily.Organise) {}
+    private fun module(key: String) = AllModule(ModuleSpec.entries.first { it.key == key }) {}
 
-    private val modules = listOf(module("polls") to "Sondages", module("goodNews") to "Bonnes nouvelles", module("where") to "Où je suis")
+    private val modules = listOf(module("polls") to "Sondages", module("recipes") to "Recettes", module("where") to "Où je suis")
 
     @Test
     fun `a blank search shows every module`() {
-        assertEquals(listOf("polls", "goodNews", "where"), filterModules(modules, "  ").map { it.key })
+        assertEquals(listOf("polls", "recipes", "where"), filterModules(modules, "  ").map { it.key })
     }
 
     @Test
     fun `the search forgets accents and capitals`() {
         assertEquals(listOf("where"), filterModules(modules, "OU JE").map { it.key })
-        assertEquals(listOf("goodNews"), filterModules(modules, "nouv").map { it.key })
+        assertEquals(listOf("recipes"), filterModules(modules, "RECET").map { it.key })
         assertEquals(emptyList<String>(), filterModules(modules, "zzz").map { it.key })
     }
 
@@ -32,5 +31,41 @@ class AllFamiliaTest {
         )
         assertEquals(listOf("lending"), filterModules(entraide, "prêt").map { it.key })
         assertEquals(listOf("goodDeals"), filterModules(entraide, "plan").map { it.key })
+    }
+
+    @Test
+    fun `the menu holds 14 modules at most, in the order of the brief, without the gazette (récit 120)`() {
+        assertEquals(
+            listOf(
+                "planning", "help", "goodDeals", "lending", "polls", "where",
+                "gifts", "trips", "recipes", "challenges",
+                "albums", "capsule", "yearInReview", "whoIsIt",
+            ),
+            ModuleSpec.entries.map { it.key },
+        )
+        val keys = ModuleSpec.entries.map { it.key }
+        assertTrue(keys.none { it in listOf("feed", "goodNews", "souvenirs") })
+    }
+
+    @Test
+    fun `three groups, « Qui est-ce ? » always in « Se souvenir », last`() {
+        assertEquals(ModuleFamily.Remember, ModuleSpec.WhoIsIt.family)
+        assertEquals(ModuleSpec.WhoIsIt, ModuleSpec.entries.last())
+        assertEquals(
+            listOf(6, 4, 4),
+            ModuleFamily.entries.map { family -> ModuleSpec.entries.count { it.family == family } },
+        )
+    }
+
+    @Test
+    fun `Cadeaux and Voyages have the double picto`() {
+        assertEquals(setOf(ModuleSpec.Gifts, ModuleSpec.Trips), ModuleSpec.entries.filter { it.double }.toSet())
+    }
+
+    @Test
+    fun `4 a line, 3 from a text at 130 %, 2 from 180 %`() {
+        assertEquals(4, modulesPerLine(1f))
+        assertEquals(3, modulesPerLine(1.3f))
+        assertEquals(2, modulesPerLine(2f))
     }
 }
