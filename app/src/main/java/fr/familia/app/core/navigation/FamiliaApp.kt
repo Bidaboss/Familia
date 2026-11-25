@@ -1997,7 +1997,7 @@ fun FamiliaApp(
                                         container = container,
                                         currentMember = currentMember,
                                         onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
-                                                )
+                                    )
                                 }
                             } else {
                                 null
