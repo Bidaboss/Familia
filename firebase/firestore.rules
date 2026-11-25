@@ -2588,11 +2588,11 @@ service cloud.firestore {
         && e.updatedAt == request.time;
     }
 
-    function isValidNotebookIdea(e) {
+    function isValidNotebookIdea(e, memberId) {
       return e.keys().hasAll(['source', 'personId', 'personName', 'occasion', 'year', 'title', 'url',
                               'price', 'note', 'status', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['source', 'personId', 'personName', 'occasion', 'year', 'title', 'url',
-                             'price', 'note', 'status', 'createdAt', 'updatedAt', 'imageUrl', 'whereToFind'])
+                             'price', 'note', 'status', 'createdAt', 'updatedAt', 'imageUrl', 'whereToFind', 'photo'])
         && e.source == 'idea'
         // Someone of the family, or a person outside it known by their first name only.
         && (e.personId == null || (e.personId is string && exists(memberPath(e.personId))))
@@ -2604,6 +2604,9 @@ service cloud.firestore {
         && (!('imageUrl' in e) || e.imageUrl == null
             || (e.imageUrl is string && e.imageUrl.size() <= 1000 && e.imageUrl.matches('^https://.+')))
         && (!('whereToFind' in e) || e.whereToFind == null || (e.whereToFind is string && e.whereToFind.size() <= 120))
+        // Its photo (E11): one of the owner's private folder of the notebook (storage.rules), never another's.
+        && (!('photo' in e) || e.photo == null
+            || (e.photo is string && e.photo.matches('^notebooks/' + memberId + '/photos/[A-Za-z0-9]{1,40}$')))
         && isValidNotebookFollowUp(e);
     }
 
@@ -2611,13 +2614,13 @@ service cloud.firestore {
       allow read: if isNotebookOwner(memberId);
 
       allow create: if isNotebookOwner(memberId)
-        && isValidNotebookIdea(request.resource.data)
+        && isValidNotebookIdea(request.resource.data, memberId)
         && request.resource.data.createdAt == request.time;
 
       allow update: if isNotebookOwner(memberId)
         && request.resource.data.source == resource.data.source
         && request.resource.data.createdAt == resource.data.createdAt
-        && ((resource.data.source == 'idea' && isValidNotebookIdea(request.resource.data))
+        && ((resource.data.source == 'idea' && isValidNotebookIdea(request.resource.data, memberId))
             || (resource.data.source != 'idea'
                 && isValidNotebookFollowUp(request.resource.data)
                 && request.resource.data.diff(resource.data).affectedKeys()

@@ -269,6 +269,20 @@ service firebase.storage {
                 != 'goodDeals/' + dealId + '/' + authorId + '/' + fileName.split('[-.]')[0]);
     }
 
+    // The photo of a private idea of the notebook (correctif E11): notebooks/{memberId}/photos/{photoId}.jpg
+    // and its {photoId}-thumb.jpg. Private as the notebook itself: only its owner sends, reads and
+    // removes it, the idea names it (isValidNotebookIdea in firestore.rules), and the server removes
+    // it once the idea no longer names it.
+    match /notebooks/{memberId}/photos/{fileName} {
+      allow read: if isMember() && memberId == myMemberId();
+      allow create: if isMember()
+        && resource == null
+        && memberId == myMemberId()
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember() && memberId == myMemberId();
+    }
+
     // The photo of a thing to lend (récit 51): lendItems/{itemId}/{authorId}/{photoId}.jpg and its
     // {photoId}-thumb.jpg, as the photo of a bon plan above: sent to the sender's own folder before
     // its name goes in the field photo of the item (checked by firestore.rules), read by every

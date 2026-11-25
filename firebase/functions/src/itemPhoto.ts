@@ -45,3 +45,13 @@ export function copiedItemPhoto(photo: unknown, targetListId: string, visibleToB
 export function receivedPhoto(listId: string, receivedId: string): string {
   return `giftLists/${listId}/received/${receivedId}/photo`;
 }
+
+/**
+ * The photo of a private idea of [memberId]'s notebook to remove: the one [before] named, when
+ * [after] no longer names it (changed, dropped, or the idea removed), and only in that member's
+ * private folder (storage.rules). Null otherwise.
+ */
+export function droppedNotebookPhoto(memberId: string, before: unknown, after: unknown): string | null {
+  if (typeof before !== 'string' || before === after) return null;
+  return before.startsWith(`notebooks/${memberId}/photos/`) && /^notebooks\/[^/]+\/photos\/[A-Za-z0-9]{1,40}$/.test(before) ? before : null;
+}

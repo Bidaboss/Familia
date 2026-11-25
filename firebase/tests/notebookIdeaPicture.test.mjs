@@ -53,3 +53,20 @@ describe('the picture of the link and « Où trouver le cadeau ? »', () => {
     await assertFails(setDoc(doc(db, 'notebooks/adult1/entries/c'), idea({ whereToFind: 42 })));
   });
 });
+
+describe('its photo (E11), kept in the private folder of its author', () => {
+  test('an idea names a photo of its own folder, changes it or drops it', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'notebooks/adult1/entries/p'), idea({ photo: 'notebooks/adult1/photos/abc123' })));
+    await assertSucceeds(updateDoc(doc(db, 'notebooks/adult1/entries/e1'), { photo: 'notebooks/adult1/photos/def456', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, 'notebooks/adult1/entries/e1'), { photo: null, updatedAt: serverTimestamp() }));
+  });
+
+  test('never a photo of another member, nor of another folder', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/entries/q'), idea({ photo: 'notebooks/adult2/photos/abc123' })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/entries/q'), idea({ photo: 'giftLists/wishes-adult2/shared/adult1/p1' })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/entries/q'), idea({ photo: 'notebooks/adult1/photos/../x' })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/entries/q'), idea({ photo: 42 })));
+  });
+});

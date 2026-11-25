@@ -525,6 +525,31 @@ describe('photo of a bon plan (récit 45)', () => {
   });
 });
 
+describe('photo of an idea of the notebook (correctif E11)', () => {
+  const photo = (member, name) => `notebooks/${member}/photos/${name}`;
+
+  test('its author sends it and its thumbnail, reads and removes them; nobody else sees them', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p1.jpg')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p1-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storage, photo('adult1', 'p1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), photo('adult1', 'p1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(ADMIN), photo('adult1', 'p1-thumb.jpg'))));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1', 'p1.jpg'))));
+    await assertSucceeds(deleteObject(ref(storage, photo('adult1', 'p1.jpg'))));
+  });
+
+  test('never in the folder of another, never replaced, only a small JPEG', async () => {
+    const storage = storageAs(ADULT);
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), photo('adult1', 'p2.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p2.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p2.jpg')), 'y', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p3.jpg')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p3-thumb.jpg')), 'x'.repeat(65 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p3.png')), 'x', 'raw', { contentType: 'image/png' }));
+  });
+});
+
 describe('photo of a thing to lend (récit 51)', () => {
   // Each test has an item of its own, owned by adult1, whose photo is p1 of adult1.
   let n = 0;
