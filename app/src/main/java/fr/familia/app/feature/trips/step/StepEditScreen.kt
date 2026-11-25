@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,8 +53,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
@@ -119,17 +117,14 @@ fun StepEditScreen(
             },
         )
     }
-    val isNew = editing?.isNew != false
     TripFormScaffold(
-        // Fiche F2 §4: a new transport is « Nouvel élément », its title over the map.
-        title = stringResource(if (isNew) R.string.trip_element_new else R.string.trip_step_edit_title),
+        title = stringResource(if (editing?.isNew == false) R.string.trip_step_edit_title else R.string.trip_step_add_title),
         help = ScreenHelp.TripStepEdit,
         onBack = { if (hasChanges) confirmLeave = true else onBack() },
-        action = editing?.let { stringResource(if (it.isNew) R.string.trip_element_add else R.string.member_save) },
+        action = editing?.let { stringResource(if (it.isNew) R.string.trip_step_add else R.string.member_save) },
         busy = editing?.isSaving == true,
         onAction = onSave,
         inSheet = inSheet,
-        subtitle = editing?.takeIf { it.isNew }?.let { listOfNotNull(stepTypeLabel(it.form.type), it.trip?.title).joinToString(" · ") },
     ) {
         when (state) {
             StepEditUiState.Loading, StepEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -170,55 +165,33 @@ private fun FormContent(
     ) {
         state.trip?.let { TripReminder(it) }
 
-        // DESIGN-99 A (E-17): the « + » of « Le trajet » already said what is added; only a transport chooses its way.
-        if (state.typeOptions.size > 1) TripTile(Icons.Outlined.Category, stringResource(R.string.trip_step_tile_type)) {
+        TripTile(Icons.Outlined.Category, stringResource(R.string.trip_step_tile_type)) {
             CategoryTiles(
-                options = state.typeOptions,
+                options = StepType.entries,
                 selected = form.type,
                 onSelect = { type -> onChange { it.copy(type = type) } },
                 label = { stepTypeLabel(it) },
                 icon = ::stepTypeIcon,
                 selectedColor = TripFormColors.IconBackground,
                 selectedContentColor = TripPathColors.Ink,
-                // E-64 (b): the four ways on one line (two by two in big text), cream edges, the chosen one dark.
-                columns = if (LocalDensity.current.fontScale >= 1.3f) 2 else state.typeOptions.size.coerceAtMost(4),
-                edgeColor = FieldCream,
-                selectedEdge = 3.dp,
             )
         }
 
         TripTile(Icons.Outlined.Place, stringResource(R.string.trip_step_tile_where), Modifier.part(StepPart.Where)) {
+            val label = stringResource(R.string.trip_step_field_place)
+            FormLabel(label)
+            OutlinedTextField(
+                value = form.place,
+                onValueChange = { value -> onChange { it.copy(place = value) } },
+                isError = StepFormError.PlaceMissing in errors || StepFormError.PlaceTooLong in errors,
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+            )
             val placeError = errorMessage(errors, StepFormError.PlaceMissing, StepFormError.PlaceTooLong)
-            if (form.type in TRANSPORT_TYPES) {
-                // E-64: two fields, « Départ de » then « Arrivée à », kept as « Paris → Bordeaux ».
-                val (from, to) = routeParts(form.place)
-                PlaceField(
-                    label = stringResource(R.string.trip_step_route_from),
-                    example = stringResource(R.string.trip_step_route_from_example),
-                    value = from,
-                    onValue = { value -> onChange { it.copy(place = routeOf(value, routeParts(it.place).second)) } },
-                    isError = placeError != null,
-                )
-                PlaceField(
-                    label = stringResource(R.string.trip_step_route_to),
-                    example = stringResource(R.string.trip_step_route_to_example),
-                    value = to,
-                    onValue = { value -> onChange { it.copy(place = routeOf(routeParts(it.place).first, value)) } },
-                    isError = StepFormError.PlaceTooLong in errors,
-                )
-                FormHint(placeError ?: stringResource(R.string.trip_step_place_hint), isError = placeError != null)
-            } else {
-                PlaceField(
-                    label = stringResource(R.string.trip_step_field_place),
-                    example = stringResource(R.string.trip_step_place_example),
-                    value = form.place,
-                    onValue = { value -> onChange { it.copy(place = value) } },
-                    isError = placeError != null,
-                )
-                if (form.type == StepType.Lodging || placeError != null) {
-                    FormHint(placeError ?: stringResource(R.string.trip_step_place_hint_lodging), isError = placeError != null)
-                }
-            }
+            val hint = if (form.type == StepType.Lodging) R.string.trip_step_place_hint_lodging else R.string.trip_step_place_hint
+            FormHint(placeError ?: stringResource(hint), isError = placeError != null)
         }
 
         TripTile(Icons.Outlined.Schedule, stringResource(R.string.trip_step_tile_when), Modifier.part(StepPart.When)) {
@@ -228,7 +201,6 @@ private fun FormContent(
                 onDay = { day -> onChange { it.copy(departDate = day, arriveDate = it.arriveDate?.takeIf { a -> a >= day }) } },
                 time = form.departTime,
                 onTime = { time -> onChange { it.copy(departTime = time) } },
-                clearDescription = stringResource(R.string.trip_step_clear_depart_time),
             )
             errorMessage(errors, StepFormError.DepartMissing)?.let { FormHint(it, isError = true) }
             FormLabel(stringResource(R.string.trip_step_field_arrive))
@@ -238,7 +210,6 @@ private fun FormContent(
                 time = form.arriveTime,
                 onTime = { time -> onChange { it.copy(arriveTime = time) } },
                 initial = form.departDate,
-                clearDescription = stringResource(R.string.trip_step_clear_arrive_time),
             )
             errorMessage(errors, StepFormError.ArriveBeforeDepart)?.let { FormHint(it, isError = true) }
             ReminderBand()
@@ -250,7 +221,6 @@ private fun FormContent(
                 value = form.note,
                 onValueChange = { value -> onChange { it.copy(note = value) } },
                 isError = StepFormError.NoteTooLong in errors,
-                colors = tripFieldColors(),
                 // Several lines, said by the hint, but never a field taller than 6 lines: it scrolls (règle 26).
                 minLines = 3,
                 maxLines = 6,
@@ -272,102 +242,40 @@ private fun FormContent(
     }
 }
 
-/** The cream edge of a field at rest, and its dark blue edge while typed (E-64 a): red only after a refused save. */
-private val FieldCream = Color(0xFFE6D9C6)
-private val FieldFocus = Color(0xFF1F3B4D)
-private val FieldExample = Color(0xFF5B6770)
-
-@Composable
-private fun tripFieldColors() = OutlinedTextFieldDefaults.colors(
-    unfocusedBorderColor = FieldCream,
-    focusedBorderColor = FieldFocus,
-    cursorColor = FieldFocus,
-    focusedLabelColor = FieldFocus,
-    unfocusedContainerColor = Color.White,
-    focusedContainerColor = Color.White,
-    errorContainerColor = Color.White,
-    focusedTextColor = TripPathColors.Ink,
-    unfocusedTextColor = TripPathColors.Ink,
-    errorTextColor = TripPathColors.Ink,
-    // The grey example stays readable on the white field in every theme, the dark ones too.
-    focusedPlaceholderColor = FieldExample,
-    unfocusedPlaceholderColor = FieldExample,
-    errorPlaceholderColor = FieldExample,
-)
-
-/** A place field of 56 dp, its label above and a grey example inside. */
-@Composable
-private fun PlaceField(label: String, example: String, value: String, onValue: (String) -> Unit, isError: Boolean) {
-    FormLabel(label)
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValue,
-        isError = isError,
-        singleLine = true,
-        placeholder = { Text(example) },
-        shape = RoundedCornerShape(16.dp),
-        colors = tripFieldColors(),
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).semantics { contentDescription = label },
-    )
-}
-
-/** « Dans le voyage · La Samoure · 11 → 16 avril », a small white card, not a button. */
+/** « Dans le voyage · La Palmyre · 11 → 16 avril », a small white card, not a button. */
 @Composable
 private fun TripReminder(trip: Trip) {
     val (from, to) = tripRangeEnds(trip, weekday = false)
     val dates = if (trip.startDate == trip.endDate) to else stringResource(R.string.trip_preview_range, from, to)
-    // Fiche F2 §4: a white band 40 dp high, rounded 26, grey bold text.
     Text(
         stringResource(R.string.trip_step_in_trip, trip.title, dates),
-        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF5B6770),
-        // E-64 (d): the whole line, never cut, however long the name of the trip.
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = TripPathColors.Ink,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 40.dp)
-            .clip(RoundedCornerShape(26.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 9.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
     )
 }
 
-/**
- * A day box and the hour (TimeBox) side by side, one under the other with a big font. No big
- * « Sans heure » chip under each pair (E-18): « Choisir » already means no hour, and a small
- * « Sans heure » link clears an hour once one is set.
- */
+/** A day box and the hour (TimeBox) side by side, one under the other with a big font. */
 @Composable
-private fun DayAndTime(
-    day: LocalDate?,
-    onDay: (LocalDate) -> Unit,
-    time: LocalTime?,
-    onTime: (LocalTime?) -> Unit,
-    initial: LocalDate? = null,
-    /** What TalkBack says on the « Sans heure » link: which hour it clears (C1 of #590). */
-    clearDescription: String? = null,
-) {
+private fun DayAndTime(day: LocalDate?, onDay: (LocalDate) -> Unit, time: LocalTime?, onTime: (LocalTime?) -> Unit, initial: LocalDate? = null) {
     val dayLabel = stringResource(R.string.trip_step_day)
     val timeLabel = stringResource(R.string.trip_step_time)
-    Column {
-        if (LocalDensity.current.fontScale >= 1.3f) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TripDayBox(dayLabel, day, onDay, Modifier.fillMaxWidth(), initial = initial)
-                TimeBox(time = time, onPick = onTime, modifier = Modifier.fillMaxWidth(), label = timeLabel, clearLabel = null)
-            }
-        } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TripDayBox(dayLabel, day, onDay, Modifier.weight(1f), initial = initial)
-                TimeBox(time = time, onPick = onTime, modifier = Modifier.weight(1f), label = timeLabel, clearLabel = null)
-            }
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            TripDayBox(dayLabel, day, onDay, Modifier.fillMaxWidth(), initial = initial)
+            TimeBox(time = time, onPick = onTime, modifier = Modifier.fillMaxWidth(), label = timeLabel)
         }
-        if (time != null) {
-            TextButton(
-                onClick = { onTime(null) },
-                modifier = Modifier.align(Alignment.End).heightIn(min = 56.dp)
-                    .then(if (clearDescription != null) Modifier.semantics { contentDescription = clearDescription } else Modifier),
-            ) { Text(stringResource(R.string.event_no_time)) }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TripDayBox(dayLabel, day, onDay, Modifier.weight(1f), initial = initial)
+            TimeBox(time = time, onPick = onTime, modifier = Modifier.weight(1f), label = timeLabel)
         }
     }
 }
@@ -426,7 +334,7 @@ private fun errorMessage(errors: Set<StepFormError>, vararg kinds: StepFormError
 internal fun previewStepEditState(isNew: Boolean = false, errors: Set<StepFormError> = emptySet()): StepEditUiState.Editing = StepEditUiState.Editing(
     form = StepForm(
         type = StepType.Flight,
-        place = if (errors.isEmpty()) "Lyon → Ajaccio" else "",
+        place = if (errors.isEmpty()) "Ajaccio" else "",
         departDate = LocalDate.of(2027, 8, 2),
         departTime = LocalTime.of(8, 15),
         arriveDate = LocalDate.of(2027, 8, 2),

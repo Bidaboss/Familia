@@ -60,12 +60,6 @@ import fr.familia.app.feature.recipes.previewRecipesState
 import fr.familia.app.feature.trips.detail.TripDetailScreen
 import fr.familia.app.feature.trips.detail.previewTripDetail
 import fr.familia.app.feature.trips.edit.TripEditScreen
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.background
-import fr.familia.app.feature.trips.detail.TripPathColors
-import fr.familia.app.feature.trips.edit.DestinationSearch
-import fr.familia.app.feature.trips.edit.TripDestinationScreen
-import fr.familia.app.feature.trips.edit.TripDatesScreen
 import fr.familia.app.feature.trips.edit.TripFormError
 import fr.familia.app.feature.trips.edit.previewTripEditState
 import fr.familia.app.feature.trips.list.TripsScreen
@@ -133,7 +127,7 @@ internal object VoyageScreens {
         screen("a restaurant, with « Choisir un autre »") { PlaceEditScreen(previewPlaceEditState(), {}, {}, {}, {}, onSearch = {}) },
         screen("the search of a restaurant") { PlaceSearchScreen(previewPlaceSearchState(), "Ajaccio", {}, {}, {}, {}, {}) },
         screen("the search of a spot, no answer") {
-            PlaceSearchScreen(previewPlaceSearchState(kind = TripPlaceKind.Spot, text = "plage", results = PlaceSearchResults.Failed(fr.familia.app.core.place.SearchFailure.Busy)), "Ajaccio", {}, {}, {}, {}, {})
+            PlaceSearchScreen(previewPlaceSearchState(kind = TripPlaceKind.Spot, text = "plage", results = PlaceSearchResults.Failed), "Ajaccio", {}, {}, {}, {}, {})
         },
         screen("edit a step, with errors") {
             StepEditScreen(previewStepEditState(errors = setOf(StepFormError.PlaceMissing, StepFormError.ArriveBeforeDepart)), {}, {}, {}, {})
@@ -169,123 +163,8 @@ internal object VoyageScreens {
         },
         screen("the word of a step, with no word yet, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = false, isParticipant = false), StepWordActions()) },
         screen("the map of a trip, with no step placed") { TripMapScreen(previewTripDetail(), {}, {}, {}) },
-        // Fiche F1: the path with its header, the big photo card, the dates, who goes, the AI pill and the tools.
-        screen("a trip, the path of the fiche F1") {
-            TripDetailScreen(
-                previewTripDetail(), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenExpenses = {},
-                illustrated = true,
-                cover = { success -> fr.familia.app.feature.trips.detail.TripCoverCarousel(success.trip, success.steps, null, today = success.today) },
-                onOpenEnrich = {}, onOpenPacking = {}, packingCount = 2, onOpenDocuments = {}, onShare = {},
-            )
-        },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },
-        // Fiche F4: the calendar of the dates, a trip chosen; the destination without the globe (no token).
-        screen("the dates of a trip") {
-            TripDatesScreen(LocalDate.of(2027, 8, 2), LocalDate.of(2027, 8, 9), { _, _ -> }, {})
-        },
-        screen("where are you going") {
-            TripDestinationScreen("Ajac", DestinationSearch.Idle, null, {}, {}, {}, {}, {}, {})
-        },
-        // Fiche F5: the page of a destination, for who goes (departure, « + Ajouter »).
-        screen("the page of a destination") {
-            fr.familia.app.feature.trips.detail.DestinationPage(
-                container = null,
-                success = previewTripDetail(),
-                stayId = "s2",
-                actions = fr.familia.app.feature.trips.detail.TimelineActions(
-                    onNights = { _, _ -> fr.familia.app.feature.trips.detail.NightsChange.Blocked(fr.familia.app.feature.trips.detail.NightsBlock.OneNight) },
-                    onAddPlace = { _, _ -> },
-                ),
-                links = fr.familia.app.feature.trips.detail.DestinationLinks(onEdit = {}, onAllAbout = {}, onOpenPhrases = null, onOpenMoney = null),
-                onSelect = {},
-                onBack = {},
-                inSheet = false,
-            )
-        },
-        // Fiche F6: « Enrichir avec une IA » in three steps, and the sheet « Monnaie du voyage ».
-        screen("enrich with an AI") {
-            fr.familia.app.feature.trips.enrich.TripEnrichScreen(
-                false, true, previewTripDetail().steps, "Prompt", fr.familia.app.feature.trips.enrich.EnrichUiState(), {}, {}, {}, {}, {}, {},
-            )
-        },
-        screen("enrich, an answer refused") {
-            fr.familia.app.feature.trips.enrich.TripEnrichScreen(
-                false, true, previewTripDetail().steps, "Prompt",
-                fr.familia.app.feature.trips.enrich.EnrichUiState(answer = "bonjour", reading = fr.familia.app.feature.trips.enrich.EnrichReading.Refused.NotJson),
-                {}, {}, {}, {}, {}, {},
-                startStep = fr.familia.app.feature.trips.enrich.EnrichStep.Paste,
-            )
-        },
-        screen("enrich, the check") {
-            val reading = fr.familia.app.feature.trips.enrich.EnrichReading.Read(
-                listOf(
-                    fr.familia.app.feature.trips.enrich.ProposedDestination(
-                        "Bastia", null, LocalDate.of(2027, 8, 5), LocalDate.of(2027, 8, 7),
-                        listOf(fr.familia.app.feature.trips.enrich.ProposedPlace(fr.familia.app.core.model.TripPlaceKind.Restaurant, "Chez Inès", "Le port", null, null, null)),
-                    ),
-                ),
-                listOf(fr.familia.app.feature.trips.enrich.Skipped("Musée", fr.familia.app.feature.trips.enrich.SkipReason.Link)),
-            )
-            fr.familia.app.feature.trips.enrich.TripEnrichScreen(
-                false, true, previewTripDetail().steps, "Prompt",
-                fr.familia.app.feature.trips.enrich.EnrichUiState(answer = "{}", reading = reading, ticked = fr.familia.app.feature.trips.enrich.allKeys(reading)),
-                {}, {}, {}, {}, {}, {},
-            )
-        },
-        screen("the currency of a trip") {
-            fr.familia.app.feature.trips.money.TripMoneyScreen(
-                loading = false,
-                currency = fr.familia.app.core.money.Currencies.of("MAD"),
-                suggestions = emptyList(),
-                rates = fr.familia.app.feature.trips.money.RatesState.Ready(fr.familia.app.core.money.RatesTable(mapOf("MAD" to 10.9), LocalDate.of(2026, 11, 23))),
-                saveFailed = false,
-                onChange = {},
-                onRetry = {},
-                onBack = {},
-            )
-        },
-        screen("the currency of a trip, for who does not manage it") {
-            fr.familia.app.feature.trips.money.TripMoneyScreen(
-                loading = false,
-                currency = fr.familia.app.core.money.Currencies.of("MAD"),
-                suggestions = emptyList(),
-                rates = fr.familia.app.feature.trips.money.RatesState.Unavailable,
-                saveFailed = false,
-                onChange = null,
-                onRetry = {},
-                onBack = {},
-            )
-        },
-        // DESIGN-105: a private document, and one shared with two travellers (their faces, « Partager… »).
-        screen("the documents of a trip") {
-            fun m(id: String, name: String) = fr.familia.app.core.model.Member(id, name, null, null, "h1", fr.familia.app.core.model.MemberProfile.Adult, false, emptyList(), null)
-            val people = listOf(m("m1", "Camille"), m("m2", "Inès"), m("m3", "Noé"))
-            fun d(id: String, title: String, kind: fr.familia.app.core.data.TripDocumentKind, sharedWith: List<String>) =
-                fr.familia.app.core.data.TripDocument(id, "m1", "Camille", title, kind, fr.familia.app.core.data.TripDocumentType.Pdf, 10, null, sharedWith)
-            fr.familia.app.feature.trips.documents.TripDocumentsScreen(
-                loading = false,
-                allowed = true,
-                state = fr.familia.app.feature.trips.documents.DocumentsState.Ready(
-                    listOf(
-                        d("d1", "Billet aller", fr.familia.app.core.data.TripDocumentKind.Ticket, listOf("m1", "m2", "m3")),
-                        d("d2", "Passeport", fr.familia.app.core.data.TripDocumentKind.Paper, listOf("m1")),
-                    ),
-                ),
-                sending = false,
-                problem = null,
-                canDelete = { true },
-                onAdd = {},
-                onOpen = {},
-                onDelete = {},
-                onDismissProblem = {},
-                onBack = {},
-                people = people,
-                meId = "m1",
-                onShare = {},
-            )
-        },
-        // Fiche F3: the bags are always on the light blue page of « Valise ».
-        screen("À emporter") { androidx.compose.foundation.layout.Box(Modifier.background(TripPathColors.Sky)) {
+        screen("À emporter") {
             PackingBags(
                 PackingUiState(
                     listOf(
@@ -295,7 +174,7 @@ internal object VoyageScreens {
                 ),
                 PackingActions(),
             )
-        } },
+        },
         screen("the albums") {
             val albums = listOf(
                 AlbumEntry(AlbumEntry.Kind.Event, "e1", "Pique-nique au lac", LocalDate.of(2026, 10, 4), photoCount = 12),

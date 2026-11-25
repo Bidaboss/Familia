@@ -7,9 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlin.coroutines.cancellation.CancellationException
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOf
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -87,40 +84,13 @@ fun PlaceEditRoute(
             onBack = { if (chosen) searching = false else onDone() },
         )
     } else {
-        // Fiche F2 §4: a new place is added under the map of the trip, as a transport.
-        if (placeId == null) {
-            val trip by androidx.compose.runtime.remember(tripId) {
-                container?.tripRepository?.observeTrip(tripId)?.catch { e -> if (e is CancellationException) throw e else emit(null) } ?: flowOf(null)
-            }.collectAsStateWithLifecycle(initialValue = null)
-            val steps by androidx.compose.runtime.remember(tripId) {
-                container?.tripRepository?.observeSteps(tripId)?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) } ?: flowOf(emptyList())
-            }.collectAsStateWithLifecycle(initialValue = emptyList())
-            fr.familia.app.feature.trips.map.TripMapBackdrop(
-                token = fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN,
-                trip = trip,
-                steps = steps,
-                focusId = stepId,
-                startLevel = 1,
-            ) { inSheet ->
-                PlaceEditScreen(
-                    state = state,
-                    onChange = viewModel::update,
-                    onSave = viewModel::save,
-                    onDelete = viewModel::delete,
-                    onBack = onDone,
-                    onSearch = { searching = true },
-                    inSheet = inSheet,
-                )
-            }
-        } else {
-            PlaceEditScreen(
-                state = state,
-                onChange = viewModel::update,
-                onSave = viewModel::save,
-                onDelete = viewModel::delete,
-                onBack = onDone,
-                onSearch = { searching = true },
-            )
-        }
+        PlaceEditScreen(
+            state = state,
+            onChange = viewModel::update,
+            onSave = viewModel::save,
+            onDelete = viewModel::delete,
+            onBack = onDone,
+            onSearch = { searching = true },
+        )
     }
 }

@@ -4,8 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.place.FoundPlace
 import fr.familia.app.core.place.PlaceSearch
-import fr.familia.app.core.place.PlaceSearchAnswer
-import fr.familia.app.core.place.SearchFailure
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -25,9 +23,9 @@ class PlaceSearchViewModelTest {
 
     private class FakeSearch(var answer: List<FoundPlace>? = emptyList()) : PlaceSearch {
         val asked = mutableListOf<Pair<TripPlaceKind, String>>()
-        override suspend fun search(lat: Double, lng: Double, kind: TripPlaceKind, text: String): PlaceSearchAnswer {
+        override suspend fun search(lat: Double, lng: Double, kind: TripPlaceKind, text: String): List<FoundPlace>? {
             asked += kind to text
-            return answer?.let { PlaceSearchAnswer.Found(it) } ?: PlaceSearchAnswer.Failed(SearchFailure.Busy)
+            return answer
         }
     }
 
@@ -77,7 +75,7 @@ class PlaceSearchViewModelTest {
     fun `no answer says so, and retrying asks again`() {
         val search = FakeSearch(answer = null)
         val vm = vm(search)
-        assertEquals(PlaceSearchResults.Failed(SearchFailure.Busy), vm.uiState.value.results)
+        assertEquals(PlaceSearchResults.Failed, vm.uiState.value.results)
         search.answer = listOf(port)
         vm.retry()
         assertEquals(PlaceSearchResults.Found(listOf(port)), vm.uiState.value.results)

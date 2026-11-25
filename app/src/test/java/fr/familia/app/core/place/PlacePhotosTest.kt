@@ -6,16 +6,16 @@ import org.junit.Test
 
 class PlacePhotosTest {
     private val summary = """
-        {"type":"standard","title":"Samoure",
-         "thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_Samoure.jpg/320px-Vieux_Port_Samoure.jpg"},
-         "originalimage":{"source":"https://upload.wikimedia.org/wikipedia/commons/a/ab/Vieux_Port_Samoure.jpg"}}
+        {"type":"standard","title":"La Rochelle",
+         "thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_La_Rochelle.jpg/320px-Vieux_Port_La_Rochelle.jpg"},
+         "originalimage":{"source":"https://upload.wikimedia.org/wikipedia/commons/a/ab/Vieux_Port_La_Rochelle.jpg"}}
     """.trimIndent()
 
     @Test
     fun theImageOfASummaryIsAskedWideWithItsFile() {
         val image = parseSummaryImage(summary)!!
-        assertEquals("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_Samoure.jpg/${PHOTO_WIDTH}px-Vieux_Port_Samoure.jpg", image.url)
-        assertEquals("Vieux_Port_Samoure.jpg", image.file)
+        assertEquals("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Vieux_Port_La_Rochelle.jpg/1080px-Vieux_Port_La_Rochelle.jpg", image.url)
+        assertEquals("Vieux_Port_La_Rochelle.jpg", image.file)
     }
 
     @Test
@@ -42,7 +42,7 @@ class PlacePhotosTest {
 
     @Test
     fun addressesAreEncoded() {
-        assertEquals("https://fr.wikipedia.org/api/rest_v1/page/summary/La_Samoure", photoSummaryUrl(" La Samoure "))
+        assertEquals("https://fr.wikipedia.org/api/rest_v1/page/summary/La_Palmyre", photoSummaryUrl(" La Palmyre "))
         assertEquals(
             "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=imageinfo&iiprop=extmetadata&titles=File%3APort+%C3%A9t%C3%A9.jpg",
             commonsInfoUrl("Port été.jpg"),

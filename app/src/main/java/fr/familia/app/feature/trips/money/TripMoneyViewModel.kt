@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 /** The rates of the screen: being read, read (with their date), or none at all. */
 sealed interface RatesState {
@@ -27,18 +26,9 @@ class TripMoneyViewModel(
     private val trips: TripRepository?,
     private val exchangeRates: ExchangeRates?,
     private val tripId: String,
-    private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
     private val _rates = MutableStateFlow<RatesState>(RatesState.Loading)
     val rates: StateFlow<RatesState> = _rates.asStateFlow()
-
-    private val _saved = MutableStateFlow(false)
-
-    /** True once a currency is saved: the sheet closes (only while it is still shown). */
-    val saved: StateFlow<Boolean> = _saved.asStateFlow()
-
-    private val _saving = MutableStateFlow(false)
-    val saving: StateFlow<Boolean> = _saving.asStateFlow()
 
     private val _saveFailed = MutableStateFlow(false)
     val saveFailed: StateFlow<Boolean> = _saveFailed.asStateFlow()
@@ -66,26 +56,18 @@ class TripMoneyViewModel(
         }
     }
 
-    /**
-     * The creator or the admin principal picks the currency; the euro takes it back. [saved] turns true
-     * once the write is accepted, or still pending after [writeTimeoutMillis] (queued offline).
-     */
+    /** The creator or the admin principal picks the currency; the euro takes it back. */
     fun setCurrency(code: String) {
         val repo = trips ?: return
-        if (_saving.value) return
         _saveFailed.value = false
-        _saving.value = true
         viewModelScope.launch {
-            val ok = try {
-                withTimeoutOrNull(writeTimeoutMillis) { repo.setCurrency(tripId, code.takeIf { it != "EUR" }) }
-                true
+            try {
+                repo.setCurrency(tripId, code.takeIf { it != "EUR" })
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                false
+                _saveFailed.value = true
             }
-            _saving.value = false
-            if (ok) _saved.value = true else _saveFailed.value = true
         }
     }
 }

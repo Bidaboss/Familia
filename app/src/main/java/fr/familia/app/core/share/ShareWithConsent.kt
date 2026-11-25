@@ -79,15 +79,3 @@ fun playVideoUrl(context: Context, url: String): Boolean = try {
 } catch (e: ActivityNotFoundException) {
     false
 }
-
-/** Sends [files] (JPEG) with [text] through the share sheet, to the app of an AI for example (règle 33). */
-fun shareImagesWithText(context: Context, files: List<File>, text: String, chooserTitle: String) {
-    val uris = ArrayList(files.map { FileProvider.getUriForFile(context, authority(context), it) })
-    val send = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-        type = "image/jpeg"
-        putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-        putExtra(Intent.EXTRA_TEXT, text)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-    context.startActivity(Intent.createChooser(send, chooserTitle))
-}

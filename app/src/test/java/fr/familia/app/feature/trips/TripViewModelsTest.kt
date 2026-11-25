@@ -87,6 +87,7 @@ class TripViewModelsTest {
         assertTrue(state.isParticipant)
         assertFalse(state.canManage)
         assertEquals(5, state.followers)
+        assertTrue(state.severalHouseholds) // adult1 and adult2 are two households: « Comptes » shows.
         participant.markArrived("s1")
         assertEquals(listOf("s1" to "adult2"), trips.arrivals)
         participant.clearArrival("s1")
@@ -279,22 +280,9 @@ class TripViewModelsTest {
 
     @Test
     fun `a new step can start with the destination just chosen`() {
-        val vm = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, presetPlace = "La Samoure", zone = paris, now = beforeTrip)
-        assertEquals("La Samoure", vm.editing().form.place)
+        val vm = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, presetPlace = "La Palmyre", zone = paris, now = beforeTrip)
+        assertEquals("La Palmyre", vm.editing().form.place)
         assertEquals(LocalDate.of(2027, 7, 10), vm.editing().form.departDate)
-    }
-
-    @Test
-    fun `a destination from a plus of the route starts that day, without asking its type`() {
-        val vm = StepEditViewModel(
-            FakeTrips(), FakeMembers(), "adult2", "t1", null,
-            presetKind = fr.familia.app.feature.trips.step.StepAddKind.Destination,
-            presetDay = LocalDate.of(2027, 7, 12),
-            zone = paris, now = beforeTrip,
-        )
-        assertEquals(StepType.Lodging, vm.editing().form.type)
-        assertEquals(LocalDate.of(2027, 7, 12), vm.editing().form.departDate)
-        assertTrue(vm.editing().typeOptions.isEmpty())
     }
 
     @Test

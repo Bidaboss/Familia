@@ -57,17 +57,4 @@ class PhraseBookTest {
         // The second step is on the same tenth of a degree as the first, and the third has no point.
         assertEquals(2, asked)
     }
-
-    @Test
-    fun `the page of a step abroad shows the first phrases of its language, nothing in France`() {
-        val spain = stepPhrases("es")!!
-        assertEquals("ES", spain.country)
-        assertEquals(PhraseLanguage.Spanish, spain.language)
-        assertEquals(PhraseBook.phrases(PhraseLanguage.Spanish).take(STEP_PHRASES_SHOWN), spain.phrases)
-        assertEquals(PhraseLanguage.Portuguese, stepPhrases("BR")?.language)
-        assertNull(stepPhrases("FR"))
-        assertNull(stepPhrases(null))
-        // A country abroad without a table yet (Japan) shows nothing rather than a wrong language.
-        assertNull(stepPhrases("JP"))
-    }
 }

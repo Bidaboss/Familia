@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,7 +23,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -34,7 +32,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -114,8 +111,6 @@ fun ExpensesScreen(
     onHistory: ((expenseId: String) -> Unit)? = null,
     /** A trip or an event (PRODUIT-57): only a few words change. */
     kind: ExpenseContainerType = ExpenseContainerType.Trip,
-    /** « Monnaie » of a trip (récit 112, règle 42): the currency of the budget and the rate of the day. */
-    onMoney: (() -> Unit)? = null,
 ) {
     val isEvent = kind == ExpenseContainerType.Event
     val success = state as? ExpensesUiState.Success
@@ -135,14 +130,7 @@ fun ExpensesScreen(
             FamiliaTopBar(
                 title = { Text(success?.let { stringResource(R.string.expenses_title_of, it.title) } ?: stringResource(if (isEvent) R.string.expenses_title_event else R.string.expenses_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
-                actions = {
-                    if (onMoney != null && !isEvent) {
-                        IconButton(onClick = onMoney, modifier = Modifier.size(56.dp)) {
-                            Icon(Icons.Outlined.CurrencyExchange, contentDescription = stringResource(R.string.money_from_expenses))
-                        }
-                    }
-                    if (success != null) ExportMenu(success)
-                },
+                actions = { if (success != null) ExportMenu(success) },
             )
         },
         floatingActionButton = {

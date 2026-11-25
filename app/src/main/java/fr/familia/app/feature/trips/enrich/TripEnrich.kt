@@ -54,8 +54,7 @@ data class ProposedPlace(
 
 /**
  * A destination of the answer: an existing one of the trip ([existingStepId], dates kept as they
- * are), or a new stay from [start] to [end]. [anchor] is the point of the existing one, read with it,
- * near which its places are looked for (règle 29, retour C2 de #579).
+ * are), or a new stay from [start] to [end].
  */
 data class ProposedDestination(
     val city: String,
@@ -63,7 +62,6 @@ data class ProposedDestination(
     val start: LocalDate?,
     val end: LocalDate?,
     val places: List<ProposedPlace>,
-    val anchor: Pair<Double, Double>? = null,
 ) {
     val isNew: Boolean get() = existingStepId == null
 }
@@ -180,7 +178,7 @@ fun readEnrichAnswer(answer: String, trip: Trip, steps: List<TripStep>, target: 
                 }
                 val places = readPlaces(item["lieux"], skipped)
                 val existing = stays.firstOrNull { sameName(placeName(it.step), city) }
-                if (existing != null) return@mapNotNull ProposedDestination(placeName(existing.step), existing.step.id, null, null, places, anchorOf(existing.step))
+                if (existing != null) return@mapNotNull ProposedDestination(placeName(existing.step), existing.step.id, null, null, places)
                 val from = day(item.text("du"))
                 val to = day(item.text("au"))
                 when {
@@ -207,17 +205,11 @@ fun readEnrichAnswer(answer: String, trip: Trip, steps: List<TripStep>, target: 
         is EnrichTarget.Destination -> {
             val step = steps.firstOrNull { it.id == target.stepId } ?: return EnrichReading.Refused.NothingToAdd
             val places = readPlaces(root["lieux"] ?: return EnrichReading.Refused.NotJson, skipped)
-            listOf(ProposedDestination(placeName(step), step.id, null, null, places, anchorOf(step)))
+            listOf(ProposedDestination(placeName(step), step.id, null, null, places))
         }
     }.filter { it.isNew || it.places.isNotEmpty() }
     if (destinations.isEmpty()) return if (skipped.isEmpty()) EnrichReading.Refused.NothingToAdd else EnrichReading.Read(emptyList(), skipped)
     return EnrichReading.Read(destinations, skipped)
-}
-
-private fun anchorOf(step: TripStep): Pair<Double, Double>? {
-    val lat = step.lat ?: return null
-    val lng = step.lng ?: return null
-    return lat to lng
 }
 
 private fun readPlaces(element: JsonElement?, skipped: MutableList<Skipped>): List<ProposedPlace> {

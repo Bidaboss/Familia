@@ -20,13 +20,13 @@ class TripTimelineTest {
 
     private val car = step("car", StepType.Car, 10, lat = 48.85, lng = 2.35)
     private val bordeaux = step("bordeaux", StepType.Lodging, 10, 12, lat = 44.84, lng = -0.58)
-    private val samoure = step("samoure", StepType.Lodging, 12, lat = 45.69, lng = -1.18)
-    private val steps = listOf(samoure, bordeaux, car)
+    private val palmyre = step("palmyre", StepType.Lodging, 12, lat = 45.69, lng = -1.18)
+    private val steps = listOf(palmyre, bordeaux, car)
 
     @Test
     fun theLineHasTheDestinationsWithTheirNightsAndTheMovesBetween() {
         val line = tripTimeline(trip, steps)
-        assertEquals(listOf("car", "bordeaux", "samoure"), line.rows.map { it.step.id })
+        assertEquals(listOf("car", "bordeaux", "palmyre"), line.rows.map { it.step.id })
         val (first, second) = line.destinations
         assertEquals(1, first.number)
         assertEquals(2, first.nights)
@@ -47,32 +47,21 @@ class TripTimelineTest {
 
     @Test
     fun oneNightMoreMovesTheEndAndEveryStepAfter() {
-        val change = changeNights(trip, listOf(bordeaux, samoure.copy(arriveDate = day(15))), bordeaux, 1) as NightsChange.Steps
+        val change = changeNights(trip, listOf(bordeaux, palmyre.copy(arriveDate = day(15))), bordeaux, 1) as NightsChange.Steps
         val byId = change.changed.associateBy { it.id }
         assertEquals(day(13), byId.getValue("bordeaux").arriveDate)
-        assertEquals(day(13), byId.getValue("samoure").departDate)
-        assertEquals(day(16), byId.getValue("samoure").arriveDate)
-    }
-
-    @Test
-    fun aDepartureChosenOnThePageMovesByMoreThanOneNight() {
-        val withEnd = listOf(bordeaux, samoure.copy(arriveDate = day(15)))
-        assertEquals(day(14), latestDeparture(trip, withEnd, bordeaux))
-        val two = changeNights(trip, withEnd, bordeaux, 2) as NightsChange.Steps
-        assertEquals(day(14), two.changed.first { it.id == "bordeaux" }.arriveDate)
-        assertEquals(day(17), two.changed.first { it.id == "samoure" }.arriveDate)
-        assertEquals(NightsChange.Blocked(NightsBlock.AtReturn), changeNights(trip, withEnd, bordeaux, 3))
-        assertEquals(NightsChange.Blocked(NightsBlock.OneNight), changeNights(trip, withEnd, bordeaux, -2))
+        assertEquals(day(13), byId.getValue("palmyre").departDate)
+        assertEquals(day(16), byId.getValue("palmyre").arriveDate)
     }
 
     @Test
     fun neverPastTheReturnNorUnderOneNight() {
-        assertEquals(NightsChange.Blocked(NightsBlock.AtReturn), changeNights(trip, steps, samoure, 1))
+        assertEquals(NightsChange.Blocked(NightsBlock.AtReturn), changeNights(trip, steps, palmyre, 1))
         val short = step("short", StepType.Lodging, 10, 11)
         assertEquals(NightsChange.Blocked(NightsBlock.OneNight), changeNights(trip, listOf(short), short, -1))
         val less = changeNights(trip, steps, bordeaux, -1) as NightsChange.Steps
         assertEquals(day(11), less.changed.first { it.id == "bordeaux" }.arriveDate)
-        assertEquals(day(11), less.changed.first { it.id == "samoure" }.departDate)
+        assertEquals(day(11), less.changed.first { it.id == "palmyre" }.departDate)
     }
 
     @Test fun theProgrammeOfADestinationPutsTheAccommodationFirstThenByTime() {

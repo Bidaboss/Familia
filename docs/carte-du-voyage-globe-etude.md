@@ -22,7 +22,7 @@
 ## 3. TalkBack et « réduire les animations »
 
 - **Détection** : `Settings.Global.ANIMATOR_DURATION_SCALE == 0f` (réglage « supprimer les animations » d'Android) ou TalkBack en route (`AccessibilityManager.isTouchExplorationEnabled`). Dans les deux cas : ni globe, ni vol, on ouvre « Le trajet » (A4).
-- **L'équivalent** : une liste Compose pure, sans Mapbox, bâtie à partir des étapes, des mots et des photos qu'on a déjà : « Étape 4 sur 5, La Samoure, 14 avril, 1 mot, 3 photos », l'étape choisie se déplie. Elle sert aussi à tout le monde depuis la fin du survol (« Le trajet en liste »). C'est la première brique à livrer, elle ne dépend de rien.
+- **L'équivalent** : une liste Compose pure, sans Mapbox, bâtie à partir des étapes, des mots et des photos qu'on a déjà : « Étape 4 sur 5, La Palmyre, 14 avril, 1 mot, 3 photos », l'étape choisie se déplie. Elle sert aussi à tout le monde depuis la fin du survol (« Le trajet en liste »). C'est la première brique à livrer, elle ne dépend de rien.
 - **La carte elle-même** : une `MapView` n'est pas accessible à TalkBack. On la cache aux lecteurs d'écran avec une description d'ensemble (« carte du trajet, 5 étapes, de Lyon à l'île d'Oléron ») ; Précédent, Pause, Suivant et « Voir la carte » sont de vrais boutons Compose de 56 dp.
 - Ce que dit la documentation sur l'accessibilité de la carte du SDK : rien. À essayer avec TalkBack sur un téléphone.
 

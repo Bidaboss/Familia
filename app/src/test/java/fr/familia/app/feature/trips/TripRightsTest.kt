@@ -18,6 +18,16 @@ class TripRightsTest {
     private val paris = ZoneId.of("Europe/Paris")
 
     @Test
+    fun `« Comptes » only when the participants come from several households (règle 40)`() {
+        // One household, its children included: nobody to settle up with.
+        assertFalse(hasSeveralHouseholds(listOf(TestFamily.admin, TestFamily.adult, TestFamily.kid)))
+        assertFalse(hasSeveralHouseholds(listOf(TestFamily.adult)))
+        assertFalse(hasSeveralHouseholds(emptyList()))
+        assertTrue(hasSeveralHouseholds(listOf(TestFamily.adult, TestFamily.otherAdult)))
+        assertTrue(hasSeveralHouseholds(listOf(TestFamily.kid, TestFamily.otherKid)))
+    }
+
+    @Test
     fun `the creator and the admin principal manage the trip, a participant does not`() {
         val trip = TestTrips.trip()
         assertTrue(canManageTrip(trip, TestFamily.adult, family))
@@ -101,12 +111,5 @@ class TripRightsTest {
         assertEquals("Lou et Sam", joinNames(listOf("Lou", "Sam")))
         assertEquals("Lou, Noé et Sam", joinNames(listOf("Lou", "Noé", "Sam")))
         assertEquals(listOf("Adult1", "Adult2"), firstNames(listOf("adult1", "gone", "adult2"), family))
-    }
-
-    @Test
-    fun `the line under the title shows two names and how many others`() {
-        assertEquals(listOf("Lou", "Sam") to 0, headNames(listOf("Lou", "Sam")))
-        assertEquals(listOf("Lou") to 0, headNames(listOf("Lou")))
-        assertEquals(listOf("Lou", "Sam") to 2, headNames(listOf("Lou", "Sam", "Noé", "Inès")))
     }
 }

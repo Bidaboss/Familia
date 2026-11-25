@@ -39,35 +39,7 @@ class VoyageScreensAccessibilityTest {
     fun `a trip`() = compose.checkAccessibility(VoyageScreens.screen("a trip"))
 
     @Test
-    fun `a trip, the path of the fiche F1`() = compose.checkAccessibility(VoyageScreens.screen("a trip, the path of the fiche F1"))
-
-    @Test
     fun `a trip, for who does not take part`() = compose.checkAccessibility(VoyageScreens.screen("a trip, for who does not take part"))
-
-    @Test
-    fun `the dates of a trip`() = compose.checkAccessibility(VoyageScreens.screen("the dates of a trip"))
-
-    @Test
-    fun `where are you going`() = compose.checkAccessibility(VoyageScreens.screen("where are you going"))
-
-    @Test
-    fun `the page of a destination`() = compose.checkAccessibility(VoyageScreens.screen("the page of a destination"))
-
-    @Test
-    fun `enrich with an AI`() = compose.checkAccessibility(VoyageScreens.screen("enrich with an AI"))
-
-    @Test
-    fun `enrich, an answer refused`() = compose.checkAccessibility(VoyageScreens.screen("enrich, an answer refused"))
-
-    @Test
-    fun `enrich, the check`() = compose.checkAccessibility(VoyageScreens.screen("enrich, the check"))
-
-    @Test
-    fun `the currency of a trip`() = compose.checkAccessibility(VoyageScreens.screen("the currency of a trip"))
-
-    @Test
-    fun `the currency of a trip, for who does not manage it`() = compose.checkAccessibility(VoyageScreens.screen("the currency of a trip, for who does not manage it"))
-    fun `the documents of a trip`() = compose.checkAccessibility(VoyageScreens.screen("the documents of a trip"))
 
     @Test
     fun `À emporter`() = compose.checkAccessibility(VoyageScreens.screen("À emporter"))

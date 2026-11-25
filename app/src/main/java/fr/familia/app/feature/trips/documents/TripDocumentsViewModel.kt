@@ -7,9 +7,7 @@ import fr.familia.app.core.data.TripDocumentKind
 import fr.familia.app.core.data.TripDocumentRepository
 import fr.familia.app.core.data.TripDocumentType
 import fr.familia.app.core.data.TripDocuments
-import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.ui.PickGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +23,7 @@ sealed interface DocumentsState {
 }
 
 /** What went wrong last, said under the list; null when all is well. */
-enum class DocumentProblem { TooBig, WrongType, AddFailed, OpenFailed, NoViewer, DeleteFailed, ShareFailed }
+enum class DocumentProblem { TooBig, WrongType, AddFailed, OpenFailed, NoViewer, DeleteFailed }
 
 /** A file picked on the phone, checked before anything is sent. */
 sealed interface PickedFile {
@@ -55,7 +53,7 @@ class TripDocumentsViewModel(
     init {
         repository?.let { repo ->
             viewModelScope.launch {
-                repo.observe(tripId, me.id)
+                repo.observe(tripId)
                     .catch { _state.value = DocumentsState.Failed }
                     .collect { _state.value = DocumentsState.Ready(it) }
             }
@@ -70,15 +68,15 @@ class TripDocumentsViewModel(
         _problem.value = null
     }
 
-    /** Sends [file] under [title], as a [kind], read by me and [others] (none: private, DESIGN-105). */
-    fun add(file: PickedFile.Ok, title: String, kind: TripDocumentKind, others: Set<String> = emptySet()) {
+    /** Sends [file] under [title], as a [kind]. */
+    fun add(file: PickedFile.Ok, title: String, kind: TripDocumentKind) {
         val repo = repository ?: return
         if (_sending.value || title.isBlank()) return
         _problem.value = null
         _sending.value = true
         viewModelScope.launch {
             try {
-                repo.add(tripId, me, title, kind, file.type, file.bytes, sharedList(me.id, others))
+                repo.add(tripId, me, title, kind, file.type, file.bytes)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -95,22 +93,6 @@ class TripDocumentsViewModel(
         val bytes = repository?.bytes(tripId, document)
         if (bytes == null) _problem.value = DocumentProblem.OpenFailed
         return bytes
-    }
-
-    /** « Partager… »: [document], mine, is read by me and [others] from now on. */
-    fun share(document: TripDocument, others: Set<String>) {
-        val repo = repository ?: return
-        if (document.ownerId != me.id) return
-        _problem.value = null
-        viewModelScope.launch {
-            try {
-                repo.share(tripId, document, sharedList(me.id, others))
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                _problem.value = DocumentProblem.ShareFailed
-            }
-        }
     }
 
     fun delete(document: TripDocument) {
@@ -146,30 +128,3 @@ fun suggestedTitle(displayName: String?): String =
 /** The owner, the creator of the trip or the admin principal ([canManage]) removes a document. */
 fun canDeleteDocument(document: TripDocument, me: Member, canManage: Boolean): Boolean =
     document.ownerId == me.id || canManage
-
-/** Who reads a document: its owner first, then [others] (the owner never twice), in a stable order. */
-fun sharedList(ownerId: String, others: Set<String>): List<String> = listOf(ownerId) + others.filter { it != ownerId }.sorted()
-
-/**
- * Those [document] is shared with, among the travellers [going], its owner aside: a traveller who left
- * the trip is dropped, so a new choice never names them (the rules refuse it).
- */
-fun sharedOthers(document: TripDocument, going: Collection<String>): Set<String> =
-    document.sharedWith.filter { it != document.ownerId && it in going }.toSet()
-
-/**
- * The travellers I can share with, by household (règle du 17/11): mine first, then the others
- * by name; in each, by first name. Me aside: I always read my documents. Unknown household last, in a
- * group with a blank name.
- */
-fun travellerGroups(people: List<Member>, households: List<Household>, me: Member): List<PickGroup> {
-    val others = people.filter { it.id != me.id }
-    val byName = compareBy<Member> { it.firstName.lowercase() }
-    val ordered = households.sortedWith(compareBy({ it.id != me.householdId }, { it.name.lowercase() }))
-    val groups = ordered.mapNotNull { household ->
-        others.filter { it.householdId == household.id }.sortedWith(byName).takeIf { it.isNotEmpty() }?.let { PickGroup(household.name, it) }
-    }
-    val known = ordered.map { it.id }.toSet()
-    val rest = others.filter { it.householdId !in known }.sortedWith(byName)
-    return if (rest.isEmpty()) groups else groups + PickGroup("", rest)
-}

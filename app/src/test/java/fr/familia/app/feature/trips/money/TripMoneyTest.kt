@@ -84,28 +84,5 @@ class TripMoneyTest {
         viewModel.setCurrency("THB")
         viewModel.setCurrency("EUR")
         assertEquals(listOf("t1" to "THB", "t1" to null), trips.currencies)
-        // Fiche F6: once saved, the sheet closes.
-        assertEquals(true, viewModel.saved.value)
-        assertEquals(false, viewModel.saving.value)
-    }
-
-    @Test
-    fun `the page of a step outside the euro zone shows the currency of its country`() {
-        assertEquals("MAD", stepCurrency("ma")?.code)
-        assertEquals("CHF", stepCurrency("CH")?.code)
-        assertNull(stepCurrency("ES"))
-        assertNull(stepCurrency("FR"))
-        assertNull(stepCurrency(null))
-    }
-
-    @Test
-    fun `from a step, its currency comes first only when the trip has another one`() {
-        val chf = Currencies.of("CHF")
-        val gbp = Currencies.of("GBP")
-        assertEquals(chf, stepOnlyCurrency(chf, gbp))
-        assertEquals(chf, stepOnlyCurrency(chf, Currencies.EURO))
-        assertNull(stepOnlyCurrency(chf, chf))
-        assertNull(stepOnlyCurrency(null, gbp))
-        assertNull(stepOnlyCurrency(Currencies.EURO, gbp))
     }
 }

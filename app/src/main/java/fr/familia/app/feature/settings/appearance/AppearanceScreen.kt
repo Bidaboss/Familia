@@ -4,33 +4,28 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.Title
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -55,7 +49,6 @@ import fr.familia.app.R
 import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
-import fr.familia.app.core.theme.ThemeChoice
 import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.core.theme.sample
 import fr.familia.app.core.theme.themeBackground
@@ -67,23 +60,18 @@ import fr.familia.app.core.ui.form.ChoiceTiles
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormTile
 import fr.familia.app.core.welcome.OpeningStyle
-import java.time.LocalDate
 
 /**
- * Ma photo › Apparence: the theme (récit 113, règles 14 à 18), « Selon la saison » first, then the 8
- * photo themes with their two colors, and « Contraste fort » apart; then the title font and the text
- * font (DESIGN-45 and 46), each name written in its own font. Every choice applies at once and stays
- * on this phone. The gallery of pictures comes with the photos (règle 15).
+ * Ma photo › Apparence (DESIGN-7, revised by DESIGN-43): the 7 themes, each shown in its own
+ * colors, then the title font and the text font (DESIGN-45 and 46), each name written in its own
+ * font. Every choice applies at once and stays on this phone.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceScreen(
-    current: ThemeChoice,
-    onChoose: (ThemeChoice) -> Unit,
+    current: FamiliaThemeId,
+    onChoose: (FamiliaThemeId) -> Unit,
     onBack: () -> Unit,
-    today: LocalDate = LocalDate.now(),
-    highContrast: Boolean = false,
-    onHighContrast: (Boolean) -> Unit = {},
     titleFont: TitleFont = TitleFont.Round,
     onChooseTitleFont: (TitleFont) -> Unit = {},
     bodyFont: BodyFont = BodyFont.Normal,
@@ -113,20 +101,16 @@ fun AppearanceScreen(
         ) {
             item(key = "theme") {
                 FormTile(icon = Icons.Outlined.Palette, title = stringResource(R.string.appearance_theme_title)) {
-                    ChoiceTiles(ThemeChoice.all, columns = 2) { choice, tileModifier ->
-                        val shown = choice.on(today)
-                        val season = choice == ThemeChoice.Season
+                    ChoiceTiles(FamiliaThemeId.entries, columns = 2) { theme, tileModifier ->
                         ChoiceTile(
-                            title = if (season) stringResource(R.string.theme_season) else stringResource(shown.labelRes),
-                            selected = choice == current,
-                            onClick = { onChoose(choice) },
+                            title = stringResource(theme.labelRes),
+                            selected = theme == current,
+                            onClick = { onChoose(theme) },
                             modifier = tileModifier,
-                            subtitle = if (season) stringResource(R.string.theme_season_now, stringResource(shown.labelRes)) else null,
-                            top = { ThemeDots(shown) },
+                            top = { ThemeDots(theme) },
                         )
                     }
                     FormHint(stringResource(R.string.appearance_theme_help))
-                    HighContrastRow(highContrast, onHighContrast)
                 }
             }
             item(key = "titleFont") {
@@ -252,45 +236,27 @@ private fun IconPicture(icon: AppIcon) {
     }
 }
 
-/** The two colors of a photo theme (règle 15): its accent and its dark color. */
+/** Three dots of [theme]: its background, its main color and its accent, drawn in that theme. */
 @Composable
 private fun ThemeDots(theme: FamiliaThemeId) {
-    val outline = MaterialTheme.colorScheme.outlineVariant
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        listOfNotNull(theme.accent, theme.dark).forEach {
-            Box(
-                Modifier
-                    .size(18.dp)
-                    .clip(CircleShape)
-                    .background(Color(it))
-                    .border(1.dp, outline, CircleShape),
-            )
+    FamiliaTheme(darkTheme = isSystemInDarkTheme(), theme = theme) {
+        val colors = MaterialTheme.colorScheme
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            listOf(colors.background, colors.primary, colors.secondary).forEach {
+                Box(
+                    Modifier
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(it)
+                        .border(1.dp, colors.outlineVariant, CircleShape),
+                )
+            }
         }
-    }
-}
-
-/** « Contraste fort » (règle 18): apart from the themes, plain and without photo. */
-@Composable
-private fun HighContrastRow(on: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .toggleable(value = on, role = Role.Switch, onValueChange = onChange),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(Icons.Outlined.Visibility, contentDescription = null)
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.theme_contrast), style = MaterialTheme.typography.titleSmall)
-            Text(stringResource(R.string.theme_contrast_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(checked = on, onCheckedChange = null)
     }
 }
 
 @FamiliaPreviews
 @Composable
 private fun AppearanceScreenPreview() {
-    FamiliaTheme { Surface { AppearanceScreen(ThemeChoice.Season, {}, {}) } }
+    FamiliaTheme { Surface { AppearanceScreen(FamiliaThemeId.Spain, {}, {}) } }
 }

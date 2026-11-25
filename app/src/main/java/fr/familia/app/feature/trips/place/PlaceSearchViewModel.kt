@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.place.FoundPlace
 import fr.familia.app.core.place.PlaceSearch
-import fr.familia.app.core.place.PlaceSearchAnswer
-import fr.familia.app.core.place.SearchFailure
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,8 +20,8 @@ sealed interface PlaceSearchResults {
     /** The destination has no point on the map: only a typed name can be added. */
     data object NoPoint : PlaceSearchResults
 
-    /** OpenStreetMap did not answer, and why (retour E-45). */
-    data class Failed(val cause: SearchFailure) : PlaceSearchResults
+    /** OpenStreetMap did not answer (no network, busy). */
+    data object Failed : PlaceSearchResults
 
     /** Nearest first; empty when nothing matches. */
     data class Found(val places: List<FoundPlace>) : PlaceSearchResults
@@ -83,11 +81,8 @@ class PlaceSearchViewModel(
         _uiState.value = state.copy(results = PlaceSearchResults.Loading)
         job = viewModelScope.launch {
             if (wait) delay(waitMillis)
-            val results = when (val answer = service.search(lat, lng, state.kind, state.text.trim())) {
-                is PlaceSearchAnswer.Found -> PlaceSearchResults.Found(answer.places)
-                is PlaceSearchAnswer.Failed -> PlaceSearchResults.Failed(answer.cause)
-            }
-            _uiState.value = _uiState.value.copy(results = results)
+            val found = service.search(lat, lng, state.kind, state.text.trim())
+            _uiState.value = _uiState.value.copy(results = found?.let { PlaceSearchResults.Found(it) } ?: PlaceSearchResults.Failed)
         }
     }
 

@@ -1,7 +1,5 @@
 package fr.familia.app.feature.trips.list
 
-import com.mapbox.maps.plugin.compass.compass
-import com.mapbox.maps.plugin.scalebar.scalebar
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -18,7 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -28,14 +25,11 @@ import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.EdgeInsets
-import com.mapbox.maps.MapLoadingErrorType
 import com.mapbox.maps.MapView
 import com.mapbox.maps.RenderedQueryGeometry
 import com.mapbox.maps.RenderedQueryOptions
 import com.mapbox.maps.ScreenBox
 import com.mapbox.maps.ScreenCoordinate
-import com.mapbox.maps.SourceDataLoadedType
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.get
 import com.mapbox.maps.extension.style.layers.addLayer
@@ -47,103 +41,36 @@ import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
-import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
-import com.mapbox.maps.plugin.gestures.OnMoveListener
-import com.mapbox.maps.plugin.gestures.OnScaleListener
-import com.mapbox.maps.plugin.gestures.addOnScaleListener
-import com.mapbox.android.gestures.StandardScaleGestureDetector
-import com.mapbox.maps.CameraBoundsOptions
-import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.gestures
 import fr.familia.app.feature.trips.map.GeoPoint
-import fr.familia.app.feature.trips.map.GlobeHealth
-import fr.familia.app.feature.trips.map.MAP_STYLE_TIMEOUT_MS
-import fr.familia.app.feature.trips.map.MapFailureLog
-import fr.familia.app.feature.trips.map.MapUnavailable
-import fr.familia.app.feature.trips.map.mapErrorLine
-import fr.familia.app.feature.trips.map.viewErrorLine
-import fr.familia.app.feature.trips.map.mapFailureReason
-import fr.familia.app.feature.trips.map.GlobeLook
-import fr.familia.app.feature.trips.map.cleanGlobe
-import fr.familia.app.feature.trips.map.underlayDrawnEarth
-import fr.familia.app.feature.trips.map.addGlobeTerrain
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
-import fr.familia.app.feature.trips.map.wholeGlobeZoom
-import fr.familia.app.feature.trips.map.recordTileError
 import fr.familia.app.feature.trips.map.toPoint
 import kotlinx.coroutines.delay
 
-/** One point of the globe of the list: where a trip goes. [highlighted]: the next trip, a bigger dot. [name]: its label (E-38). */
-data class GlobeMarker(val point: GeoPoint, val highlighted: Boolean, val tripId: String = "", val name: String = "")
+/** One point of the globe of the list: where a trip goes. [highlighted]: the next trip, in black. */
+data class GlobeMarker(val point: GeoPoint, val highlighted: Boolean, val tripId: String = "")
 
 /** One dot drawn on the globe: the trips that go to the same place (about 1 km) share it, with their number. */
-data class GlobeSpot(val point: GeoPoint, val highlighted: Boolean, val tripIds: List<String>, val name: String = "")
+data class GlobeSpot(val point: GeoPoint, val highlighted: Boolean, val tripIds: List<String>)
 
 /** Groups the trips going to the same place into one dot (spec liste-voyages-globe : « un seul point avec leur nombre »), in the order of [markers]. */
 internal fun globeSpots(markers: List<GlobeMarker>): List<GlobeSpot> =
     markers.groupBy { Math.round(it.point.lat * 100) to Math.round(it.point.lng * 100) }.values.map { same ->
-        GlobeSpot(same.first().point, same.any { it.highlighted }, same.map { it.tripId }, same.firstOrNull { it.name.isNotBlank() }?.name.orEmpty())
+        GlobeSpot(same.first().point, same.any { it.highlighted }, same.map { it.tripId })
     }
 
 /** The trip a touch on [spot] opens: the next one when it is there, else the first in the list. */
 internal fun spotTrip(spot: GlobeSpot?): String? = spot?.tripIds?.firstOrNull()
 
-/** The flight to a trip the member opened: the camera goes there in [FLIGHT_MILLIS]; the trip opens after [OPEN_AFTER_FLIGHT_MILLIS]. */
+/** The flight to a trip the member opened: the camera goes there in [FLIGHT_MILLIS], then the trip opens. */
 data class GlobeFlight(val id: Int, val tripId: String, val point: GeoPoint)
 
-/**
- * E-65: the zoom of the globe of the list above a sheet of [sheetDp]: the zoom of the variant,
- * smaller when the globe would not fit whole, 16 dp from the edges of the part above the sheet.
- */
-internal fun globeFrame(widthDp: Double, heightDp: Double, sheetDp: Double, lookZoom: Double): Double =
-    minOf(lookZoom, wholeGlobeZoom(widthDp, heightDp - sheetDp))
-
-/** How long a satellite globe waits for its first image before it takes the drawn Earth. */
-internal const val IMAGERY_WAIT_MS = 8_000L
-
-/** The Earth drawn by Mapbox (oceans, lands, relief), with no imagery to load. */
-internal const val DRAWN_GLOBE_STYLE: String = Style.STANDARD
-
-/** Only the styles made of imagery need it to show an Earth. */
-internal fun globeNeedsImagery(styleUri: String): Boolean = styleUri == Style.SATELLITE || styleUri == Style.SATELLITE_STREETS
-
-/** Pure rule: the sources whose tiles are images (« raster »); not the elevation (« raster-dem »), not the vector map. */
-internal fun imagerySources(sources: List<Pair<String, String>>): Set<String> =
-    sources.filter { it.second == "raster" }.map { it.first }.toSet()
-
-/** Pure rule: a tile event counts as imagery unless Mapbox says it is not loaded (it often leaves « loaded » out). */
-internal fun imageryTile(isTile: Boolean, loaded: Boolean?): Boolean = isTile && loaded != false
-
-/** Pure rule: the style is there but no image of it came in time, and the drawn Earth was not taken yet. */
-internal fun globeFallsBack(imageryCame: Boolean, styleReady: Boolean, fellBack: Boolean): Boolean = styleReady && !imageryCame && !fellBack
-
-/** E-60: the flight is short (it was 2 s), and the trip opens while it goes on behind. */
-internal const val FLIGHT_MILLIS = 900L
-internal const val OPEN_AFTER_FLIGHT_MILLIS = 350L
-
-/** E-40 then E-48: the zoom of the globe of the list, about 85 % of the width of a phone (the variant kept may change it). */
-internal val GLOBE_LIST_ZOOM: Double get() = GlobeLook.LIST_DEFAULT.listZoom
+internal const val FLIGHT_MILLIS = 2_000L
 
 /** Degrees per second: one turn in 90 s (récit 99). */
 internal const val GLOBE_DEGREES_PER_SECOND = 4.0
-
-/** E-33: after a touch the globe stays where the finger left it, then turns again after this pause. */
-internal const val GLOBE_RESUME_AFTER_TOUCH_MS = 3_000L
-
-/** Retour du 25/11, 7 h 05: how far the fingers may zoom: a little smaller than the globe, down to a valley. */
-internal const val GLOBE_MIN_ZOOM = 0.5
-internal const val GLOBE_MAX_ZOOM = 14.0
-
-/** Pure rule: the globe turns by itself only when it is seen whole (at most one step closer than its own zoom). */
-internal fun globeTurnsAt(zoom: Double, globeZoom: Double): Boolean = zoom <= globeZoom + 1.0
-
-/**
- * E-34: the globe gives up for the landscape only when its style never came. Once the style is
- * there it is the globe that shows, even while the imagery still comes, and nothing replaces it.
- */
-internal fun globeGivesUp(styleLoaded: Boolean): Boolean = !styleLoaded
 
 /** The longitude after [elapsedNanos] of rotation from the west to the east, kept in -180..180. */
 internal fun turnedLongitude(lng: Double, elapsedNanos: Long): Double {
@@ -168,7 +95,7 @@ private fun powerSaveOn(context: Context): Boolean =
  * The satellite globe of the list « Voyages » (récit 99): turns slowly from the west to the east,
  * one point per trip. It stops when the screen is not seen, in energy saving, with « réduire les
  * animations » (then it stays still) or when [stopped]. Created with the public [token]; when the
- * view or its style (15 s) cannot start, [onFailed] tells the screen, which falls back on the drawn
+ * view or its style (3 s) cannot start, [onFailed] tells the screen, which falls back on the drawn
  * landscape.
  */
 @Composable
@@ -184,16 +111,8 @@ fun TripsGlobe(
     onOpenTrip: (String) -> Unit = {},
     /** The destinations added by hand to the carnet (récit 107, règle 38): a simple mark in Souvenirs, no line, no touch. */
     handAdded: List<GeoPoint> = emptyList(),
-    /** How big the globe is: the zoom of the variant kept (E-48) when null, smaller in a short frame. */
-    zoom: Double? = null,
-    /** The accent yellow of the app (the pill of the bottom bar): the dots of the coming trips (E-38). */
-    accent: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFFF2C14E),
-    /** E-65: the height of the sheet over the bottom of the globe, in dp; the globe stays whole above it. */
-    bottomInsetDp: Float = 0f,
 ) {
     val context = LocalContext.current
-    val look = GlobeLook.LIST_DEFAULT
-    val shownZoom = zoom ?: look.listZoom
     val started = LocalLifecycleOwner.current.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
     var powerSave by remember { mutableStateOf(powerSaveOn(context)) }
     DisposableEffect(context) {
@@ -210,62 +129,20 @@ fun TripsGlobe(
     val currentSpots = androidx.compose.runtime.rememberUpdatedState(spots)
     val currentOpen = androidx.compose.runtime.rememberUpdatedState(onOpenTrip)
     var view by remember { mutableStateOf<MapView?>(null) }
-    // The style is loaded and its layers are there: the globe shows, turns and takes its dots (E-33, E-34).
     var ready by remember { mutableStateOf(false) }
-    // Kept, or Mapbox drops the subscription once nothing holds it (E-33, E-34: ready never came).
-    val listeners = remember { arrayOfNulls<com.mapbox.common.Cancelable>(3) }
-    // The sources of the style, the sources a tile came from, whether the drawn Earth was taken,
-    // and the check of the imagery waiting to run (removed when the screen goes: B of #610).
-    val styleSources = remember { arrayOf<Set<String>>(emptySet()) }
-    val tileSources = remember { java.util.Collections.synchronizedSet(HashSet<String>()) }
-    val fellBack = remember { booleanArrayOf(false) }
-    val imageryCheck = remember { arrayOfNulls<Runnable>(1) }
-    DisposableEffect(Unit) {
-        onDispose {
-            listeners.forEach { it?.cancel() }
-            imageryCheck[0]?.let { check -> view?.removeCallbacks(check) }
-        }
-    }
-    // The last error Mapbox gave, for « Plantages ».
-    val lastError = remember { arrayOfNulls<String>(1) }
-    val gaveUp = remember { booleanArrayOf(false) }
-    val giveUp: (String?) -> Unit = { sdkError ->
-        if (!gaveUp[0]) {
-            gaveUp[0] = true
-            MapFailureLog.record(context, mapFailureReason(token, MapFailureLog.online(context), sdkError ?: lastError[0], null, timedOut = sdkError == null))
-            onFailed()
-        }
-    }
-    // A finger on the globe: it stops while the finger moves it, then turns again a little later (E-33).
-    var moving by remember { mutableStateOf(false) }
-    var touches by remember { mutableStateOf(0) }
     // À venir and Souvenirs share the globe: switching only redraws its dots.
     LaunchedEffect(view, ready, spots, souvenirs) {
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
-        if (ready) showSpots(style, spots, souvenirs, context)
+        if (ready) showSpots(style, spots, souvenirs)
     }
     LaunchedEffect(view, ready, handAdded, souvenirs) {
         val style = view?.mapboxMap?.style ?: return@LaunchedEffect
         if (ready) showHandAdded(style, if (souvenirs) handAdded else emptyList())
     }
-    // 15 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the
-    // landscape, and the reason goes to « Plantages » (retour d'essai du 24/11).
+    // 6 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the landscape.
     LaunchedEffect(Unit) {
-        delay(MAP_STYLE_TIMEOUT_MS)
-        if (globeGivesUp(ready)) giveUp(null)
-    }
-    // E-65: the globe centred in the part above the sheet, and whole there, at every height of the
-    // sheet; the sheet glides, so the globe follows it frame by frame.
-    LaunchedEffect(view, ready, bottomInsetDp, flight?.id) {
-        val map = view ?: return@LaunchedEffect
-        if (flight != null || map.width == 0) return@LaunchedEffect
-        val density = map.resources.displayMetrics.density
-        val visible = globeFrame(map.width / density.toDouble(), map.height / density.toDouble(), bottomInsetDp.toDouble(), shownZoom)
-        runCatching {
-            map.mapboxMap.setCamera(
-                CameraOptions.Builder().padding(EdgeInsets(0.0, 0.0, bottomInsetDp * density.toDouble(), 0.0)).zoom(visible).build(),
-            )
-        }
+        delay(6_000L)
+        if (!ready) onFailed()
     }
     // A trip opened: the camera flies there (the globe turns, tilts, comes closer), then the screen opens the trip.
     LaunchedEffect(flight?.id, view) {
@@ -278,13 +155,10 @@ fun TripsGlobe(
         )
     }
     // The rotation: one camera move per frame, at most 30 per second, 15 when the phone struggles.
-    LaunchedEffect(view, turns, ready, moving, touches) {
+    LaunchedEffect(view, turns, ready) {
         val map = view?.mapboxMap ?: return@LaunchedEffect
-        if (!turns || !ready || moving) return@LaunchedEffect
-        if (touches > 0) delay(GLOBE_RESUME_AFTER_TOUCH_MS)
-        // From where the finger left it: its longitude and its latitude.
+        if (!turns || !ready) return@LaunchedEffect
         var lng = map.cameraState.center.longitude()
-        val lat = map.cameraState.center.latitude()
         var last = 0L
         var gap = 33_000_000L
         var slow = 0
@@ -299,13 +173,8 @@ fun TripsGlobe(
                 }
                 if (now - last < gap) return@withFrameNanos
                 val began = System.nanoTime()
-                // Retour du 25/11, 7 h 05: zoomed in to look around the world, the globe holds still.
-                if (!globeTurnsAt(map.cameraState.zoom, shownZoom)) {
-                    last = now
-                    return@withFrameNanos
-                }
                 lng = turnedLongitude(lng, now - last)
-                map.setCamera(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(lng, lat)).build())
+                map.setCamera(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(lng, 0.0)).build())
                 // Measure: when moving the camera costs more than a frame, the rate is halved.
                 if (System.nanoTime() - began > 25_000_000L) slow++ else slow = 0
                 if (slow >= 10 && gap < 66_000_000L) {
@@ -328,74 +197,18 @@ fun TripsGlobe(
             runCatching {
                 MapboxOptions.accessToken = token
                 MapView(context).also { map ->
-                    // Règle 5 (E-25): nothing but the globe, no scale over « Voyages », no compass.
-                    runCatching { map.compass.enabled = false; map.scalebar.enabled = false }
                     map.mapboxMap.setCamera(
-                        CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(shownZoom).pitch(20.0).build(),
+                        CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(0.6).pitch(20.0).build(),
                     )
-                    listeners[0] = map.mapboxMap.subscribeMapLoadingError { error ->
-                        lastError[0] = mapErrorLine(error.type.toString(), error.message)
-                        Log.w("TripsGlobe", "map error ${lastError[0]}")
-                        recordTileError(context, "TripsGlobe", error.type.toString(), error.sourceId, error.message)
-                        // A missing tile leaves the globe; only a style that cannot load is the end, and only before it showed.
-                        if (error.type == MapLoadingErrorType.STYLE && !ready) giveUp(lastError[0])
+                    map.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
+                        runCatching {
+                            configureSatelliteGlobe(style)
+                            // Before the trips: its layer lies under their dots.
+                            addHandAdded(style)
+                            addMarkers(style)
+                            showSpots(style, spots, souvenirs)
+                        }.onFailure { onFailed() }
                     }
-                    // Draws the globe in [uri], then the dots of the trips over it, and keeps the sources
-                    // of the style itself, to know when its imagery came (retour du 24/11 soir).
-                    fun drawGlobe(uri: String, globeLook: GlobeLook) {
-                        map.mapboxMap.loadStyle(uri) { style ->
-                            runCatching {
-                                configureSatelliteGlobe(style, globeLook)
-                                // E-66: no names, borders or roads on the globe of the list, drawn or not.
-                                cleanGlobe(style)
-                                // B1 of #613: the image sources only, read before the elevation is added;
-                                // neither its tiles nor those of the vector map count as imagery.
-                                styleSources[0] = runCatching { imagerySources(style.styleSources.map { it.id to it.type }) }.getOrDefault(emptySet())
-                                // Retour du 24/11, minuit: lands and seas drawn under the images while they come.
-                                if (globeNeedsImagery(uri)) underlayDrawnEarth(style)
-                                // Retour du 25/11, 7 h 05: the mountains in 3D once zoomed in.
-                                addGlobeTerrain(style)
-                                // Before the trips: its layer lies under their dots.
-                                addHandAdded(style)
-                                addMarkers(style, accentHex(accent))
-                                showSpots(style, currentSpots.value, souvenirs, context)
-                            }.onFailure {
-                                // A layer refused: the globe stays (never the landscape over a map that shows), the reason goes to « Plantages ».
-                                Log.w("TripsGlobe", "layer refused", it)
-                                MapFailureLog.record(context, MapUnavailable.SdkError("couche ${viewErrorLine(it)}".take(60)))
-                            }
-                            ready = true
-                            GlobeHealth.markWorking(context)
-                        }
-                    }
-                    drawGlobe(look.styleUri, look)
-                    // The imagery of the style: one tile of its own sources is enough to know it came.
-                    // Retour du 24/11 23 h 56: no « loaded » asked of a tile event; Mapbox leaves it out on
-                    // tiles, and the check took a globe whose images came for a black one.
-                    listeners[2] = map.mapboxMap.subscribeSourceDataLoaded { event ->
-                        // Kept whatever the source: a tile may come before the sources of the style are read (C of #610).
-                        if (imageryTile(event.type == SourceDataLoadedType.TILE, event.loaded)) tileSources.add(event.sourceId)
-                    }
-                    // Retour du 24/11 soir (globe noir): a satellite globe whose imagery never comes takes
-                    // the drawn Earth (oceans, lands, nothing written) instead of staying black.
-                    fun armImageryCheck(uri: String) {
-                        imageryCheck[0]?.let(map::removeCallbacks)
-                        imageryCheck[0] = null
-                        if (!globeNeedsImagery(uri)) return
-                        val check = Runnable {
-                            val tileCame = synchronized(tileSources) { tileSources.any { it in styleSources[0] } }
-                            if (map.isAttachedToWindow && globeFallsBack(tileCame, ready, fellBack[0])) {
-                                fellBack[0] = true
-                                Log.w("TripsGlobe", "imagery missing, drawn globe")
-                                MapFailureLog.record(context, MapUnavailable.TileError("globe : imagerie absente ${IMAGERY_WAIT_MS / 1000} s (${tileSources.size} sources), Terre dessinée"))
-                                runCatching { drawGlobe(DRAWN_GLOBE_STYLE, GlobeLook.Standard) }
-                                    .onFailure { Log.w("TripsGlobe", "drawn globe refused", it) }
-                            }
-                        }
-                        imageryCheck[0] = check
-                        map.postDelayed(check, IMAGERY_WAIT_MS)
-                    }
-                    armImageryCheck(look.styleUri)
                     // A touch on a dot opens its trip (with the flight); anywhere else, nothing.
                     map.gestures.addOnMapClickListener(
                         OnMapClickListener { point ->
@@ -410,30 +223,8 @@ fun TripsGlobe(
                             false
                         },
                     )
-                    // The finger moves the globe: no rotation under it; it starts again after a pause (E-33).
-                    map.gestures.addOnMoveListener(
-                        object : OnMoveListener {
-                            override fun onMoveBegin(detector: MoveGestureDetector) { moving = true }
-                            override fun onMove(detector: MoveGestureDetector): Boolean = false
-                            override fun onMoveEnd(detector: MoveGestureDetector) { moving = false; touches++ }
-                        },
-                    )
-                    // Retour du 25/11, 7 h 05: two fingers zoom in on the world, down to the relief of a valley;
-                    // the rotation waits for them too.
-                    runCatching {
-                        map.mapboxMap.setBounds(CameraBoundsOptions.Builder().minZoom(GLOBE_MIN_ZOOM).maxZoom(GLOBE_MAX_ZOOM).build())
-                        map.gestures.pinchToZoomEnabled = true
-                        map.gestures.doubleTapToZoomInEnabled = true
-                        map.gestures.addOnScaleListener(
-                            object : OnScaleListener {
-                                override fun onScaleBegin(detector: StandardScaleGestureDetector) { moving = true }
-                                override fun onScale(detector: StandardScaleGestureDetector) = Unit
-                                override fun onScaleEnd(detector: StandardScaleGestureDetector) { moving = false; touches++ }
-                            },
-                        )
-                    }
-                    // Everything drawn: also ready, in case the style came another way.
-                    listeners[1] = map.mapboxMap.subscribeMapLoaded { ready = true; GlobeHealth.markWorking(context) }
+                    // Shown only once the picture is really drawn: a black void is worse than the landscape.
+                    map.mapboxMap.subscribeMapLoaded { ready = true }
                     view = map
                 }
             }.getOrElse {
@@ -453,77 +244,29 @@ private fun spotFeature(spot: GlobeSpot, index: Int): Feature =
     Feature.fromGeometry(spot.point.toPoint()).also {
         it.addNumberProperty("i", index)
         it.addStringProperty("count", if (spot.tripIds.size > 1) spot.tripIds.size.toString() else "")
-        if (spot.name.isNotBlank()) it.addStringProperty("label", labelImageId(spot.name))
     }
 
-/** « #F2C14E » for a Mapbox layer. */
-internal fun accentHex(color: androidx.compose.ui.graphics.Color): String =
-    String.format(java.util.Locale.ROOT, "#%06X", color.toArgb() and 0xFFFFFF)
-
-/** The image id of the label of a place (E-38): one per name, kept in the style. */
-internal fun labelImageId(name: String): String = "trip-label-" + Integer.toHexString(name.hashCode())
-
-/**
- * The dots of the tab shown (E-38, prototype): the coming trips in the accent yellow, the next one
- * bigger; the past ones white with an orange ring. Under each dot, a white rounded label with the name.
- */
-private fun showSpots(style: Style, spots: List<GlobeSpot>, souvenirs: Boolean, context: Context) {
+/** The dots of the tab shown: the next trip in black, the following ones yellow, the past ones white with an orange ring. */
+private fun showSpots(style: Style, spots: List<GlobeSpot>, souvenirs: Boolean) {
     fun collection(keep: (GlobeSpot) -> Boolean) =
         FeatureCollection.fromFeatures(spots.mapIndexedNotNull { i, spot -> if (keep(spot)) spotFeature(spot, i) else null })
-    spots.map { it.name }.filter { it.isNotBlank() }.distinct().forEach { name ->
-        val id = labelImageId(name)
-        if (!style.hasStyleImage(id)) style.addImage(id, labelBitmap(context, name))
-    }
     style.getSourceAs<GeoJsonSource>("trips-other")?.featureCollection(collection { !souvenirs && !it.highlighted })
     style.getSourceAs<GeoJsonSource>("trips-next")?.featureCollection(collection { !souvenirs && it.highlighted })
     style.getSourceAs<GeoJsonSource>("trips-past")?.featureCollection(collection { souvenirs })
 }
 
-/** A white rounded label with the name of the place, dark bold text, as the prototype. */
-private fun labelBitmap(context: Context, name: String): android.graphics.Bitmap {
-    val density = context.resources.displayMetrics.density
-    // C of #592: a long name ends with « … » rather than cut short.
-    val text = if (name.length > 28) name.take(27).trimEnd() + "…" else name
-    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0xFF17333F.toInt()
-        textSize = 12f * context.resources.configuration.fontScale.coerceAtMost(1.3f) * density
-        typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-    }
-    val padX = 8f * density
-    val padY = 4f * density
-    val width = (paint.measureText(text) + 2 * padX).toInt().coerceAtLeast(1)
-    val height = (paint.fontMetrics.let { it.descent - it.ascent } + 2 * padY).toInt().coerceAtLeast(1)
-    val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(bitmap)
-    val back = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE }
-    canvas.drawRoundRect(0f, 0f, width.toFloat(), height.toFloat(), height / 2f, height / 2f, back)
-    canvas.drawText(text, padX, padY - paint.fontMetrics.ascent, paint)
-    return bitmap
-}
-
-private fun addMarkers(style: Style, accent: String) {
+private fun addMarkers(style: Style) {
     val empty = FeatureCollection.fromFeatures(emptyList())
     style.addSource(geoJsonSource("trips-other") { featureCollection(empty) })
     style.addSource(geoJsonSource("trips-next") { featureCollection(empty) })
     style.addSource(geoJsonSource("trips-past") { featureCollection(empty) })
-    // The labels first: they lie under the dots.
-    listOf("trips-other", "trips-next", "trips-past").forEach { source ->
-        style.addLayer(
-            symbolLayer("$source-labels", source) {
-                iconImage(get("label"))
-                iconAnchor(com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor.TOP)
-                iconOffset(listOf(0.0, 16.0))
-                iconAllowOverlap(false)
-            },
-        )
-    }
-    style.addLayer(circleLayer("trips-other-dots", "trips-other") { circleRadius(9.0); circleColor(accent); circleStrokeColor("#FFFFFF"); circleStrokeWidth(2.0) })
+    style.addLayer(circleLayer("trips-other-dots", "trips-other") { circleRadius(9.0); circleColor("#FFD84A"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(2.0) })
     style.addLayer(circleLayer("trips-past-dots", "trips-past") { circleRadius(9.0); circleColor("#FFFFFF"); circleStrokeColor("#E8833A"); circleStrokeWidth(2.0) })
-    style.addLayer(circleLayer("trips-next-dots", "trips-next") { circleRadius(12.0); circleColor(accent); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
+    style.addLayer(circleLayer("trips-next-dots", "trips-next") { circleRadius(11.0); circleColor("#111111"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(3.0) })
     // Several trips at the same place: their number in the dot.
     style.addLayer(symbolLayer("trips-other-count", "trips-other") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
     style.addLayer(symbolLayer("trips-past-count", "trips-past") { textField(get("count")); textSize(12.0); textColor("#111111"); textAllowOverlap(true) })
-    style.addLayer(symbolLayer("trips-next-count", "trips-next") { textField(get("count")); textSize(13.0); textColor("#111111"); textAllowOverlap(true) })
+    style.addLayer(symbolLayer("trips-next-count", "trips-next") { textField(get("count")); textSize(13.0); textColor("#FFFFFF"); textAllowOverlap(true) })
 }
 
 /*

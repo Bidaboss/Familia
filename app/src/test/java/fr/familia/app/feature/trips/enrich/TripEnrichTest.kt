@@ -5,8 +5,6 @@ import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.data.TripPlaceRepository
 import fr.familia.app.core.model.TripPlace
-import fr.familia.app.core.place.Place
-import fr.familia.app.core.place.PlaceLocator
 import fr.familia.app.feature.trips.FakeTrips
 import fr.familia.app.feature.trips.TestTrips
 import kotlinx.coroutines.flow.Flow
@@ -164,44 +162,5 @@ class TripEnrichTest {
         assertEquals(StepType.Lodging, porto.type)
         assertEquals(listOf("Chez Ana" to "s1", "Ribeira" to porto.id), places.saved.map { it.name to it.stepId })
         assertTrue(places.saved.all { it.lat == null && it.lng == null })
-    }
-
-    private class FakeLocator(private val points: Map<String, Place>) : PlaceLocator {
-        val asked = mutableListOf<String>()
-        override suspend fun currentPosition(): Pair<Double, Double>? = null
-        override suspend fun addressOf(lat: Double, lng: Double): String? = null
-        override suspend fun find(query: String): Place? = points[query].also { asked += query }
-        override suspend fun expand(shortLink: String): String? = null
-    }
-
-    @Test
-    fun `a place gets a point near its destination, never one far away`() {
-        val placed = lisbon.copy(lat = 38.72, lng = -9.14)
-        val trips = FakeTrips(steps = mapOf(trip.id to listOf(placed)))
-        val places = FakePlaces()
-        val locator = FakeLocator(
-            mapOf(
-                "Rua Augusta 1, Lisbonne" to Place(38.71, -9.137),
-                // A « Tour » of the same name in Paris: too far from Lisbon to be the right one.
-                "Tour, Lisbonne" to Place(48.858, 2.294),
-            ),
-        )
-        val vm = TripEnrichViewModel(trips, places, locator, trip.id)
-        vm.setAnswer("""{"destinations": [{"ville": "Lisbonne", "lieux": [
-            {"sorte": "restaurant", "nom": "Chez Ana", "adresse": "Rua Augusta 1"},
-            {"sorte": "spot", "nom": "Tour"},
-            {"sorte": "spot", "nom": "Inconnu"}
-        ]}]}""")
-        vm.read(trip, listOf(placed))
-        // The point of the destination travels with the reading (retour C2 de #579).
-        assertEquals(38.72 to -9.14, (vm.state.value.reading as EnrichReading.Read).destinations.single().anchor)
-        vm.add()
-        assertEquals(listOf("Rua Augusta 1, Lisbonne", "Tour, Lisbonne", "Inconnu, Lisbonne"), locator.asked)
-        val byName = places.saved.associateBy { it.name }
-        assertEquals(38.71, byName.getValue("Chez Ana").lat!!, 1e-9)
-        assertNull(byName.getValue("Tour").lat)
-        assertNull(byName.getValue("Inconnu").lat)
-        assertTrue(nearEnough(38.71 to -9.137, 38.72 to -9.14))
-        assertFalse(nearEnough(48.858 to 2.294, 38.72 to -9.14))
     }
 }

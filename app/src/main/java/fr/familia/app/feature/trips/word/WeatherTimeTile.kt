@@ -5,7 +5,6 @@ import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,24 +48,6 @@ fun WeatherTimeTile(lat: Double, lng: Double, weather: PlaceWeather?) {
         Text(weatherLine(current, instant), style = MaterialTheme.typography.bodyLarge)
         FormHint(stringResource(R.string.weather_source, OpenMeteoWeather.SOURCE))
     }
-}
-
-/** The same line without its tile, on the page of a destination (fiche F5); nothing without network. */
-@Composable
-fun WeatherTimeLine(lat: Double, lng: Double, weather: PlaceWeather?, color: androidx.compose.ui.graphics.Color) {
-    var now by remember(lat, lng) { mutableStateOf<WeatherNow?>(null) }
-    LaunchedEffect(lat, lng, weather) {
-        now = weather?.now(lat, lng)
-    }
-    val current = now ?: return
-    var instant by remember { mutableStateOf(Instant.now()) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(30_000)
-            instant = Instant.now()
-        }
-    }
-    Text(weatherLine(current, instant), fontSize = 14.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = color)
 }
 
 /** « 12 °C, couvert · 23 h 40 sur place », and the difference with France when there is one. */

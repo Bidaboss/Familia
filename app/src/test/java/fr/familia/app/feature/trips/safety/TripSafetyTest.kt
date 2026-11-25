@@ -5,7 +5,6 @@ import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.trips.FakeTrips
 import fr.familia.app.testing.MainDispatcherRule
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -59,15 +58,5 @@ class TripSafetyTest {
         val viewModel = TripSafetyViewModel(FakeTrips(failWith = IllegalStateException("boom")), "t1", TestFamily.adult)
         viewModel.alertFamily()
         assertEquals(AlertState.Failed, viewModel.alert.value)
-    }
-
-    @Test
-    fun `the page of a step abroad shows the numbers of its country, nothing in France`() {
-        assertEquals("ES", stepSafetyCountry("es"))
-        assertEquals("JP", stepSafetyCountry("JP"))
-        assertNull(stepSafetyCountry("FR"))
-        assertNull(stepSafetyCountry(null))
-        // A country without known numbers shows nothing rather than a number that may be wrong.
-        assertNull(stepSafetyCountry("KH"))
     }
 }

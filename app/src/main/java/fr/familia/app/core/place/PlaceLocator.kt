@@ -127,15 +127,7 @@ class AndroidPlaceLocator(private val context: Context) : PlaceLocator {
     override suspend fun suggest(query: String, max: Int): List<Place> =
         geocode(Request.Forward(query, max.coerceIn(1, 5))).orEmpty().mapNotNull { found ->
             if (!found.hasLatitude() || !found.hasLongitude()) return@mapNotNull null
-            val scale = placeScale(found.featureName, found.locality, found.subAdminArea, found.adminArea, found.countryName)
-            Place(
-                found.latitude,
-                found.longitude,
-                address = addressLine(found) ?: query.take(Place.MAX_ADDRESS),
-                countryCode = found.countryCode?.trim()?.uppercase(Locale.ROOT)?.takeIf { it.length == 2 },
-                scale = scale,
-                shortName = placeShortName(scale, found.featureName, found.locality, found.adminArea, found.countryName),
-            )
+            Place(found.latitude, found.longitude, address = addressLine(found) ?: query.take(Place.MAX_ADDRESS))
         }
 
     private sealed interface Request {

@@ -1,36 +1,27 @@
 package fr.familia.app.feature.trips
 
-import fr.familia.app.FamiliaApplication
 import fr.familia.app.core.place.PlacePhoto
+import fr.familia.app.feature.trips.map.GeoPoint
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PlaceCoverTest {
     @Test
-    fun theCoverIsAPhotoOrTheDrawingNeverTheMap() {
-        // DESIGN-104 A: only two layers, the photo of the place and the drawn landscape.
+    fun theSatelliteViewNeedsAPointAndAToken() {
+        assertNull(satelliteStillUrl(null, "pk.x"))
+        assertNull(satelliteStillUrl(GeoPoint(45.0, -1.0), ""))
+        assertEquals(
+            "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/-1.2500,45.6000,10.5,0/640x400@2x?access_token=pk.x",
+            satelliteStillUrl(GeoPoint(45.6, -1.25), "pk.x"),
+        )
+    }
+
+    @Test
+    fun aPhotoThatFailsGivesTheSatelliteThenTheDrawing() {
         val photo = CoverLayer.Photo(PlacePhoto("https://upload.wikimedia.org/a.jpg", "Wikimedia Commons"))
-        assertNotEquals(CoverLayer.Drawn, photo)
-    }
-
-    @Test
-    fun aFailedImageGivesTheNextPhotoOnceThenTheDrawing() {
-        // Retour E-47: the next nearby photo before the drawing, never the same image again.
-        val failed = "https://upload.wikimedia.org/a.jpg"
-        val next = PlacePhoto("https://upload.wikimedia.org/b.jpg", "Wikimedia Commons")
-        assertEquals(CoverLayer.Photo(next), nextCoverLayer(failed, next))
-        assertEquals(CoverLayer.Drawn, nextCoverLayer(failed, PlacePhoto(failed, "Wikimedia Commons")))
-        assertEquals(CoverLayer.Drawn, nextCoverLayer(failed, null))
-    }
-
-    @Test
-    fun theImagesOfWikimediaGetTheUserAgentOfTheApp() {
-        assertTrue(FamiliaApplication.isWikimedia("upload.wikimedia.org"))
-        assertTrue(FamiliaApplication.isWikimedia("fr.wikipedia.org"))
-        assertFalse(FamiliaApplication.isWikimedia("firebasestorage.googleapis.com"))
-        assertFalse(FamiliaApplication.isWikimedia("notwikimedia.org"))
+        assertEquals(CoverLayer.Satellite("s"), nextLayer(photo, "s"))
+        assertEquals(CoverLayer.Drawn, nextLayer(photo, null))
+        assertEquals(CoverLayer.Drawn, nextLayer(CoverLayer.Satellite("s"), "s"))
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,9 +30,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.text.font.FontWeight
-import java.time.temporal.ChronoUnit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -139,72 +137,27 @@ fun SurprisePickScreen(state: SurprisePickState, onBack: () -> Unit, onPick: (St
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     item(key = "question") {
-                        Text(
-                            stringResource(R.string.surprise_pick_question),
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.semantics { heading() },
-                        )
+                        Text(stringResource(R.string.surprise_pick_question), style = MaterialTheme.typography.titleLarge)
                     }
                     state.next?.let { next ->
                         item(key = "next-title") { GroupTitle(stringResource(R.string.surprise_pick_next)) }
                         item(key = "next-${next.member.id}") {
-                            PastilleRow(listOf(next.member), detail = { inDays(next.date, state.today) }, onPick = onPick)
+                            PersonRow(next.member, stringResource(R.string.surprise_pick_birthday, dayShortLabel(next.date, state.today))) {
+                                onPick(next.member.id)
+                            }
                         }
                     }
                     state.groups.forEachIndexed { index, group ->
                         item(key = "group-$index") {
                             GroupTitle(group.name ?: stringResource(R.string.members_other_household))
                         }
-                        // Pastilles of 64 dp, three per row (fiche C2).
-                        items(group.members.chunked(PASTILLES_PER_ROW), key = { row -> "row-$index-${row.first().id}" }) { row ->
-                            PastilleRow(row, detail = null, onPick = onPick)
+                        items(group.members, key = { "member-$index-${it.id}" }) { member ->
+                            PersonRow(member, null) { onPick(member.id) }
                         }
                     }
                 }
             }
         }
-    }
-}
-
-private const val PASTILLES_PER_ROW = 3
-
-/** « dans 12 jours » under the next birthday; « aujourd'hui » on the day. */
-@Composable
-private fun inDays(date: LocalDate, today: LocalDate): String {
-    val days = ChronoUnit.DAYS.between(today, date).toInt()
-    return if (days <= 0) dayShortLabel(date, today) else pluralStringResource(R.plurals.gifts_in_days, days, days)
-}
-
-@Composable
-private fun PastilleRow(members: List<Member>, detail: (@Composable () -> String)?, onPick: (String) -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        members.forEach { member ->
-            Pastille(member, detail?.invoke(), Modifier.weight(1f)) { onPick(member.id) }
-        }
-        repeat(PASTILLES_PER_ROW - members.size) { Spacer(Modifier.weight(1f)) }
-    }
-}
-
-/** A round pastille with the initial or the photo, the first name under it. */
-@Composable
-private fun Pastille(member: Member, detail: String?, modifier: Modifier, onClick: () -> Unit) {
-    Column(
-        modifier = modifier
-            .heightIn(min = 56.dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        MemberAvatar(member, size = 64.dp)
-        Text(
-            member.firstName,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        detail?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
 
@@ -216,4 +169,23 @@ private fun GroupTitle(text: String) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 16.dp).semantics { heading() },
     )
+}
+
+@Composable
+private fun PersonRow(member: Member, detail: String?, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MemberAvatar(member)
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(member.firstName, style = MaterialTheme.typography.bodyLarge)
+            detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+    }
 }

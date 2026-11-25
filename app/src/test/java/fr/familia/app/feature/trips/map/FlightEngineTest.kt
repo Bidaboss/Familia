@@ -10,7 +10,7 @@ import org.junit.Test
 class FlightEngineTest {
     private val lyon = GeoPoint(45.76, 4.83)
     private val marseille = GeoPoint(43.30, 5.37)
-    private val samoure = GeoPoint(45.68, -1.17)
+    private val palmyre = GeoPoint(45.68, -1.17)
 
     private fun engine(vararg p: GeoPoint) = FlightEngine(p.toList())
 
@@ -26,7 +26,7 @@ class FlightEngineTest {
 
     @Test
     fun `it leaves the globe, flies, stops on each step, then ends`() {
-        val e = engine(lyon, marseille, samoure)
+        val e = engine(lyon, marseille, palmyre)
         assertEquals(FlightPhase.Overview, e.state.phase)
         assertEquals(FlightEngine.GLOBE_ZOOM, e.camera()!!.zoom, 0.0)
         e.start()
@@ -57,7 +57,7 @@ class FlightEngineTest {
 
     @Test
     fun `next and previous move one step, and stay inside the trip`() {
-        val e = engine(lyon, marseille, samoure)
+        val e = engine(lyon, marseille, palmyre)
         e.start()
         e.onMotionEnded()
         e.next()
@@ -74,7 +74,7 @@ class FlightEngineTest {
 
     @Test
     fun `skip goes to the end and replay goes back to the globe`() {
-        val e = engine(lyon, marseille, samoure)
+        val e = engine(lyon, marseille, palmyre)
         e.skip()
         assertEquals(FlightPhase.Overview, e.state.phase)
         e.start()
@@ -87,7 +87,7 @@ class FlightEngineTest {
 
     @Test
     fun `the trail is drawn leg by leg`() {
-        val e = engine(lyon, marseille, samoure)
+        val e = engine(lyon, marseille, palmyre)
         assertEquals(0, e.completedLegs())
         e.start()
         assertEquals(0, e.completedLegs())
@@ -114,7 +114,7 @@ class FlightEngineTest {
 
     @Test
     fun `the end shows the whole trip, flat`() {
-        val e = engine(lyon, marseille, samoure)
+        val e = engine(lyon, marseille, palmyre)
         e.start()
         e.skip()
         val camera = e.camera()!!

@@ -15,10 +15,6 @@ data class Place(
     val lng: Double,
     val name: String? = null,
     val address: String? = null,
-    /** From a search (« Ajouter une destination », fiche F2): the country (ISO 3166, two letters), its size, its short name. */
-    val countryCode: String? = null,
-    val scale: PlaceScale? = null,
-    val shortName: String? = null,
 ) {
     /** What a row shows first: the name, else the address, else nothing (the caller says « position »). */
     val title: String? get() = name ?: address
@@ -28,28 +24,6 @@ data class Place(
         const val MAX_ADDRESS = 200
     }
 }
-
-/** « Villes | Régions | Pays » (fiche F2 §3): how big a place found by the phone is. */
-enum class PlaceScale { City, Region, Country }
-
-/**
- * The size of a place from what the geocoder of the phone gave: a country when it names only the
- * country, a region when it has a region but no town, else a town.
- */
-fun placeScale(feature: String?, locality: String?, subAdminArea: String?, adminArea: String?, countryName: String?): PlaceScale = when {
-    locality != null -> PlaceScale.City
-    feature != null && feature == countryName && adminArea == null && subAdminArea == null -> PlaceScale.Country
-    adminArea != null || subAdminArea != null -> if (feature == adminArea || feature == subAdminArea || feature == null) PlaceScale.Region else PlaceScale.City
-    feature != null && feature == countryName -> PlaceScale.Country
-    else -> PlaceScale.City
-}
-
-/** The short name of such a place: the town, the region or the country. */
-fun placeShortName(scale: PlaceScale, feature: String?, locality: String?, adminArea: String?, countryName: String?): String? = when (scale) {
-    PlaceScale.City -> locality ?: feature
-    PlaceScale.Region -> feature ?: adminArea
-    PlaceScale.Country -> countryName ?: feature
-}?.trim()?.takeIf { it.isNotEmpty() }
 
 /**
  * What a pasted text says about a place: exact coordinates when it holds some, a [name] when a

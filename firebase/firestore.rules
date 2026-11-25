@@ -1778,88 +1778,6 @@ service cloud.firestore {
                     || (!(l.beneficiaryId in l.viewerIds) && l.beneficiaryId != myMemberId()))));
     }
 
-    // --- Surprises (brief Cadeaux et Surprise du 25/11, PRD récit 9 réécrit) ---
-    // surprises/{surpriseId}: prepared by its members for one person, the beneficiary, who never
-    // reads it, before, on the day or after, even as admin principal: no owner exception here.
-    // The beneficiary is never in memberIds, so « a member reads » is enough.
-    function surprisePath(surpriseId) {
-      return /databases/$(database)/documents/surprises/$(surpriseId);
-    }
-
-    function isValidSurprise(s) {
-      return s.keys().hasOnly(['beneficiaryId', 'title', 'occasion', 'date', 'memberIds', 'creatorId', 'creatorName',
-          'status', 'createdAt', 'updatedAt'])
-        && s.beneficiaryId is string
-        && s.title is string && s.title.size() > 0 && s.title.size() <= 60
-        && s.occasion in ['christmas', 'birthday', 'other']
-        && isDay(s.date)
-        && s.memberIds is list && s.memberIds.size() >= 1 && s.memberIds.size() <= 30
-        && !(s.beneficiaryId in s.memberIds)
-        && s.creatorId in s.memberIds
-        && s.status == 'preparing'
-        && s.updatedAt == request.time;
-    }
-
-    // Who may be in a surprise: a member with the app (a child with the app too, PRODUIT-19).
-    function canJoinSurprise(memberId) {
-      return get(memberPath(memberId)).data.profile in ['adult', 'childWithApp'];
-    }
-
-    // The fields a non-member may know, to join rather than start a second surprise for the same person.
-    function isValidOpenSurprise(o, surpriseId) {
-      return o.keys().hasOnly(['beneficiaryId', 'title', 'creatorName', 'updatedAt'])
-        && o.beneficiaryId == getAfter(surprisePath(surpriseId)).data.beneficiaryId
-        && o.title == getAfter(surprisePath(surpriseId)).data.title
-        && o.creatorName == getAfter(surprisePath(surpriseId)).data.creatorName
-        && o.updatedAt == request.time;
-    }
-
-    match /surprises/{surpriseId} {
-      allow read: if isMember() && myMemberId() in resource.data.memberIds;
-
-      // Only an adult starts a surprise (PRODUIT, 25/11), for someone else who exists.
-      allow create: if isMember()
-        && isValidSurprise(request.resource.data)
-        && request.resource.data.creatorId == myMemberId()
-        && request.resource.data.creatorName == me().firstName
-        && me().profile == 'adult'
-        && request.resource.data.beneficiaryId != myMemberId()
-        && exists(memberPath(request.resource.data.beneficiaryId))
-        && request.resource.data.createdAt == request.time;
-
-      // The creator changes the settings and who sees it; the beneficiary and the creator never change.
-      // Anyone else with the app adds only themselves (« Rejoindre »), without reading it first.
-      allow update: if isMember()
-        && isValidSurprise(request.resource.data)
-        && request.resource.data.beneficiaryId == resource.data.beneficiaryId
-        && request.resource.data.creatorId == resource.data.creatorId
-        && request.resource.data.creatorName == resource.data.creatorName
-        && request.resource.data.createdAt == resource.data.createdAt
-        && (resource.data.creatorId == myMemberId()
-            || (resource.data.beneficiaryId != myMemberId()
-                && !(myMemberId() in resource.data.memberIds)
-                && canJoinSurprise(myMemberId())
-                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds', 'updatedAt'])
-                && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
-                && request.resource.data.memberIds.hasAll(resource.data.memberIds)
-                && myMemberId() in request.resource.data.memberIds));
-
-      allow delete: if isMember() && resource.data.creatorId == myMemberId();
-    }
-
-    // openSurprises/{surpriseId}: the title of a surprise in preparation, readable by the whole family
-    // but its beneficiary, written by its creator with the surprise itself.
-    match /openSurprises/{surpriseId} {
-      allow read: if isMember() && resource.data.beneficiaryId != myMemberId();
-      allow create, update: if isMember()
-        && getAfter(surprisePath(surpriseId)).data.creatorId == myMemberId()
-        && isValidOpenSurprise(request.resource.data, surpriseId);
-      allow delete: if isMember()
-        && exists(surprisePath(surpriseId))
-        && get(surprisePath(surpriseId)).data.creatorId == myMemberId()
-        && !existsAfter(surprisePath(surpriseId));
-    }
-
     // giftLists/{listId}. « Mes envies » of a member has the id wishes-{memberId}, so there is one.
     match /giftLists/{listId} {
       allow read: if isMember() && canSeeList(resource.data);
@@ -2602,7 +2520,7 @@ service cloud.firestore {
         && s.keys().hasOnly(['type', 'place', 'departDate', 'departTime', 'arriveDate', 'arriveTime', 'note',
                              'remindAt', 'arrivedAt', 'arrivedBy', 'arrivedByName', 'updatedAt', 'lat', 'lng'])
         && isValidStepPosition(s)
-        && s.type in ['flight', 'train', 'bus', 'car', 'lodging', 'activity']
+        && s.type in ['flight', 'train', 'car', 'lodging', 'activity']
         && s.place is string && s.place.size() > 0 && s.place.size() <= 120
         && isDay(s.departDate)
         && (s.departTime == null || isClockTime(s.departTime))
@@ -2660,22 +2578,12 @@ service cloud.firestore {
 
     // « Documents » (récit 105, règle 41): trips/{tripId}/documents/{docId}, a ticket, a booking or
     // a paper (a passport may be one), its file in Storage at trips/{tripId}/documents/{ownerId}/{file}.
-    // Never the followers, never the album. Private by default (DESIGN-105, décision de l'admin du 24/11): sharedWith
-    // lists who reads it, always its owner, only those who go, and one of them reads it only while
-    // they still go. The app asks only for the documents shared with the reader (array-contains),
-    // which these rules can prove. The owner adds their own, after sending the file; then only its
-    // sharing changes. The owner, the creator of the trip or the admin principal removes one.
-    // Deleting the trip removes them on the server.
-    function isValidSharedWith(list, tripId, ownerId) {
-      return list is list && list.size() >= 1 && list.size() <= 40
-        && list.toSet().size() == list.size()
-        && ownerId in list
-        && tripOf(tripId).participantIds.hasAll(list);
-    }
-
-    function isValidTripDocument(d, docId, tripId) {
-      return d.keys().hasAll(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'sharedWith', 'createdAt'])
-        && d.keys().hasOnly(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'sharedWith', 'createdAt'])
+    // Only those who go read them: never the followers, never the album. The owner adds their own,
+    // after sending the file; nothing is ever edited. The owner, the creator of the trip or the
+    // admin principal removes one. Deleting the trip removes them on the server.
+    function isValidTripDocument(d, docId) {
+      return d.keys().hasAll(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'createdAt'])
+        && d.keys().hasOnly(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'createdAt'])
         && d.ownerId == myMemberId()
         && d.ownerName == me().firstName
         && d.title is string && d.title.size() > 0 && d.title.size() <= 80
@@ -2684,19 +2592,12 @@ service cloud.firestore {
             || (d.contentType == 'image/jpeg' && d.file == docId + '.jpg')
             || (d.contentType == 'image/png' && d.file == docId + '.png'))
         && d.size is int && d.size > 0 && d.size <= 5 * 1024 * 1024
-        && isValidSharedWith(d.sharedWith, tripId, d.ownerId)
         && d.createdAt == request.time;
     }
 
     match /trips/{tripId}/documents/{docId} {
-      allow read: if isMember() && myMemberId() in resource.data.sharedWith && isParticipantOf(tripId);
-      allow create: if isMember() && isParticipantOf(tripId) && isValidTripDocument(request.resource.data, docId, tripId);
-      // « Partager… »: the owner, still going, changes who reads it, and nothing else.
-      allow update: if isMember()
-        && resource.data.ownerId == myMemberId()
-        && isParticipantOf(tripId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith'])
-        && isValidSharedWith(request.resource.data.sharedWith, tripId, resource.data.ownerId);
+      allow read: if isMember() && isParticipantOf(tripId);
+      allow create: if isMember() && isParticipantOf(tripId) && isValidTripDocument(request.resource.data, docId);
       allow delete: if isMember()
         && (resource.data.ownerId == myMemberId() || tripOf(tripId).creatorId == myMemberId() || isOwner());
     }

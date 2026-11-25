@@ -18,10 +18,8 @@ data class TripSummary(
     val isParticipant: Boolean = false,
     /** Where the trip goes (its first step with a position), for the globe of the list (récit 99). */
     val place: fr.familia.app.feature.trips.map.GeoPoint? = null,
-    /** The name of that place (« La Samoure »), for its photo on the card of the next trip (règles 10, 12). */
+    /** The name of that place (« La Palmyre »), for its photo on the card of the next trip (règles 10, 12). */
     val placeName: String? = null,
-    /** From step to step as the crow flies, for the card of the next trip (E-31); null: fewer than two placed steps. */
-    val distanceKm: Int? = null,
 )
 
 /**

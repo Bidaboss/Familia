@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NearbyPlacesTest {
-    // La Samoure.
+    // La Palmyre.
     private val lat = 45.6350
     private val lng = -1.1850
 

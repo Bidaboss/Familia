@@ -24,33 +24,19 @@ data class TripEditDestination(val tripId: String? = null)
 
 /** Step form: a new step of [tripId] when [stepId] is null. */
 @Serializable
-data class TripStepEditDestination(
-    val tripId: String,
-    val stepId: String? = null,
-    val place: String? = null,
-    /** A new step from a « + » of « Le trajet » (DESIGN-99 A): « Destination » or « Transport » (StepAddKind), and its day (ISO). */
-    val kind: String? = null,
-    val day: String? = null,
-)
+data class TripStepEditDestination(val tripId: String, val stepId: String? = null, val place: String? = null)
 
-/** « Ajouter une destination » (fiche F2 §3): a place added to [tripId] from [day] (ISO), one night. */
+/** « Phrases utiles » of [tripId] (récit 105): ten phrases of the language of each country abroad. */
 @Serializable
-data class TripAddDestinationDestination(val tripId: String, val day: String)
+data class TripPhrasesDestination(val tripId: String)
 
-/**
- * « Phrases utiles » of [tripId] (récit 105): ten phrases of the language of each country abroad, or
- * of [country] only when opened from the page of a step (récit 112, règle 44).
- */
+/** « Sécurité » (récit 105, règle 43). */
 @Serializable
-data class TripPhrasesDestination(val tripId: String, val country: String? = null)
-
-/** « Sécurité » (récit 105, règle 43), of [country] only when opened from the page of a step (récit 112). */
-@Serializable
-data class TripSafetyDestination(val tripId: String, val country: String? = null)
+data class TripSafetyDestination(val tripId: String)
 
 /** « Monnaie » (récit 105, règle 42). */
 @Serializable
-data class TripMoneyDestination(val tripId: String, val currency: String? = null)
+data class TripMoneyDestination(val tripId: String)
 
 /** « Documents » (récit 105, règle 41). */
 @Serializable

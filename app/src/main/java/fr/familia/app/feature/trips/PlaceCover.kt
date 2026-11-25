@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import android.util.Log
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,7 +12,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,20 +28,32 @@ import fr.familia.app.core.place.PlacePhoto
 import fr.familia.app.core.place.PlacePhotos
 import fr.familia.app.feature.trips.list.MiniLandscape
 import fr.familia.app.feature.trips.map.GeoPoint
-import kotlinx.coroutines.launch
 
-/** What the cover shows (DESIGN-104 A): the photo of the place, else the drawn landscape; never a satellite view. */
+/** What the cover shows, in the order of PRODUIT-153: the photo, else the satellite view, else the drawn landscape. */
 internal sealed interface CoverLayer {
     data class Photo(val photo: PlacePhoto) : CoverLayer
+    data class Satellite(val url: String) : CoverLayer
     data object Drawn : CoverLayer
+}
+
+/** The still satellite view of [point] from Mapbox (a public token), or null without token or point. */
+internal fun satelliteStillUrl(point: GeoPoint?, token: String): String? {
+    if (point == null || token.isBlank()) return null
+    val lng = "%.4f".format(java.util.Locale.ROOT, point.lng)
+    val lat = "%.4f".format(java.util.Locale.ROOT, point.lat)
+    return "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/$lng,$lat,10.5,0/640x400@2x?access_token=$token"
+}
+
+/** The layer after [current] when its image cannot be shown. */
+internal fun nextLayer(current: CoverLayer, satellite: String?): CoverLayer = when (current) {
+    is CoverLayer.Photo -> satellite?.let { CoverLayer.Satellite(it) } ?: CoverLayer.Drawn
+    is CoverLayer.Satellite, CoverLayer.Drawn -> CoverLayer.Drawn
 }
 
 /**
  * The image of the place of a trip (règles 10 and 12): a real photo from Wikimedia Commons with its
- * credit at the bottom, else the drawn [landscape] (no network, no photo). Never a view of the map
- * (DESIGN-104 A: « une jolie photo de la première destination, pas une vue map »). Plain landscape
- * while the photo is looked for. When the image itself cannot be shown (retour E-47), the cause is
- * written to the log and the next nearby photo is tried once before the drawing.
+ * credit at the bottom, else the satellite view of the place, else the drawn [landscape] (no
+ * network, no photo). Plain landscape while the photo is looked for.
  */
 @Composable
 fun PlaceCover(
@@ -51,19 +61,18 @@ fun PlaceCover(
     point: GeoPoint?,
     landscape: TripLandscape,
     photos: PlacePhotos?,
+    token: String,
     modifier: Modifier = Modifier,
     showCredit: Boolean = true,
     /** Where the credit goes: top right alone, top left under the label of the carousel (its pause button is top right). */
     creditAlignment: Alignment = Alignment.TopEnd,
     creditTop: androidx.compose.ui.unit.Dp = 6.dp,
 ) {
+    val satellite = remember(point, token) { satelliteStillUrl(point, token) }
     var layer by remember(place, point) { mutableStateOf<CoverLayer?>(null) }
-    var retried by remember(place, point) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val context = androidx.compose.ui.platform.LocalContext.current
     LaunchedEffect(place, point, photos) {
-        val found = place?.takeIf { it.isNotBlank() }?.let { photos?.of(it, point?.lat, point?.lng) }
-        layer = found?.let { CoverLayer.Photo(it) } ?: CoverLayer.Drawn
+        val found = place?.takeIf { it.isNotBlank() }?.let { photos?.of(it) }
+        layer = found?.let { CoverLayer.Photo(it) } ?: satellite?.let { CoverLayer.Satellite(it) } ?: CoverLayer.Drawn
     }
     Box(modifier.clip(RoundedCornerShape(16.dp))) {
         when (val shown = layer) {
@@ -74,21 +83,7 @@ fun PlaceCover(
                     model = shown.photo.url,
                     contentDescription = description,
                     contentScale = ContentScale.Crop,
-                    onError = { error ->
-                        Log.w(TAG, "Photo du lieu non affichée : ${shown.photo.url}", error.result.throwable)
-                        // Retour du 24/11 soir: the reason of the image itself goes to « Plantages » too.
-                        fr.familia.app.core.place.PhotoFailureLog.record(context, "image ${coverErrorLine(error.result.throwable)}")
-                        val failed = shown.photo.url
-                        if (retried || point == null || photos == null) {
-                            layer = CoverLayer.Drawn
-                        } else {
-                            retried = true
-                            scope.launch {
-                                val next = photos.near(point.lat, point.lng, except = failed)
-                                layer = nextCoverLayer(failed, next)
-                            }
-                        }
-                    },
+                    onError = { layer = nextLayer(shown, satellite) },
                     modifier = Modifier.fillMaxSize(),
                 )
                 if (showCredit) {
@@ -107,16 +102,13 @@ fun PlaceCover(
                     )
                 }
             }
+            is CoverLayer.Satellite -> AsyncImage(
+                model = shown.url,
+                contentDescription = stringResource(R.string.place_cover_satellite, place.orEmpty()),
+                contentScale = ContentScale.Crop,
+                onError = { layer = nextLayer(shown, satellite) },
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }
-
-private const val TAG = "PlaceCover"
-
-/** The error of an image, short and without its address: « HttpException: HTTP 403 ». */
-internal fun coverErrorLine(error: Throwable): String =
-    listOfNotNull(error.javaClass.simpleName, error.message?.substringBefore(" http")?.take(30)).joinToString(": ").take(50)
-
-/** After a failed image: the next nearby photo when there is one and it is another image, else the drawing. */
-internal fun nextCoverLayer(failedUrl: String, next: PlacePhoto?): CoverLayer =
-    next?.takeIf { it.url != failedUrl }?.let { CoverLayer.Photo(it) } ?: CoverLayer.Drawn

@@ -56,10 +56,9 @@ fun GlobeMapView(
                 MapboxOptions.accessToken = token
                 MapView(context).also { view ->
                     view.mapboxMap.setCamera(command.target.toOptions())
-                    // E-49: the classic Satellite, with the imagery in its own colours, as the globe of the list.
-                    view.mapboxMap.loadStyle(GlobeLook.LIST_DEFAULT.styleUri) { style ->
+                    view.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
                         runCatching {
-                            configureSatelliteGlobe(style, GlobeLook.LIST_DEFAULT)
+                            configureSatelliteGlobe(style)
                             style.addSource(geoJsonSource(TRAIL_ALL) { geometry(trail(points, points.size - 1)) })
                             style.addSource(geoJsonSource(TRAIL_DONE) { geometry(trail(points, 0)) })
                             style.addSource(geoJsonSource(STEPS) { featureCollection(com.mapbox.geojson.FeatureCollection.fromFeatures(points.map { com.mapbox.geojson.Feature.fromGeometry(it.toPoint()) })) })
@@ -110,126 +109,14 @@ private fun trail(points: List<GeoPoint>, upTo: Int): LineString {
     return LineString.fromLngLats(if (list.size >= 2) list else listOf(list.first(), list.first()))
 }
 
-/** Satellite view, round, in a starry sky, with the sky of [look]. Shared by every globe of the app. */
-internal fun configureSatelliteGlobe(style: Style, look: GlobeLook = GlobeLook.Standard) {
-    // The globe projection; the rest only tunes the sky, and a refusal there must not give the globe up.
+/** Satellite view, round, in a starry sky. Shared by every globe of the app. */
+internal fun configureSatelliteGlobe(style: Style) {
+    // Standard Satellite is a globe by itself; the rest only tunes the sky, and a refusal there must not give the globe up.
     runCatching { style.setStyleProjectionProperty("name", Value.valueOf("globe")) }
-    val sky = hashMapOf(
-        "color" to Value.valueOf(look.color),
-        "high-color" to Value.valueOf(look.highColor),
-        "space-color" to Value.valueOf(look.spaceColor),
-        "horizon-blend" to Value.valueOf(look.horizonBlend),
-        "star-intensity" to Value.valueOf(look.starIntensity),
-    )
-    // A classic style (Satellite) has no sky of its own: it is given whole; Standard Satellite has one, tuned key by key.
-    val whole = runCatching { style.setStyleAtmosphere(Value.valueOf(sky)) }.getOrNull()?.isValue == true
-    if (!whole) runCatching { sky.forEach { (key, value) -> style.setStyleAtmosphereProperty(key, value) } }
-}
-
-/** E-66: the config keys of Standard (Satellite) that write on the globe or draw lines on it. */
-internal val GLOBE_HIDDEN_CONFIG = listOf(
-    "showPlaceLabels", "showRoadLabels", "showPointOfInterestLabels", "showTransitLabels",
-    "showAdminBoundaries", "showRoadsAndTransit", "showPedestrianRoads",
-)
-
-/** E-66: the layers a classic style may have that are not imagery: names, borders, roads. */
-internal fun isWritingOrLine(type: String): Boolean = type == "symbol" || type == "line"
-
-/**
- * E-66: the globe of « Voyages » is a clean Earth, nothing written, no border, no road. Called
- * before the app adds its own layers (the dots of the trips), so only the style's are removed.
- * The names in French stay on the map of a trip, which does not call this.
- */
-internal fun cleanGlobe(style: Style) {
-    GLOBE_HIDDEN_CONFIG.forEach { key -> runCatching { style.setStyleImportConfigProperty("basemap", key, Value.valueOf(false)) } }
     runCatching {
-        style.styleLayers.filter { isWritingOrLine(it.type) }.forEach { layer -> runCatching { style.removeStyleLayer(layer.id) } }
+        mapOf("color" to "#BFD9F2", "high-color" to "#3C6FB5", "space-color" to "#050B1A")
+            .forEach { (key, color) -> style.setStyleAtmosphereProperty(key, Value.valueOf(color)) }
+        style.setStyleAtmosphereProperty("horizon-blend", Value.valueOf(0.04))
+        style.setStyleAtmosphereProperty("star-intensity", Value.valueOf(0.7))
     }
-}
-
-/** The beige of the lands and the blue of the seas of the drawn Earth under the satellite images (retour du 24/11, minuit). */
-internal const val DRAWN_LAND = "#D8C9A3"
-internal const val DRAWN_WATER = "#8FB8DE"
-internal const val DRAWN_WATER_LAYER = "globe-drawn-water"
-
-/** Where the drawn Earth goes in a satellite style: its background, its first raster layer, its vector source. */
-internal data class DrawnEarthPlan(val backgroundId: String?, val rasterId: String, val vectorSourceId: String?, val bottomId: String)
-
-/**
- * Pure rule: [layers] and [sources] as (id, type), bottom first. Null when the style has no image
- * layer (the drawn Earth of Standard needs nothing under it).
- */
-internal fun drawnEarthPlan(layers: List<Pair<String, String>>, sources: List<Pair<String, String>>): DrawnEarthPlan? {
-    val raster = layers.firstOrNull { it.second == "raster" }?.first ?: return null
-    return DrawnEarthPlan(
-        backgroundId = layers.firstOrNull { it.second == "background" }?.first,
-        rasterId = raster,
-        vectorSourceId = sources.firstOrNull { it.second == "vector" }?.first,
-        bottomId = layers.first().first,
-    )
-}
-
-/**
- * Retour du 24/11, minuit: the satellite images take a few seconds to come and the globe was black
- * meanwhile. The style now paints its lands beige and its seas blue (from its own vector tiles,
- * which come first) under the images, which cover them as they arrive.
- */
-internal fun underlayDrawnEarth(style: Style) {
-    runCatching {
-        val plan = drawnEarthPlan(
-            style.styleLayers.map { it.id to it.type },
-            style.styleSources.map { it.id to it.type },
-        ) ?: return
-        if (plan.backgroundId != null) {
-            style.setStyleLayerProperty(plan.backgroundId, "background-color", Value.valueOf(DRAWN_LAND))
-        } else {
-            style.addStyleLayer(
-                Value.valueOf(hashMapOf("id" to Value.valueOf("globe-drawn-land"), "type" to Value.valueOf("background"), "paint" to Value.valueOf(hashMapOf("background-color" to Value.valueOf(DRAWN_LAND))))),
-                com.mapbox.maps.LayerPosition(null, plan.bottomId, null),
-            )
-        }
-        val vector = plan.vectorSourceId ?: return
-        if (style.styleLayerExists(DRAWN_WATER_LAYER)) return
-        style.addStyleLayer(
-            Value.valueOf(
-                hashMapOf(
-                    "id" to Value.valueOf(DRAWN_WATER_LAYER),
-                    "type" to Value.valueOf("fill"),
-                    "source" to Value.valueOf(vector),
-                    "source-layer" to Value.valueOf("water"),
-                    "paint" to Value.valueOf(hashMapOf("fill-color" to Value.valueOf(DRAWN_WATER))),
-                ),
-            ),
-            com.mapbox.maps.LayerPosition(null, plan.rasterId, null),
-        )
-    }.onFailure { android.util.Log.w("TripsGlobe", "drawn Earth under the images refused", it) }
-}
-
-/** The elevation of Mapbox (free with the public token), and the shading drawn from it on the globe. */
-internal const val GLOBE_DEM_SOURCE = "globe-dem"
-internal const val GLOBE_DEM_URL = "mapbox://mapbox.mapbox-terrain-dem-v1"
-
-/** The elevation source of the globe, added once. */
-private fun addGlobeDem(style: Style) {
-    if (style.styleSourceExists(GLOBE_DEM_SOURCE)) return
-    style.addStyleSource(
-        GLOBE_DEM_SOURCE,
-        Value.valueOf(hashMapOf("type" to Value.valueOf("raster-dem"), "url" to Value.valueOf(GLOBE_DEM_URL), "tileSize" to Value.valueOf(512L))),
-    )
-}
-
-/** How high the mountains stand when the fingers zoom in (1: true height). */
-internal const val GLOBE_TERRAIN_EXAGGERATION = 1.3
-
-/**
- * Retour du 25/11, 7 h 05 (« zoomer pour parcourir le monde »): the true relief in 3D, which only
- * shows once zoomed in on a region; seen whole, the globe does not change.
- */
-internal fun addGlobeTerrain(style: Style) {
-    runCatching {
-        addGlobeDem(style)
-        style.setStyleTerrain(
-            Value.valueOf(hashMapOf("source" to Value.valueOf(GLOBE_DEM_SOURCE), "exaggeration" to Value.valueOf(GLOBE_TERRAIN_EXAGGERATION))),
-        )
-    }.onFailure { android.util.Log.w("TripsGlobe", "terrain refused", it) }
 }

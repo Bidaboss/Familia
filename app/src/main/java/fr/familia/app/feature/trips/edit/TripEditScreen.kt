@@ -284,19 +284,19 @@ private fun PreviewBanner(form: TripForm, cover: (@Composable (Modifier) -> Unit
     }
 }
 
-/**
- * « Départ » and « Retour », two boxes that open « Dates du voyage » (fiche F4): one calendar for both,
- * the first touch the departure, the second the return.
- */
+/** « Départ » and « Retour », two boxes that open the calendar; the return cannot be before the departure. */
 @Composable
 private fun DateBoxes(form: TripForm, onChange: ((TripForm) -> TripForm) -> Unit) {
     val stacked = LocalDensity.current.fontScale >= 1.3f
-    var open by rememberSaveable { mutableStateOf(false) }
     val start: @Composable (Modifier) -> Unit = { modifier ->
-        TripDayBox(stringResource(R.string.trip_start_label), form.startDate, modifier = modifier, onPick = {}, onOpen = { open = true })
+        TripDayBox(stringResource(R.string.trip_start_label), form.startDate, modifier = modifier, onPick = { day ->
+            onChange { it.copy(startDate = day, endDate = it.endDate?.takeIf { end -> end >= day } ?: day) }
+        })
     }
     val end: @Composable (Modifier) -> Unit = { modifier ->
-        TripDayBox(stringResource(R.string.trip_end_label), form.endDate, modifier = modifier, onPick = {}, onOpen = { open = true })
+        TripDayBox(stringResource(R.string.trip_end_label), form.endDate, modifier = modifier, initial = form.startDate, onPick = { day ->
+            onChange { it.copy(endDate = day) }
+        })
     }
     if (stacked) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -308,17 +308,6 @@ private fun DateBoxes(form: TripForm, onChange: ((TripForm) -> TripForm) -> Unit
             start(Modifier.weight(1f))
             end(Modifier.weight(1f))
         }
-    }
-    if (open) {
-        TripDatesDialog(
-            start = form.startDate,
-            end = form.endDate,
-            onSave = { first, last ->
-                open = false
-                onChange { it.copy(startDate = first, endDate = last) }
-            },
-            onDismiss = { open = false },
-        )
     }
 }
 

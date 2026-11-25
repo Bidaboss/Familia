@@ -14,7 +14,6 @@ import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.FamiliaThemeId
-import fr.familia.app.core.theme.ThemeChoice
 import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.feature.settings.appearance.AppIcon
@@ -329,13 +328,13 @@ class ScreenshotTest {
 
     @Test
     fun appearanceLight() = capture("apparence_clair") {
-        AppearanceScreen(ThemeChoice.Season, {}, {}, today = LocalDate.of(2026, 11, 25), titleFont = TitleFont.Elegant, bodyFont = BodyFont.Legible)
+        AppearanceScreen(FamiliaThemeId.Spain, {}, {}, titleFont = TitleFont.Elegant, bodyFont = BodyFont.Legible)
     }
 
     @Test
     @Config(fontScale = 2f)
     fun appearanceFontScale200() = capture("apparence_police_200") {
-        AppearanceScreen(ThemeChoice.Photo(FamiliaThemeId.Lake), {}, {}, today = LocalDate.of(2026, 11, 25), highContrast = true)
+        AppearanceScreen(FamiliaThemeId.Classic, {}, {})
     }
 
     /** « Utilisation » of the admin principal (PRD, récit 1 nonies), with a fictional family. */

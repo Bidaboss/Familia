@@ -7,10 +7,8 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,25 +19,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.triStateToggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Hotel
 import androidx.compose.material.icons.outlined.LocalActivity
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,20 +45,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -75,19 +66,12 @@ import fr.familia.app.core.data.TripDocument
 import fr.familia.app.core.data.TripDocumentKind
 import fr.familia.app.core.data.TripDocuments
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.theme.Fredoka
-import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.BackButton
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.LoadingState
-import fr.familia.app.core.ui.MemberAvatar
-import fr.familia.app.core.ui.PickGroup
-import fr.familia.app.core.ui.householdState
-import fr.familia.app.core.ui.toggleHousehold
-import fr.familia.app.feature.trips.joinNames
-import fr.familia.app.feature.trips.TripPage
-import fr.familia.app.feature.trips.TripPageAction
 import fr.familia.app.feature.trips.detail.TripDetailUiState
 import fr.familia.app.feature.trips.detail.TripDetailViewModel
-import fr.familia.app.feature.trips.detail.TripPathColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -114,10 +98,6 @@ fun TripDocumentsRoute(container: AppContainer?, currentMember: Member, tripId: 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var picked by remember { mutableStateOf<PickedFile.Ok?>(null) }
-    var sharing by remember { mutableStateOf<TripDocument?>(null) }
-    val people = shown?.people.orEmpty()
-    val households = shown?.households.orEmpty()
-    val groups = remember(people, households, currentMember) { travellerGroups(people, households, currentMember) }
 
     // A file opened last time stays in the cache only until the screen comes back.
     LaunchedEffect(Unit) { withContext(Dispatchers.IO) { openedFolder(context).listFiles()?.forEach { it.delete() } } }
@@ -140,9 +120,6 @@ fun TripDocumentsRoute(container: AppContainer?, currentMember: Member, tripId: 
         sending = sending,
         problem = problem,
         canDelete = { document -> canDeleteDocument(document, currentMember, shown?.canManage == true) },
-        people = people,
-        meId = currentMember.id,
-        onShare = { document -> sharing = document },
         onAdd = { pick.launch(TripDocumentTypes) },
         onOpen = { document ->
             scope.launch {
@@ -166,24 +143,11 @@ fun TripDocumentsRoute(container: AppContainer?, currentMember: Member, tripId: 
     picked?.let { file ->
         AddDocumentDialog(
             suggested = file.title,
-            groups = groups,
-            onConfirm = { title, kind, others ->
+            onConfirm = { title, kind ->
                 picked = null
-                documents.add(file, title, kind, others)
+                documents.add(file, title, kind)
             },
             onDismiss = { picked = null },
-        )
-    }
-    sharing?.let { document ->
-        ShareDialog(
-            title = document.title,
-            groups = groups,
-            initial = sharedOthers(document, people.map { it.id }),
-            onConfirm = { others ->
-                sharing = null
-                documents.share(document, others)
-            },
-            onDismiss = { sharing = null },
         )
     }
 }
@@ -202,80 +166,58 @@ fun TripDocumentsScreen(
     onDelete: (TripDocument) -> Unit,
     onDismissProblem: () -> Unit,
     onBack: () -> Unit,
-    /** Those who go, for the faces under a shared document (DESIGN-105). */
-    people: List<Member> = emptyList(),
-    meId: String? = null,
-    /** « Partager… » under my own documents; null: no change. */
-    onShare: ((TripDocument) -> Unit)? = null,
 ) {
     var deleting by remember { mutableStateOf<TripDocument?>(null) }
-    // Fiche F3: the light blue page, the rows in white, « Ajouter un document » the full button at the bottom.
-    val action = if (allowed && !loading) {
-        TripPageAction(
-            text = stringResource(if (sending) R.string.documents_sending else R.string.documents_add),
-            onClick = onAdd,
-            enabled = !sending && state is DocumentsState.Ready,
-            busy = sending,
-        )
-    } else {
-        null
-    }
-    TripPage(title = stringResource(R.string.documents_title), onBack = onBack, action = action) {
+    Scaffold(topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.documents_title)) }, navigationIcon = { BackButton(onClick = onBack) }) }) { padding ->
         if (loading && allowed) {
-            LoadingState()
-            return@TripPage
+            LoadingState(Modifier.padding(padding))
+            return@Scaffold
         }
         Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(ClaySpacing.screen),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (!allowed) {
-                Text(stringResource(R.string.documents_not_allowed), fontSize = 16.sp)
+                Text(stringResource(R.string.documents_not_allowed), style = MaterialTheme.typography.bodyLarge)
                 return@Column
             }
-            Text(stringResource(R.string.documents_intro), fontSize = 15.sp, color = TripPathColors.Ink.copy(alpha = 0.8f))
-            Text(stringResource(R.string.documents_limits), fontSize = 13.sp, color = TripPathColors.Ink.copy(alpha = 0.7f))
+            Text(stringResource(R.string.documents_intro), style = MaterialTheme.typography.bodyLarge)
+            Button(onClick = onAdd, enabled = !sending && state is DocumentsState.Ready, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(if (sending) R.string.documents_sending else R.string.documents_add))
+            }
+            Text(
+                stringResource(R.string.documents_limits),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             problem?.let { shownProblem ->
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
                     Text(
                         stringResource(problemText(shownProblem)),
-                        color = DocumentRed,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f),
                     )
-                    TextButton(
-                        onClick = onDismissProblem,
-                        modifier = Modifier.heightIn(min = 56.dp),
-                        colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
-                    ) { Text(stringResource(R.string.documents_ok), fontWeight = FontWeight.ExtraBold) }
+                    TextButton(onClick = onDismissProblem, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.documents_ok)) }
                 }
             }
             when (state) {
                 DocumentsState.Loading -> Unit
-                DocumentsState.Failed -> Text(stringResource(R.string.documents_failed), fontSize = 16.sp)
+                DocumentsState.Failed -> Text(stringResource(R.string.documents_failed), style = MaterialTheme.typography.bodyLarge)
                 is DocumentsState.Ready -> {
                     if (state.documents.isEmpty()) {
-                        Text(stringResource(R.string.documents_empty), fontSize = 16.sp)
+                        Text(stringResource(R.string.documents_empty), style = MaterialTheme.typography.bodyLarge)
                     }
                     TripDocumentKind.entries.forEach { kind ->
                         val ofKind = state.documents.filter { it.kind == kind }
                         if (ofKind.isNotEmpty()) {
                             Text(
                                 stringResource(kindHeading(kind)),
-                                fontFamily = Fredoka,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier.padding(top = 8.dp).semantics { heading() },
                             )
                             ofKind.forEach { document ->
-                                DocumentRow(
-                                    document,
-                                    faces = document.sharedWith.filter { it != document.ownerId }.mapNotNull { id -> people.firstOrNull { it.id == id } },
-                                    onOpen = { onOpen(document) },
-                                    onDelete = if (canDelete(document)) ({ deleting = document }) else null,
-                                    onShare = if (onShare != null && document.ownerId == meId) ({ onShare(document) }) else null,
-                                )
+                                DocumentRow(document, onOpen = { onOpen(document) }, onDelete = if (canDelete(document)) ({ deleting = document }) else null)
                             }
                         }
                     }
@@ -300,115 +242,47 @@ fun TripDocumentsScreen(
     }
 }
 
-/** The pale blue of the square behind the icon, and the red of the ✕ (fiche F3). */
-private val DocumentIconBlue = Color(0xFFEAF6FB)
-private val DocumentRed = Color(0xFFC62828)
-
-/**
- * A white row of 72: the icon in its pale blue square, the title and its type, the red ✕ (fiche F3);
- * under it, who reads it (DESIGN-105): « Privé », or the faces of those it is shared with, and
- * « Partager… » for its owner.
- */
 @Composable
-private fun DocumentRow(document: TripDocument, faces: List<Member>, onOpen: () -> Unit, onDelete: (() -> Unit)?, onShare: (() -> Unit)?) {
+private fun DocumentRow(document: TripDocument, onOpen: () -> Unit, onDelete: (() -> Unit)?) {
     val open = stringResource(R.string.documents_open, document.title)
-    Surface(shape = RoundedCornerShape(16.dp), color = Color.White, contentColor = TripPathColors.Ink, modifier = Modifier.fillMaxWidth()) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 72.dp)
-                        .clickable(role = Role.Button, onClickLabel = open, onClick = onOpen)
-                        .padding(start = 14.dp, top = 8.dp, bottom = 8.dp, end = if (onDelete == null) 14.dp else 4.dp),
-                ) {
-                    Box(
-                        Modifier.size(36.dp).background(DocumentIconBlue, RoundedCornerShape(10.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(kindIcon(document.kind), contentDescription = null, modifier = Modifier.size(20.dp))
-                    }
-                    Column {
-                        Text(document.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Text(
-                            stringResource(R.string.documents_by, document.ownerName, document.type.extension.uppercase()),
-                            fontSize = 12.sp,
-                            color = TripPathColors.Ink.copy(alpha = 0.7f),
-                        )
-                    }
-                }
-                if (onDelete != null) {
-                    IconButton(onClick = onDelete, modifier = Modifier.size(56.dp)) {
-                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.documents_delete_description, document.title), tint = DocumentRed)
-                    }
-                }
-            }
-            SharingLine(document, faces, onShare)
-        }
-    }
-}
-
-/** « Privé » with a lock, or the faces of those [document] is shared with; « Partager… » for its owner. */
-@Composable
-private fun SharingLine(document: TripDocument, faces: List<Member>, onShare: (() -> Unit)?) {
-    val said = if (document.isPrivate) {
-        stringResource(R.string.documents_private_line)
-    } else {
-        stringResource(R.string.documents_shared_line, joinNames(faces.map { it.firstName }).ifEmpty { stringResource(R.string.documents_shared_left) })
-    }
-    Row(
-        Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, bottom = if (onShare == null) 10.dp else 0.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Row(
-            Modifier.weight(1f).semantics(mergeDescendants = true) { contentDescription = said },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 56.dp)
+                .clickable(role = Role.Button, onClickLabel = open, onClick = onOpen)
+                .padding(vertical = 8.dp),
         ) {
-            if (document.isPrivate || faces.isEmpty()) {
-                Icon(Icons.Outlined.Lock, contentDescription = null, tint = TripPathColors.Ink.copy(alpha = 0.8f), modifier = Modifier.size(16.dp))
+            Icon(kindIcon(document.kind), contentDescription = null, modifier = Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
+            Column {
+                Text(document.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
-                    if (document.isPrivate) stringResource(R.string.documents_private) else stringResource(R.string.documents_shared_left),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TripPathColors.Ink.copy(alpha = 0.8f),
+                    stringResource(R.string.documents_by, document.ownerName, document.type.extension.uppercase()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else {
-                faces.take(MAX_FACES).forEach { member -> MemberAvatar(member, size = 24.dp) }
-                if (faces.size > MAX_FACES) {
-                    Text("+${faces.size - MAX_FACES}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TripPathColors.Ink.copy(alpha = 0.8f))
-                }
             }
         }
-        if (onShare != null) {
-            TextButton(
-                onClick = onShare,
-                modifier = Modifier.heightIn(min = 56.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
-            ) { Text(stringResource(R.string.documents_share), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
+        if (onDelete != null) {
+            IconButton(onClick = onDelete, modifier = Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.documents_delete_description, document.title))
+            }
         }
     }
 }
 
-private const val MAX_FACES = 6
-
-/**
- * The title (from the name of the file), the kind and who reads it, before anything is sent: private
- * by default (DESIGN-105, décision de l'admin du 24/11), or shared with the travellers picked by household.
- */
+/** The title (from the name of the file) and the kind, before anything is sent. */
 @Composable
-private fun AddDocumentDialog(suggested: String, groups: List<PickGroup>, onConfirm: (String, TripDocumentKind, Set<String>) -> Unit, onDismiss: () -> Unit) {
+private fun AddDocumentDialog(suggested: String, onConfirm: (String, TripDocumentKind) -> Unit, onDismiss: () -> Unit) {
     var title by rememberSaveable { mutableStateOf(suggested) }
     var kind by rememberSaveable { mutableStateOf(TripDocumentKind.Ticket) }
-    var shared by rememberSaveable { mutableStateOf(false) }
-    var selected by rememberSaveable { mutableStateOf(emptyList<String>()) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.documents_add_title)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it.take(TripDocuments.TITLE_MAX) },
@@ -418,18 +292,22 @@ private fun AddDocumentDialog(suggested: String, groups: List<PickGroup>, onConf
                 )
                 Column(Modifier.selectableGroup()) {
                     TripDocumentKind.entries.forEach { option ->
-                        RadioLine(stringResource(kindLabel(option)), option == kind) { kind = option }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 56.dp)
+                                .selectable(selected = option == kind, role = Role.RadioButton, onClick = { kind = option }),
+                        ) {
+                            RadioButton(selected = option == kind, onClick = null)
+                            Text(stringResource(kindLabel(option)), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
+                        }
                     }
                 }
-                SharingChoice(groups, shared, { shared = it }, selected.toSet(), { selected = it.toList() })
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onConfirm(title.trim(), kind, if (shared) selected.toSet() else emptySet()) },
-                enabled = title.isNotBlank(),
-                modifier = Modifier.heightIn(min = 56.dp),
-            ) {
+            TextButton(onClick = { onConfirm(title.trim(), kind) }, enabled = title.isNotBlank(), modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.documents_send))
             }
         },
@@ -437,85 +315,6 @@ private fun AddDocumentDialog(suggested: String, groups: List<PickGroup>, onConf
             TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.documents_cancel)) }
         },
     )
-}
-
-/** « Partager… »: who reads [title] from now on. */
-@Composable
-private fun ShareDialog(title: String, groups: List<PickGroup>, initial: Set<String>, onConfirm: (Set<String>) -> Unit, onDismiss: () -> Unit) {
-    var shared by rememberSaveable { mutableStateOf(initial.isNotEmpty()) }
-    var selected by rememberSaveable { mutableStateOf(initial.toList()) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.documents_share_title, title)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                SharingChoice(groups, shared, { shared = it }, selected.toSet(), { selected = it.toList() })
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(if (shared) selected.toSet() else emptySet()) }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.documents_share_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.documents_cancel)) }
-        },
-    )
-}
-
-/**
- * Who reads it: « Privé » (me alone) or « Partagé avec… »; shared, « Tous les voyageurs » ticks
- * everyone, then the travellers by household (HouseholdMemberPicker). Alone on the trip: private.
- */
-@Composable
-private fun SharingChoice(groups: List<PickGroup>, shared: Boolean, onShared: (Boolean) -> Unit, selected: Set<String>, onSelected: (Set<String>) -> Unit) {
-    Text(
-        stringResource(R.string.documents_who),
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 8.dp).semantics { heading() },
-    )
-    val everyone = groups.flatMap { group -> group.members.map { it.id } }
-    if (everyone.isEmpty()) {
-        Text(stringResource(R.string.documents_alone), style = MaterialTheme.typography.bodyMedium)
-        return
-    }
-    Column(Modifier.selectableGroup()) {
-        RadioLine(stringResource(R.string.documents_private_choice), !shared) { onShared(false) }
-        RadioLine(stringResource(R.string.documents_shared_choice), shared) { onShared(true) }
-    }
-    if (shared) {
-        val state = householdState(selected, everyone)
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .triStateToggleable(state = state, role = Role.Checkbox) { onSelected(toggleHousehold(selected, everyone)) },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TriStateCheckbox(state = state, onClick = null)
-            Text(stringResource(R.string.documents_all_travellers), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 16.dp))
-        }
-        val others = stringResource(R.string.documents_others)
-        HouseholdMemberPicker(
-            groups = groups.map { if (it.name.isBlank()) it.copy(name = others) else it },
-            selected = selected,
-            onChange = onSelected,
-        )
-    }
-}
-
-@Composable
-private fun RadioLine(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
-    }
 }
 
 private val TripDocumentTypes = arrayOf("application/pdf", "image/jpeg", "image/png")
@@ -555,7 +354,6 @@ private fun problemText(problem: DocumentProblem): Int = when (problem) {
     DocumentProblem.OpenFailed -> R.string.documents_open_failed
     DocumentProblem.NoViewer -> R.string.documents_no_viewer
     DocumentProblem.DeleteFailed -> R.string.documents_delete_failed
-    DocumentProblem.ShareFailed -> R.string.documents_share_failed
 }
 
 private fun kindHeading(kind: TripDocumentKind): Int = when (kind) {

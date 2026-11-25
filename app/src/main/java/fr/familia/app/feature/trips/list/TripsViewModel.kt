@@ -77,8 +77,8 @@ class TripsViewModel(
         attempt.update { it + 1 }
     }
 
-    /** Where it goes (its first step with a position) and how far (E-31). A trip whose steps cannot be read has neither. */
-    private fun placesOf(repo: TripRepository, list: List<Trip>): Flow<Map<String, TripWhere>> =
+    /** The first step with a position of each trip: where it goes. A trip whose steps cannot be read has no point. */
+    private fun placesOf(repo: TripRepository, list: List<Trip>): Flow<Map<String, Pair<GeoPoint, String>>> =
         if (list.isEmpty()) {
             flowOf(emptyMap())
         } else {
@@ -86,18 +86,16 @@ class TripsViewModel(
                 list.map { trip ->
                     repo.observeSteps(trip.id)
                         .map { steps ->
-                            trip.id to TripWhere(
-                                point = steps.firstOrNull { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) },
-                                name = steps.firstOrNull { it.hasPosition }?.place?.substringBefore('→')?.substringBefore(',')?.trim(),
-                                km = fr.familia.app.feature.trips.detail.tripFigures(trip, steps, 0)?.distanceKm,
-                            )
+                            trip.id to steps.firstOrNull { it.hasPosition }?.let {
+                                GeoPoint(it.lat!!, it.lng!!) to it.place.substringBefore('→').substringBefore(',').trim()
+                            }
                         }
-                        .catch { e -> if (e is CancellationException) throw e else emit(trip.id to TripWhere(null, null, null)) }
+                        .catch { e -> if (e is CancellationException) throw e else emit(trip.id to null) }
                 },
-            ) { pairs -> pairs.toMap() }
+            ) { pairs -> pairs.mapNotNull { (id, point) -> point?.let { id to it } }.toMap() }
         }
 
-    private fun state(list: List<Trip>, family: Family, day: LocalDate, places: Map<String, TripWhere>): TripsUiState {
+    private fun state(list: List<Trip>, family: Family, day: LocalDate, places: Map<String, Pair<GeoPoint, String>>): TripsUiState {
         val byId = family.members.associateBy { it.id }
         val byPhase = list.map { trip ->
             TripSummary(
@@ -105,9 +103,8 @@ class TripsViewModel(
                 firstNames(trip.participantIds, family),
                 people = trip.participantIds.mapNotNull { byId[it] },
                 isParticipant = currentMemberId in trip.participantIds,
-                place = places[trip.id]?.point,
-                placeName = places[trip.id]?.name?.ifEmpty { null },
-                distanceKm = places[trip.id]?.km,
+                place = places[trip.id]?.first,
+                placeName = places[trip.id]?.second?.ifEmpty { null },
             )
         }
             .groupBy { tripPhase(it.trip, day) }
@@ -120,6 +117,3 @@ class TripsViewModel(
         )
     }
 }
-
-/** What the steps of a trip tell the list: where it goes, its name, how far it goes. */
-private data class TripWhere(val point: GeoPoint?, val name: String?, val km: Int?)

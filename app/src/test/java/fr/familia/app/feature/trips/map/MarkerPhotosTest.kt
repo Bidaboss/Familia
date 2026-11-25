@@ -9,10 +9,10 @@ class MarkerPhotosTest {
 
     @Test
     fun `each placed step gets the thumbnail of its first photo, in the order of the rounds`() {
-        val photos = mapOf("samoure" to listOf(photo(2), photo(3)), "bordeaux" to listOf(photo(5)))
+        val photos = mapOf("palmyre" to listOf(photo(2), photo(3)), "bordeaux" to listOf(photo(5)))
         assertEquals(
             listOf(null, "trips/t/photos/a/5-thumb.jpg", "trips/t/photos/a/2-thumb.jpg"),
-            markerPhotoPaths(listOf("car", "bordeaux", "samoure"), photos),
+            markerPhotoPaths(listOf("car", "bordeaux", "palmyre"), photos),
         )
     }
 

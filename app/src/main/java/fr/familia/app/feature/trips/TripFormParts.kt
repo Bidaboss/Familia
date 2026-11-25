@@ -36,10 +36,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -97,27 +93,14 @@ internal fun TripFormScaffold(
     onAction: () -> Unit,
     /** Under the map, in its sheet (règle 4): the bar starts at the top of the sheet, not under the status bar. */
     inSheet: Boolean = false,
-    /** Fiche F2 §4: over the map, the round back, a pill with [title] over this line (« Voiture · Séville ») and the help. */
-    subtitle: String? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val header = fr.familia.app.feature.trips.map.LocalBackdropHeader.current.takeIf { inSheet && subtitle != null }
-    val currentBack = androidx.compose.runtime.rememberUpdatedState(onBack)
-    if (header != null) {
-        androidx.compose.runtime.DisposableEffect(header, title, subtitle, help) {
-            header.content = { MapTitleBar(title, subtitle.orEmpty(), help) { currentBack.value() } }
-            onDispose { header.content = null }
-        }
-    }
-    val floating = header != null && fr.familia.app.feature.trips.map.LocalBackdropHeaderFloating.current
     Scaffold(
         containerColor = TripPathColors.Sky,
         contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
-            if (!floating) {
-                Box(Modifier.background(TripPathColors.Sky).then(if (inSheet) Modifier else Modifier.statusBarsPadding())) {
-                    TripsTopBar(onBack = onBack, title = title, help = help)
-                }
+            Box(Modifier.background(TripPathColors.Sky).then(if (inSheet) Modifier else Modifier.statusBarsPadding())) {
+                TripsTopBar(onBack = onBack, title = title, help = help)
             }
         },
         bottomBar = {
@@ -134,35 +117,6 @@ internal fun TripFormScaffold(
     }
 }
 
-/** Over the map (fiche F2 §4): the white round back, the white pill « Nouvel élément » over « Voiture · Séville », the help. */
-@Composable
-private fun MapTitleBar(title: String, subtitle: String, help: ScreenHelp, onBack: () -> Unit) {
-    androidx.compose.foundation.layout.Row(
-        Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        androidx.compose.material3.Surface(shape = androidx.compose.foundation.shape.CircleShape, color = Color.White, contentColor = TripPathColors.Ink, shadowElevation = 2.dp) {
-            fr.familia.app.core.ui.BackButton(onClick = onBack)
-        }
-        androidx.compose.material3.Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = Color.White.copy(alpha = 0.95f),
-            contentColor = TripPathColors.Ink,
-            shadowElevation = 2.dp,
-            modifier = Modifier.weight(1f),
-        ) {
-            Column(Modifier.heightIn(min = 56.dp).padding(horizontal = 18.dp, vertical = 6.dp).semantics(mergeDescendants = true) { heading() }, verticalArrangement = Arrangement.Center) {
-                Text(title, fontFamily = fr.familia.app.core.theme.Fredoka, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                if (subtitle.isNotBlank()) Text(subtitle, fontSize = 13.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            }
-        }
-        androidx.compose.material3.Surface(shape = androidx.compose.foundation.shape.CircleShape, color = Color.White, contentColor = TripPathColors.Ink, shadowElevation = 2.dp) {
-            fr.familia.app.feature.help.HelpButton(help)
-        }
-    }
-}
-
 private val boxDate = DateTimeFormatter.ofPattern("EEE d MMM yyyy", Locale.FRANCE)
 
 /** A box « [label] · the day » that opens the calendar; [initial] is where the calendar opens without a day. */
@@ -174,8 +128,6 @@ internal fun TripDayBox(
     onPick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
     initial: LocalDate? = null,
-    /** Opens another calendar instead (« Dates du voyage », fiche F4); null: the calendar of the day. */
-    onOpen: (() -> Unit)? = null,
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
@@ -186,7 +138,7 @@ internal fun TripDayBox(
             .clip(shape)
             .background(colors.surface)
             .border(1.5.dp, if (date != null) colors.outline else colors.outlineVariant, shape)
-            .clickable(role = Role.Button, onClick = { if (onOpen != null) onOpen() else open = true })
+            .clickable(role = Role.Button, onClick = { open = true })
             .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {

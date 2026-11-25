@@ -56,7 +56,7 @@ import java.time.LocalDate
 
 /**
  * The card of the Accueil the day before a trip and on its first day (récit 109): « Demain, départ
- * pour La Samoure », with « Valise » and « Voir le trajet ». Only for those who go: the others
+ * pour La Palmyre », with « Valise » and « Voir le trajet ». Only for those who go: the others
  * keep « En ce moment » once the trip has started. No notification goes with it.
  */
 data class TripDeparture(
@@ -171,7 +171,7 @@ fun TripDepartureCard(state: TripDeparture, onPacking: (() -> Unit)?, onOpen: ()
 private fun TripDepartureCardPreview() {
     FamiliaTheme {
         Surface {
-            TripDepartureCard(TripDeparture("t1", "Vacances d'été", "La Samoure", tomorrow = true), onPacking = {}, onOpen = {}, modifier = Modifier.padding(16.dp))
+            TripDepartureCard(TripDeparture("t1", "Vacances d'été", "La Palmyre", tomorrow = true), onPacking = {}, onOpen = {}, modifier = Modifier.padding(16.dp))
         }
     }
 }

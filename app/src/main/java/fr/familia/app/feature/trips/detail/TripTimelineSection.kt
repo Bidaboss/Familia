@@ -6,21 +6,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material3.AlertDialog
@@ -28,8 +29,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -52,19 +52,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import fr.familia.app.feature.trips.map.GeoPoint
-import fr.familia.app.feature.trips.PlaceCover
-import fr.familia.app.core.place.PlacePhotos
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.offset
-import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.draw.drawBehind
 import fr.familia.app.core.data.TripVoiceNote
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
@@ -80,7 +67,6 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.voice.voiceDuration
 import fr.familia.app.feature.trips.stepTypeLabel
-import fr.familia.app.feature.trips.step.StepAddKind
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.delay
@@ -96,10 +82,6 @@ class TimelineActions(
     val onOpenPlace: (placeId: String) -> Unit = {},
     /** Null for who does not go: they see the programme, without « + ». */
     val onAddPlace: ((stepId: String, kind: TripPlaceKind) -> Unit)? = null,
-    /** Null for who does not go: no « + » between the elements (DESIGN-99 A). A destination or a transport from [day]. */
-    val onInsertStep: ((kind: StepAddKind, day: LocalDate) -> Unit)? = null,
-    /** « Enrichir avec une IA » in the menu of a « + »; null when it is not offered. */
-    val onEnrich: (() -> Unit)? = null,
     /** The photos of each destination (récit 104, règle 31), from [stepPhotos]; and the album opened on one of them. */
     val photos: Map<String, List<AlbumPhoto>> = emptyMap(),
     val onOpenPhoto: (photoId: String) -> Unit = {},
@@ -115,32 +97,7 @@ class TimelineActions(
     /** Null for a note this member may not remove. */
     val canDeleteVoice: (TripVoiceNote) -> Boolean = { false },
     val onDeleteVoice: (TripVoiceNote) -> Unit = {},
-    /** The photos of the places (Wikimedia), for the picture of each destination card (F2 §1). */
-    val placePhotos: PlacePhotos? = null,
 )
-
-/**
- * Where a « + » of « Le trajet » adds (DESIGN-99 A): after « Le voyage commence » (index 0) and
- * after each element. [day]: the day the new element starts; [destinationId]: the destination
- * its accommodation, restaurant or spot goes under (the one before, else the next, else none).
- */
-data class InsertSpot(val day: LocalDate, val destinationId: String?, val after: TripStep?)
-
-internal fun insertSpots(trip: Trip, rows: List<TimelineRow>): List<InsertSpot> {
-    val firstDestination = rows.firstOrNull { it is TimelineRow.Destination }?.step?.id
-    var lastDestination: String? = null
-    val spots = mutableListOf(InsertSpot(trip.startDate, firstDestination, null))
-    rows.forEach { row ->
-        val day = when (row) {
-            is TimelineRow.Destination -> row.end
-            is TimelineRow.Move -> row.step.arriveDate ?: row.step.departDate
-        }.coerceIn(trip.startDate, trip.endDate)
-        if (row is TimelineRow.Destination) lastDestination = row.step.id
-        val next = rows.dropWhile { it !== row }.drop(1).firstOrNull { it is TimelineRow.Destination }?.step?.id
-        spots += InsertSpot(day, lastDestination ?: next, row.step)
-    }
-    return spots
-}
 
 /** The places of each destination, the accommodation first, then the restaurants and the spots, each by time then name. */
 internal fun placesByStep(places: List<TripPlace>): Map<String, List<TripPlace>> =
@@ -166,33 +123,47 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
             undo = null
         }
     }
-    // Fiche F2 §1: no card and no title on screen, the blocks hang on a thin grey-blue line through the rounds.
+    // A white card with dark ink in every theme: the sheet behind it is the sky of the trip.
     Column(
-        modifier
-            .fillMaxWidth()
-            .drawBehind {
-                val x = ROUND_SIZE.toPx() / 2
-                drawLine(Thread, Offset(x, ROUND_SIZE.toPx() / 2), Offset(x, size.height - ROUND_SIZE.toPx() / 2), strokeWidth = 2.dp.toPx())
-            },
+        modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(TripSheetColors.Card).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val title = stringResource(R.string.timeline_title)
+        Text(
+            stringResource(R.string.timeline_title),
+            color = Ink,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.semantics { heading() },
+        )
         EndRow(
             text = stringResource(R.string.timeline_start),
             day = trip.startDate,
-            icon = Icons.Outlined.Home,
-            round = Deep,
-            // « Le trajet » stays a heading for TalkBack (F2 point 4), on the first block.
-            headingText = title,
-            trailing = { PlannedPill(line.planned, line.total) },
+            trailing = {
+                val description = stringResource(R.string.timeline_planned_a11y, line.planned, line.total)
+                Row(Modifier.semantics(mergeDescendants = true) { contentDescription = description }, verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(
+                        progress = { if (line.total == 0) 1f else (line.planned.toFloat() / line.total).coerceIn(0f, 1f) },
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 3.dp,
+                        color = Deep,
+                        trackColor = TripSheetColors.Track,
+                    )
+                    Text(
+                        stringResource(R.string.timeline_planned, line.planned, line.total),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Ink,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 6.dp),
+                    )
+                }
+            },
         )
         if (line.missing > 0 && line.destinations.isNotEmpty()) {
             Text(
                 pluralStringResource(R.plurals.timeline_missing, line.missing, line.missing),
                 style = MaterialTheme.typography.bodyMedium,
                 color = TripSheetColors.OnWarning,
-                // E-57: a band of 40 dp right under the departure.
-                modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp).clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Warning).padding(horizontal = 12.dp, vertical = 10.dp),
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(TripSheetColors.Warning).padding(horizontal = 12.dp, vertical = 8.dp),
             )
         }
         undo?.let { (name, before) ->
@@ -207,21 +178,11 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
             }
         }
         if (line.rows.isEmpty()) {
-            Text(
-                stringResource(R.string.timeline_empty),
-                style = MaterialTheme.typography.bodyLarge,
-                color = Ink,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(12.dp),
-            )
+            Text(stringResource(R.string.timeline_empty), style = MaterialTheme.typography.bodyLarge, color = Ink)
         }
-        val spots = remember(trip, line) { insertSpots(trip, line.rows) }
-        val hasDestination = line.destinations.isNotEmpty()
-        // E-57: one row of 56 dp per « + », the transport after it on the same row (no transport on a row of its own).
-        if (line.rows.firstOrNull() !is TimelineRow.Move) spots.firstOrNull()?.let { InsertPoint(it, actions, hasDestination) }
-        line.rows.forEachIndexed { index, row ->
+        line.rows.forEach { row ->
             when (row) {
                 is TimelineRow.Destination -> DestinationRow(
-                    trip = trip,
                     row = row,
                     plusBlocked = changeNights(trip, steps, row.step, 1) is NightsChange.Blocked,
                     actions = actions,
@@ -234,17 +195,16 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
                         }
                     },
                 )
-                is TimelineRow.Move -> PlusAndMove(spots.getOrNull(index), row, actions, hasDestination)
+                is TimelineRow.Move -> MoveRow(row, onOpen = { actions.onOpen(row.step.id) })
             }
-            if (insertAfter(line.rows, index)) spots.getOrNull(index + 1)?.let { InsertPoint(it, actions, hasDestination) }
         }
         if (actions.withoutStep > 0) {
             val label = pluralStringResource(R.plurals.timeline_photos_without_step, actions.withoutStep, actions.withoutStep)
-            TextButton(onClick = actions.onSeePhotos, modifier = Modifier.padding(start = ROUND_SIZE).heightIn(min = 56.dp)) {
+            TextButton(onClick = actions.onSeePhotos, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text("$label ›", color = Deep, fontWeight = FontWeight.Bold)
             }
         }
-        EndRow(text = stringResource(R.string.timeline_end), day = trip.endDate, icon = Icons.Outlined.Flag, round = EndRound, trailing = {})
+        EndRow(text = stringResource(R.string.timeline_end), day = trip.endDate, trailing = {})
     }
 }
 
@@ -253,162 +213,80 @@ internal fun placeName(step: TripStep): String = step.place.substringAfterLast('
 
 private fun shortDay(day: LocalDate): String = frenchDate(day, "EEE d MMM")
 
-/** The menu of a « + » of the timeline (F2 §2): where it adds, and who may add. Shared with the dark « + » of the sheet. */
 @Composable
-fun TimelineAddMenu(expanded: Boolean, onDismiss: () -> Unit, spot: InsertSpot, actions: TimelineActions, hasDestination: Boolean) {
-    val insert = actions.onInsertStep ?: return
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp),
-        containerColor = MenuBackground,
-    ) {
-        InsertItem(stringResource(R.string.timeline_add_destination), Icons.Outlined.Add) { onDismiss(); insert(StepAddKind.Destination, spot.day) }
-        InsertItem(stringResource(R.string.timeline_add_transport), Icons.Outlined.DirectionsCar) { onDismiss(); insert(StepAddKind.Transport, spot.day) }
-        val addPlace = actions.onAddPlace
-        val destination = spot.destinationId
-        // F2 point 6: an accommodation, a spot or a restaurant belongs to a destination; none yet, not offered.
-        if (addPlace != null && destination != null && hasDestination) {
-            listOf(
-                TripPlaceKind.Lodging to R.string.timeline_add_lodging,
-                TripPlaceKind.Spot to R.string.timeline_add_spot,
-                TripPlaceKind.Restaurant to R.string.timeline_add_restaurant,
-            ).forEach { (kind, label) ->
-                InsertItem(stringResource(label), placeKindIcon(kind)) { onDismiss(); addPlace(destination, kind) }
-            }
+private fun EndRow(text: String, day: LocalDate, trailing: @Composable () -> Unit) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(Deep), contentAlignment = Alignment.Center) {
+            Icon(Icons.Outlined.Home, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
-        actions.onEnrich?.let { enrich ->
-            InsertItem(stringResource(R.string.timeline_add_enrich), Icons.Outlined.AutoAwesome) { onDismiss(); enrich() }
-        }
-    }
-}
-
-/** « Le voyage commence » and « Le voyage se termine » (F2 §1): a 48 dp round on the line, the text, the day in capitals. */
-@Composable
-private fun EndRow(text: String, day: LocalDate, icon: ImageVector, round: Color, trailing: @Composable () -> Unit, headingText: String? = null) {
-    val spokenDay = frenchDate(day, "EEEE d MMMM yyyy")
-    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-        Row(
-            Modifier
-                .weight(1f)
-                .semantics(mergeDescendants = true) {
-                    contentDescription = listOfNotNull(headingText, text, spokenDay).joinToString(", ")
-                    if (headingText != null) heading()
-                },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(ROUND_SIZE).clip(CircleShape).background(round), contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
-            }
-            Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                Text(text, style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp), fontWeight = FontWeight.Bold, color = Ink)
-                Text(
-                    frenchDate(day, "EEE d MMMM yyyy").uppercase(java.util.Locale.FRANCE),
-                    style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, letterSpacing = 0.3.sp),
-                    fontWeight = FontWeight.ExtraBold,
-                    color = InkSoft,
-                )
-            }
+        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+            Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Ink)
+            Text(shortDay(day), style = MaterialTheme.typography.bodyMedium, color = InkSoft)
         }
         trailing()
     }
 }
 
-/** « 7/7 nuits planifiées » (F2 §1): a white pill with a small ring of progress. */
 @Composable
-private fun PlannedPill(planned: Int, total: Int) {
-    val description = stringResource(R.string.timeline_planned_a11y, planned, total)
-    Row(
-        Modifier
-            .heightIn(min = 38.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.White.copy(alpha = 0.75f))
-            .padding(horizontal = 10.dp)
-            .semantics(mergeDescendants = true) { contentDescription = description },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        CircularProgressIndicator(
-            progress = { if (total == 0) 1f else (planned.toFloat() / total).coerceIn(0f, 1f) },
-            modifier = Modifier.size(22.dp),
-            strokeWidth = 3.dp,
-            color = Deep,
-            trackColor = TripSheetColors.Track,
-        )
-        Text(
-            stringResource(R.string.timeline_planned, planned, total),
-            style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
-            color = Ink,
-            fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(start = 6.dp),
-        )
-    }
-}
-
-/**
- * A destination (F2 §1): a white card 76 dp high, rounded 32 — the photo of the place with its
- * number (the one of the round on the map, règle 7), the name and the dates, then − nuitées +.
- * Under it, its places, photos and voice notes in compact rows (F2 point 1).
- */
-@Composable
-private fun DestinationRow(trip: Trip, row: TimelineRow.Destination, plusBlocked: Boolean, actions: TimelineActions, blocked: NightsBlock?, onChange: (Int) -> Unit) {
+private fun DestinationRow(row: TimelineRow.Destination, plusBlocked: Boolean, actions: TimelineActions, blocked: NightsBlock?, onChange: (Int) -> Unit) {
     val name = placeName(row.step)
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 76.dp).clip(RoundedCornerShape(32.dp)).background(Color.White).padding(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(64.dp)) {
-                PlaceCover(
-                    place = name,
-                    point = row.step.lat?.let { lat -> row.step.lng?.let { GeoPoint(lat, it) } },
-                    landscape = trip.landscape,
-                    photos = actions.placePhotos,
-                    showCredit = false,
-                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(22.dp)),
-                )
-                Box(
-                    Modifier.align(Alignment.BottomEnd).size(24.dp).clip(CircleShape).background(Deep).border(2.dp, Color.White, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(row.number.toString(), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp))
-                }
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(TripSheetColors.Panel).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // The number is the one of the round on the map (règle 7).
+            Box(
+                Modifier.size(40.dp).clip(CircleShape).background(Ink).border(3.dp, Color.White, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(row.number.toString(), color = Color.White, fontWeight = FontWeight.Bold)
             }
             Column(
                 Modifier
                     .weight(1f)
-                    .padding(start = 10.dp)
+                    .padding(start = 12.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, name)) { actions.onOpen(row.step.id) }
                     .heightIn(min = 56.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text("$name ›", style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp), fontWeight = FontWeight.Bold, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("$name ›", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
                     stringResource(R.string.timeline_dates, shortDay(row.start), shortDay(row.end)),
-                    style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, textDecoration = TextDecoration.Underline),
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = InkSoft,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             val canChange = actions.onNights != null
             if (canChange) {
-                NightsButton("−", stringResource(R.string.timeline_less_a11y, name), enabled = row.nights > 1) { onChange(-1) }
+                val less = stringResource(R.string.timeline_less_a11y, name)
+                OutlinedButton(
+                    onClick = { onChange(-1) },
+                    enabled = row.nights > 1,
+                    modifier = Modifier.size(56.dp).semantics { contentDescription = less },
+                    contentPadding = PaddingValues(0.dp),
+                    colors = nightsButtonColors(),
+                ) { Text("−", style = MaterialTheme.typography.titleLarge) }
             }
-            Column(
-                Modifier.widthIn(min = 52.dp).semantics(mergeDescendants = true) {},
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(row.nights.toString(), style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp), fontWeight = FontWeight.Black, color = Ink)
-                Text(
-                    pluralStringResource(R.plurals.timeline_nights_word, row.nights),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
-                    color = InkSoft,
-                )
-            }
+            Text(
+                pluralStringResource(R.plurals.timeline_nights, row.nights, row.nights),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Ink,
+                modifier = Modifier.width(96.dp),
+            )
             if (canChange) {
-                NightsButton("+", stringResource(R.string.timeline_more_a11y, name), enabled = !plusBlocked) { onChange(1) }
+                val more = stringResource(R.string.timeline_more_a11y, name)
+                OutlinedButton(
+                    onClick = { onChange(1) },
+                    enabled = !plusBlocked,
+                    modifier = Modifier.size(56.dp).semantics { contentDescription = more },
+                    contentPadding = PaddingValues(0.dp),
+                    colors = nightsButtonColors(),
+                ) { Text("+", style = MaterialTheme.typography.titleLarge) }
             }
         }
         if (actions.onNights != null && (plusBlocked || blocked != null)) {
@@ -416,37 +294,11 @@ private fun DestinationRow(trip: Trip, row: TimelineRow.Destination, plusBlocked
                 stringResource(if (blocked == NightsBlock.OneNight) R.string.timeline_one_night else R.string.timeline_at_return),
                 style = MaterialTheme.typography.bodySmall,
                 color = InkSoft,
-                modifier = Modifier.padding(start = ROUND_SIZE + 8.dp),
             )
         }
-        val places = actions.places[row.step.id].orEmpty()
-        val photos = actions.photos[row.step.id].orEmpty()
-        val notes = actions.voiceNotes[row.step.id].orEmpty()
-        // E-50: no card with only the add-photo icon; the photos are added from the page of the destination.
-        if (places.isNotEmpty() || photos.isNotEmpty() || notes.isNotEmpty()) {
-            Column(
-                Modifier.padding(start = ROUND_SIZE + 8.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(horizontal = 8.dp, vertical = 4.dp),
-            ) {
-                DestinationProgramme(places, actions)
-                if (photos.isNotEmpty()) StepPhotoStrip(photos, name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
-                notes.forEach { note -> VoiceNoteRow(note, actions) }
-            }
-        }
-    }
-}
-
-/** − or + of the nights: a 56 × 56 dp zone (B1 of #593), the sign in dark ink, pale when it cannot change. */
-@Composable
-private fun NightsButton(sign: String, description: String, enabled: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(sign, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = if (enabled) Ink else TripSheetColors.OnDisabled.copy(alpha = 0.5f))
+        DestinationProgramme(row.step.id, name, actions)
+        StepPhotoStrip(actions.photos[row.step.id].orEmpty(), name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
+        actions.voiceNotes[row.step.id].orEmpty().forEach { note -> VoiceNoteRow(note, actions) }
     }
 }
 
@@ -456,7 +308,7 @@ private fun NightsButton(sign: String, description: String, enabled: Boolean, on
  * photos chosen under this destination (récit 104, partie 2), for those who add photos.
  */
 @Composable
-internal fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit, onAdd: (() -> Unit)?) {
+private fun StepPhotoStrip(photos: List<AlbumPhoto>, destination: String, onOpen: (String) -> Unit, onAdd: (() -> Unit)?) {
     if (photos.isEmpty() && onAdd == null) return
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -509,7 +361,7 @@ private const val STRIP_PHOTOS = 4
 
 /** « Note vocale de Lou, 0:42 »: listen or stop (56 dp), and remove it for its author or who manages the trip. */
 @Composable
-internal fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
+private fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
     val playing = actions.playingVoiceId == note.id
     var confirm by rememberSaveable(note.id) { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -550,10 +402,12 @@ internal fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
 
 /**
  * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each
- * opening its page (règle 19). They are added by the « + » after the destination (F2 §2).
+ * opening its page (règle 19); then « + Hébergement », « + Restaurant », « + Spot » for those who go (règle 20).
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun DestinationProgramme(places: List<TripPlace>, actions: TimelineActions) {
+private fun DestinationProgramme(stepId: String, destination: String, actions: TimelineActions) {
+    val places = actions.places[stepId].orEmpty()
     places.forEach { place ->
         val kind = placeKindLabel(place.kind)
         Row(
@@ -573,96 +427,45 @@ internal fun DestinationProgramme(places: List<TripPlace>, actions: TimelineActi
             }
         }
     }
-}
-
-/**
- * A « + » between two blocks of the timeline (DESIGN-99 A, F2 §1): a white round of 48 dp with a
- * cream border on the line, opening the menu of F2 §2 there. Nothing for who does not go.
- */
-/**
- * E-57: whether a lone « + » follows row [index]. A transport has its « + » on its own row, before
- * it: after a transport, and before one, there is no other « + ».
- */
-internal fun insertAfter(rows: List<TimelineRow>, index: Int): Boolean =
-    rows.getOrNull(index) !is TimelineRow.Move && rows.getOrNull(index + 1) !is TimelineRow.Move
-
-/** E-57: the « + » and, on the same row of 56 dp, the transport that follows it. */
-@Composable
-private fun PlusAndMove(spot: InsertSpot?, row: TimelineRow.Move, actions: TimelineActions, hasDestination: Boolean) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (spot != null && actions.onInsertStep != null) InsertPoint(spot, actions, hasDestination) else Spacer(Modifier.width(ROUND_SIZE))
-        MoveRow(row, onOpen = { actions.onOpen(row.step.id) }, Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun InsertPoint(spot: InsertSpot, actions: TimelineActions, hasDestination: Boolean) {
-    if (actions.onInsertStep == null) return
-    var open by remember { mutableStateOf(false) }
-    val spoken = spot.after?.let { stringResource(R.string.timeline_insert_after_a11y, placeName(it)) } ?: stringResource(R.string.timeline_insert_start_a11y)
-    Box {
-        Box(
-            Modifier
-                .offset(x = (-4).dp)
-                .size(56.dp)
-                .clip(CircleShape)
-                .clickable(role = Role.Button) { open = true }
-                .semantics { contentDescription = spoken },
-            contentAlignment = Alignment.Center,
-        ) {
-            Box(
-                Modifier.size(ROUND_SIZE).clip(CircleShape).background(Color.White).border(2.dp, Cream, CircleShape),
-                contentAlignment = Alignment.Center,
+    val onAdd = actions.onAddPlace ?: return
+    // The three « + » go to the next line rather than cut « Hébergement » on a small screen or in large text.
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        TripPlaceKind.entries.forEach { kind ->
+            val label = placeKindLabel(kind)
+            val spoken = stringResource(R.string.timeline_add_place_a11y, label, destination)
+            TextButton(
+                onClick = { onAdd(stepId, kind) },
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = spoken },
+                contentPadding = PaddingValues(horizontal = 4.dp),
             ) {
-                Icon(Icons.Outlined.Add, contentDescription = null, tint = Ink, modifier = Modifier.size(24.dp))
+                Text("+ $label", color = Deep, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
             }
         }
-        TimelineAddMenu(open, { open = false }, spot, actions, hasDestination)
     }
 }
 
 @Composable
-private fun InsertItem(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-    DropdownMenuItem(
-        text = { Text(text, style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp), fontWeight = FontWeight.ExtraBold, color = Ink) },
-        leadingIcon = { Icon(icon, contentDescription = null, tint = Ink, modifier = Modifier.size(24.dp)) },
-        onClick = onClick,
-        modifier = Modifier.heightIn(min = 56.dp),
-    )
-}
-
-@Composable
-private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit) {
     val label = stepTypeLabel(row.step.type)
     val distance = row.km?.let { stringResource(R.string.timeline_km, it) }
-    // B of #602: the touch zone is the Box of 56 dp; the white band of 48 dp (E-57) is drawn inside it.
-    Box(
-        modifier
-            .padding(start = 4.dp)
+    Row(
+        Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, placeName(row.step)), onClick = onOpen),
-        contentAlignment = Alignment.Center,
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, placeName(row.step)), onClick = onOpen)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.55f))
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(stepTypeIcon(row.step.type), contentDescription = null, tint = Ink, modifier = Modifier.size(20.dp))
-            Text(
-                listOfNotNull(label, row.step.place.takeIf { it.isNotBlank() }, distance).joinToString(" · "),
-                style = MaterialTheme.typography.bodyMedium,
-                color = Ink,
-                modifier = Modifier.padding(start = 10.dp),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Icon(stepTypeIcon(row.step.type), contentDescription = null, tint = Ink, modifier = Modifier.size(20.dp))
+        Text(
+            listOfNotNull(label, row.step.place.takeIf { it.isNotBlank() }, distance).joinToString(" · "),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Ink,
+            modifier = Modifier.padding(start = 10.dp),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -670,9 +473,10 @@ private val Ink = TripSheetColors.Ink
 private val InkSoft = TripSheetColors.InkSoft
 private val Deep = TripSheetColors.Deep
 
-/** F2 §1: the rounds of the timeline, its thin line, the border of a « + », the round of the arrival, the menu. */
-private val ROUND_SIZE = 48.dp
-private val Thread = Color(0xFFB8C7D0)
-private val Cream = Color(0xFFEDE3D6)
-private val EndRound = Color(0xFF9FB2BD)
-private val MenuBackground = Color(0xFFF4F5F7)
+@Composable
+private fun nightsButtonColors() = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+    containerColor = Color.White,
+    contentColor = Ink,
+    disabledContainerColor = TripSheetColors.Disabled,
+    disabledContentColor = TripSheetColors.OnDisabled,
+)

@@ -11,7 +11,6 @@ import {
   onDocumentUpdatedWithAuthContext, onDocumentWritten, onDocumentWrittenWithAuthContext,
 } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { sendDepartureReminders } from './departures';
 import { onRequest } from 'firebase-functions/v2/https';
 import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
 import { RECURRING_EVENTS, ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
@@ -63,7 +62,6 @@ import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type Birt
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
 import { eraseTurns } from './turns';
-import { shareOldDocuments, unshareDocuments } from './documentsShared';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
@@ -693,12 +691,10 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
 });
 
 // « Ma valise » (récit 62): a participant taken off the trip leaves their bag behind. It goes,
-// so it never comes back to them nor stays in the database for nothing. The documents of the trip
-// stop being shared with them too (relecture de la 598), except their own.
+// so it never comes back to them nor stays in the database for nothing.
 export const onTripParticipantsChanged = onDocumentUpdated('trips/{tripId}', async (event) => {
   const gone = leftTheTrip(event.data?.before.get('participantIds'), event.data?.after.get('participantIds'));
   await dropBags(getFirestore(), event.params.tripId, gone);
-  await unshareDocuments(getFirestore(), event.params.tripId, gone);
 });
 
 // Les comptes du voyage (récit 16 bis) live out of the trip: they go with it.
@@ -800,13 +796,6 @@ export const onPresentationWritten = onDocumentWritten('config/presentation', as
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
-  // DESIGN-105: the documents written before « Privé / Partagé » stay shared with those who go,
-  // once, at the first run after the rules are published (then a single read of the marker).
-  try {
-    await shareOldDocuments(getFirestore(), new Date());
-  } catch (e) {
-    console.error('documentsShared', e);
-  }
   // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
   // for the next run and never stops the rest.
   try {
@@ -827,13 +816,6 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
     console.error('burstQueue', e);
   }
   await sendArrivalReminders(getFirestore(), send, new Date());
-  // And the departures of a flight, a train or a bus, the day before and the morning (récit 112,
-  // règle 46). A failure waits for the next run.
-  try {
-    await sendDepartureReminders(getFirestore(), send, new Date());
-  } catch (e) {
-    console.error('departures', e);
-  }
   // And the reminders each one asked for on an event (récit 56). A failure waits for the next run.
   try {
     await sendMyReminders(getFirestore(), send, new Date());

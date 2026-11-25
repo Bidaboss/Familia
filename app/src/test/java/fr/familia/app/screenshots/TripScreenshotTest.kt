@@ -3,6 +3,7 @@ package fr.familia.app.screenshots
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
+import fr.familia.app.core.album.AlbumFilmPart
 import fr.familia.app.core.album.AlbumScreen
 import fr.familia.app.core.album.FilmActions
 import fr.familia.app.core.album.FilmState
@@ -17,8 +18,6 @@ import fr.familia.app.feature.trips.list.TripsScreen
 import fr.familia.app.feature.trips.list.previewTrips
 import fr.familia.app.feature.trips.step.StepEditScreen
 import fr.familia.app.feature.trips.step.previewStepEditState
-import fr.familia.app.feature.trips.word.FilmTileLabels
-import fr.familia.app.feature.trips.word.StepFilmTile
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -45,7 +44,7 @@ class TripScreenshotTest {
     private val filmReady: @Composable () -> Unit = {
         Surface {
             AlbumScreen("Photos", previewAlbumPhotos(), PhotoActions(), {}) {
-                StepFilmTile(FilmState.Ready("films/voyage-1.mp4"), 8, FilmActions(), labels = FilmTileLabels.Trip)
+                AlbumFilmPart(FilmState.Ready("films/voyage-1.mp4"), 8, FilmActions())
             }
         }
     }

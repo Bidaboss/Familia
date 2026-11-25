@@ -56,16 +56,6 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.theme.FamiliaThemeId
-import fr.familia.app.core.theme.PhotoScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -138,8 +128,6 @@ fun HomeRoute(
     onOpenCapsule: (String) -> Unit = {},
     /** « La semaine de la famille », from its card of the fil (récit 71). */
     onOpenRecap: () -> Unit = {},
-    /** The Accueil on the photo of the theme (récit 113): its header and its scroll; null: as before. */
-    photo: PhotoHome? = null,
 ) {
     val flags = LocalFeatureFlags.current
     val helpOn = flags.isOn(Feature.HelpRequests)
@@ -226,36 +214,7 @@ fun HomeRoute(
         )
     }
     val canPublish = flags.isOn(Feature.GoodNews)
-    // On the photo (règles 2, 3 et 13): the greeting, the free top of the photo, then the switch,
-    // all scrolling with the day or the fil.
-    val photoTop: (@Composable () -> Unit)? = photo?.let { p ->
-        {
-            Column {
-                p.header()
-                Spacer(Modifier.height(PHOTO_FREE_TOP))
-                feed?.let { f ->
-                    PhotoFeedSwitch(
-                        onFeed = onFeed,
-                        unseen = f.unseen,
-                        accent = Color(p.theme.accent ?: 0xFF000000),
-                        dark = Color(p.theme.dark ?: 0xFF000000),
-                        onChoose = {
-                            onFeed = it
-                            p.scroll.reset()
-                        },
-                    )
-                }
-            }
-        }
-    }
-    Box(if (photo != null) Modifier.nestedScroll(photo.scroll.connection) else Modifier) {
     HomeR1bisScreen(
-        top = photoTop,
-        feedUnseen = feed?.unseen ?: 0,
-        onOpenFeed = if (photo != null && feed != null) ({
-            onFeed = true
-            photo.scroll.reset()
-        }) else null,
         switcher = feed?.let { f -> { HomeFeedSwitch(onFeed, f.unseen, onChoose = { onFeed = it }) } },
         feed = feed?.takeIf { onFeed }?.let { f ->
             {
@@ -266,17 +225,7 @@ fun HomeRoute(
                     } else {
                         null
                     }
-                    val top: (@Composable () -> Unit)? = if (photoTop != null) {
-                        {
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                photoTop()
-                                publish?.invoke()
-                            }
-                        }
-                    } else {
-                        publish
-                    }
-                    FeedList(f, top = top)
+                    FeedList(f, top = publish)
                 }
             }
         },
@@ -342,14 +291,7 @@ fun HomeRoute(
         },
         allBadge = allBadge,
     )
-    }
 }
-
-/** The free top of the photo, under the greeting, where nothing is written (règle 13, A1: 170 dp). */
-private val PHOTO_FREE_TOP = 170.dp
-
-/** The Accueil on the photo of [theme] (récit 113): [header] at its top, [scroll] for the photo to glide. */
-class PhotoHome(val theme: FamiliaThemeId, val scroll: PhotoScroll, val header: @Composable () -> Unit)
 
 /**
  * Asks the Accueil to show « Aujourd'hui » rather than « Le fil »: the notification « rejoins-moi »

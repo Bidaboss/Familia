@@ -22,9 +22,10 @@ fun TripsRoute(
     onAddTrip: () -> Unit,
     onBack: (() -> Unit)?,
     onOpenAlbums: (() -> Unit)? = null,
+    onOpenPart: ((tripId: String, part: TripPart) -> Unit)? = null,
+    expensesOn: Boolean = false,
     globeToken: String = "",
     onOpenCarnet: (() -> Unit)? = null,
-    onAccount: (() -> Unit)? = null,
 ) {
     val viewModel: TripsViewModel = viewModel(
         factory = viewModelFactory {
@@ -38,5 +39,5 @@ fun TripsRoute(
             ?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) }
             ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(emptyList())
-    TripsScreen(state = state, onRetry = viewModel::retry, onOpenTrip = onOpenTrip, onAddTrip = onAddTrip, onBack = onBack, onOpenAlbums = onOpenAlbums, globeToken = globeToken, placePhotos = container?.placePhotos, onOpenCarnet = onOpenCarnet, handAdded = handAdded, account = currentMember, onAccount = onAccount)
+    TripsScreen(state = state, onRetry = viewModel::retry, onOpenTrip = onOpenTrip, onAddTrip = onAddTrip, onBack = onBack, onOpenAlbums = onOpenAlbums, onOpenPart = onOpenPart, expensesOn = expensesOn, globeToken = globeToken, placePhotos = container?.placePhotos, onOpenCarnet = onOpenCarnet, handAdded = handAdded)
 }

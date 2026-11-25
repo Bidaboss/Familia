@@ -27,7 +27,6 @@ import fr.familia.app.core.model.PollVote
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeTest {
@@ -69,21 +68,6 @@ class HomeTest {
         val state = homeState(me, family, today, events, emptyMap(), emptyList(), emptyList())
         assertEquals(listOf("e0", "e1", "e2"), state.week.map { it.id })
         assertEquals(4, state.weekMore)
-    }
-
-    @Test
-    fun `a venir lists my events from tomorrow to 30 days ahead, by date then hour`() {
-        val todayEvent = TestFamily.event("today", TestFamily.admin, date = today)
-        val late = TestFamily.event("late", TestFamily.admin, date = today.plusDays(2)).copy(time = LocalTime.of(20, 0))
-        val early = TestFamily.event("early", TestFamily.admin, date = today.plusDays(2)).copy(time = LocalTime.of(9, 0))
-        val first = TestFamily.event("first", TestFamily.admin, date = today.plusDays(1))
-        val last = TestFamily.event("last", TestFamily.admin, date = today.plusDays(30))
-        val tooFar = TestFamily.event("far", TestFamily.admin, date = today.plusDays(31))
-        val otherHousehold = TestFamily.event("h2", TestFamily.otherAdult, EventTarget.ForHousehold("h2"), today.plusDays(3))
-
-        val state = homeState(me, family, today, listOf(tooFar, late, todayEvent, last, early, otherHousehold, first), emptyMap(), emptyList(), emptyList())
-
-        assertEquals(listOf("first", "early", "late", "last"), state.upcoming.map { it.id })
     }
 
     @Test

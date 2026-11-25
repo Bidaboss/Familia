@@ -38,6 +38,9 @@ import kotlinx.coroutines.flow.flowOf
 import fr.familia.app.feature.trips.packing.packingCount
 import fr.familia.app.feature.trips.packing.rememberPackingViewModel
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
+import fr.familia.app.feature.trips.phrases.PhraseBook
+import fr.familia.app.feature.trips.phrases.rememberAbroadCountries
+import fr.familia.app.feature.trips.safety.EmergencyNumbers
 
 /** Connects the trip view to its ViewModel. */
 @Composable
@@ -60,6 +63,12 @@ fun TripDetailRoute(
     onOpenWord: ((stepId: String) -> Unit)? = null,
     /** « Valise » (récit 98): the screen of the bags, opened from the round button. */
     onOpenPacking: (() -> Unit)? = null,
+    /** « Phrases utiles » (récit 105): opened from the round button when a step is abroad. */
+    onOpenPhrases: (() -> Unit)? = null,
+    /** « Sécurité » (récit 105): opened from the round button when a step is in a country of the table, never France. */
+    onOpenSafety: (() -> Unit)? = null,
+    /** « Monnaie » (récit 105): for those who go, once a step is abroad or the trip has a currency. */
+    onOpenMoney: (() -> Unit)? = null,
     /** « Documents » (récit 105, règle 41): for those who go, never the followers. */
     onOpenDocuments: (() -> Unit)? = null,
     /** « Enrichir avec une IA » (récit 106): for those who go. */
@@ -68,13 +77,8 @@ fun TripDetailRoute(
     onOpenPlace: (placeId: String) -> Unit = {},
     /** A new accommodation, restaurant or spot under the destination [stepId] (règle 20). */
     onAddPlace: (stepId: String, kind: TripPlaceKind) -> Unit = { _, _ -> },
-    /** A new destination or transport from a « + » of « Le trajet », starting on [day] (DESIGN-99 A). */
-    onInsertStep: (kind: fr.familia.app.feature.trips.step.StepAddKind, day: java.time.LocalDate) -> Unit = { _, _ -> onAddStep() },
     /** The album of the trip opened on one photo (récit 104). */
     onOpenPhoto: (photoId: String) -> Unit = { onSeePhotos() },
-    /** « Phrases utiles » and « Monnaie » from the page of a destination abroad (fiche F5). */
-    onOpenPhrases: ((country: String) -> Unit)? = null,
-    onOpenMoney: ((String) -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -102,6 +106,7 @@ fun TripDetailRoute(
     }
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? TripDetailUiState.Success
+    val abroad = rememberAbroadCountries(container, shown?.steps.orEmpty())
     // The photos by destination, from the day they were taken (récit 104, partie 1): nothing is written.
     val byStep = remember(shown?.trip, shown?.steps, photos.photos) {
         shown?.let { stepPhotos(tripTimeline(it.trip, it.steps), photos.photos, ZoneId.systemDefault()) } ?: StepPhotos(emptyMap(), emptyList())
@@ -143,69 +148,7 @@ fun TripDetailRoute(
             onVoice = voiceRepo?.let { { voiceStep = id } },
         ).takeIf { it.onPhoto != null || it.onWord != null || it.onVoice != null }
     }
-    // Fiche F5: a destination touched in « Le trajet » opens its page over the map; a transport its form.
-    var pageStay by rememberSaveable { mutableStateOf<String?>(null) }
-    val timeline = TimelineActions(
-        onOpen = { id ->
-            val isStay = shown?.let { success -> tripTimeline(success.trip, success.steps).destinations.any { it.step.id == id } } == true
-            if (isStay) pageStay = id else onEditStep(id)
-        },
-        onNights = if (shown?.isParticipant == true) viewModel::changeNights else null,
-        onUndo = viewModel::restoreSteps,
-        places = remember(places) { placesByStep(places) },
-        onOpenPlace = onOpenPlace,
-        onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
-        onInsertStep = if (shown?.isParticipant == true) onInsertStep else null,
-        onEnrich = onOpenEnrich?.takeIf { shown?.isParticipant == true && container?.tripPlaceRepository != null },
-        photos = byStep.byStay,
-        onOpenPhoto = onOpenPhoto,
-        withoutStep = byStep.withoutStep.size,
-        onSeePhotos = onSeePhotos,
-        onAddPhoto = addPhoto,
-        voiceNotes = remember(voiceNotes) { voiceNotes.groupBy { it.stepId } },
-        playingVoiceId = voicePlayer.playingId,
-        onPlayVoice = { note ->
-            if (voicePlayer.playingId == note.id) {
-                voicePlayer.stop()
-            } else {
-                scope.launch { voiceRepo?.playUrl(tripId, note)?.let { url -> voicePlayer.play(note, url) } }
-            }
-        },
-        canDeleteVoice = { note -> note.authorId == currentMember.id || shown?.canManage == true },
-        onDeleteVoice = { note ->
-            if (voicePlayer.playingId == note.id) voicePlayer.stop()
-            scope.launch { runCatching { voiceRepo?.delete(tripId, note) } }
-        },
-        placePhotos = container?.placePhotos,
-    )
-    val page = pageStay
-    if (page != null && shown != null) {
-        androidx.activity.compose.BackHandler { pageStay = null }
-        fr.familia.app.feature.trips.map.TripMapBackdrop(
-            token = fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN,
-            trip = shown.trip,
-            steps = shown.steps,
-            focusId = page,
-            startLevel = 1,
-        ) { inSheet ->
-            DestinationPage(
-                container = container,
-                success = shown,
-                stayId = page,
-                actions = timeline,
-                links = DestinationLinks(
-                    onEdit = onEditStep,
-                    onAllAbout = onOpenWord,
-                    onOpenPhrases = onOpenPhrases,
-                    onOpenMoney = onOpenMoney,
-                ),
-                onSelect = { pageStay = it },
-                onBack = { pageStay = null },
-                inSheet = inSheet,
-                quickAdd = quickAdd?.takeIf { stay?.step?.id == page },
-            )
-        }
-    } else TripDetailScreen(
+    TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
         onEditTrip = onEditTrip,
@@ -216,12 +159,16 @@ fun TripDetailRoute(
         onBack = onBack,
         checklist = shownChecklist,
         onOpenPacking = onOpenPacking,
+        onOpenPhrases = onOpenPhrases?.takeIf { PhraseBook.abroad(abroad).isNotEmpty() },
+        onOpenSafety = onOpenSafety?.takeIf { EmergencyNumbers.abroad(abroad).isNotEmpty() },
+        onOpenMoney = onOpenMoney?.takeIf { shown?.isParticipant == true && (abroad.isNotEmpty() || shown.trip.currency != null) },
         onOpenDocuments = onOpenDocuments?.takeIf { shown?.isParticipant == true && container?.tripDocumentRepository != null },
         onOpenEnrich = onOpenEnrich?.takeIf { shown?.isParticipant == true && container?.tripPlaceRepository != null },
         packingCount = packingCount,
         photos = photos,
         photoActions = photoActions,
-        onOpenExpenses = onOpenExpenses,
+        // Règle 40 (récit 112): no « Comptes » for a trip of one household.
+        onOpenExpenses = onOpenExpenses?.takeIf { shown?.severalHouseholds == true },
         illustrated = true,
         satelliteToken = fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN,
         openAt = openAt,
@@ -229,10 +176,36 @@ fun TripDetailRoute(
         onOpenWord = onOpenWord,
         onSeePhotos = onSeePhotos,
         // « Le trajet »: those who go change the nights (règle 16), the others read them.
-        timeline = timeline,
+        timeline = TimelineActions(
+            onOpen = onEditStep,
+            onNights = if (shown?.isParticipant == true) viewModel::changeNights else null,
+            onUndo = viewModel::restoreSteps,
+            places = remember(places) { placesByStep(places) },
+            onOpenPlace = onOpenPlace,
+            onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
+            photos = byStep.byStay,
+            onOpenPhoto = onOpenPhoto,
+            withoutStep = byStep.withoutStep.size,
+            onSeePhotos = onSeePhotos,
+            onAddPhoto = addPhoto,
+            voiceNotes = remember(voiceNotes) { voiceNotes.groupBy { it.stepId } },
+            playingVoiceId = voicePlayer.playingId,
+            onPlayVoice = { note ->
+                if (voicePlayer.playingId == note.id) {
+                    voicePlayer.stop()
+                } else {
+                    scope.launch { voiceRepo?.playUrl(tripId, note)?.let { url -> voicePlayer.play(note, url) } }
+                }
+            },
+            canDeleteVoice = { note -> note.authorId == currentMember.id || shown?.canManage == true },
+            onDeleteVoice = { note ->
+                if (voicePlayer.playingId == note.id) voicePlayer.stop()
+                scope.launch { runCatching { voiceRepo?.delete(tripId, note) } }
+            },
+        ),
         quickAdd = quickAdd,
         cover = { success ->
-            TripCoverCarousel(success.trip, success.steps, container?.placePhotos, today = success.today)
+            TripCoverCarousel(success.trip, success.steps, container?.placePhotos, fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
         },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )

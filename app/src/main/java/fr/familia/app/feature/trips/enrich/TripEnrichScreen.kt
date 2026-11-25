@@ -1,37 +1,27 @@
 package fr.familia.app.feature.trips.enrich
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.ExpandLess
-import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,9 +30,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -54,7 +41,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -64,17 +50,12 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripStep
-import fr.familia.app.core.theme.Fredoka
+import fr.familia.app.core.ui.BackButton
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.LoadingState
-import fr.familia.app.feature.trips.TripFormColors
-import fr.familia.app.feature.trips.TripPage
-import fr.familia.app.feature.trips.TripPageAction
-import fr.familia.app.feature.trips.TripPageCard
-import fr.familia.app.feature.trips.TripPageCheck
-import fr.familia.app.feature.trips.TripPageField
 import fr.familia.app.feature.trips.detail.TripDetailUiState
 import fr.familia.app.feature.trips.detail.TripDetailViewModel
-import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.placeName
 import fr.familia.app.feature.trips.detail.tripTimeline
 import java.time.LocalDate
@@ -117,18 +98,7 @@ fun TripEnrichRoute(container: AppContainer?, currentMember: Member, tripId: Str
     )
 }
 
-/** The three steps of « Enrichir avec une IA » (fiche F6). */
-enum class EnrichStep { Copy, Paste, Check }
-
-/** The step shown: the check once an answer is read, else the one the person is on. */
-internal fun shownStep(chosen: EnrichStep, reading: EnrichReading?): EnrichStep =
-    if (reading is EnrichReading.Read) EnrichStep.Check else if (chosen == EnrichStep.Check) EnrichStep.Paste else chosen
-
-/**
- * Stateless. [allowed] is false for someone who does not go: they read the trip, they do not add to it.
- * Fiche F6: three steps (Copier, Coller, Valider) on the light blue of the trips, the target of the
- * prompt under the title (« Tout le voyage ▾ »), one full button a step.
- */
+/** Stateless. [allowed] is false for someone who does not go: they read the trip, they do not add to it. */
 @Composable
 fun TripEnrichScreen(
     loading: Boolean,
@@ -142,251 +112,144 @@ fun TripEnrichScreen(
     onToggle: (String) -> Unit,
     onAdd: () -> Unit,
     onBack: () -> Unit,
-    startStep: EnrichStep = EnrichStep.Copy,
 ) {
-    var chosen by rememberSaveable { mutableStateOf(startStep) }
-    var choosing by rememberSaveable { mutableStateOf(false) }
-    val step = shownStep(chosen, state.reading)
-    val target = state.target
-    val targetName = when (target) {
-        EnrichTarget.Trip -> stringResource(R.string.enrich_for_trip)
-        is EnrichTarget.Destination -> destinations.firstOrNull { it.id == target.stepId }?.let(::placeName) ?: stringResource(R.string.enrich_for_trip)
-    }
-    val reading = state.reading as? EnrichReading.Read
-    val action = when {
-        loading || !allowed -> null
-        step == EnrichStep.Paste -> TripPageAction(stringResource(R.string.enrich_read), onRead, enabled = state.answer.isNotBlank() && !state.saving)
-        step == EnrichStep.Check && reading != null && state.added == null -> {
-            val count = chosenCount(reading, state.ticked)
-            TripPageAction(
-                if (state.saving) stringResource(R.string.enrich_adding) else pluralStringResource(R.plurals.enrich_add, count, count),
-                onAdd,
-                enabled = count > 0 && !state.saving,
-                busy = state.saving,
-            )
-        }
-        else -> null
-    }
-    TripPage(
-        title = stringResource(R.string.enrich_title),
-        onBack = onBack,
-        subtitle = if (allowed && !loading) targetName else null,
-        onSubtitle = if (allowed && !loading && destinations.isNotEmpty() && !state.saving) ({ choosing = true }) else null,
-        subtitleLabel = stringResource(R.string.enrich_for_change),
-        action = action,
-    ) {
+    val clipboard = LocalClipboardManager.current
+    var copied by rememberSaveable(prompt) { mutableStateOf(false) }
+    Scaffold(topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.enrich_title)) }, navigationIcon = { BackButton(onClick = onBack) }) }) { padding ->
         if (loading) {
-            LoadingState()
-            return@TripPage
+            LoadingState(Modifier.padding(padding))
+            return@Scaffold
         }
         Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(ClaySpacing.screen),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (!allowed) {
-                Text(stringResource(R.string.enrich_not_allowed), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.enrich_not_allowed), style = MaterialTheme.typography.bodyLarge)
                 return@Column
             }
-            Steps(step, canCheck = reading != null) { picked -> chosen = picked }
-            Text(stringResource(R.string.enrich_intro), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            when (step) {
-                EnrichStep.Copy -> CopyStep(prompt) { chosen = EnrichStep.Paste }
-                EnrichStep.Paste -> PasteStep(state, onAnswer)
-                EnrichStep.Check -> if (reading != null) Preview(reading, state, onToggle)
-            }
-        }
-    }
-    if (choosing) {
-        TargetChoice(destinations, target, onPick = { picked -> choosing = false; chosen = EnrichStep.Copy; onTarget(picked) }, onDismiss = { choosing = false })
-    }
-}
+            Text(stringResource(R.string.enrich_intro), style = MaterialTheme.typography.bodyLarge)
 
-/** « 1 Copier — 2 Coller — 3 Valider »: the step shown in ink, the others white; « Valider » once an answer is read. */
-@Composable
-private fun Steps(step: EnrichStep, canCheck: Boolean, onPick: (EnrichStep) -> Unit) {
-    val labels = listOf(
-        EnrichStep.Copy to stringResource(R.string.enrich_step_copy),
-        EnrichStep.Paste to stringResource(R.string.enrich_step_paste),
-        EnrichStep.Check to stringResource(R.string.enrich_step_check),
-    )
-    Row(Modifier.fillMaxWidth().selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
-        labels.forEachIndexed { index, (each, label) ->
-            if (index > 0) Box(Modifier.weight(0.4f).padding(horizontal = 6.dp).height(2.dp).background(StepLine))
-            val on = each == step
-            Row(
-                Modifier
-                    .weight(1f, fill = false)
-                    .heightIn(min = 56.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .selectable(selected = on, enabled = each != EnrichStep.Check || canCheck, role = Role.Tab) { onPick(each) }
-                    .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Box(
-                    Modifier.size(28.dp).background(if (on) TripPathColors.Ink else Color.White, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) { Text("${index + 1}", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = if (on) Color.White else TripPathColors.Ink) }
-                Text(label, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+            Heading(stringResource(R.string.enrich_for))
+            Column(Modifier.selectableGroup()) {
+                Choice(stringResource(R.string.enrich_for_trip), state.target == EnrichTarget.Trip) { onTarget(EnrichTarget.Trip) }
+                destinations.forEach { step ->
+                    val target = EnrichTarget.Destination(step.id)
+                    Choice(stringResource(R.string.enrich_for_destination, placeName(step)), state.target == target) { onTarget(target) }
+                }
             }
-        }
-    }
-}
 
-/** Step 1: the white card edged in blue, « Copier le prompt », the prompt to read or change, « J'ai la réponse ». */
-@Composable
-private fun CopyStep(prompt: String, onNext: () -> Unit) {
-    val clipboard = LocalClipboardManager.current
-    var open by rememberSaveable { mutableStateOf(false) }
-    var custom by rememberSaveable(prompt) { mutableStateOf(prompt) }
-    var copied by rememberSaveable(prompt) { mutableStateOf(false) }
-    TripPageCard(Modifier.border(1.5.dp, TripFormColors.Edge, RoundedCornerShape(26.dp))) {
-        Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.size(36.dp).background(TripFormColors.IconBackground, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.ContentCopy, contentDescription = null, tint = TripFormColors.Icon, modifier = Modifier.size(20.dp))
-            }
-            Text(stringResource(R.string.enrich_copy_title), fontFamily = Fredoka, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
-        }
-        Text(stringResource(R.string.enrich_copy_hint), fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
-        Button(
-            onClick = {
-                clipboard.setText(AnnotatedString(custom))
-                copied = true
-            },
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = TripPathColors.Ink, contentColor = Color.White),
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 56.dp),
-        ) { Text(stringResource(R.string.enrich_copy), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
-        if (copied) {
+            Heading(stringResource(R.string.enrich_step_copy))
             Text(
-                stringResource(R.string.enrich_copied),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 6.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                prompt,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
             )
-        }
-        TextButton(
-            onClick = { open = !open },
-            colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
-            modifier = Modifier.align(Alignment.CenterHorizontally).heightIn(min = 56.dp),
-        ) {
-            Text(stringResource(R.string.enrich_show_prompt), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
-            Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.size(20.dp))
-        }
-        if (open) {
-            TripPageField(
-                label = stringResource(R.string.enrich_prompt_label),
-                value = custom,
-                onValueChange = { custom = it.take(MAX_PROMPT_CHARS) },
-                singleLine = false,
-                minLines = 6,
-                maxLines = 14,
+            OutlinedButton(
+                onClick = {
+                    clipboard.setText(AnnotatedString(prompt))
+                    copied = true
+                },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.enrich_copy)) }
+            if (copied) {
+                Text(
+                    stringResource(R.string.enrich_copied),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+
+            Heading(stringResource(R.string.enrich_step_paste))
+            OutlinedTextField(
+                value = state.answer,
+                onValueChange = onAnswer,
+                label = { Text(stringResource(R.string.enrich_answer)) },
+                minLines = 4,
+                maxLines = 8,
+                enabled = !state.saving,
+                modifier = Modifier.fillMaxWidth(),
             )
-        }
-        TextButton(
-            onClick = onNext,
-            colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) {
-            Text(stringResource(R.string.enrich_have_answer), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(20.dp))
+            Button(
+                onClick = onRead,
+                enabled = state.answer.isNotBlank() && !state.saving,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.enrich_read)) }
+
+            when (val reading = state.reading) {
+                null -> Unit
+                is EnrichReading.Refused -> Text(
+                    stringResource(refusedText(reading)),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+                is EnrichReading.Read -> Preview(reading, state, onToggle, onAdd)
+            }
         }
     }
 }
 
-/** Step 2: the answer pasted, read by « Analyser » at the bottom; a refused answer says why, in red. */
 @Composable
-private fun PasteStep(state: EnrichUiState, onAnswer: (String) -> Unit) {
-    TripPageCard {
-        TripPageField(
-            label = stringResource(R.string.enrich_answer),
-            value = state.answer,
-            onValueChange = onAnswer,
-            singleLine = false,
-            minLines = 6,
-            maxLines = 12,
-            enabled = !state.saving,
-            modifier = Modifier.padding(vertical = 6.dp),
-        )
-    }
-    val refused = state.reading as? EnrichReading.Refused
-    if (refused != null) {
-        Text(
-            stringResource(refusedText(refused)),
-            color = ErrorRed,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-        )
-    }
-}
-
-/** Step 3: what the answer proposes, all ticked; what was left out, and why. */
-@Composable
-private fun Preview(reading: EnrichReading.Read, state: EnrichUiState, onToggle: (String) -> Unit) {
-    TripPageCard {
-        reading.destinations.forEachIndexed { d, destination ->
-            if (destination.isNew) {
-                Line(
-                    title = stringResource(R.string.enrich_new_destination, destination.city),
-                    detail = stringResource(R.string.enrich_dates, day(destination.start), day(destination.end)),
-                    checked = destinationKey(d) in state.ticked,
-                    enabled = !state.saving && state.added == null,
-                    bold = true,
-                ) { onToggle(destinationKey(d)) }
-            } else {
-                Text(destination.city, fontFamily = Fredoka, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
-            }
-            val parentOn = !destination.isNew || destinationKey(d) in state.ticked
-            destination.places.forEachIndexed { p, place ->
-                Line(
-                    title = stringResource(R.string.enrich_place, stringResource(kindLabel(place.kind)), place.name),
-                    detail = listOfNotNull(place.address, place.arriveTime?.let { stringResource(R.string.enrich_at, it.format(HOUR)) }, place.note).joinToString(" · ").ifEmpty { null },
-                    checked = parentOn && placeKey(d, p) in state.ticked,
-                    enabled = parentOn && !state.saving && state.added == null,
-                    modifier = Modifier.padding(start = if (destination.isNew) 24.dp else 0.dp),
-                ) { onToggle(placeKey(d, p)) }
-            }
+private fun Preview(reading: EnrichReading.Read, state: EnrichUiState, onToggle: (String) -> Unit, onAdd: () -> Unit) {
+    Heading(stringResource(R.string.enrich_step_check))
+    reading.destinations.forEachIndexed { d, destination ->
+        if (destination.isNew) {
+            Line(
+                title = stringResource(R.string.enrich_new_destination, destination.city),
+                detail = stringResource(R.string.enrich_dates, day(destination.start), day(destination.end)),
+                checked = destinationKey(d) in state.ticked,
+                enabled = !state.saving && state.added == null,
+                bold = true,
+            ) { onToggle(destinationKey(d)) }
+        } else {
+            Text(destination.city, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
+        }
+        val parentOn = !destination.isNew || destinationKey(d) in state.ticked
+        destination.places.forEachIndexed { p, place ->
+            Line(
+                title = stringResource(R.string.enrich_place, stringResource(kindLabel(place.kind)), place.name),
+                detail = listOfNotNull(place.address, place.arriveTime?.let { stringResource(R.string.enrich_at, it.format(HOUR)) }, place.note).joinToString(" · ").ifEmpty { null },
+                checked = parentOn && placeKey(d, p) in state.ticked,
+                enabled = parentOn && !state.saving && state.added == null,
+                modifier = Modifier.padding(start = if (destination.isNew) 24.dp else 0.dp),
+            ) { onToggle(placeKey(d, p)) }
         }
     }
     if (reading.skipped.isNotEmpty()) {
-        Text(stringResource(R.string.enrich_skipped_title), fontFamily = Fredoka, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp).semantics { heading() })
+        Text(stringResource(R.string.enrich_skipped_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
         reading.skipped.forEach { skip ->
             val text = if (skip.reason == SkipReason.MissingName) stringResource(skipText(skip.reason)) else stringResource(skipText(skip.reason), skip.what)
-            Text(text, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TripPathColors.Ink.copy(alpha = 0.8f))
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+    val count = chosenCount(reading, state.ticked)
     val added = state.added
-    if (added != null) {
+    if (added == null) {
+        Button(onClick = onAdd, enabled = count > 0 && !state.saving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+            Text(if (state.saving) stringResource(R.string.enrich_adding) else pluralStringResource(R.plurals.enrich_add, count, count))
+        }
+    } else {
         Text(
             pluralStringResource(R.plurals.enrich_added, added, added),
-            fontSize = 16.sp,
+            style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         )
     }
     if (state.saveFailed) {
-        Text(stringResource(R.string.enrich_save_failed), color = ErrorRed, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.enrich_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
-/** Who the prompt is for: the whole trip, or one destination. */
 @Composable
-private fun TargetChoice(destinations: List<TripStep>, current: EnrichTarget, onPick: (EnrichTarget) -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.enrich_for)) },
-        text = {
-            Column(Modifier.selectableGroup().verticalScroll(rememberScrollState())) {
-                Choice(stringResource(R.string.enrich_for_trip), current == EnrichTarget.Trip) { onPick(EnrichTarget.Trip) }
-                destinations.forEach { step ->
-                    val target = EnrichTarget.Destination(step.id)
-                    Choice(stringResource(R.string.enrich_for_destination, placeName(step)), current == target) { onPick(target) }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
-    )
+private fun Heading(text: String) {
+    Text(text, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
 }
 
 @Composable
@@ -415,20 +278,15 @@ private fun Line(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .toggleable(value = checked, enabled = enabled, role = Role.Checkbox, onValueChange = { onToggle() })
-            .alpha(if (enabled || checked) 1f else 0.6f),
+            .toggleable(value = checked, enabled = enabled, role = Role.Checkbox, onValueChange = { onToggle() }),
     ) {
-        TripPageCheck(checked)
+        Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
         Column(Modifier.padding(start = 12.dp, top = 6.dp, bottom = 6.dp)) {
-            Text(title, fontSize = 15.sp, fontWeight = if (bold) FontWeight.ExtraBold else FontWeight.Bold)
-            if (detail != null) Text(detail, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TripPathColors.Ink.copy(alpha = 0.8f))
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
+            if (detail != null) Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
-
-private val StepLine = Color(0xFFC9D6DD)
-private val ErrorRed = Color(0xFFB3261E)
-private const val MAX_PROMPT_CHARS = 20_000
 
 private val HOUR: DateTimeFormatter = DateTimeFormatter.ofPattern("H 'h' mm", Locale.FRANCE)
 private val DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM", Locale.FRANCE)

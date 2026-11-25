@@ -47,7 +47,7 @@ class WikimediaPlaceArticles(private val host: String = WIKIVOYAGE_HOST) : Place
     }
 
     companion object {
-        private const val USER_AGENT = WIKIMEDIA_USER_AGENT
+        private const val USER_AGENT = "Familia/1.0 (application familiale)"
         private const val TIMEOUT_MS = 8_000L
         private const val MAX_TITLE = 100
     }

@@ -146,33 +146,19 @@ Repli si ça bloque :
 8. Une carte sans rien à dire ne s'affiche pas. Sans aucune carte, **attendu :** « Rien de prévu pour l'instant » avec « Voir le planning ».
 9. Éteins « Accueil ». **Attendu :** l'onglet reste jusqu'à la prochaine ouverture de l'appli, puis l'appli s'ouvre à nouveau sur le Planning.
 
-## Accueil sur la photo du thème (récit 113, PR 2)
-
-Tant que les photos ne sont pas branchées, l'accueil montre un dégradé des deux couleurs du thème à la place de la photo : c'est normal.
-
-1. Allume « Thèmes au choix » et choisis un thème photo (par exemple Mer de nuages). Ouvre l'Accueil. **Attendu :** plus de barre de titre ; en haut l'olivier, « Bonjour Prénom 👋 », la date, un rond « + » et ton avatar ; puis un espace libre, puis la bascule « Ma journée / Le fil ».
-2. Fais défiler. **Attendu :** le fond glisse plus lentement que les cartes ; l'en-tête part avec le contenu.
-3. « Ma journée ». **Attendu :** « Aujourd'hui » avec une petite pastille « Planning › » ; la carte du jour (« Rien de prévu » ou « 2 choses aujourd'hui ») et les 7 jours, un point jaune sous les jours chargés. Touche un jour chargé : ses lignes (heure, couleur, titre) s'affichent dans la carte.
-4. « À répondre » : au plus 2 cartes avec « J'y vais » et « Non » côte à côte ; s'il y en a plus, une ligne « Et N autres… » qui les montre toutes. Sans rien à répondre : la carte verte « Rien à répondre pour l'instant ».
-5. « À venir » : seulement les 30 prochains jours, triés par date, « dans N jours » à droite ; sinon « Rien de prévu dans le mois ». « Tout voir › » ouvre le Planning.
-6. « En bref » : la ligne « Le fil de la famille » (ouvre le fil) puis le défi du mois.
-7. Choisis « Le fil » dans la bascule. **Attendu :** le fil s'affiche sous la même bascule, toujours sur la photo.
-8. Passe le téléphone en mode sombre. **Attendu :** même rendu qu'en clair (DESIGN-160).
-9. Active Contraste fort ou repasse le module Thèmes à éteint. **Attendu :** l'accueil d'avant, sans photo.
-
-## Thèmes au choix (récit 113, thèmes photo du 25/11 ; polices DESIGN-45 et 46)
+## Thèmes au choix (DESIGN-7, revus le 18/11 : DESIGN-43, 45 et 46)
 
 1. Dans Administration > Modules, allume « Thèmes au choix ». Dans l'onglet Famille, **attendu :** une ligne « Apparence » apparaît sous les réglages.
-2. Ouvre « Apparence ». **Attendu :** « Selon la saison » d'abord, coché, avec « En ce moment : » et le thème de la saison (Automne fin novembre), puis Mer de nuages, Alpes, Coucher de soleil, Noël, Automne, Lac de montagne, Lavande, Côte sauvage, chacun avec ses deux pastilles de couleur. Plus d'Argile, Olivier, Espagne, Hiver ni Nuit.
-3. Touche « Lac de montagne ». **Attendu :** l'appli change tout de suite : fond crème, boutons pleins, titres et en-têtes de jour dans le bleu-vert foncé du thème, pastille de l'onglet actif bleu-vert pâle. Les cartes restent blanches, avec les coins et le relief d'Argile. Les couleurs des types et des membres ne changent jamais. (La photo de fond viendra avec la nouvelle page d'accueil.)
-4. Sous les thèmes, allume « Contraste fort ». **Attendu :** fond blanc uni, bords noirs aux cartes, quel que soit le thème choisi. Éteins-le : le thème choisi revient.
-5. Ferme complètement l'appli et rouvre-la. **Attendu :** le thème et « Contraste fort » sont gardés. Sur un autre téléphone, c'est « Selon la saison ».
-6. Un téléphone qui était sur un ancien thème de couleur, après la mise à jour. **Attendu :** pas de plantage ; il passe en « Selon la saison ». S'il était sur « Contraste fort », il le garde, allumé à part.
-7. Passe le téléphone en mode sombre. **Attendu :** les thèmes photo ne changent pas (DESIGN-160).
+2. Ouvre « Apparence ». **Attendu :** 7 thèmes dans cet ordre : Argile, Olivier, Espagne, Hiver, Lavande, Nuit, Contraste fort, chacun montré dans ses couleurs. Plus d'Arcade, de Cosmos, de Rétro 70, de Carnet de voyage ni de Jardin.
+3. Touche « Olivier ». **Attendu :** l'appli change tout de suite : fond vert très pâle avec de petites feuilles, pastille de l'onglet actif vert tendre. Les cartes restent blanches, avec les coins et le relief d'Argile, et les boutons pleins prennent le vert foncé du thème.
+4. Fais de même avec Espagne (pépins rouges et jaunes, sans bande en haut), Hiver (flocons), Lavande (pépins lilas) et Nuit (fond brun très sombre, cartes brunes). **Attendu :** les couleurs des types (vert, pêche, lilas) et celles des membres ne changent jamais.
+5. Ferme complètement l'appli et rouvre-la. **Attendu :** le thème choisi est gardé. Sur un autre téléphone, le thème reste Argile.
+6. Un téléphone qui était sur un thème retiré, après la mise à jour. **Attendu :** pas de plantage ; Arcade ou Cosmos deviennent Nuit, Jardin devient Olivier, Rétro 70 ou Carnet de voyage deviennent Argile.
+7. Passe le téléphone en mode sombre. **Attendu :** Argile devient sombre comme avant. Nuit reste sombre, les autres thèmes restent clairs.
 8. Sous les thèmes, « Police des titres » : Ronde, Élégante, Sobre, chaque nom écrit dans sa police. Touche « Élégante ». **Attendu :** les titres des écrans, des cartes et des jours changent tout de suite ; le reste du texte ne bouge pas.
 9. « Police du texte » : Normale, Très lisible. Touche « Très lisible ». **Attendu :** tout le texte courant (phrases, boutons, champs, onglets) passe dans une police aux lettres bien distinctes (I, l et 1 ; O et 0), à la même taille. Les titres gardent leur police.
 10. Ferme et rouvre l'appli. **Attendu :** les deux polices choisies sont gardées.
-11. En police à 130 %, puis à 200 %, avec Lac de montagne, Élégante et Très lisible, puis avec Coucher de soleil. **Attendu :** les titres passent à la ligne, mais rien n'est coupé.
+11. En police à 130 %, puis à 200 %, avec Olivier, Élégante et Très lisible, puis avec Nuit. **Attendu :** les titres passent à la ligne, mais rien n'est coupé.
 12. Éteins le module. **Attendu :** l'appli revient à Argile avec ses polices d'origine (Ronde et Normale), et la ligne « Apparence » disparaît. Les choix restent gardés pour quand le module sera rallumé.
 
 ### Icône de l'appli
@@ -1558,7 +1544,7 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 6. Sans voyage à venir. **Attendu :** le chemin mène à un point d'interrogation, avec « Et la prochaine aventure ? ».
 7. « Souvenirs ». **Attendu :** les voyages passés sur 2 colonnes, du plus récent au plus ancien, avec le paysage pâli, le titre et « Août 2026 · 8 jours ». Sur 1 colonne avec le texte à 130 %.
 8. Un voyage surprise que je ne dois pas voir. **Attendu :** il n'apparaît ni dans « À venir », ni dans « Souvenirs ».
-9. TalkBack sur la carte. **Attendu :** « La Samoure, du dimanche 11 avril 2027 au vendredi 16 avril 2027, dans 142 jours, avec Inès, Hugo et Noé ».
+9. TalkBack sur la carte. **Attendu :** « La Palmyre, du dimanche 11 avril 2027 au vendredi 16 avril 2027, dans 142 jours, avec Inès, Hugo et Noé ».
 
 ## L'olivier en mascotte (récit 84, DESIGN-58 variante A)
 
@@ -1754,7 +1740,7 @@ Cette partie : la story, ses écrans et leur navigation, le cœur, l'écran de f
 2. Touche le tiers droit de l'écran, la flèche ronde de droite, ou balaie vers la gauche : l'écran suivant. Le tiers gauche, la flèche de gauche ou un balayage vers la droite : le précédent. Il n'y a pas de flèche gauche sur le premier écran. **Attendu :** rien ne défile tout seul, même au bout d'une minute.
 3. Touche le cœur : il se remplit, le nombre monte ; de nouveau, il se retire. « Commentaires » ouvre la page de l'étape, où l'on répond ; en revenant, on retrouve la story au même endroit.
 4. Un jour dont le mot n'a pas de photo : le mot (grand, en gras) sur une carte blanche sur fond ciel, « Pas de photo ce jour-là », segments et « Fermer » en encre sombre.
-5. Dernier écran du jour : le trajet du jour (les étapes du jour placées, reliées), « Le trajet du jour », « Bordeaux → La Samoure · 118 km à vol d'oiseau » ; si une étape du jour n'a pas de position : « … · Trajet non placé ». Un bouton blanc « Jour 3 » passe au jour suivant qui a un mot, « Revoir ce jour » revient au premier écran. Le dernier jour n'a que « Revoir ce jour » et « Fermer ».
+5. Dernier écran du jour : le trajet du jour (les étapes du jour placées, reliées), « Le trajet du jour », « Bordeaux → La Palmyre · 118 km à vol d'oiseau » ; si une étape du jour n'a pas de position : « … · Trajet non placé ». Un bouton blanc « Jour 3 » passe au jour suivant qui a un mot, « Revoir ce jour » revient au premier écran. Le dernier jour n'a que « Revoir ce jour » et « Fermer ».
 6. Une photo retirée de l'album tombe de la story. Un mot retiré pendant la lecture : la story reste sur un écran qui existe.
 7. Texte à 130 % et plus et TalkBack : « Suivant » et « Précédent » sont annoncés (les zones invisibles ne le sont pas), chaque jour de la rangée se lit « Jour 2, 12 avril, à revoir » ou « rien à revoir ».
 
@@ -1799,7 +1785,7 @@ Rien à publier : aucune règle ni function. (Le module « Globe animé du voyag
 
 1. Ouvre la carte d'un voyage avec plusieurs étapes. Sous la carte, une tuile « Le trajet » : une ligne par étape (numéro, lieu, jour, « 1 mot », « 3 photos » quand il y en a). Un appui ouvre l'étape.
 2. Une étape sans position (« chez Mamie ») est aussi dans la liste.
-3. Active TalkBack : la liste passe au-dessus de la carte et chaque ligne est lue d'un bloc, « Étape 4 sur 5, La Samoure, 14 avril, 1 mot, 3 photos, bouton ».
+3. Active TalkBack : la liste passe au-dessus de la carte et chaque ligne est lue d'un bloc, « Étape 4 sur 5, La Palmyre, 14 avril, 1 mot, 3 photos, bouton ».
 4. Même chose en coupant les animations d'Android (Options pour les développeurs, échelle de durée d'animation à « Animation désactivée »).
 5. Un voyage vu par quelqu'un qui n'y participe pas : la liste montre ce qu'il peut déjà lire, rien de plus.
 
@@ -1819,8 +1805,8 @@ Rien à voir ni à essayer sur le téléphone : seul le moteur du vol (aperçu, 
 
 Rien à publier : aucune règle ni function. (Plus d'interrupteur depuis : actif pour tous.)
 1. « + » sur la liste des voyages : « Où allez-vous ? » s'ouvre d'abord.
-2.  Taper « La Samoure », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
-3. Le formulaire s'ouvre avec le nom du voyage déjà rempli (« La Samoure »), modifiable. Départ et Retour restent obligatoires.
+2.  Taper « La Palmyre », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
+3. Le formulaire s'ouvre avec le nom du voyage déjà rempli (« La Palmyre »), modifiable. Départ et Retour restent obligatoires.
 4. « Créer le voyage » : le voyage s'ouvre, puis le formulaire d'étape arrive avec le lieu déjà rempli. Le retour (flèche) laisse la première étape pour plus tard.
 5. « Je tape un nom » : on passe directement au formulaire d'avant, sans lieu ni première étape.
 6. Sans réseau ou lieu inconnu : « Aucun lieu trouvé », « Je tape un nom » reste possible.
@@ -1837,8 +1823,8 @@ Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivante
 ## « À savoir sur… » dans la page d'étape (récit 96, temps 2)
 
 Rien à publier : aucune règle ni function, rien n'est enregistré. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
-1. Ouvrir une étape d'un voyage dont le lieu est connu de Wikivoyage (« La Samoure », « Lyon »), page « Le mot de l'étape ».
-2. Sous le mot : la tuile « À savoir sur La Samoure » (3 lignes environ), « Lire la suite » (ouvre le navigateur) et « Source : Wikivoyage · CC BY-SA ».
+1. Ouvrir une étape d'un voyage dont le lieu est connu de Wikivoyage (« La Palmyre », « Lyon »), page « Le mot de l'étape ».
+2. Sous le mot : la tuile « À savoir sur La Palmyre » (3 lignes environ), « Lire la suite » (ouvre le navigateur) et « Source : Wikivoyage · CC BY-SA ».
 3. Pendant la recherche : des blocs gris et « On cherche des infos sur ce lieu… », jamais d'indicateur qui tourne.
 4. Lieu inconnu, sans réseau ou page qui nomme plusieurs lieux : la tuile ne s'affiche pas.
 ## Voyage : plus d'interrupteurs, tout est actif (décision de Kévin, 22/11)
@@ -1947,7 +1933,7 @@ Rien à publier côté Firebase. « APK de publication ».
 ## Voyage : vraies photos du lieu, plus de choix du paysage (récit 102, partie 1 : règles 10, 12, 13, 14)
 
 Rien à publier côté Firebase. « APK de publication » (le réseau est nécessaire pour les photos).
-1. Nouveau voyage : choisir « Lyon » puis Continuer. En haut du formulaire, une vraie photo de Lyon, avec « Photo : auteur, licence, Wikimedia Commons » dans le coin. Plus de tuile « Le paysage ».
+1. Nouveau voyage : choisir « La Rochelle » puis Continuer. En haut du formulaire, une vraie photo de La Rochelle, avec « Photo : auteur, licence, Wikimedia Commons » dans le coin. Plus de tuile « Le paysage ».
 2. Un lieu sans photo sur Wikipédia : la vue satellite du lieu ; sans réseau : le paysage dessiné, jamais un trou.
 3. Sous les dates : « 5 nuitées » (ou « Aller-retour dans la journée »). Sous le nom : « Il deviendra le nom du voyage… Tu pourras le changer plus tard. »
 4. Modifier un voyage existant : la photo du lieu de sa première étape.
@@ -2137,7 +2123,7 @@ Rien à publier côté Firebase. « APK de publication ».
 
 **Publier Firebase : non.**
 1. Voyages → « Nouveau voyage » : au-dessus de « Où allez-vous ? », le globe satellite tourne doucement.
-2. Chercher « La Samoure » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
+2. Chercher « La Palmyre » et choisir un lieu : le globe s'arrête, puis vole jusqu'au lieu, qui est marqué d'un point foncé. Choisir un autre lieu de la liste : le globe y vole à son tour.
 3. « Continuer » mène à la suite de la création, comme avant, avec le nom du voyage déjà rempli.
 4. Avec TalkBack, sans réseau, ou si le globe a échoué récemment : le formulaire reste seul, sans globe, et tout marche pareil.
 
@@ -2217,467 +2203,3 @@ Il faut deux téléphones : un participant du voyage (A) et quelqu'un qui le sui
 5. Deux participants qui publient le même jour la même étape : le second lit « Quelqu'un a déjà publié le film du … » et rien de lui ne reste dans Storage.
 6. Un voyage surprise ou caché à quelqu'un : pas de carte dans le fil, pas de notification.
 7. Film du voyage dans « Voir les photos » : après avoir fait le film, ajouter une photo puis revenir : « Faire le film » le refait (retour C2 de #557).
-
-## Voyage : télécharger un film dans la galerie (récit 108, partie 4 : règle 32)
-
-**Publier Firebase : non.**
-Sur un téléphone en Android 10 ou plus :
-1. Film d'une étape : « Voir le film de l'étape », puis le menu ⋮ → « Télécharger ». La ligne « Film enregistré dans la galerie… » s'affiche. Dans Galerie (ou Google Photos) → dossier Familia des films, le film y est, nommé d'après l'étape.
-2. Film publié d'une étape : à droite de « Film du …, par … », le bouton d'enregistrement (TalkBack lit « Télécharger le film du … ») le copie dans la galerie, depuis le réseau.
-3. Film du voyage (« Voir les photos » → « Faire le film ») : sous « Partager », « Télécharger » fait de même.
-4. Sans réseau, le film publié dit « Le film n'a pas pu être enregistré… ». Les films faits sur le téléphone s'enregistrent quand même.
-5. Les films d'album d'un événement n'ont pas « Télécharger » (seulement les films de voyage, règle 32).
-6. Sur Android 8 ou 9, « Télécharger » n'apparaît pas : « Partager » reste, avec son rappel.
-
-## Voyage : faire un vrai film avec une IA (récit 108, partie 6 : règle 33)
-
-**Publier Firebase : non.**
-1. Dans une étape qui a des photos, sous « Film de l'étape », ouvrir le menu ⋮ puis « Faire un vrai film avec une IA ». Une feuille s'ouvre : 8 ambiances (Souvenir, Road trip, Cinéma, Carnet de voyage, Drôle, Documentaire, Fête de famille, Zen & nature), avec une phrase qui décrit celle choisie ; puis 3 durées (30 s, 1 min, 2 min) et deux interrupteurs, « Musique » (allumé) et « Voix off des commentaires » (éteint).
-2. Changer une ambiance, une durée ou un interrupteur : l'aperçu du prompt suit aussitôt. Il cite la destination, le nombre de photos et le mot de l'étape.
-3. « Copier le prompt » affiche « Prompt copié… ». Le coller dans une IA donne le texte complet.
-4. « Exporter vers une IA (photos + commentaires + prompt) » montre d'abord le rappel de partage. Après « Continuer », les photos se préparent (barre), puis le partage Android s'ouvre avec les photos (20 au plus) et le prompt en texte.
-5. Dans « Voir les photos » du voyage, sous le film, « Faire un vrai film avec une IA » fait de même pour tout le voyage : une séquence par destination, dans l'ordre du trajet.
-6. Sans photo liée à une étape, l'entrée n'apparaît pas. Sans réseau, l'export dit « Les photos n'ont pas pu être préparées… ».
-
-## Voyage : « Phrases utiles » dit quand la voix manque (règle 44)
-
-**Publier Firebase : non.**
-1. Sur un téléphone sans la voix d'une langue (par exemple sans la voix néerlandaise), ouvrir « Phrases utiles » d'un voyage aux Pays-Bas : sous le titre de la langue, la ligne « La voix en néerlandais n'est pas installée sur ce téléphone… » avec « Installer ». Il n'y a pas de haut-parleur à côté des phrases.
-2. « Installer » ouvre l'écran Android des voix. Après l'installation, revenir : la ligne disparaît et les haut-parleurs apparaissent, sans quitter l'écran.
-3. Une langue dont la voix est là n'a pas la ligne. Pendant le tout premier chargement des voix, aucune ligne ne s'affiche.
-4. Sur un téléphone qui n'a pas d'écran des voix, « Installer » disparaît après le toucher et une phrase indique le chemin dans les Paramètres.
-
-## Voyage : le film du voyage comme celui d'une étape (récit 108 : règle 32, DESIGN-79 B)
-
-**Publier Firebase : non.**
-1. Dans « Voir les photos » d'un voyage, en haut : une tuile « Film du voyage » avec un seul gros bouton, « Voir le film du voyage », et à côté le menu ⋮. La phrase dessous dit comment le film est fait (films des étapes bout à bout, 3 minutes au plus).
-2. Toucher « Voir le film du voyage » : la barre « Le film se prépare… » s'affiche, puis le film se lance tout seul dès qu'il est prêt.
-3. Film prêt : « Voir le film du voyage » le relance. Le menu ⋮ propose « Partager » (avec le rappel de partage), « Télécharger » (Android 10 ou plus) et « Faire un vrai film avec une IA ».
-4. Avant que le film soit fait, le menu ⋮ propose seulement l'IA (s'il y a des photos liées à une étape).
-5. Les films d'album d'un événement et du diaporama du mois gardent leurs boutons « Faire le film », « Regarder », « Partager », sans « Télécharger » ni IA.
-
-## Voyage : la carte ne se coupe plus en silence (retour d'essai du 24/11, DESIGN-100 A)
-
-**Publier Firebase : non.** Avec l'« APK de publication » (clé Mapbox).
-1. Mode avion, ouvrir un voyage qui a des étapes placées : la feuille garde ses hauteurs (poignée en haut). Au-dessus, sur le ciel, « Carte indisponible pour le moment. » et « Réessayer » (56 dp). Plus d'ancienne page qui défile sans feuille.
-2. Couper le mode avion, toucher « Réessayer » : la carte satellite revient sans quitter l'écran.
-3. Fermer puis rouvrir le voyage : la carte est retentée à chaque ouverture, même juste après un échec. Rien n'est coupé pendant des heures : après un échec, le globe de la liste et « Lancer le voyage » reviennent au bout de 3 minutes, ou dès le prochain lancement de l'appli.
-4. Valise, Documents, Argent ou une page de lieu ouverte en mode avion : même ligne « Carte indisponible » au-dessus de la feuille, et la feuille ne saute pas en plein écran au bout de 15 s.
-5. Téléphone lent ou réseau faible : la carte a maintenant 15 s pour afficher son style (au lieu de 6 s), et elle compte comme réussie dès que le style est là, même si quelques tuiles arrivent encore.
-6. Après un échec, relancer l'appli, puis Administration → Plantages : une ligne « MapUnavailable$Timeout » (ou NoNetwork, SdkError, ViewFailed, NoToken, BadToken), avec « Écran : Carte … : délai 15 s, dernière erreur … ». « Copier pour Claude » la copie. Une seule ligne par raison et par écran tant que l'appli tourne.
-
-## Voyage : « Enrichir avec une IA » se tire au-dessus de la carte (règle 8)
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage qui a des étapes placées, puis « Enrichir avec une IA ». L'écran s'ouvre dans la feuille au-dessus de la carte, comme Valise, Documents ou Argent.
-2. Tirer la feuille vers le haut : l'écran prend toute la hauteur. La redescendre : la carte réapparaît.
-3. Avec TalkBack, sans réseau ou sans étape placée, l'écran s'affiche seul, comme avant.
-
-## Voyage : la feuille à trois positions du prototype (DESIGN-98 A)
-
-**Publier Firebase : non.** « APK de publication » (carte satellite).
-1. Accueil d'un voyage : la feuille s'ouvre tout en bas, sur environ un quart de l'écran (22 %). La carte prend le reste.
-2. Glisser la poignée vers le haut : la feuille monte au milieu (48 %). Glisser encore : elle prend tout l'écran, avec la flèche en haut à gauche. La flèche ou un glissé vers le bas la redescend d'un cran. Un appui sur la poignée passe de tout en bas au milieu, et inversement.
-3. Même chose dans « Modifier », Valise, Documents, Argent et les pages d'une étape ou d'un lieu.
-4. Carte indisponible : la feuille garde ces trois positions, et la ligne « Carte indisponible » est au-dessus.
-
-## Voyage : la photo de la destination, jamais une vue de carte (DESIGN-104 A)
-
-**Publier Firebase : non.**
-1. Un voyage vers La Samoure (sa page Wikipédia n'a pas de photo) : en tête de l'accueil, sur la carte « Prochain voyage » de la liste et à la création, une vraie photo prise tout près (moins de 10 km : par exemple le zoo ou le phare), avec son crédit. Plus jamais de vue satellite.
-2. Un voyage vers Lyon : la photo de sa page, comme avant.
-3. Sans réseau, ou sans aucune photo autour : le paysage dessiné.
-
-## Voyage : ajouter par les « + » du trajet (DESIGN-99 A, E-10, E-11, E-17)
-
-**Publier Firebase : non.**
-1. Accueil d'un voyage, pour quelqu'un qui y va : plus de bouton jaune « Ajouter une étape » qui flotte sur les cartes.
-2. Dans « Le trajet », un petit « + » rond (56 dp) sous « Le voyage commence » et sous chaque élément. TalkBack lit « Ajouter au début du voyage » ou « Ajouter après La Samoure ».
-3. Toucher un « + » ouvre un menu : Destination, Transport, Hébergement, Restaurant, Spot et « Enrichir avec une IA ». Hébergement, Restaurant et Spot n'apparaissent que si le voyage a déjà une destination : ils vont sous la destination d'avant, ou sous la suivante pour le « + » du début.
-4. « Destination » ouvre le formulaire sans « Quel type d'étape ? », avec la date du jour où ce « + » se trouve (la fin de la destination d'avant). Une fois enregistrée, elle apparaît dans le trajet avec ses nuits − / +.
-5. « Transport » ouvre le formulaire avec seulement Avion, Train, Bus et Voiture.
-6. Modifier une destination existante : pas de choix du type. Une ancienne étape « Activité » peut encore changer de type, par exemple pour devenir une destination.
-7. Quelqu'un qui suit le voyage sans y aller : aucun « + ».
-
-## Voyage : « Bien arrivé » seulement le jour de l'étape (DESIGN-102 A, E-9)
-
-1. Ouvrir un voyage qui commence dans plusieurs semaines, en tant que participant.
-2. Attendu : pas de carte « Prochaine étape », pas de bouton « Bien arrivé », pas de bouton « Le mot de l'étape » ; seul le compte à rebours dit quand on part.
-3. Le jour d'une étape (changer la date de l'étape pour aujourd'hui) : la carte « Prochaine étape » revient avec « Bien arrivé ».
-4. Appuyer sur « Bien arrivé » : la carte passe à l'étape suivante du jour, ou disparaît s'il n'y en a plus.
-5. Le lendemain d'une étape non signalée, « Bien arrivé » est encore proposé ; deux jours après, plus rien.
-6. En tant que simple suiveur, avant le jour de l'étape, « Pas encore signalé. » n'est plus affiché.
-
-## Voyage : la cause sous « Carte indisponible » (retour d'essai du 24/11)
-
-**Publier Firebase : non.** « APK de publication ».
-1. Si l'accueil d'un voyage montre « Carte indisponible pour le moment », une ligne en petit dessous dit pourquoi : par exemple « Cause : délai 15 s », « Cause : STYLE: … 401 », « Cause : hors ligne » ou « Cause : IllegalStateException: … ». Une capture d'écran suffit pour la transmettre.
-2. Même chose dans Valise, Documents, Argent et « Modifier », posés sur la carte.
-3. Couper le réseau, ouvrir un voyage, attendre 15 s : « Cause : délai 15 s » (ou « hors ligne »). Remettre le réseau, « Réessayer » : la carte revient.
-4. Au lancement suivant, la même cause arrive dans Administration > Plantages, une fois par écran et par lancement.
-5. Un voyage à plusieurs destinations s'ouvre cadré sur toutes ses étapes, au-dessus de la feuille.
-
-## Voyages : la feuille de la liste a les trois positions du prototype, sans échelle sur le globe (E-24, E-25)
-
-**Publier Firebase : non.** « APK de publication » (globe satellite).
-1. Ouvrir Voyages : la feuille « Prochain voyage » est au milieu (environ la moitié du bas), le globe au-dessus. Plus d'échelle « 0 · 5000 km · 10000 km » sur le titre.
-2. Glisser la poignée vers le bas : la feuille descend tout en bas (environ un quart), le globe grandit et reste centré au-dessus. « Arrêter » suit le haut de la feuille.
-3. Glisser vers le haut deux fois : la feuille prend tout le bas de l'écran, avec la flèche en haut à gauche ; la flèche, un glissé vers le bas ou le bouton Retour la redescendent au milieu.
-4. Toucher la poignée : passe de tout en bas au milieu, et inversement.
-5. Sans globe (TalkBack, économie de batterie, pas de jeton) : la liste prend tout l'écran comme avant, sans poignée.
-6. Avec « Supprimer les animations » dans les réglages du téléphone, ouvrir un voyage à plusieurs destinations éloignées : la carte s'ouvre cadrée sur toutes les étapes, pas sur leur milieu (C1 de #580).
-
-## Voyage : l'arrivée sur la carte dure environ 6 s (DESIGN-101 B)
-
-**Publier Firebase : non.** « APK de publication » (carte satellite).
-1. Ouvrir un voyage avec des étapes placées : la carte s'éloigne vers le continent puis plonge sur le trajet, en environ 6 secondes (avant, environ 3 s).
-2. Modifier une étape puis revenir : la carte s'éloigne jusqu'à la Terre entière puis revient sur le trajet, aussi en environ 6 secondes.
-3. Pendant l'une ou l'autre, toucher la carte : le mouvement s'arrête tout de suite, là où il est, et la carte se laisse déplacer.
-4. Revenir d'une page ouverte depuis la carte : l'arrivée ne rejoue pas.
-5. Avec « Supprimer les animations » dans les réglages du téléphone : pas d'arrivée, comme avant.
-
-## Voyage : des propositions pendant la frappe dans « Où allez-vous ? » (DESIGN-103 A, E-20)
-
-**Publier Firebase : non.**
-1. Nouveau voyage, « Où allez-vous ? » : taper « La R » sans toucher « Chercher ».
-2. Attendu : après une courte pause (moins d'une demi-seconde), « Recherche en cours… » puis jusqu'à 5 propositions (par exemple Lyon).
-3. Continuer à taper « Lyon » : les propositions se mettent à jour, sans clignoter à chaque lettre.
-4. Toucher une proposition puis « Continuer » : le voyage prend le nom « Lyon », avec sa majuscule.
-5. Deux lettres seulement : pas de proposition, l'indication reste. « Chercher » marche toujours.
-6. Sans réseau : « Aucun lieu trouvé », comme avant.
-
-## Voyage : une couche refusée par Mapbox ne coupe plus la carte (plantage du 24/11 16 h 47)
-
-**Publier Firebase : non.** « APK de publication » (R8 et carte satellite).
-1. Ouvrir un voyage dont les étapes sont placées : la carte satellite s'affiche avec ses ronds numérotés et le chemin en pointillé.
-2. Toucher un rond : un anneau blanc l'entoure, sans disque noir dedans.
-3. Basculer Satellite / Rues puis 2D / 3D plusieurs fois : la carte reste, sans « Carte indisponible ».
-4. Si une couche secondaire (nom, numéro, anneau) était encore refusée, la carte reste affichée et Administration > Plantages reçoit au lancement suivant « SdkError » avec « couche <id>: <message> ».
-5. Dans Plantages, une carte indisponible porte désormais son vrai nom (ViewFailed, Timeout, SdkError…).
-
-## Voyages : l'écran d'accueil comme le prototype (E-28 à E-32)
-
-**Publier Firebase : non.**
-1. Ouvrir l'onglet Voyages (admin ou chef de famille) : en bas à droite, une pilule jaune « + Nouveau voyage » flotte au-dessus de la liste, avec une ombre ; plus de barre sombre sur toute la largeur. La toucher ouvre la création d'un voyage. Un enfant ne la voit pas.
-2. Juste sous la poignée du panneau, centrés : « À venir » et « Souvenirs (n) » dans une pilule blanche ; l'onglet choisi est foncé, texte clair.
-3. La carte du prochain voyage : la photo remplit toute la carte (sans photo, le paysage dessiné). En haut à gauche, « ● Voyage programmé » sur fond sombre ; en haut à droite, « Dans N nuits » sur fond blanc. En bas, sur un dégradé sombre, le nom du voyage en gros, puis le mois (l'année dessous), le nombre de jours (JOURS) et les kilomètres (KILOMÈTRES, seulement à partir de deux étapes placées).
-4. Plus de boutons « Étapes », « À prévoir », « Comptes » sur la carte : la toucher n'importe où ouvre le voyage.
-5. Faire défiler jusqu'en bas : la dernière carte n'est pas cachée par le bouton jaune.
-
-## Voyage : l'en-tête tient sur une ligne et les lieux prennent leurs majuscules (E-4, E-6)
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage à quatre participants ou plus : sous le titre, deux prénoms puis « et 2 autres » (par exemple), sans « … ». Avec TalkBack, tous les prénoms sont lus.
-2. Un voyage à deux : les deux prénoms, « X et Y ».
-3. En haut à droite, un crayon remplace le mot « Modifier » (pour l'admin ou un chef de famille qui gère le voyage) ; il ouvre la modification du voyage.
-4. Ajouter une étape en tapant « la ciotat » : le clavier met une majuscule à chaque mot, et l'étape s'enregistre « La Ciotat ». « saint-jean-de-luz » devient « Saint-Jean-de-Luz ».
-5. Une ancienne étape « La ciotat » s'affiche « La Ciotat » dans la carte du jour.
-6. Nouveau voyage, taper « La R » : des propositions apparaissent ; effacer jusqu'à « La » : les propositions disparaissent (remarque C de #583).
-
-## Voyage : l'écran d'un voyage selon la fiche F1
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage avec au moins une étape placée : la carte satellite remplit l'écran, jusque sous la barre d'état. Par-dessus, en haut : le rond « Retour », une pilule blanche avec le nom du voyage (police arrondie, petit crayon pour qui peut modifier) et « Camille, Inès et 1 autre » dessous, puis les ronds « Partager » (si le partage est permis) et « ? ».
-2. Sous la barre, la bulle blanche « Départ dans N nuits » (la veille « Demain, c'est le départ », le jour même « C'est le jour J », pendant le voyage « Jour 2 sur 6 », rien après). À droite, en petit, « © Mapbox © OpenStreetMap ». Plus de carte blanche « N nuits avant le départ » dans le panneau.
-3. Le rond blanc des couches de carte est en haut à droite, sous la bulle ; il ouvre les réglages de carte comme avant.
-4. Le panneau s'ouvre au milieu (environ la moitié de l'écran). Glisser vers le bas : il descend à environ un cinquième ; vers le haut : il prend tout l'écran, la barre du haut disparaît, une flèche ↓ en haut à gauche le fait redescendre. La poignée est une barre grise fine.
-5. En tête du panneau, la grande carte photo (210 dp, angles arrondis) : « ● Voyage programmé » (« En cours » pendant, « Terminé » après), le bouton pause si plusieurs photos, le nom du lieu de la photo dans une petite pastille, le nom du voyage en gros, puis le mois (l'année dessous), les JOURS et les KILOMÈTRES, et les points du diaporama en bas à droite.
-6. Dessous : « Du lun. 2 au lun. 9 août 2027 · 8 jours » avec un crayon (il ouvre la modification du voyage pour qui peut), les ronds de ceux qui partent puis leurs prénoms, et la pilule pêche « Enrichir le voyage avec une IA » (pour ceux qui partent).
-7. Plein écran, après « Le trajet » : les boutons blancs « Comptes », « Valise » (avec le nombre de choses à faire), « Documents », sur deux colonnes.
-8. Pendant le voyage, pour ceux qui partent : le bouton d'ajout rapide est un rond blanc avec l'appareil photo.
-9. Avec TalkBack (pas de carte) : la même barre du haut et la bulle s'affichent en haut de l'écran, au-dessus du contenu ; « La carte » est dans les boutons du bas.
-
-## Voyage : plus de gros bouton « Sans heure » dans une étape (E-18)
-
-**Publier Firebase : non.**
-1. Modifier une étape : sous « Départ » et « Arrivée », le jour et l'heure côte à côte, sans gros bouton noir « Sans heure » qui prend une rangée.
-2. Sans heure choisie, la case dit « Choisir » : l'étape s'enregistre sans heure.
-3. Choisir une heure : un petit lien « Sans heure » apparaît à droite, dessous ; le toucher efface l'heure.
-4. Avec une très grande police : jour et heure l'un sous l'autre, le lien « Sans heure » toujours petit.
-
-## Voyage : nettoyage après la fiche F1 (C de #588)
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage sur la carte satellite : le crédit « © Mapbox © OpenStreetMap » en haut à droite reste lisible sur une zone claire (ombre sombre sous le texte).
-2. Avec TalkBack (pas de carte satellite), le bouton « La carte » en bas du voyage se lit « Ouvrir la carte du voyage, avec toutes ses étapes », une seule fois.
-
-## Voyages : le globe tourne et ne laisse plus la place à l'image (E-33, E-34)
-
-**Publier Firebase : non.**
-1. Ouvrir Voyages avec au moins un voyage qui a un lieu : le globe satellite apparaît et tourne seul, lentement, d'ouest en est (un tour en 90 s), sans geste.
-2. Attendre une minute sur l'écran : le globe reste, il ne laisse jamais la place au paysage dessiné ou à la photo, même si l'imagerie arrive lentement.
-3. Faire glisser le globe du doigt : il suit le doigt et ne tourne pas dessous ; environ 3 s après avoir levé le doigt, il repart de là où il a été laissé.
-4. « Arrêter » l'arrête, « Reprendre » le relance.
-5. Mode avion avant d'ouvrir Voyages : après environ 15 s au plus, le paysage s'affiche à la place, et « Plantages » (Administration) dit pourquoi.
-
-## Voyage : TalkBack dit quelle heure « Sans heure » retire (C1 de #590)
-
-**Publier Firebase : non.**
-1. Modifier une étape, choisir une heure de départ et une heure d'arrivée : deux petits liens « Sans heure ».
-2. Avec TalkBack, le premier se lit « Retirer l'heure de départ », le second « Retirer l'heure d'arrivée » ; chacun n'efface que la sienne.
-
-## Voyages : liste au plus près du prototype (E-35 à E-40)
-
-**Publier Firebase : non.**
-1. Liste Voyages avec le globe : l'onglet se lit « Souvenirs (n) », avec le nombre, même 0.
-2. La carte du prochain voyage est posée directement sur le panneau bleu clair, sans bande beige autour ; ses angles sont arrondis.
-3. Le bouton « + Nouveau voyage » a le même jaune que la pastille active de la barre du bas.
-4. Sur le globe : des points jaunes (le prochain voyage un peu plus gros) avec, dessous, une étiquette blanche arrondie au nom du lieu ; dans Souvenirs, points blancs bordés d'orange, avec leur nom.
-5. En bas à droite du globe, une petite case sombre « Anim » : la toucher arrête la rotation (« Anim » barré), la retoucher la relance. TalkBack : « Animation du globe, activée / désactivée ».
-6. Le globe occupe environ 80 % de la largeur de l'écran.
-7. Nouveau voyage, choix de la destination : le petit globe garde sa taille.
-
-## Voyage : frise, menu du « + », « Ajouter une destination » et « Nouvel élément » (fiche F2)
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage, panneau plein écran : sous « Enrichir le voyage avec une IA », plus de cadre blanc ni de titre « Le trajet ». Un fil gris-bleu relie, à gauche, le rond foncé « maison » (« Le voyage commence », date en majuscules, pastille « 7/7 nuits planifiées » à droite) au rond gris-bleu « drapeau » (« Le voyage se termine »).
-2. Entre les blocs, des ronds blancs « + » bordés de crème, sur le fil. Chaque destination est une carte blanche arrondie : photo du lieu avec son numéro, « Séville › », les dates soulignées, puis « − 7 nuitées + ». Dessous, les hébergements, restos, spots, photos et notes vocales de la destination, en lignes compactes.
-3. Avec TalkBack : le premier bloc se lit « Le trajet, Le voyage commence, … » comme titre ; « − » et « + » disent « Une nuit de moins / de plus à Séville ».
-4. Toucher un « + » : menu gris clair arrondi « Ajouter une destination », « Ajouter un transport », « Ajouter un hébergement », « Ajouter un spot », « Ajouter un restaurant », « Enrichir ici avec une IA ». Sans aucune destination, seuls « destination », « transport » et l'IA sont proposés.
-5. En bas à droite du panneau, un rond foncé « + » (60 dp) : le même menu, qui ajoute à la fin du voyage. Pendant le voyage, l'appareil photo blanc est au-dessus.
-6. « Ajouter une destination » : écran bleu clair, rond retour et titre, champ « Recherchez un lieu », onglets « Villes | Régions | Pays ». Avant de taper, les lieux où la famille est déjà allée (drapeau du pays). À partir de 3 lettres, les lieux trouvés par le téléphone (5 au plus), triés par onglet. Toucher un lieu : « Séville ajouté au voyage », retour au voyage, une nuit à partir du jour du « + ».
-7. « Ajouter un transport » : la carte reste en haut avec, par-dessus, le rond retour, la pilule « Nouvel élément » / « Voiture · Été » et l'aide ; le panneau s'ouvre à mi-hauteur avec le bandeau « Dans le voyage · … », les tuiles, et le bouton « Ajouter l'élément ». En plein écran, la barre de titre revient dans le panneau.
-8. « Ajouter un hébergement / spot / restaurant » : la recherche de lieux d'abord (inchangée), puis la même page « Nouvel élément » sur la carte, avec « Hébergement · Séville ».
-
-## Voyage : Valise, Documents et Phrases utiles au style du prototype (fiche F3)
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage où l'on part, puis le bouton rond « Valise » : la page est bleu clair, même en thème sombre ; en haut, un rond blanc de retour, « Valise » en grand avec le titre du voyage dessous.
-2. Deux pilules : « Tout le monde » (sombre quand elle est choisie) et « Ma valise » (blanche, avec une pastille pêche du nombre d'objets restant, si il en reste). Les valises des enfants qui partent suivent, en onglets plus petits.
-3. « Tout le monde » : le titre « Pour tout le monde », puis une carte blanche aux angles très arrondis ; chaque ligne a une case sombre, le texte en gras et « Responsable : Lou » dessous quand quelqu'un s'en charge. En bas de la carte, « + Ajouter une ligne ».
-4. Toucher une ligne entière la coche ; TalkBack la lit comme une case à cocher.
-5. « Ma valise » : la carte blanche des objets, cases sombres, « + Ajouter un objet », « Garder comme ma liste de départ ».
-6. Bouton « Documents » : même page bleu clair ; chaque document est une ligne blanche, une icône dans un carré bleu pâle, le titre en gras, « par Sam · PDF » dessous, et un ✕ rouge pour qui peut le retirer (une confirmation est demandée). « Ajouter un document » est le grand bouton sombre fixé en bas.
-7. Une étape à l'étranger, « Phrases utiles » : « Espagne · espagnol » en titre, puis une carte blanche avec un trait entre les phrases ; chaque phrase en gras, « Bonjour · *o-la* » dessous, et un rond crème de 56 dp avec le haut-parleur qui la dit.
-8. La page d'une étape à l'étranger : la tuile « Phrases utiles en … » montre les phrases de la même façon.
-
-## Voyage : nouveau voyage sur le globe, calendrier des dates, carnet en Fredoka (fiche F4)
-
-**Publier Firebase : non.**
-1. Voyages, « + Nouveau voyage » : le globe satellite occupe le haut sur un fond de nuit et tourne ; « Nouveau voyage » en blanc, un rond blanc de retour à gauche, un rond blanc d'aide à droite.
-2. En bas, un panneau bleu clair arrondi : sa poignée, « Où allez-vous ? » en grand, un champ blanc « Recherchez un lieu » avec une loupe, et « Continuer » en bas, gris tant que rien n'est choisi.
-3. Taper « Ajac » : le panneau monte avec le clavier ; jusqu'à 5 lieux arrivent dans une carte blanche. En choisir un : le globe vole dessus et « Continuer » devient sombre.
-4. Fermer le clavier, toucher la poignée : le panneau prend tout l'écran ; la retoucher le redescend sur le globe.
-5. « Je tape un nom » (souligné, sous la recherche) mène toujours au formulaire sans lieu.
-6. Avec TalkBack : pas de globe, le même panneau sur fond bleu clair.
-7. Dans le formulaire, toucher « Départ » ou « Retour » : l'écran crème « Dates du voyage » s'ouvre sur le mois du départ. Les mois défilent de haut en bas, les jours passés sont plus pâles mais restent touchables (voyage déjà fait).
-8. Toucher le 2 puis le 9 : deux ronds sombres et une bande sable entre les deux, l'en-tête dit « 2 août 2027 › 9 août 2027 », en bas « 7 nuits sélectionnées ». Un même jour touché deux fois : « 1 jour sélectionné ».
-9. « Effacer les dates » vide tout ; « Enregistrer » reste gris tant que la fin n'est pas choisie, puis remplit les deux cases du formulaire.
-10. TalkBack sur un jour : « samedi 2 août 2027, début du voyage ».
-11. Carnet de baroudeur : le titre, le rang, le grand chiffre, « PASSEPORT », « CONTINENTS » et les noms des tampons sont dans la police arrondie.
-
-## Voyage : la page d'une destination sur la carte (fiche F5)
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage et toucher une destination de « Le trajet » : la carte se zoome sur elle, un panneau bleu clair monte à mi-hauteur ; en haut, le rond de retour, la pilule « Séville » avec les voyageurs dessous, l'aide. Toucher un transport ouvre toujours son formulaire.
-2. Dans la carte blanche : le nom en grand, « 7 nuits », la météo et l'heure sur place (vraies ; rien sans réseau), puis « ARRIVÉE » et « DÉPART » dans deux cases, et une phrase d'aide.
-3. Toucher « Départ » : le calendrier crème « Départ de Séville » ; seuls les jours après l'arrivée et jusqu'au dernier possible se touchent. Choisir 2 jours plus tard et « Enregistrer » : les nuits changent et les étapes suivantes se décalent, comme avec le + de la frise. Trop loin : « au retour » est dit.
-4. Le crayon à droite du nom ouvre le formulaire de la destination.
-5. Hors de France : la carte « Phrases utiles » juste dessous, et la monnaie hors zone euro.
-6. HÉBERGEMENT, RESTAURANTS, SPOTS : les lieux programmés (toucher ouvre leur page) et « + Ajouter » sous chacun. Pour qui suit sans partir : ni « + Ajouter », ni Départ touchable, ni crayon.
-7. Plus bas : les photos de la destination et ses notes vocales, l'anecdote Wikipédia, et « Tout savoir sur Séville » qui ouvre « Le mot de l'étape ».
-8. En bas, la barre blanche des destinations (si plusieurs) : la destination ouverte en bleu foncé avec son numéro jaune ; en toucher une autre change la page et la carte.
-9. Pendant le voyage, sur la destination du jour, le rond appareil photo (ajout rapide) au-dessus de la barre.
-10. Le retour d'Android ferme la page et revient au voyage.
-
-## Voyage : « Enrichir avec une IA » en trois étapes, la feuille « Monnaie du voyage » (fiche F6)
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage où l'on part, « Enrichir le voyage avec une IA » : page bleu clair, rond retour, « Enrichir avec une IA » et dessous « Tout le voyage ▾ ». En haut, « 1 Copier — 2 Coller — 3 Valider », le 1 en rond sombre.
-2. Toucher « Tout le voyage ▾ » : la liste « Pour » (tout le voyage ou une destination). En choisir une : le sous-titre devient son nom et le prompt ne parle que d'elle.
-3. Carte blanche bordée de bleu : « Copie le prompt », une phrase d'aide, le gros bouton sombre « Copier le prompt » : « Prompt copié » s'affiche.
-4. « Voir ou personnaliser le prompt » déplie le prompt dans un champ : le modifier puis « Copier le prompt » copie la version modifiée. En quittant l'écran, la modification est oubliée.
-5. « J'ai la réponse de l'IA › » passe à l'étape 2 : un champ « Réponse de l'IA » et « Analyser » en bas. Coller « bonjour » puis « Analyser » : on reste à l'étape 2, le message rouge dit que ce n'est pas le format demandé.
-6. Coller une vraie réponse puis « Analyser » : étape 3, les propositions dans une carte blanche, toutes cochées (cases sombres) ; « Laissé de côté » dit pourquoi un élément manque. Le bas dit « Ajouter la sélection (n) » et suit les cases.
-7. « Ajouter la sélection » : « n éléments ajoutés au voyage. » ; les lieux apparaissent sur la page des destinations.
-8. Toucher « 1 Copier » ou « 2 Coller » ramène à l'étape ; « 3 Valider » ne se touche qu'une fois une réponse lue. Pour qui suit sans partir : la phrase « Seuls ceux qui partent enrichissent le voyage. ».
-9. Depuis un voyage, « Monnaie » (ou « Convertir » d'une destination hors zone euro) : le voyage reste dessous, assombri ; une feuille crème arrondie monte du bas avec « Monnaie du voyage » et un rond blanc ✕.
-10. Pour qui gère le voyage : « Rechercher une monnaie (nom ou code) » puis des pilules (la monnaie actuelle en sombre, celles des pays du voyage, puis les plus courantes). Taper « dir » ou « mad » : le dirham. En toucher une : son taux du jour et le convertisseur s'affichent tout de suite.
-11. « Enregistrer » (gris tant que rien ne change) : la feuille se ferme et la monnaie du voyage a changé. Sans réseau : elle se ferme aussi et la monnaie part au retour du réseau.
-12. Le taux n'est jamais tapé : « 1 € = … » avec sa date et sa source, touchable. Pour qui suit sans gérer : la monnaie, son taux et le convertisseur, sans pilules ni « Enregistrer ».
-13. Toucher la partie assombrie, le ✕ ou le retour d'Android ferme la feuille.
-
-## Voyage : la recherche d'un lieu (« Trouver un restaurant »), retours E-41 à E-46
-
-**Publier Firebase : non.**
-1. Depuis une destination, « + Ajouter » sous RESTAURANTS : l'écran « Trouver un restaurant » prend tout l'écran, sans flèche ↓ de feuille ; une seule en-tête (rond retour, titre, aide).
-2. Le champ est blanc, arrondi, avec la loupe, sans bord rouge, même pendant la frappe.
-3. Dessous, une phrase courte « Autour de … (10 km), les plus proches d'abord. » ; tout en bas, en petit, « © les contributeurs d'OpenStreetMap ».
-4. Taper un nom : la ligne « Ajouter « … » » est blanche comme les résultats, son « + » en encre, pas en rouge.
-5. Taper vite plusieurs lettres : une seule recherche part à la fin (les précédentes sont arrêtées), ce qui évite le refus « trop de demandes ».
-6. Si OpenStreetMap ne répond pas, le message dit pourquoi : pas de réseau (ou Wi-Fi qui bloque), trop de demandes, ou trop lent. « Réessayer » est en encre.
-7. Retour d'Android ou rond retour : on revient à la destination, la carte et sa poignée réapparaissent.
-
-## Voyage : documents privés par défaut, ou partagés avec les voyageurs choisis (DESIGN-105)
-
-**Publier Firebase : oui** (règles Firestore et Storage, fonction `arrivalReminder`).
-1. Après la publication, attendre au plus 30 min : les documents d'avant restent visibles par tous ceux qui partent, avec leurs visages dessous.
-2. Ouvrir un voyage où l'on part, « Documents », « Ajouter un document », choisir un PDF : sous le nom et le type, « Qui le voit ? » avec « Privé : toi seul » coché.
-3. « Envoyer » : le document affiche « Privé » avec un cadenas. Sur le téléphone d'un autre voyageur : il n'apparaît pas.
-4. Sur le sien, toucher « Partager… » : « Partagé avec… » puis « Tous les voyageurs » coche tout le monde ; les voyageurs sont rangés par foyer (une case par foyer). « Enregistrer » : leurs visages s'affichent sous le document, et il apparaît chez eux.
-5. Décocher quelqu'un et enregistrer : le document disparaît de chez lui.
-6. Un document d'un autre : pas de « Partager… », seulement ses visages ou rien.
-7. Quelqu'un qui suit le voyage sans partir : toujours « Les documents sont réservés à ceux qui partent. ».
-8. Seul sur un voyage : « Tu es seul à partir : le document reste privé. ».
-
-## Voyage : la photo d'un lieu qui ne s'affichait pas, retour E-47
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage dont la destination est une petite ville ou une station (pas une grande ville) : la couverture de la liste des voyages et celle de la destination montrent une vraie photo, avec son crédit, au lieu du paysage dessiné.
-2. Faire de même pour deux ou trois autres destinations déjà créées : leurs photos s'affichent toujours, nettes en plein écran (photo demandée en 960 px).
-3. Couper le réseau, vider le cache de l'appli puis ouvrir un voyage : le paysage dessiné s'affiche, sans erreur ni écran vide. Remettre le réseau et rouvrir : la photo revient.
-4. « À savoir sur… » d'une destination et son anecdote s'affichent comme avant.
-5. Pour qui suit les journaux (Logcat, filtre « PlaceCover ») : quand une photo ne s'affiche pas, une ligne dit son adresse et la cause, puis la photo suivante des environs est essayée une fois avant le dessin.
-
-## Voyage : un voyageur retiré ne lit plus les documents des autres
-
-**Publier Firebase : oui** (règles Storage, fonction `onTripParticipantsChanged`).
-1. Sur un voyage où Lou et Sam partent, Lou partage un document avec Sam. Sam le voit et l'ouvre.
-2. Le créateur retire Sam des voyageurs. Sam ne voit plus le document de Lou ; sur le téléphone de Lou, le document n'affiche plus le visage de Sam.
-3. Les documents que Sam avait ajoutés restent à Sam (ils suivent la suppression habituelle).
-4. Remettre Sam dans le voyage : le document de Lou ne revient pas tout seul ; Lou le partage à nouveau avec « Partager… ».
-
-## Voyage : un globe aux vraies couleurs, retour E-48
-
-**Publier Firebase : non.**
-1. Ouvrir « Voyages » avec le globe : la Terre a ses vraies couleurs (océans bleu profond, forêts vertes, déserts ocre, glaces blanches), un halo bleu vif autour, un ciel noir étoilé. Le globe occupe environ 85 % de la largeur.
-2. Appui long sur le globe : « Globe : variante B. Rouvre « Voyages » pour la voir. » Quitter puis rouvrir « Voyages » : halo plus doux, globe un peu plus grand.
-3. Nouvel appui long : variante C, le globe d'avant (Standard Satellite), pour comparer. Un appui long de plus revient à A.
-4. Les points des voyages, leurs noms et le toucher d'un point qui ouvre le voyage marchent dans les trois variantes.
-5. La carte d'un voyage et le globe d'une nouvelle destination ne changent pas (Standard Satellite).
-6. Dire au fil design la variante retenue : elle devient celle de tout le monde, et l'appui long sera retiré.
-7. Carte d'un voyage, look Satellite (retour E-49) : la vraie imagerie en couleurs, avec les routes et les noms par-dessus (plus de fond gris-rose ni d'eau ardoise). Les noms sont en français (« Afrique », « Amérique du Sud », retour E-54).
-8. Dézoomer au maximum la carte d'un voyage (retour E-53) : le globe entier reste au-dessus du panneau, centré dans la partie visible, avec une petite marge. Monter puis descendre le panneau : le centre suit.
-9. Si l'imagerie manque encore : « Plantages » montre une ligne « Carte … : SOURCE … » qui dit quelle source est refusée et pourquoi (jeton, quota, réseau).
-10. Ouvrir un voyage de plusieurs étapes (retour E-51) : toutes les étapes tiennent dans la carte, la première comme la dernière, avec leur nom, sans toucher le bord ni passer sous le panneau.
-
-## Voyage : le bouton « Enregistrer » des dates toujours visible, retour E-63
-
-**Publier Firebase : non.**
-1. « Nouveau voyage », toucher les dates : en bas, au-dessus de la barre de gestes Android (ou des trois boutons), deux rangées : « Effacer les dates » à gauche et « Touche le premier jour » à droite, puis le bouton plein « Enregistrer », grisé.
-2. Toucher un premier jour : « Enregistrer » reste grisé. Toucher le dernier jour : « 7 nuits sélectionnées », le bouton devient foncé.
-3. Faire défiler le calendrier : la barre du bas et l'en-tête ne bougent pas.
-4. Toucher deux fois le même jour : « 1 jour sélectionné », « Enregistrer » est actif.
-5. Toucher « Enregistrer » : retour au formulaire avec les deux dates remplies. Rouvrir, changer, puis la flèche retour : les dates d'avant restent.
-6. Même essai sur un voyage existant (« Modifier ») et sur « Départ » d'une destination : « Enregistrer » est visible et change bien la date.
-7. Le titre « Dates du voyage » et la flèche ne passent pas sous la barre d'état en haut.
-
-## Voyage : une frise plus serrée, retours E-50 et E-57
-
-**Publier Firebase : non.**
-1. Ouvrir un voyage avec des destinations et des transports, puis la frise en plein écran : chaque « + » tient sur une rangée de 56 dp ; s'il y a un transport à cet endroit, sa ligne (« Voiture · … ») est sur la même rangée, à droite du « + », sans grand vide avant ni après.
-2. Entre deux destinations sans transport : un seul « + », puis la destination suivante. Le fil vertical passe toujours par les ronds.
-3. La bande jaune « n nuits sans destination » est juste sous le départ, basse (40 dp).
-4. Sous une destination sans lieux, sans photos ni notes : plus de ligne vide avec une seule icône photo. Avec des photos : la ligne des photos et son bouton d'ajout.
-5. Toucher un « + » : le menu d'ajout s'ouvre comme avant ; toucher une ligne de transport : sa page s'ouvre.
-6. Dans le panneau du voyage, les titres « Photos » et « Prochaine étape » sont en encre foncée, plus en rouge.
-7. Retour E-58 : allumer l'économiseur de batterie d'Android puis ouvrir un voyage : la bannière commence par « Économiseur de batterie d'Android activé. ». L'éteindre, batterie sous 20 % et débranchée : elle commence par « Batterie à n %. ».
-
-## Voyage : la feuille « Réglages de la carte », retour E-56
-
-**Publier Firebase : non.**
-1. Sur la carte d'un voyage, toucher le rond des réglages : une feuille crème monte du bas, coins arrondis, la carte assombrie dessus. Titre « Réglages de la carte » à gauche, rond blanc ✕ à droite.
-2. « Mode de vue » : deux tuiles blanches de même largeur, 2D et 3D, chacune avec un aperçu au-dessus de son nom. « Style de carte » : Satellite et Rues, pareil. La tuile choisie a un contour foncé, les autres aucun.
-3. Toucher une tuile : la carte change tout de suite derrière. « Enregistrer » (bouton foncé, texte blanc) garde le choix pour la prochaine fois.
-4. Le ✕, un toucher sur la carte assombrie ou le retour d'Android ferment la feuille et remettent la carte comme avant. Pas de bouton « Annuler » rouge.
-5. Avec TalkBack : le titre et les deux sections sont des titres ; chaque tuile dit son nom et si elle est choisie.
-
-## Voyages : le globe entier au-dessus de la feuille, sans écritures, retours E-65 à E-68
-
-**Publier Firebase : non.**
-1. Ouvrir « Voyages » (feuille à mi-hauteur) : le globe est entier, centré dans la partie au-dessus de la feuille, avec une petite marge ; il ne passe pas sous la feuille.
-2. Descendre la feuille (basse) : le globe glisse en douceur et se recentre dans la partie visible, plus grand s'il y a la place. Remonter : il suit et rapetisse si besoin.
-3. Sur le globe : aucun nom de pays, aucune frontière, aucune route ; seuls les points des voyages (et leurs noms) restent.
-4. Ouvrir un voyage : sa carte garde les noms en français et les routes.
-5. Feuille basse : le bouton jaune « Nouveau voyage » disparaît, il ne cache plus « À venir | Souvenirs ». Il revient dès qu'on remonte la feuille.
-6. Feuille basse : la feuille descend jusqu'en bas de l'écran, sous la barre de gestes ; la carte du voyage s'arrête proprement au-dessus de cette barre.
-7. Sans globe (économie de batterie) : la liste ne change pas.
-
-## Voyages : jamais de globe noir, et la raison d'une photo absente dans « Plantages » (retour du 24/11 soir)
-
-**Publier Firebase : non.**
-1. Ouvrir « Voyages » avec un bon réseau : le globe satellite s'affiche comme avant, aux vraies couleurs.
-2. Si les images satellite ne viennent pas dans les 8 s : le globe passe tout seul sur une Terre dessinée (océans, continents, sans écritures), avec les points des voyages. Il ne reste plus noir.
-3. Dans ce cas, Administration > Plantages montre au prochain lancement une ligne « globe : imagerie absente 8 s, Terre dessinée », et avant elle la ligne « Carte … : SOURCE … » qui dit pourquoi Mapbox a refusé les images, s'il l'a dit.
-4. Une destination sans photo (le dessin s'affiche) : au prochain lancement, « Plantages » montre une ligne « Photo du lieu : … » avec la raison, par exemple « refusé 403 fr.wikipedia.org », « délai dépassé » ou « image HttpException… ». Le nom du lieu n'y est jamais.
-5. Avec une photo qui s'affiche : aucune ligne nouvelle.
-6. Le globe de « Voyages » prend les mêmes images que la carte d'un voyage (Satellite Streets), sans noms ni routes. Sur le téléphone où la carte d'un voyage montrait de vraies photos mais où le globe restait noir, le globe a maintenant ses couleurs.
-
-## Voyage : une feuille plus facile à monter et descendre, retour E-59
-
-**Publier Firebase : non.**
-1. Sur un voyage avec la carte : poser le doigt n'importe où sur toute la largeur du haut de la feuille (pas seulement la petite barre) et glisser d'un petit centimètre vers le haut : la feuille monte d'un cran ; vers le bas : elle descend d'un cran.
-2. Un geste rapide, même court, suffit aussi. La feuille se cale toujours sur une des trois hauteurs (bas, milieu, plein écran).
-3. Toucher le haut de la feuille sans glisser : bas → milieu → plein écran ; en plein écran, le toucher la remet au milieu. La flèche ↓ en haut à gauche aussi.
-4. Feuille au milieu, liste tout en haut : glisser vers le bas au milieu de la liste fait descendre la feuille. Liste défilée : elle défile d'abord, puis la feuille descend au geste suivant.
-5. Feuille au milieu : toucher la carte hors des ronds fait descendre la feuille d'un cran. Toucher un rond ouvre toujours son étape.
-6. Même chose sur « Voyages » (globe) et sur la page d'une destination.
-
-## Voyage : départ et arrivée d'un trajet en deux champs, retour E-64
-
-**Publier Firebase : non.**
-1. Dans un voyage, « + » puis « Transport » : sous « Où ? », deux champs l'un sous l'autre, « Départ de » (exemple gris « Paris ») puis « Arrivée à » (exemple « Bordeaux »), et l'aide « Les deux villes du trajet. ».
-2. Les champs vides ont un bord crème, pas rouge. Toucher un champ : bord bleu foncé. Le rouge n'apparaît qu'après « Ajouter » avec les deux champs vides (« Indique le lieu. »).
-3. Taper « lyon » puis « camilles », ajouter : l'étape s'appelle « Lyon → Camilles » dans le trajet. La rouvrir : « Lyon » et « Camilles » reviennent chacun dans son champ.
-4. Une ville seule suffit : « Départ de » rempli et « Arrivée à » vide, l'étape s'enregistre avec ce seul nom.
-5. Une ancienne étape avec un seul lieu : il s'affiche dans « Départ de ».
-6. Les quatre tuiles Vol, Train, Bus, Voiture tiennent sur une seule ligne, bord crème, la tuile choisie avec un bord foncé épais. En très grand texte : deux par ligne.
-7. « + » puis « Destination » : un seul champ « Lieu » (exemple « Nom du lieu »).
-8. Toucher un champ pour que le clavier monte : la feuille prend tout l'écran avec UNE seule en-tête (rond retour, titre, « ? »), sans poignée à flèche au-dessus. Retour : la feuille redescend, puis un second retour quitte.
-9. Avec un voyage au nom long, le bandeau « Dans le voyage · … » s'affiche en entier, sur deux lignes si besoin.
-
-## Voyage : un voyage qui s'ouvre tout de suite, et un globe qui tourne avant de plonger, retours E-60 et E-61
-
-**Publier Firebase : non.**
-1. Sur « Voyages », toucher un point du globe ou un voyage de la liste : l'écran du voyage s'ouvre en moins d'une demi-seconde (le globe commence à voler vers lui, puis le voyage le recouvre).
-2. À l'ouverture d'un voyage : la feuille et le titre sont là tout de suite ; derrière, le globe entier tourne d'environ un demi-tour vers le voyage (vite, puis plus doucement), puis plonge sur les étapes ; le tout en 6 s environ.
-3. Toucher la carte pendant ce mouvement : il s'arrête là où il est.
-4. Pour les chiffres (Logcat, filtre « TripOpen ») : « écran : n ms après le toucher » puis « carte : n ms après le toucher ».
-
-## Voyages : le globe répond au doigt, plus de fausse alerte « imagerie absente », photo cherchée plus loin (E-69, retours du 24/11 23 h 56)
-
-**Publier Firebase : non.**
-1. Ouvrir « Voyages » : le globe satellite s'affiche. Glisser le doigt sur le globe (au-dessus de la feuille) : il tourne sous le doigt, puis reprend sa rotation après une pause.
-2. Toucher le point d'un voyage sur le globe : le voyage s'ouvre.
-3. Admin : appui long sur le globe : un message « Globe : variante B » s'affiche et le globe change tout de suite. Encore deux appuis longs : C (Standard Satellite), puis A. Ça marche aussi sur la Terre dessinée.
-4. Dès l'ouverture, avant les images satellite : le globe est une Terre dessinée (terres beiges, mers bleues), plus jamais noir ; les images la recouvrent en quelques secondes. Ensuite le globe reste en satellite, il ne passe pas sur la Terre dessinée, et « Plantages » n'a pas de ligne « globe : imagerie absente ».
-5. Sans réseau dès l'ouverture : au bout de 8 s, Terre dessinée, et la ligne « globe : imagerie absente 8 s (0 sources), Terre dessinée ».
-6. Une destination dont le nom exact n'a pas de page Wikipédia (« Samoure, Charente », un camping…) : la photo vient du nom avant la virgule, sinon de la recherche Wikipédia, sinon d'une page à moins de 10 km. « Plantages » ne montre plus « refusé 404 ».
-7. Si aucune photo n'est trouvée : une ligne « Photo du lieu : aucune photo : nom, recherche et 10 km autour » (ou « lieu sans position »), sans le nom du lieu.
-
-## Voyages : l'avatar en haut à droite, retour E-62
-
-**Publier Firebase : non.**
-1. Ouvrir « Voyages » : en haut à droite, de droite à gauche, l'avatar de l'admin (le même rond que sur les autres onglets), le « ? », puis le carnet.
-2. Toucher l'avatar : le panneau du compte s'ouvre (Mon profil, Apparence, Notifications, Aide…), comme depuis l'accueil. Le fermer : on reste sur « Voyages ».
-3. Sur un petit téléphone ou avec un grand texte (Réglages Android, taille de police maximale) : le titre « Voyages » se coupe avec « … » ; les trois ronds gardent leur taille.
-4. TalkBack sur l'avatar : il annonce l'ouverture du compte.
-5. Les écrans « Nouveau voyage » et le carnet n'ont pas d'avatar (seule la liste en a un).
-
-## Voyage : le temps d'ouverture écrit une fois par toucher (notes C de la 605)
-
-**Publier Firebase : non.**
-1. Avec le journal Android filtré sur « TripOpen » : toucher un voyage. Une ligne « écran : … ms » puis une ligne « carte : … ms ».
-2. Changer le style de la carte du voyage (Satellite ↔ Rues) : aucune nouvelle ligne « carte ».
-3. Revenir, toucher un autre voyage : de nouveau une ligne « écran » et une ligne « carte ».
-
-## Voyages : un globe aux couleurs plus soutenues, et le relief en variante B (retours du 25/11 matin)
-
-**Publier Firebase : non.**
-1. Ouvrir « Voyages » (variante A) : les continents sont plus colorés qu'avant, forêts plus vertes, déserts plus chauds, océans plus profonds ; pas d'ombrage des montagnes.
-2. Admin : appui long sur le globe : « Globe : variante B. ». Les mêmes couleurs, et les grandes chaînes de montagnes ombrées (Alpes, Andes, Himalaya), visibles sans zoomer.
-3. Encore un appui long : C, Standard Satellite comme avant, sans changement de couleur.
-4. Encore un : retour à A. Le choix reste au prochain lancement.
-5. Zoom (retour du 25/11, 7 h 05) : deux doigts écartés sur le globe le rapprochent, jusqu'à une vallée ; un double toucher rapproche d'un cran. Une fois rapproché, le globe ne tourne plus tout seul : on le promène au doigt.
-6. En zoomant sur des montagnes (Alpes, Pyrénées) : le relief se dresse en 3D, incliner avec deux doigts vers le haut le montre mieux.
-7. Rapproché, les points des voyages restent touchables et ouvrent leur voyage. Monter ou baisser la feuille remet le globe entier.
-8. Deux doigts rapprochés : retour au globe entier, et il reprend sa rotation 3 s après.
-
-## Voyages : un seul globe, la variante C choisie par l'admin (25/11, 7 h 50)
-
-**Publier Firebase : non.**
-1. Ouvrir « Voyages » : le globe est en Standard Satellite (variante C), sans écritures, avec les points des voyages.
-2. Appui long sur le globe : rien ne se passe, plus de message « Globe : variante … ».
-3. Sur un téléphone qui gardait A ou B : le globe est en C dès l'ouverture.
-4. Le zoom reste : deux doigts écartés pour s'approcher, le globe se promène au doigt, le relief se dresse en 3D sur les montagnes en gros plan ; deux doigts rapprochés pour revenir au globe entier.
-5. Toucher le point d'un voyage, de loin ou en gros plan : le voyage s'ouvre.

@@ -463,27 +463,6 @@ Tant que le module n'est pas allumé pour la famille (`config/app.features.gifts
 
 Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.
 
-### `surprises/{surpriseId}` (brief Cadeaux et Surprise du 25/11)
-
-Une surprise préparée pour une personne, le bénéficiaire, par ses membres. **Le bénéficiaire ne la lit jamais**, ni avant, ni le jour J, ni après, même s'il est l'admin principal : aucune exception dans les règles.
-
-| Champ | Type | Règle |
-|---|---|---|
-| `beneficiaryId` | string | un membre qui existe ; ne change jamais |
-| `title` | string | 1 à 60 caractères |
-| `occasion` | string | `christmas`, `birthday` ou `other` |
-| `date` | string | AAAA-MM-JJ |
-| `memberIds` | string[] | 1 à 30, jamais le bénéficiaire, toujours le créateur |
-| `creatorId`, `creatorName` | string | un adulte (PRODUIT, 25/11) ; ne changent jamais |
-| `status` | string | `preparing` (la suite arrive avec « C'est offert ») |
-| `createdAt`, `updatedAt` | timestamp | heure du serveur |
-
-Lecture : les membres seulement (requête `memberIds array-contains`). Le créateur change les réglages et les membres. Un autre membre avec l'appli (adulte ou enfant avec l'appli) s'ajoute lui-même, et rien d'autre (« Rejoindre »), sans pouvoir la lire avant. Le créateur la supprime. « Prête » et « À confirmer » ne sont pas stockés : ils se déduisent des membres et de la date.
-
-### `openSurprises/{surpriseId}`
-
-`{beneficiaryId, title, creatorName, updatedAt}`, écrit par le créateur dans le même lot que la surprise (les valeurs sont vérifiées contre elle), supprimé avec elle. Lisible par toute la famille sauf le bénéficiaire : à la création d'une surprise, l'appli prévient qu'il en existe déjà une pour la même personne et propose « Rejoindre ».
-
 ### `notebooks/{memberId}/entries/{entryId}` (récit 9 bis, « Mon carnet de cadeaux »)
 
 Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni la personne qui recevra, ni l'admin principal, ni quelqu'un qui agit pour lui. Le carnet n'est pas dans l'export.
@@ -893,7 +872,7 @@ Droits : seul un membre de `readerIds` lit le voyage. L'appli le cherche avec `r
 
 | Champ | Type | Description |
 |---|---|---|
-| `type` | texte | `flight`, `train`, `bus` (récit 112), `car`, `lodging` ou `activity` |
+| `type` | texte | `flight`, `train`, `car`, `lodging` ou `activity` |
 | `place` | texte | Le lieu, de 1 à 120 caractères |
 | `departDate`, `departTime` | texte | Le départ, `AAAA-MM-JJ`, et son heure `HH:MM` ou `null` |
 | `arriveDate`, `arriveTime` | texte ou `null` | L'arrivée prévue, au plus tôt le jour du départ |
@@ -982,10 +961,9 @@ Les numéros d'urgence de l'écran « Sécurité » sont une table fixe dans l'a
 | `file` | texte | `{docId}.pdf`, `{docId}.jpg` ou `{docId}.png`, selon `contentType` |
 | `contentType` | `application/pdf`, `image/jpeg` ou `image/png` | |
 | `size` | entier, 1 octet à 5 Mo | |
-| `sharedWith` | liste d'identifiants, 1 à 40, sans doublon | Qui le lit (DESIGN-105) : toujours le propriétaire, seul s'il est privé (par défaut), plus les participants qu'il choisit. Que des participants |
-| `createdAt` | horodatage serveur | La liste va du plus récent au plus ancien (triée sur le téléphone) |
+| `createdAt` | horodatage serveur | La liste va du plus récent au plus ancien |
 
-Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus, envoyé avant le document qui le nomme et jamais remplacé. Privé par défaut (DESIGN-105, décision de l'admin du 24/11) : un document n'est lu que par ceux de `sharedWith`, et seulement tant qu'ils partent ; jamais par ceux qui suivent le voyage, un passeport peut en être un. L'appli ne demande que les documents partagés avec le lecteur (`array-contains`), seule demande que les règles acceptent. Storage lit le fichier pour ceux de `sharedWith` du document qui le nomme, si ce document est bien celui du propriétaire du dossier (`ownerId`) : une seule lecture en plus de `memberEmails`, limite de deux lectures. Un voyageur retiré du voyage est retiré des `sharedWith` des documents des autres (`unshareDocuments`, dans `onTripParticipantsChanged`) ; ses propres documents restent les siens. Seul le propriétaire change `sharedWith` (« Partager… »), rien d'autre n'est modifié. Les documents d'avant reçoivent une fois `sharedWith` = les participants du voyage (`shareOldDocuments`, au premier passage de `arrivalReminder`, marqué par `migrations/documentsShared`). Le propriétaire, le créateur du voyage ou l'admin principal supprime le document ; Storage ne laisse supprimer le fichier qu'au propriétaire et au créateur (limite de deux lectures) ; `onTripDocumentDeleted` efface de toute façon le fichier d'un document retiré, par l'admin ou par une suppression interrompue. Le téléphone ouvre un document dans le dossier de cache `documents/`, vidé à chaque visite de l'écran. Absent de « Voir comme ». La suppression du voyage efface les documents et le dossier. La suppression d'un membre efface ses documents (et donc leurs fichiers) et son alerte de chaque voyage. Tests : `firebase/tests/trips.test.mjs`, `firebase/tests/storage.test.mjs` et `firebase/functions/test/trips.test.ts`.
+Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus, envoyé avant le document qui le nomme et jamais remplacé. Seuls les participants (`participantIds`) lisent l'un et l'autre, jamais ceux qui suivent le voyage : un passeport peut en être un. Rien n'est modifié. Le propriétaire, le créateur du voyage ou l'admin principal supprime le document ; Storage ne laisse supprimer le fichier qu'au propriétaire et au créateur (limite de deux lectures) ; `onTripDocumentDeleted` efface de toute façon le fichier d'un document retiré, par l'admin ou par une suppression interrompue. Le téléphone ouvre un document dans le dossier de cache `documents/`, vidé à chaque visite de l'écran. Absent de « Voir comme ». La suppression du voyage efface les documents et le dossier. La suppression d'un membre efface ses documents (et donc leurs fichiers) et son alerte de chaque voyage. Tests : `firebase/tests/trips.test.mjs`, `firebase/tests/storage.test.mjs` et `firebase/functions/test/trips.test.ts`.
 
 ### `trips/{tripId}/places/{placeId}` (récit 103, hébergements, restaurants et spots d'une destination)
 

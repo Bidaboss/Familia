@@ -44,7 +44,7 @@ data class FilmActions(
  * reminder of EXPERT-6 first.
  */
 @Composable
-fun AlbumFilmPart(state: FilmState, photoCount: Int, actions: FilmActions) {
+fun AlbumFilmPart(state: FilmState, photoCount: Int, actions: FilmActions, help: String? = null) {
     val context = LocalContext.current
     var remind by rememberSaveable { mutableStateOf(false) }
     var noPlayer by rememberSaveable { mutableStateOf(false) }
@@ -61,13 +61,12 @@ fun AlbumFilmPart(state: FilmState, photoCount: Int, actions: FilmActions) {
                     Text(stringResource(R.string.album_film_make))
                 }
                 Text(
-                    stringResource(
-                        when {
-                            state == FilmState.Failed -> R.string.album_film_failed
-                            photoCount < FILM_MIN_PHOTOS -> R.string.album_film_need_photos
-                            else -> R.string.album_film_help
-                        },
-                    ),
+                    when {
+                        state == FilmState.Failed -> stringResource(R.string.album_film_failed)
+                        photoCount < FILM_MIN_PHOTOS -> stringResource(R.string.album_film_need_photos)
+                        // The film of a trip says how it is made (récit 108); the albums keep their sentence.
+                        else -> help ?: stringResource(R.string.album_film_help)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (state == FilmState.Failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )

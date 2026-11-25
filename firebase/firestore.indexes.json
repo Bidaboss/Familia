@@ -29,15 +29,6 @@
     },
     {
       "collectionGroup": "steps",
-      "fieldPath": "departDate",
-      "indexes": [
-        { "order": "ASCENDING", "queryScope": "COLLECTION" },
-        { "order": "DESCENDING", "queryScope": "COLLECTION" },
-        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
-      ]
-    },
-    {
-      "collectionGroup": "steps",
       "fieldPath": "remindAt",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },

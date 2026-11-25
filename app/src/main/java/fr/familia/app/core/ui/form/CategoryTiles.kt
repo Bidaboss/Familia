@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.familia.app.core.theme.LocalClayColors
 
@@ -56,13 +55,8 @@ fun <T> CategoryTiles(
     enabled: Boolean = true,
     selectedColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     selectedContentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    /** Tiles on a line; null: 3, or 2 in big text. */
-    columns: Int? = null,
-    /** The edge of a tile not chosen; null: the outline of the theme. */
-    edgeColor: Color? = null,
-    selectedEdge: Dp = 2.5.dp,
 ) {
-    val columns = columns ?: categoryColumns(LocalDensity.current.fontScale)
+    val columns = categoryColumns(LocalDensity.current.fontScale)
     FlowRow(
         modifier = modifier.fillMaxWidth().selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -78,8 +72,8 @@ fun <T> CategoryTiles(
                     .clip(CategoryTileShape)
                     .background(if (isSelected) selectedColor else LocalClayColors.current.card)
                     .border(
-                        width = if (isSelected) selectedEdge else 1.5.dp,
-                        color = if (isSelected) selectedContentColor else edgeColor ?: MaterialTheme.colorScheme.outlineVariant,
+                        width = if (isSelected) 2.5.dp else 1.5.dp,
+                        color = if (isSelected) selectedContentColor else MaterialTheme.colorScheme.outlineVariant,
                         shape = CategoryTileShape,
                     )
                     .selectable(selected = isSelected, enabled = enabled, role = Role.RadioButton, onClick = { onSelect(option) }),

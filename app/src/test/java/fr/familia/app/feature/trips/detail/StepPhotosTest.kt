@@ -20,7 +20,7 @@ class StepPhotosTest {
 
     private val line = tripTimeline(
         trip,
-        listOf(step("car", StepType.Car, 10), step("bordeaux", StepType.Lodging, 10, 12), step("samoure", StepType.Lodging, 12)),
+        listOf(step("car", StepType.Car, 10), step("bordeaux", StepType.Lodging, 10, 12), step("palmyre", StepType.Lodging, 12)),
     )
 
     private fun photo(slot: Int, created: Int, taken: Int? = null) =
@@ -31,14 +31,14 @@ class StepPhotosTest {
         val result = stepPhotos(line, listOf(photo(1, created = 16, taken = 11), photo(2, created = 14)), zone)
         assertEquals(listOf("m_1"), result.byStay.getValue("bordeaux").map { it.id })
         // Without the day it was taken, the day it was added.
-        assertEquals(listOf("m_2"), result.byStay.getValue("samoure").map { it.id })
+        assertEquals(listOf("m_2"), result.byStay.getValue("palmyre").map { it.id })
         assertEquals(emptyList<AlbumPhoto>(), result.withoutStep)
     }
 
     @Test
     fun onTheDayOfAMoveThePhotoGoesToTheDestinationThatBegins() {
         val result = stepPhotos(line, listOf(photo(1, created = 12, taken = 12)), zone)
-        assertEquals(setOf("samoure"), result.byStay.keys)
+        assertEquals(setOf("palmyre"), result.byStay.keys)
     }
 
     @Test
@@ -50,10 +50,10 @@ class StepPhotosTest {
 
     @Test
     fun aPhotoAddedFromADestinationStaysUnderItWhateverItsDay() {
-        val chosen = photo(1, created = 11, taken = 11).copy(stepId = "samoure")
+        val chosen = photo(1, created = 11, taken = 11).copy(stepId = "palmyre")
         val gone = photo(2, created = 11, taken = 11).copy(stepId = "removed")
         val result = stepPhotos(line, listOf(chosen, gone), zone)
-        assertEquals(listOf("m_1"), result.byStay.getValue("samoure").map { it.id })
+        assertEquals(listOf("m_1"), result.byStay.getValue("palmyre").map { it.id })
         // Its step removed, the photo goes back to its day.
         assertEquals(listOf("m_2"), result.byStay.getValue("bordeaux").map { it.id })
     }
@@ -62,7 +62,7 @@ class StepPhotosTest {
     fun theQuickAddGoesUnderTheDestinationOfTheDay() {
         assertEquals("bordeaux", currentStay(line, day(11))?.step?.id)
         // The day of a move: the destination that begins.
-        assertEquals("samoure", currentStay(line, day(12))?.step?.id)
+        assertEquals("palmyre", currentStay(line, day(12))?.step?.id)
         assertEquals(null, currentStay(line, day(9)))
         assertEquals(null, currentStay(line, day(18)))
     }

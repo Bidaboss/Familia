@@ -19,16 +19,7 @@ import kotlinx.coroutines.flow.flowOf
 
 /** Connects the step form to its ViewModel, and closes it once saved or deleted. */
 @Composable
-fun StepEditRoute(
-    container: AppContainer?,
-    currentMember: Member,
-    tripId: String,
-    stepId: String?,
-    onDone: () -> Unit,
-    presetPlace: String? = null,
-    presetKind: StepAddKind? = null,
-    presetDay: java.time.LocalDate? = null,
-) {
+fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: String, stepId: String?, onDone: () -> Unit, presetPlace: String? = null) {
     val viewModel: StepEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -39,8 +30,6 @@ fun StepEditRoute(
                     tripId,
                     stepId,
                     presetPlace = presetPlace,
-                    presetKind = presetKind,
-                    presetDay = presetDay,
                     locator = container?.placeLocator,
                     savedState = createSavedStateHandle(),
                 )
@@ -58,7 +47,7 @@ fun StepEditRoute(
     val steps by remember(tripId) {
         container?.tripRepository?.observeSteps(tripId)?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) } ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(initialValue = emptyList())
-    TripMapBackdrop(token = BuildConfig.MAPBOX_PUBLIC_TOKEN, trip = trip, steps = steps, focusId = stepId, startLevel = if (stepId == null) 1 else 0) { inSheet ->
+    TripMapBackdrop(token = BuildConfig.MAPBOX_PUBLIC_TOKEN, trip = trip, steps = steps, focusId = stepId) { inSheet ->
         StepEditScreen(state = state, onChange = viewModel::update, onSave = viewModel::save, onDelete = viewModel::delete, onBack = onDone, inSheet = inSheet)
     }
 }

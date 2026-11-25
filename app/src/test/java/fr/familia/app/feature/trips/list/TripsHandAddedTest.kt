@@ -35,21 +35,10 @@ class TripsHandAddedTest {
                 TripsScreen(previewTrips(), {}, {}, {}, {}, onOpenCarnet = { opened++ }, handAdded = listOf(place))
             }
         }
-        compose.onNodeWithText("Souvenirs", substring = true, useUnmergedTree = true).performClick()
+        compose.onNodeWithText("Souvenirs", useUnmergedTree = true).performClick()
         compose.waitForIdle()
         compose.onNodeWithContentDescription("Lisbonne, ", substring = true).performClick()
         assertEquals(1, opened)
         compose.onNodeWithContentDescription("Ajouté à la main", substring = true).assertExists()
-    }
-
-    @Test
-    fun `a child with no trip but a destination added by hand still finds it in Souvenirs`() {
-        val empty = TripsUiState.Success(emptyList(), emptyList(), emptyList(), LocalDate.now(), canCreate = false)
-        compose.setContent {
-            FamiliaTheme { TripsScreen(empty, {}, {}, {}, {}, onOpenCarnet = {}, handAdded = listOf(place)) }
-        }
-        compose.onNodeWithText("Souvenirs", substring = true, useUnmergedTree = true).performClick()
-        compose.waitForIdle()
-        compose.onNodeWithContentDescription("Lisbonne, ", substring = true).assertExists()
     }
 }

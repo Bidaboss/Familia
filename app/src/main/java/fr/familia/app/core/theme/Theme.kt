@@ -67,9 +67,8 @@ internal val DarkColors = darkColorScheme(
 
 /**
  * Wraps every Familia screen with its theme and the Argile style, in light or dark mode.
- * [theme] is the one shown on this phone (Réglages › Thème, récit 113): a photo theme, or Contraste
- * fort; Classique, the terracotta Argile while the Thèmes module is off, follows the phone's dark
- * mode, and the others keep their own look (DESIGN-160: the same in dark mode).
+ * [theme] is the one chosen on this phone (Famille › Réglages › Apparence); Classique, the
+ * terracotta Argile, follows the phone's dark mode, and the other themes keep their own look.
  * Android 12 dynamic color is intentionally not used (see Color.kt).
  */
 @Composable
@@ -90,7 +89,6 @@ fun FamiliaTheme(
         LocalClayColors provides if (dark) spec.darkClay ?: spec.lightClay else spec.lightClay,
         LocalClayStyle provides style,
         LocalTitleFont provides titleFont,
-        LocalPhotoTheme provides theme.takeIf { it.isPhoto },
     ) {
         MaterialTheme(
             colorScheme = if (dark) spec.dark ?: spec.light else spec.light,

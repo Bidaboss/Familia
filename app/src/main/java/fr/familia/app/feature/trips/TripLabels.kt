@@ -1,7 +1,6 @@
 package fr.familia.app.feature.trips
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DirectionsBus
 import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Flight
 import androidx.compose.material.icons.outlined.Hotel
@@ -39,7 +38,6 @@ fun stepTypeLabel(type: StepType): String = stringResource(
     when (type) {
         StepType.Flight -> R.string.trip_step_type_flight
         StepType.Train -> R.string.trip_step_type_train
-        StepType.Bus -> R.string.trip_step_type_bus
         StepType.Car -> R.string.trip_step_type_car
         StepType.Lodging -> R.string.trip_step_type_lodging
         StepType.Activity -> R.string.trip_step_type_activity
@@ -50,7 +48,6 @@ fun stepTypeLabel(type: StepType): String = stringResource(
 fun stepTypeIcon(type: StepType): ImageVector = when (type) {
     StepType.Flight -> Icons.Outlined.Flight
     StepType.Train -> Icons.Outlined.Train
-    StepType.Bus -> Icons.Outlined.DirectionsBus
     StepType.Car -> Icons.Outlined.DirectionsCar
     StepType.Lodging -> Icons.Outlined.Hotel
     StepType.Activity -> Icons.Outlined.LocalActivity
@@ -58,11 +55,11 @@ fun stepTypeIcon(type: StepType): ImageVector = when (type) {
 
 /** A section title of the trip screens, read as a heading by TalkBack. */
 @Composable
-fun TripSectionTitle(text: String, modifier: Modifier = Modifier, color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary) {
+fun TripSectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
         style = MaterialTheme.typography.titleLarge,
-        color = color,
+        color = MaterialTheme.colorScheme.primary,
         modifier = modifier.padding(top = 8.dp).semantics { heading() },
     )
 }

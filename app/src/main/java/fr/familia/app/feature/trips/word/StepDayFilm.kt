@@ -6,13 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,11 +35,7 @@ import fr.familia.app.core.data.TripFilms
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.photo.PhotoStorage
-import fr.familia.app.core.share.FilmDownloadLine
-import fr.familia.app.core.share.FilmSource
-import fr.familia.app.core.share.galleryFilmName
 import fr.familia.app.core.share.playVideoUrl
-import fr.familia.app.core.share.rememberFilmDownload
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.video.FilmStyle
 import fr.familia.app.core.video.PhotoFilmMaker
@@ -168,7 +161,6 @@ fun DayFilmsPart(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val download = rememberFilmDownload()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when (state) {
             is DayFilmState.Working -> {
@@ -201,27 +193,17 @@ fun DayFilmsPart(
             }
         }
         published.forEach { film ->
-            val day = frenchDate(film.day, "d MMMM")
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(
-                    onClick = { scope.launch { playUrl(film)?.let { playVideoUrl(context, it) } } },
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-                ) {
-                    Icon(Icons.Outlined.PlayArrow, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.day_film_published, day, film.authorName), modifier = Modifier.weight(1f))
-                }
-                // « Télécharger » (règle 32): the published film into the gallery, from Storage.
-                if (download != null) {
-                    IconButton(
-                        onClick = { download.download(FilmSource.Published({ playUrl(film) }, galleryFilmName("film", film.id))) },
-                        modifier = Modifier.size(56.dp),
-                    ) {
-                        Icon(Icons.Outlined.SaveAlt, contentDescription = stringResource(R.string.film_download_film, day))
-                    }
-                }
+            TextButton(
+                onClick = { scope.launch { playUrl(film)?.let { playVideoUrl(context, it) } } },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            ) {
+                Icon(Icons.Outlined.PlayArrow, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    stringResource(R.string.day_film_published, frenchDate(film.day, "d MMMM"), film.authorName),
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
-        FilmDownloadLine(download)
     }
 }

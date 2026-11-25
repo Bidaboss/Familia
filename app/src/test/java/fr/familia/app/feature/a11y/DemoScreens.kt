@@ -5,7 +5,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.navigation.AccountActions
 import fr.familia.app.core.navigation.AccountSheet
-import fr.familia.app.core.theme.ThemeChoice
+import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.feature.events.detail.EventDetailScreen
 import fr.familia.app.feature.events.detail.previewEventDetail
 import fr.familia.app.feature.home.HomeActions
@@ -89,7 +89,7 @@ internal object DemoScreens {
                 onBack = {},
             )
         },
-        screen("l'Apparence") { AppearanceScreen(ThemeChoice.Season, {}, {}) },
+        screen("l'Apparence") { AppearanceScreen(FamiliaThemeId.Spain, {}, {}) },
         screen("le Planning avec « + Ajouter » et les sondages") {
             PlanningScreen(previewPlanning(), {}, null, {}, onAddEvent = {}, onAddPoll = {}, onOpenPolls = {}, polls = PollsSummary(open = 2, toVote = 1))
         },

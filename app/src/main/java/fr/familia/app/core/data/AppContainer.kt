@@ -63,9 +63,6 @@ interface AppContainer {
 
     /** « Ma valise » (récit 62). */
     val packingRepository: PackingRepository? get() = null
-
-    /** The surprises (brief Cadeaux et Surprise du 25/11). */
-    val surpriseRepository: SurpriseRepository? get() = null
     val eventCommentRepository: EventCommentRepository?
 
     /** The comments of a good news (récit 67), with the same calls as those of an event. */
@@ -215,7 +212,6 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     /** « Qui apporte quoi » of an event (PRD, récit 4 bis). */
     override val bringRepository: BringRepository? by lazy { firestore?.let { FirestoreBringRepository(it) } }
     override val packingRepository: PackingRepository? by lazy { firestore?.let { FirestorePackingRepository(it) } }
-    override val surpriseRepository: SurpriseRepository? by lazy { firestore?.let { FirestoreSurpriseRepository(it) } }
 
     /** The comments of an event (PRD, récit 28). */
     override val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }
@@ -354,7 +350,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val placeArticles: PlaceArticles? by lazy { WikimediaPlaceArticles() }
     override val placeAnecdotes: PlaceArticles? by lazy { WikimediaPlaceArticles(WIKIPEDIA_HOST) }
     override val placeWeather: PlaceWeather? by lazy { OpenMeteoWeather() }
-    override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos(onRefused = { fr.familia.app.core.place.PhotoFailureLog.record(appContext, it) }) }
+    override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
     override val placeSearch: PlaceSearch? by lazy { OverpassPlaceSearch() }
     override val exchangeRates: ExchangeRates? by lazy { OpenExchangeRates(appContext.getSharedPreferences("exchange-rates", Context.MODE_PRIVATE)) }

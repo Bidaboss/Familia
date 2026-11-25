@@ -36,6 +36,6 @@ class PlaceWeatherTest {
 
     @Test
     fun `the anecdote comes from Wikipedia in French`() {
-        assertEquals("https://fr.wikipedia.org/api/rest_v1/page/summary/La_Samoure", summaryUrl("La Samoure", WIKIPEDIA_HOST))
+        assertEquals("https://fr.wikipedia.org/api/rest_v1/page/summary/La_Palmyre", summaryUrl("La Palmyre", WIKIPEDIA_HOST))
     }
 }

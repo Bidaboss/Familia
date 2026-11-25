@@ -18,7 +18,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PersonOff
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,12 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.theme.ClayTint
@@ -50,9 +47,6 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.form.PeopleRow
 import fr.familia.app.core.ui.form.PersonChoice
-import fr.familia.app.feature.trips.TripPageCard
-import fr.familia.app.feature.trips.TripPageCheck
-import fr.familia.app.feature.trips.TripPageLink
 
 /** What the checklist can do; only a participant gets the changing ones. */
 data class ChecklistActions(
@@ -81,34 +75,22 @@ internal fun TripChecklist(
     assignees: List<ItemAssignee>,
     isParticipant: Boolean,
     actions: ChecklistActions,
-    /** On the light blue page of « Valise » (fiche F3): the white card, the dark boxes, « Responsable : ». */
-    onPage: Boolean = false,
 ) {
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
-    val lines: @Composable () -> Unit = {
+    ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Plain) {
         if (items.isEmpty()) {
             Text(
                 stringResource(if (isParticipant) R.string.trip_checklist_empty_participant else R.string.trip_checklist_empty),
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (onPage) TripPathColors.Ink.copy(alpha = 0.7f) else FamiliaClay.colors.onTintVariant(ClayTint.Plain),
+                color = FamiliaClay.colors.onTintVariant(ClayTint.Plain),
             )
         }
         items.forEach { item ->
-            ItemRow(item, isParticipant, onDone = { actions.onDone(item.id, it) }, onEdit = { editingId = item.id }, onPage = onPage)
-            if (isParticipant && !item.done) TakeButton(item, actions, onPage)
+            ItemRow(item, isParticipant, onDone = { actions.onDone(item.id, it) }, onEdit = { editingId = item.id })
+            if (isParticipant && !item.done) TakeButton(item, actions)
         }
-    }
-    if (onPage) {
-        TripPageCard {
-            lines()
-            if (isParticipant) TripPageLink(stringResource(R.string.trip_checklist_add_line), onClick = { editingId = NEW_ITEM })
-        }
-    } else {
-        ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Plain) {
-            lines()
-            if (isParticipant) {
-                ClayLink(stringResource(R.string.trip_checklist_add), onClick = { editingId = NEW_ITEM }, modifier = Modifier.padding(top = 8.dp))
-            }
+        if (isParticipant) {
+            ClayLink(stringResource(R.string.trip_checklist_add), onClick = { editingId = NEW_ITEM }, modifier = Modifier.padding(top = 8.dp))
         }
     }
     val id = editingId
@@ -134,48 +116,35 @@ internal fun TripChecklist(
 
 /** « Je m'en charge » on a free line, « Je ne peux plus » on mine: one tap, no dialog (récit 62). */
 @Composable
-private fun TakeButton(item: TripItem, actions: ChecklistActions, onPage: Boolean) {
+private fun TakeButton(item: TripItem, actions: ChecklistActions) {
     val take = actions.onTake
     val release = actions.onRelease
-    val colors = if (onPage) ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink) else ButtonDefaults.textButtonColors()
     when {
         item.assigneeId == null && take != null ->
-            TextButton(onClick = { take(item) }, modifier = Modifier.heightIn(min = 56.dp).padding(start = 36.dp), colors = colors) {
+            TextButton(onClick = { take(item) }, modifier = Modifier.heightIn(min = 56.dp).padding(start = 36.dp)) {
                 Text(stringResource(R.string.packing_take))
             }
         item.assigneeId != null && item.assigneeId == actions.myId && release != null ->
-            TextButton(onClick = { release(item) }, modifier = Modifier.heightIn(min = 56.dp).padding(start = 36.dp), colors = colors) {
+            TextButton(onClick = { release(item) }, modifier = Modifier.heightIn(min = 56.dp).padding(start = 36.dp)) {
                 Text(stringResource(R.string.packing_release))
             }
     }
 }
 
 @Composable
-private fun ItemRow(item: TripItem, isParticipant: Boolean, onDone: (Boolean) -> Unit, onEdit: () -> Unit, onPage: Boolean) {
-    val variant = if (onPage) TripPathColors.Ink.copy(alpha = 0.7f) else FamiliaClay.colors.onTintVariant(ClayTint.Plain)
-    val ink = if (onPage) TripPathColors.Ink else MaterialTheme.colorScheme.onSurface
+private fun ItemRow(item: TripItem, isParticipant: Boolean, onDone: (Boolean) -> Unit, onEdit: () -> Unit) {
+    val variant = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
         val text: @Composable () -> Unit = {
             Column {
-                if (onPage) {
-                    Text(
-                        item.label,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (item.done) variant else ink,
-                        textDecoration = if (item.done) TextDecoration.LineThrough else null,
-                    )
-                    item.assigneeName?.let { Text(stringResource(R.string.trip_checklist_in_charge, it), fontSize = 13.sp, color = variant) }
-                } else {
-                    Text(
-                        item.label,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (item.done) variant else ink,
-                        textDecoration = if (item.done) TextDecoration.LineThrough else null,
-                    )
-                    item.assigneeName?.let {
-                        Text(stringResource(R.string.trip_checklist_assignee, it), style = MaterialTheme.typography.bodyMedium, color = variant)
-                    }
+                Text(
+                    item.label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (item.done) variant else MaterialTheme.colorScheme.onSurface,
+                    textDecoration = if (item.done) TextDecoration.LineThrough else null,
+                )
+                item.assigneeName?.let {
+                    Text(stringResource(R.string.trip_checklist_assignee, it), style = MaterialTheme.typography.bodyMedium, color = variant)
                 }
             }
         }
@@ -187,7 +156,7 @@ private fun ItemRow(item: TripItem, isParticipant: Boolean, onDone: (Boolean) ->
                     .toggleable(value = item.done, role = Role.Checkbox, onValueChange = onDone),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (onPage) TripPageCheck(item.done) else Checkbox(checked = item.done, onCheckedChange = null)
+                Checkbox(checked = item.done, onCheckedChange = null)
                 Spacer(Modifier.width(12.dp))
                 text()
             }
@@ -196,7 +165,6 @@ private fun ItemRow(item: TripItem, isParticipant: Boolean, onDone: (Boolean) ->
             TextButton(
                 onClick = onEdit,
                 modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = editLabel },
-                colors = if (onPage) ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink) else ButtonDefaults.textButtonColors(),
             ) {
                 Icon(Icons.Outlined.Edit, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
@@ -206,7 +174,7 @@ private fun ItemRow(item: TripItem, isParticipant: Boolean, onDone: (Boolean) ->
             Icon(
                 if (item.done) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
                 contentDescription = stringResource(if (item.done) R.string.trip_checklist_done else R.string.trip_checklist_todo),
-                tint = if (item.done) (if (onPage) ink else MaterialTheme.colorScheme.primary) else variant,
+                tint = if (item.done) MaterialTheme.colorScheme.primary else variant,
             )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) { text() }

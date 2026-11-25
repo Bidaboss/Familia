@@ -9,17 +9,11 @@ import fr.familia.app.core.model.TripPlace
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.place.PlaceLocator
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeoutOrNull
-import fr.familia.app.core.place.distanceMeters
 
 /** The key of a line of the preview: a new destination, or a place under a destination. */
 fun destinationKey(d: Int): String = "d$d"
@@ -103,7 +97,6 @@ class TripEnrichViewModel(
             var added = 0
             var failed = false
             reading.destinations.forEachIndexed { d, destination ->
-                var anchor: Pair<Double, Double>? = null
                 val stepId = if (destination.isNew) {
                     if (destinationKey(d) !in current.ticked) return@forEachIndexed
                     val id = stepRepo.newStepId(tripId)
@@ -113,36 +106,21 @@ class TripEnrichViewModel(
                         return@forEachIndexed
                     }
                     added++
-                    if (stay.lat != null && stay.lng != null) anchor = stay.lat to stay.lng
                     id
                 } else {
-                    val id = destination.existingStepId ?: return@forEachIndexed
-                    anchor = destination.anchor
-                    id
-                }
-                // Looked for a few at a time, not one after the other: 15 places on a slow network would
-                // otherwise wait up to 45 s (retour C1 de #579).
-                val near = anchor
-                val gate = Semaphore(GEOCODE_AT_ONCE)
-                val points = coroutineScope {
-                    destination.places.mapIndexed { p, place ->
-                        async {
-                            if (placeKey(d, p) !in current.ticked) null else gate.withPermit { placePosition(place, destination.city, near) }
-                        }
-                    }.awaitAll()
+                    destination.existingStepId ?: return@forEachIndexed
                 }
                 destination.places.forEachIndexed { p, place ->
                     if (placeKey(d, p) !in current.ticked) return@forEachIndexed
-                    val point = points[p]
                     val written = TripPlace(
                         id = placeRepo.newPlaceId(tripId),
                         stepId = stepId,
                         kind = place.kind,
                         name = place.name,
                         address = place.address,
-                        // Never a point given by the AI: the phone looks for it (règle 29), else by hand from its page.
-                        lat = point?.first,
-                        lng = point?.second,
+                        // Never a point given by the AI: the place is placed by hand, from its page.
+                        lat = null,
+                        lng = null,
                         arriveTime = place.arriveTime,
                         note = place.note,
                         cost = place.cost,
@@ -167,25 +145,6 @@ class TripEnrichViewModel(
         return if (found == null) step else step.copy(lat = found.lat, lng = found.lng)
     }
 
-    /**
-     * The point of a place of the answer (récit 112, règle 29), found by the phone from its address, or
-     * its name, and the city: kept only within [PLACE_RADIUS_METERS] of its destination, so a place of
-     * the same name elsewhere is never put on the map. None without the point of the destination.
-     */
-    private suspend fun placePosition(place: ProposedPlace, city: String, anchor: Pair<Double, Double>?): Pair<Double, Double>? {
-        val finder = locator ?: return null
-        val near = anchor ?: return null
-        val query = listOf(place.address ?: place.name, city).joinToString(", ")
-        val found = try {
-            withTimeoutOrNull(GEOCODE_MILLIS) { finder.find(query) }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            null
-        } ?: return null
-        return (found.lat to found.lng).takeIf { nearEnough(it, near) }
-    }
-
     /** True once the write is accepted, or still pending after the timeout (queued offline). */
     private suspend fun write(block: suspend () -> Unit): Boolean = try {
         withTimeoutOrNull(writeTimeoutMillis) { block() }
@@ -198,15 +157,5 @@ class TripEnrichViewModel(
 
     companion object {
         const val GEOCODE_MILLIS = 3_000L
-
-        /** How many places of the answer the phone looks for at once. */
-        const val GEOCODE_AT_ONCE = 4
-
-        /** How far from its destination a place found by the phone may be. */
-        const val PLACE_RADIUS_METERS = 50_000
     }
 }
-
-/** True when [point] is within [TripEnrichViewModel.PLACE_RADIUS_METERS] of [destination]. */
-internal fun nearEnough(point: Pair<Double, Double>, destination: Pair<Double, Double>): Boolean =
-    distanceMeters(point.first, point.second, destination.first, destination.second) <= TripEnrichViewModel.PLACE_RADIUS_METERS

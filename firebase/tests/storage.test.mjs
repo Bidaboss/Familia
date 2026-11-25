@@ -578,41 +578,14 @@ describe('trip documents folder (récit 105, règle 41)', () => {
   const file = (owner, name = 'abc123.pdf') => `trips/t1/documents/${owner}/${name}`;
   const pdf = { contentType: 'application/pdf' };
 
-  // The Firestore document that names a file, shared with [sharedWith] (DESIGN-105).
-  async function named(docId, owner, sharedWith) {
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), `trips/t1/documents/${docId}`), {
-        ownerId: owner, ownerName: owner, title: 'Billet', kind: 'ticket', file: `${docId}.pdf`,
-        contentType: 'application/pdf', size: 1, sharedWith, createdAt: Timestamp.fromMillis(0),
-      });
-    });
-  }
-
-  test('a participant sends a PDF, a JPEG or a PNG in their folder; only those it is shared with read it', async () => {
+  test('a participant sends a PDF, a JPEG or a PNG in their folder, and only those who go read it', async () => {
     const storage = storageAs(NEIGHBOUR);
     await assertSucceeds(uploadString(ref(storage, file('adult3')), 'x'.repeat(1024 * 1024), 'raw', pdf));
     await assertSucceeds(uploadString(ref(storage, file('adult3', 'abc124.jpg')), 'x', 'raw', jpeg));
     await assertSucceeds(uploadString(ref(storage, file('adult3', 'abc125.png')), 'x', 'raw', { contentType: 'image/png' }));
-    // Private: its owner reads it, ADULT (who goes too) does not.
-    await named('abc123', 'adult3', ['adult3']);
-    await assertSucceeds(getBytes(ref(storage, file('adult3'))));
-    await assertFails(getBytes(ref(storageAs(ADULT), file('adult3'))));
-    // Shared with ADULT: they read it; a follower or someone else never does.
-    await named('abc123', 'adult3', ['adult3', 'adult1']);
     await assertSucceeds(getBytes(ref(storageAs(ADULT), file('adult3'))));
     await assertFails(getBytes(ref(storageAs(ADMIN), file('adult3'))));
     await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file('adult3'))));
-    // No document names the file: nobody reads it.
-    await assertFails(getBytes(ref(storageAs(ADULT), file('adult3', 'abc124.jpg'))));
-  });
-
-  test('a document of another owner with the same name never opens the file', async () => {
-    // Relecture de la 598: ADULT names a document like the file of adult3 and shares it with themselves.
-    await uploadString(ref(storageAs(NEIGHBOUR), file('adult3', 'abc300.pdf')), 'x', 'raw', pdf);
-    await named('abc300', 'adult1', ['adult1']);
-    await assertFails(getBytes(ref(storageAs(ADULT), file('adult3', 'abc300.pdf'))));
-    await named('abc300', 'adult3', ['adult3', 'adult1']);
-    await assertSucceeds(getBytes(ref(storageAs(ADULT), file('adult3', 'abc300.pdf'))));
   });
 
   test('never in someone else\'s folder, never by a follower, never too big, never another type', async () => {

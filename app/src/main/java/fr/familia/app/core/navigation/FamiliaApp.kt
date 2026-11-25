@@ -2,8 +2,6 @@ package fr.familia.app.core.navigation
 
 import fr.familia.app.core.mention.LocalMentionFamily
 import fr.familia.app.core.mention.LocalOpenMember
-import fr.familia.app.core.power.LocalBatterySaving
-import fr.familia.app.core.power.watchBatterySaving
 import fr.familia.app.core.welcome.OliveMascot
 import fr.familia.app.core.welcome.LocalMascotFruits
 import fr.familia.app.core.welcome.welcomeFruits
@@ -150,7 +148,6 @@ import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
 import fr.familia.app.feature.gifts.surprise.SurprisePickRoute
-import fr.familia.app.feature.gifts.surprise.SurpriseEditRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -170,9 +167,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
@@ -229,11 +224,6 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
-import fr.familia.app.core.theme.LocalPhotoTheme
-import fr.familia.app.core.theme.PhotoBackdrop
-import fr.familia.app.core.theme.PhotoScroll
-import fr.familia.app.feature.home.PhotoHome
-import fr.familia.app.feature.home.PhotoHomeHeader
 import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.LocalClayStyle
@@ -435,7 +425,6 @@ fun FamiliaApp(
     val homePrefs = remember(context) { HomePreferences(context.applicationContext) }
     val themePrefs = remember(context) { ThemePreferences(context.applicationContext) }
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
-    var highContrast by remember { mutableStateOf(themePrefs.highContrast) }
     var chosenTitleFont by remember { mutableStateOf(themePrefs.titleFont) }
     var chosenBodyFont by remember { mutableStateOf(themePrefs.bodyFont) }
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
@@ -775,20 +764,9 @@ fun FamiliaApp(
     }
 
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
-    // « Selon la saison » is read again each day the app comes back (récit 113, règle 16).
     val themesOn = features.isOn(Feature.Themes)
-    var today by remember { mutableStateOf(LocalDate.now()) }
-    LifecycleStartEffect(Unit) {
-        today = LocalDate.now()
-        onStopOrDispose { }
-    }
-    val shownTheme = when {
-        !themesOn -> FamiliaThemeId.Classic
-        highContrast -> FamiliaThemeId.HighContrast
-        else -> chosenTheme.on(today)
-    }
     FamiliaTheme(
-        theme = shownTheme,
+        theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic,
         seeds = true,
         titleFont = if (themesOn) chosenTitleFont else TitleFont.Round,
         bodyFont = if (themesOn) chosenBodyFont else BodyFont.Normal,
@@ -804,8 +782,6 @@ fun FamiliaApp(
             liveFamily?.let { welcomeFruits(it, currentMember) }.orEmpty()
         },
         LocalFeatureFlags provides features,
-        // « Économie de batterie » (récit 112, règle 46): one receiver for the whole app.
-        LocalBatterySaving provides watchBatterySaving(),
         // « @Prénom » in the texts and comments (Kévin, 19/11).
         LocalMentionFamily provides liveFamily,
         LocalOpenMember provides { id -> navController.navigate(MemberProfileDestination(id)) },
@@ -861,15 +837,9 @@ fun FamiliaApp(
                 onDismiss = { accountOpen = false },
             )
         }
-        // Récit 113: with a photo theme, the Accueil lies on its photo, under the status bar too, and
-        // draws its own header in place of the title bar (règles 2, 3, 9 à 11).
-        val photoTheme = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Home) && features.isOn(Feature.Home) }
-        val photoScroll = remember { PhotoScroll() }
-        Box(Modifier.fillMaxSize()) {
-        if (photoTheme != null) PhotoBackdrop(photoTheme, photoScroll)
         Scaffold(
-            // The theme's background and its pattern show behind the tabs, the photo behind the Accueil.
-            modifier = (if (photoTheme != null) Modifier else Modifier.themeBackground()).nestedScroll(topBarScroll.nestedScrollConnection),
+            // The theme's background and its pattern show behind the tabs.
+            modifier = Modifier.themeBackground().nestedScroll(topBarScroll.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
@@ -884,7 +854,7 @@ fun FamiliaApp(
                 val onWeekly = if (weeklyOn && viaPlanning) ({ navController.navigate(WeeklyQuestionDestination()) }) else null
                 val onTrips = if (features.isOn(Feature.Trips) && viaPlanning) ({ navController.navigate(TripsDestination) { launchSingleTop = true } }) else null
                 // The Voyages list draws its own sky-colored bar.
-                if (tab != null && tab != TopLevelDestination.Trips && photoTheme == null) {
+                if (tab != null && tab != TopLevelDestination.Trips) {
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
@@ -991,16 +961,6 @@ fun FamiliaApp(
                         HomeTab(
                             container = container,
                             currentMember = currentMember,
-                            photo = photoTheme?.let { theme ->
-                                PhotoHome(theme, photoScroll) {
-                                    PhotoHomeHeader(
-                                        firstName = currentMember.firstName,
-                                        today = today,
-                                        onAdd = { addOpen = true },
-                                        avatar = { AccountButton(currentMember) { accountOpen = true } },
-                                    )
-                                }
-                            },
                             actions = HomeActions(
                                 onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                                 onOpenPlanning = { navController.navigateToTab(TopLevelDestination.Planning) },
@@ -1195,10 +1155,23 @@ fun FamiliaApp(
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                             onAddTrip = { navController.navigate(TripEditDestination()) },
                             onOpenCarnet = { navController.navigate(TripCarnetDestination) { launchSingleTop = true } },
-                            onAccount = { accountOpen = true },
                             // A tab of the bar when its module is on: no « Retour » then.
                             onBack = if (TopLevelDestination.Trips in tabs) null else ({ navController.popBackStack() }),
                             onOpenAlbums = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) { launchSingleTop = true } }) else null,
+                            // Étapes, À prévoir, Comptes of the next trip (récit 80): « Comptes » opens over the trip, so back leads to it.
+                            onOpenPart = { id, part ->
+                                if (part == TripPart.Expenses) {
+                                    navController.navigate(TripDetailDestination(id))
+                                    navController.navigate(TripExpensesDestination(id))
+                                } else if (part == TripPart.ToBring) {
+                                    // « À prévoir » opens « Valise » over the trip (récit 98), so back leads to it.
+                                    navController.navigate(TripDetailDestination(id))
+                                    navController.navigate(TripPackingDestination(id))
+                                } else {
+                                    navController.navigate(TripDetailDestination(id, part.name))
+                                }
+                            },
+                            expensesOn = features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult,
                         )
                     }
                     composable<TripDetailDestination> { entry ->
@@ -1215,21 +1188,14 @@ fun FamiliaApp(
                             onOpenPhoto = { photoId -> navController.navigate(TripPhotosDestination(tripId, photoId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
                             onOpenPacking = { navController.navigate(TripPackingDestination(tripId)) },
+                            onOpenPhrases = { navController.navigate(TripPhrasesDestination(tripId)) },
+                            onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
+                            onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             onOpenDocuments = { navController.navigate(TripDocumentsDestination(tripId)) },
                             onOpenEnrich = { navController.navigate(TripEnrichDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
-                            onOpenPhrases = { country -> navController.navigate(TripPhrasesDestination(tripId, country)) },
-                            onOpenMoney = { currency -> navController.navigate(TripMoneyDestination(tripId, currency)) },
                             onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
-                            onInsertStep = { kind, day ->
-                                // Fiche F2 §3: a destination is chosen in its own screen and added in one touch; a transport keeps the form.
-                                if (kind == fr.familia.app.feature.trips.step.StepAddKind.Destination) {
-                                    navController.navigate(fr.familia.app.feature.trips.TripAddDestinationDestination(tripId, day.toString()))
-                                } else {
-                                    navController.navigate(TripStepEditDestination(tripId, kind = kind.name, day = day.toString()))
-                                }
-                            },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
                             onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
@@ -1247,28 +1213,25 @@ fun FamiliaApp(
                         }
                     }
                     composable<TripPhrasesDestination> { entry ->
-                        val route = entry.toRoute<TripPhrasesDestination>()
-                        TripScreenOverMap(container, route.tripId) {
-                            TripPhrasesRoute(container = container, currentMember = currentMember, tripId = route.tripId, onBack = { navController.popBackStack() }, country = route.country)
+                        val tripId = entry.toRoute<TripPhrasesDestination>().tripId
+                        TripScreenOverMap(container, tripId) {
+                            TripPhrasesRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
                     }
                     composable<TripSafetyDestination> { entry ->
-                        val route = entry.toRoute<TripSafetyDestination>()
-                        TripScreenOverMap(container, route.tripId) {
-                            TripSafetyRoute(container = container, currentMember = currentMember, tripId = route.tripId, onBack = { navController.popBackStack() }, country = route.country)
-                        }
-                    }
-                    // Fiche F6: « Monnaie du voyage » is a sheet over the dimmed trip, the screen under it stays drawn.
-                    dialog<TripMoneyDestination>(dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { entry ->
-                        val route = entry.toRoute<TripMoneyDestination>()
-                        TripMoneyRoute(container = container, currentMember = currentMember, tripId = route.tripId, onBack = { navController.popBackStack() }, stepCurrency = route.currency)
-                    }
-                    // Règle 8: « Enrichir avec une IA » pulls up over the map too, like the other screens of the trip.
-                    composable<TripEnrichDestination> { entry ->
-                        val tripId = entry.toRoute<TripEnrichDestination>().tripId
+                        val tripId = entry.toRoute<TripSafetyDestination>().tripId
                         TripScreenOverMap(container, tripId) {
-                            TripEnrichRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
+                            TripSafetyRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
                         }
+                    }
+                    composable<TripMoneyDestination> { entry ->
+                        val tripId = entry.toRoute<TripMoneyDestination>().tripId
+                        TripScreenOverMap(container, tripId) {
+                            TripMoneyRoute(container = container, currentMember = currentMember, tripId = tripId, onBack = { navController.popBackStack() })
+                        }
+                    }
+                    composable<TripEnrichDestination> { entry ->
+                        TripEnrichRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripEnrichDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     // Récit 103: the page of an accommodation, a restaurant or a spot of a destination.
                     composable<TripPlaceDestination> { entry ->
@@ -1327,9 +1290,6 @@ fun FamiliaApp(
                                 stepId = route.stepId,
                                 onEditStep = { navController.navigate(TripStepEditDestination(route.tripId, route.stepId)) },
                                 onBack = { navController.popBackStack() },
-                                onOpenPhrases = { country -> navController.navigate(TripPhrasesDestination(route.tripId, country)) },
-                                onOpenSafety = { country -> navController.navigate(TripSafetyDestination(route.tripId, country)) },
-                                onOpenMoney = { currency -> navController.navigate(TripMoneyDestination(route.tripId, currency)) },
                             )
                         }
                     }
@@ -1344,8 +1304,6 @@ fun FamiliaApp(
                                 onEdit = { id -> navController.navigate(TripExpenseEditDestination(tripId, id)) },
                                 onHistory = { id -> navController.navigate(TripExpenseHistoryDestination(tripId, id)) },
                                 onBack = { navController.popBackStack() },
-                                // Règle 42: the currency of the trip is that of its budget (PRODUIT-162).
-                                onMoney = { navController.navigate(TripMoneyDestination(tripId)) },
                             )
                         }
                     }
@@ -1407,16 +1365,6 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
-                    composable<fr.familia.app.feature.trips.TripAddDestinationDestination> { entry ->
-                        val route = entry.toRoute<fr.familia.app.feature.trips.TripAddDestinationDestination>()
-                        fr.familia.app.feature.trips.step.AddDestinationRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            tripId = route.tripId,
-                            day = runCatching { java.time.LocalDate.parse(route.day) }.getOrElse { java.time.LocalDate.now() },
-                            onDone = { navController.popBackStack() },
-                        )
-                    }
                     composable<TripStepEditDestination> { entry ->
                         val route = entry.toRoute<TripStepEditDestination>()
                         StepEditRoute(
@@ -1425,8 +1373,6 @@ fun FamiliaApp(
                             tripId = route.tripId,
                             stepId = route.stepId,
                             presetPlace = route.place,
-                            presetKind = route.kind?.let { name -> fr.familia.app.feature.trips.step.StepAddKind.entries.firstOrNull { it.name == name } },
-                            presetDay = route.day?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() },
                             onDone = { navController.popBackStack() },
                         )
                     }
@@ -1649,18 +1595,6 @@ fun FamiliaApp(
                                 navController.popBackStack()
                                 navController.navigate(GiftListDestination(ideasListId(id)))
                             },
-                        )
-                    }
-                    composable<SurpriseEditDestination> { entry ->
-                        val args = entry.toRoute<SurpriseEditDestination>()
-                        SurpriseEditRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            beneficiaryId = args.beneficiaryId,
-                            surpriseId = args.surpriseId,
-                            // The surprise itself opens here with its tabs (next PR); until then, back to Cadeaux.
-                            onDone = { navController.popBackStack() },
-                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<NotebookDestination> {
@@ -2030,12 +1964,6 @@ fun FamiliaApp(
                                 chosenTheme = theme
                                 themePrefs.theme = theme
                             },
-                            today = today,
-                            highContrast = highContrast,
-                            onHighContrast = { on ->
-                                highContrast = on
-                                themePrefs.highContrast = on
-                            },
                             titleFont = chosenTitleFont,
                             onChooseTitleFont = { font ->
                                 chosenTitleFont = font
@@ -2106,7 +2034,6 @@ fun FamiliaApp(
                 }
             }
             }
-        }
         }
     }
     }

@@ -38,7 +38,7 @@ private sealed interface ArticleState {
 }
 
 /**
- * « À savoir sur La Samoure » (récit 96): a few lines of Wikivoyage about the place of the step, the
+ * « À savoir sur La Palmyre » (récit 96): a few lines of Wikivoyage about the place of the step, the
  * source and licence under them, « Lire la suite » in the browser. Hidden when there is no article
  * (or no network); grey blocks while loading, never a spinner. Nothing is stored.
  */
