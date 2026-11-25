@@ -441,6 +441,7 @@
     <string name="timeline_next">Prochaine étape</string>
     <string name="timeline_empty">Aucune destination pour le moment. Ajoute une destination pour commencer le trajet.</string>
     <string name="timeline_km">≈ %1$d km à vol d\'oiseau</string>
+    <string name="timeline_road">%1$s de route · %2$d km</string>
     <string name="trip_cover_slide">Image %1$d sur %2$d : %3$s</string>
     <string name="trip_cover_pause">Mettre en pause le défilement des images</string>
     <string name="trip_cover_play">Reprendre le défilement des images</string>
