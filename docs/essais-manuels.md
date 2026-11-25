@@ -148,7 +148,7 @@ Repli si ça bloque :
 
 ## Accueil sur la photo du thème (récit 113, PR 2)
 
-Tant que les photos ne sont pas branchées, l'accueil montre un dégradé des deux couleurs du thème à la place de la photo : c'est normal.
+La photo vient d'Unsplash la première fois (il faut Internet), puis elle reste dans le cache du téléphone. Sans réseau la toute première fois, un dégradé des deux couleurs du thème la remplace : c'est normal.
 
 1. Allume « Thèmes au choix » et choisis un thème photo (par exemple Mer de nuages). Ouvre l'Accueil. **Attendu :** plus de barre de titre ; en haut l'olivier, « Bonjour Prénom 👋 », la date, un rond « + » et ton avatar ; puis un espace libre, puis la bascule « Ma journée / Le fil ».
 2. Fais défiler. **Attendu :** le fond glisse plus lentement que les cartes ; l'en-tête part avec le contenu.

@@ -32,24 +32,30 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
-/** Who took the photo of a theme, and its page (règle 19): « Photo de X sur Unsplash ». */
-data class ThemePhoto(val author: String, val page: String, val url: String? = null)
-
 /**
- * The photo of each theme, its author and its page: the one table of the photos (règle 17: they are
- * data, added without touching the screens). No [ThemePhoto.url] yet: until the photos come, the
- * screens show the gradient of the theme.
+ * A photo of Unsplash (règle 19): its id and who took it. Shown from Unsplash itself, never copied
+ * into the app or the public repository (DESIGN-159 B); Coil keeps it in its disk cache, so it is
+ * downloaded once per phone and still shows offline.
  */
+data class ThemePhoto(val id: String, val author: String) {
+    /** The page of the photo, for « Crédits des photos ». */
+    val page: String get() = "https://unsplash.com/photos/$id"
+
+    /** The picture itself, 1080 px wide: enough for a phone, light on the data plan. */
+    val url: String get() = "$page/download?force=true&w=1080"
+}
+
+/** The photo of each theme: the one table of the photos (règle 17: data, added without touching the screens). */
 object ThemePhotos {
     private val photos: Map<FamiliaThemeId, ThemePhoto> = mapOf(
-        FamiliaThemeId.Clouds to ThemePhoto("Fabrizio Conti", "https://unsplash.com/photos/KOJ3CIrt1j8"),
-        FamiliaThemeId.Alps to ThemePhoto("Daniel J. Schwarz", "https://unsplash.com/photos/qAD0TbXt5Ys"),
-        FamiliaThemeId.Sunset to ThemePhoto("Cristofer Maximilian", "https://unsplash.com/photos/uQDRDqpYJHI"),
-        FamiliaThemeId.Christmas to ThemePhoto("Vitalijs Barilo", "https://unsplash.com/photos/1PWlPce_ng4"),
-        FamiliaThemeId.Autumn to ThemePhoto("Nenad Radojčić", "https://unsplash.com/photos/kP-LMhUp4Sw"),
-        FamiliaThemeId.Lake to ThemePhoto("Daniel Roe", "https://unsplash.com/photos/lpjb_UMOyx8"),
-        FamiliaThemeId.Lavender to ThemePhoto("Thomas Despeyroux", "https://unsplash.com/photos/2aGaN2oDPQI"),
-        FamiliaThemeId.Coast to ThemePhoto("José Duarte", "https://unsplash.com/photos/yfQRbv7oYCg"),
+        FamiliaThemeId.Clouds to ThemePhoto("KOJ3CIrt1j8", "Fabrizio Conti"),
+        FamiliaThemeId.Alps to ThemePhoto("qAD0TbXt5Ys", "Daniel J. Schwarz"),
+        FamiliaThemeId.Sunset to ThemePhoto("uQDRDqpYJHI", "Cristofer Maximilian"),
+        FamiliaThemeId.Christmas to ThemePhoto("1PWlPce_ng4", "Vitalijs Barilo"),
+        FamiliaThemeId.Autumn to ThemePhoto("kP-LMhUp4Sw", "Nenad Radojčić"),
+        FamiliaThemeId.Lake to ThemePhoto("lpjb_UMOyx8", "Daniel Roe"),
+        FamiliaThemeId.Lavender to ThemePhoto("2aGaN2oDPQI", "Thomas Despeyroux"),
+        FamiliaThemeId.Coast to ThemePhoto("yfQRbv7oYCg", "José Duarte"),
     )
 
     fun url(theme: FamiliaThemeId): String? = photos[theme]?.url
