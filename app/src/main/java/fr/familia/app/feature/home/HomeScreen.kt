@@ -31,6 +31,7 @@ import fr.familia.app.feature.feed.rememberFeedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.isToConfirm
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -267,8 +268,7 @@ fun HomeRoute(
     // the day are checked, one small listener each).
     val mySurprisesFlow = remember(container, currentMember.id, actions.onOpenSurprise != null) {
         val repository = container?.surpriseRepository?.takeIf { actions.onOpenSurprise != null }
-        repository?.observeMine(currentMember.id)?.flatMapLatest { mine ->
-            val today = java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris"))
+        repository?.observeMine(currentMember.id)?.let { mineFlow -> combine(mineFlow, currentDayFlow()) { mine, today -> mine to today } }?.flatMapLatest { (mine, today) ->
             val due = mine.filter { it.isToConfirm(today) }
             if (due.isEmpty()) {
                 flowOf(mine)
@@ -285,9 +285,30 @@ fun HomeRoute(
         }?.catch { emit(emptyList()) } ?: flowOf(emptyList())
     }
     val mySurprises by mySurprisesFlow.collectAsState(initial = emptyList())
+    // « Surprise de X : n idées à noter » (audit Cadeaux, point 8): before the day, the proposals I
+    // have not rated yet, with the first name of the beneficiary.
+    val toRateFlow = remember(container, currentMember.id, actions.onOpenSurprise != null) {
+        val repository = container?.surpriseRepository?.takeIf { actions.onOpenSurprise != null }
+        val family = container?.memberRepository?.observeFamily()
+        if (repository == null || family == null) {
+            flowOf(emptyList())
+        } else {
+            // The day moves on at midnight even with the Accueil open: a surprise of the day leaves « à noter ».
+            currentDayFlow().flatMapLatest { today ->
+                combine(
+                    fr.familia.app.feature.gifts.surprise.observeSurprisesToRate(repository, container?.giftRepository, currentMember.id, today),
+                    family,
+                ) { rates, fam ->
+                    rates.map { rate -> PhotoSurpriseToRate(rate.surpriseId, fam.members.firstOrNull { it.id == rate.beneficiaryId }?.firstName.orEmpty(), rate.count) }
+                }
+            }.catch { emit(emptyList()) }
+        }
+    }
+    val surprisesToRate by toRateFlow.collectAsState(initial = emptyList())
     HomeR1bisScreen(
         top = photoTop,
         mySurprises = mySurprises,
+        surprisesToRate = surprisesToRate,
         feedUnseen = feed?.unseen ?: 0,
         onOpenFeed = if (photo != null && feed != null) ({
             onFeed = true
