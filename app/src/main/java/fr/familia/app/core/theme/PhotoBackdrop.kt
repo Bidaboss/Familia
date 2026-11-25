@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -76,9 +78,12 @@ fun PhotoBackdrop(theme: FamiliaThemeId, scroll: PhotoScroll, modifier: Modifier
     val accent = Color(theme.accent ?: return)
     val dark = Color(theme.dark ?: return)
     val density = LocalDensity.current
-    BoxWithConstraints(modifier.fillMaxSize().clipToBounds()) {
-        val height: Dp = maxHeight * PHOTO_HEIGHT
-        val room = with(density) { (height - maxHeight).toPx() }
+    val top = LocalPhotoExtent.current == PhotoExtent.Top
+    BoxWithConstraints(modifier.fillMaxSize().clipToBounds().then(if (top) Modifier.background(TopOnlyCream) else Modifier)) {
+        // « Le haut seulement »: the photo covers the top 380 dp and melts into the cream.
+        val shown: Dp = if (top) TOP_ONLY_HEIGHT else maxHeight
+        val height: Dp = shown * PHOTO_HEIGHT
+        val room = with(density) { (height - shown).toPx() }
         Box(
             Modifier
                 .fillMaxWidth()
@@ -93,10 +98,49 @@ fun PhotoBackdrop(theme: FamiliaThemeId, scroll: PhotoScroll, modifier: Modifier
             ThemePhotos.url(theme)?.let { url ->
                 AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
+            if (top) Box(Modifier.fillMaxSize().background(TopOnlyVeil))
         }
-        Box(Modifier.fillMaxSize().background(PhotoVeil))
+        if (!top) Box(Modifier.fillMaxSize().background(PhotoVeil))
     }
 }
+
+/**
+ * How much of the Accueil the photo covers (Kévin, 25/11 10 h 42), a choice of each phone: the whole
+ * screen (v36, the default) or the top only, the tiles then white cards and the titles dark.
+ */
+enum class PhotoExtent(val key: String) {
+    Full("full"),
+    Top("top"),
+    ;
+
+    companion object {
+        fun fromKey(key: String?): PhotoExtent = entries.firstOrNull { it.key == key } ?: Full
+    }
+}
+
+/** The extent chosen on this phone; Réglages > Thème sets it. */
+val LocalPhotoExtent = staticCompositionLocalOf { PhotoExtent.Full }
+
+/** « Le haut seulement »: the height of the photo, and the cream it melts into. */
+private val TOP_ONLY_HEIGHT = 380.dp
+private val TopOnlyCream = Color(0xFFFAFAF7)
+
+/** A lighter veil at the top for the white header, then the photo melts into the cream from 52 %. */
+private val TopOnlyVeil = Brush.verticalGradient(
+    0f to Color(0x59140C05),
+    0.3f to Color(0x1A140C05),
+    0.52f to Color(0x00FAFAF7),
+    1f to TopOnlyCream,
+)
+
+/** The titles of section: white with a shadow on the photo, dark brown on the cream of « Le haut seulement ». */
+val PhotoSectionText: Color
+    @Composable @ReadOnlyComposable
+    get() = if (LocalPhotoExtent.current == PhotoExtent.Top) Color(0xFF3A2A1A) else Color.White
+
+val PhotoSectionShadow: Shadow?
+    @Composable @ReadOnlyComposable
+    get() = if (LocalPhotoExtent.current == PhotoExtent.Top) null else PhotoTitleShadow
 
 /** The veil of A5: rgba(20,12,5) at .45, .2 at 30 %, .24 at 60 %, .45 at the bottom. */
 private val PhotoVeil = Brush.verticalGradient(
@@ -111,9 +155,15 @@ private val PhotoVeil = Brush.verticalGradient(
  * Android 12 for now, so at 85 % (the fallback of A5), which keeps every text readable whatever the
  * photo.
  */
+@Composable
 fun Modifier.photoCard(radius: Dp = 24.dp): Modifier {
     val shape = RoundedCornerShape(radius)
-    return clip(shape).background(PhotoCardColor).border(1.dp, Color.White.copy(alpha = 0.5f), shape)
+    // « Le haut seulement »: white cards at 92 % with a cream edge, never a blur.
+    return if (LocalPhotoExtent.current == PhotoExtent.Top) {
+        clip(shape).background(Color.White.copy(alpha = 0.92f)).border(1.dp, Color(0xFFF1EADF), shape)
+    } else {
+        clip(shape).background(PhotoCardColor).border(1.dp, Color.White.copy(alpha = 0.5f), shape)
+    }
 }
 
 /** The cream of the cards on the photo, 85 % opaque. */

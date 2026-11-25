@@ -47,7 +47,8 @@ import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.theme.FamiliaThemeId
-import fr.familia.app.core.theme.PhotoTitleShadow
+import fr.familia.app.core.theme.PhotoSectionShadow
+import fr.familia.app.core.theme.PhotoSectionText
 import fr.familia.app.core.theme.photoCard
 import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.ui.formatTime
@@ -96,10 +97,10 @@ internal fun PhotoSection(
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(start = 2.dp)) {
         Text(
             title,
-            color = Color.White,
+            color = PhotoSectionText,
             fontSize = 19.sp,
             // titleLarge carries the title font (DESIGN-45).
-            style = MaterialTheme.typography.titleLarge.copy(shadow = PhotoTitleShadow),
+            style = MaterialTheme.typography.titleLarge.copy(shadow = PhotoSectionShadow),
             modifier = Modifier.semantics { heading() },
         )
         if (count > 0) {
@@ -253,10 +254,10 @@ internal fun PhotoMoreLine(more: Int, onClick: () -> Unit) {
     Box(contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onClick)) {
         Text(
             pluralStringResource(R.plurals.home_photo_more_answers, more, more),
-            color = Color.White,
+            color = PhotoSectionText,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyLarge.copy(shadow = PhotoTitleShadow),
+            style = MaterialTheme.typography.bodyLarge.copy(shadow = PhotoSectionShadow),
             modifier = Modifier.padding(start = 2.dp),
         )
     }

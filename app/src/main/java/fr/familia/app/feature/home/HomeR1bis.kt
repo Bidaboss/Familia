@@ -1,7 +1,8 @@
 package fr.familia.app.feature.home
 
 import fr.familia.app.core.theme.FamiliaClay
-import fr.familia.app.core.theme.PhotoTitleShadow
+import fr.familia.app.core.theme.PhotoSectionShadow
+import fr.familia.app.core.theme.PhotoSectionText
 import fr.familia.app.core.theme.LocalPhotoTheme
 
 import androidx.compose.foundation.BorderStroke
@@ -151,14 +152,14 @@ fun HomeR1bisScreen(
     val calm = !hasTodo && nowTravelling == null && challenge != null
     val todo: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (hasTodo) SectionLabel(stringResource(R.string.home_r1_todo), color = if (onPhoto) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
+            if (hasTodo) SectionLabel(stringResource(R.string.home_r1_todo), color = if (onPhoto) PhotoSectionText else MaterialTheme.colorScheme.onSurfaceVariant)
             ready.todos.forEach { TodoR1Card(it, ready.today, actions, r1) }
             helpTodos?.invoke()
             if (calm) {
                 Text(
                     stringResource(R.string.home_r1_calm),
-                    style = if (onPhoto) MaterialTheme.typography.bodyLarge.copy(shadow = PhotoTitleShadow) else MaterialTheme.typography.bodyLarge,
-                    color = if (onPhoto) Color.White else Color.Unspecified,
+                    style = if (onPhoto) MaterialTheme.typography.bodyLarge.copy(shadow = PhotoSectionShadow) else MaterialTheme.typography.bodyLarge,
+                    color = if (onPhoto) PhotoSectionText else Color.Unspecified,
                 )
             }
         }
