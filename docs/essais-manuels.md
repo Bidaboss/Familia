@@ -2698,3 +2698,12 @@ Sur un téléphone en Android 10 ou plus :
 3. Sur un téléphone qui gardait A ou B : le globe est en C dès l'ouverture.
 4. Le zoom reste : deux doigts écartés pour s'approcher, le globe se promène au doigt, le relief se dresse en 3D sur les montagnes en gros plan ; deux doigts rapprochés pour revenir au globe entier.
 5. Toucher le point d'un voyage, de loin ou en gros plan : le voyage s'ouvre.
+
+## Voyage : le « + » d'un transport sur sa propre ligne, au-dessus (retour du 25/11 soir)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec un transport (« Voiture · … ») : le « + » n'est plus à gauche du transport, il est sur sa propre ligne, juste au-dessus, entre l'étape d'avant et le transport.
+2. Le transport commence au même retrait que les autres blocs, aligné sous le « + ».
+3. Toucher ce « + » : le menu d'ajout s'ouvre ; ce qui est ajouté se place avant le transport.
+4. Deux transports qui se suivent : chacun a son « + » au-dessus de lui.
+5. Les « + » après une destination ne changent pas.
