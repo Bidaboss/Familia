@@ -264,8 +264,10 @@ export async function onGiftItemChanged(
   // An old list removed after the 21st (PRODUIT-58): its gifts live on in their copies.
   if (!after && (await cleanedUp(db, listId))) return 0;
   const { claim, ids } = await reservers(db, listId, itemId);
+  // Offered in a surprise (« C'est offert »): it was given, not removed; nobody reads « supprimée ».
+  const offered = !after && Boolean((before as { offeredIn?: unknown }).offeredIn);
   let sent = 0;
-  if (ids.length > 0) {
+  if (ids.length > 0 && !offered) {
     const list = await db.collection('giftLists').doc(listId).get();
     const beneficiaryId = String(list.get('beneficiaryId') ?? '');
     const members = await loadGiftMembers(db);

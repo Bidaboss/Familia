@@ -223,6 +223,7 @@ describe('functions', () => {
     assert.equal(await onSurpriseOffered(db, send, 's1'), 0); // Not offered yet: nothing.
     await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'ines' });
     assert.equal(await onSurpriseOffered(db, send, 's1'), 2);
+    assert.equal(await onSurpriseOffered(db, send, 's1'), 0); // A retry: nothing twice.
 
     const history = await db.collection('giftHistory/camille/items').get();
     assert.deepEqual(history.docs.map((d) => d.get('title')).sort(), ['Un livre', 'Un pull']);

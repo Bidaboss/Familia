@@ -234,8 +234,15 @@ export function isNewlyOffered(before: Record<string, unknown> | undefined, afte
 
 export async function onSurpriseOffered(db: Firestore, send: Sender, surpriseId: string): Promise<number> {
   const surpriseRef = db.collection('surprises').doc(surpriseId);
+  // Once only, a retry of the trigger included: the first run marks the surprise as handled.
+  const mine = await db.runTransaction(async (tx) => {
+    const current = await tx.get(surpriseRef);
+    if (current.get('status') !== 'offered' || current.get('offeredHandledAt')) return false;
+    tx.update(surpriseRef, { offeredHandledAt: FieldValue.serverTimestamp() });
+    return true;
+  });
+  if (!mine) return 0;
   const surprise = await surpriseRef.get();
-  if (surprise.get('status') !== 'offered') return 0;
   const beneficiaryId = String(surprise.get('beneficiaryId') ?? '');
   const year = yearOfDate(surprise.get('date'));
   const occasion = (surprise.get('occasion') as string | null) ?? null;

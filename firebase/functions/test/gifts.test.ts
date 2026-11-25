@@ -193,6 +193,14 @@ describe('functions', () => {
     assert.equal((await db.doc('giftLists/noel/claims/i1/shares/jade').get()).exists, false);
   });
 
+  test('a wish offered in a surprise leaves the list: no « supprimée » to its old reservers, the reservation goes', async () => {
+    const { sent, send } = fakeSender();
+    const before = { ...item, offeredIn: 's1' };
+    assert.equal(await onGiftItemChanged(db, send, 'noel', 'i1', before as typeof item, undefined), 0);
+    assert.equal(sent.length, 0);
+    assert.equal((await db.doc('giftLists/noel/claims/i1').get()).exists, false);
+  });
+
   test('an edit warns the reservers only when something visible changed', async () => {
     const { sent, send } = fakeSender();
     await onGiftItemChanged(db, send, 'noel', 'i1', item, { ...item });
