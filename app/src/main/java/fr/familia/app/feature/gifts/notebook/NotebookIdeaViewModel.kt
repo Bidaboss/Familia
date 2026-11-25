@@ -12,6 +12,9 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
+import fr.familia.app.core.photo.PhotoEdit
+import fr.familia.app.core.photo.SinglePhoto
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.gifts.item.GiftItemForm
 import fr.familia.app.feature.gifts.item.GiftItemFormError
 import fr.familia.app.feature.gifts.item.normalizeLink
@@ -43,6 +46,8 @@ data class NotebookIdeaForm(
     val status: GiftStatus = GiftStatus.Idea,
     /** « Où trouver le cadeau ? » (correctif E11), 120 characters at most. */
     val whereToFind: String = "",
+    /** Its photo (E11): sent by the ViewModel before the idea, not kept in the draft. */
+    val photo: PhotoEdit = PhotoEdit.Unchanged,
 ) {
     /** The title, link, price and note checked like an item of a list. */
     val asItem: GiftItemForm get() = GiftItemForm(title, url, price, note, whereToFind = whereToFind)
@@ -72,6 +77,9 @@ sealed interface NotebookIdeaUiState {
         val previewLoading: Boolean = false,
         /** Opened from a surprise (E13): the idea stays mine until I add it to the surprise. */
         val fromSurprise: Boolean = false,
+        /** « Plus de photos » is on: the form offers a photo, [storedPhoto] being the saved one. */
+        val showPhoto: Boolean = false,
+        val storedPhoto: String? = null,
     ) : NotebookIdeaUiState
 
     data object Done : NotebookIdeaUiState
@@ -100,6 +108,8 @@ class NotebookIdeaViewModel(
     private val previews: LinkPreviewRepository? = null,
     /** Opened from a surprise (E13): only the words of the 🔒 change. */
     private val fromSurprise: Boolean = false,
+    /** Sends and removes the photo of the idea (E11); null hides it, as when « Plus de photos » is off. */
+    private val photos: SinglePhotoSaver? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<NotebookIdeaUiState>(NotebookIdeaUiState.Loading)
@@ -161,7 +171,7 @@ class NotebookIdeaViewModel(
         val form = (restoredDraft() ?: initialForm).fixed()
         _uiState.value = NotebookIdeaUiState.Editing(
             form, isNew = existing == null, people = people, hasChanges = form != initialForm, fixedPerson = fixedPerson,
-            imageUrl = imageFor(form), fromSurprise = fromSurprise,
+            imageUrl = imageFor(form), fromSurprise = fromSurprise, showPhoto = photos != null, storedPhoto = existing?.photo,
         )
         // An idea saved with a link but no picture: its page gives one now.
         if (existing != null && existing.imageUrl == null && existing.url != null) readPreview(existing.url, fillForm = false)
@@ -274,9 +284,24 @@ class NotebookIdeaViewModel(
             imageUrl = state.imageUrl,
             whereToFind = form.whereToFind.trim().ifEmpty { null },
         )
+        val before = original?.photo
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            if (write { repo.saveIdea(currentMemberId, entry, isNew = original == null) }) done() else markFailed()
+            val photo = try {
+                // A removed photo gives null, which must stay null: no « ?: before » here.
+                photos?.prepare(before, form.photo) { SinglePhoto.notebookIdea(currentMemberId) } ?: before.takeIf { photos == null }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                return@launch markFailed()
+            }
+            if (write { repo.saveIdea(currentMemberId, entry.copy(photo = photo), isNew = original == null) }) {
+                photos?.cleanUp(previous = before, saved = photo)
+                done()
+            } else {
+                photos?.cleanUp(previous = photo, saved = before)
+                markFailed()
+            }
         }
     }
 
@@ -287,7 +312,13 @@ class NotebookIdeaViewModel(
         if (state.isSaving) return
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            if (write { repo.deleteIdea(currentMemberId, entry.id) }) done() else markFailed()
+            if (write { repo.deleteIdea(currentMemberId, entry.id) }) {
+                // The server removes it too; this only spares a photo left behind when it is late.
+                photos?.cleanUp(previous = entry.photo, saved = null)
+                done()
+            } else {
+                markFailed()
+            }
         }
     }
 

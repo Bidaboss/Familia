@@ -67,9 +67,11 @@ import fr.familia.app.feature.gifts.item.GiftItemFormError
 import fr.familia.app.feature.gifts.item.Label
 import fr.familia.app.feature.gifts.item.LinkField
 import fr.familia.app.feature.gifts.item.LinkPreviewCard
+import fr.familia.app.feature.gifts.item.PhotoField
 import fr.familia.app.feature.gifts.item.Round
 import fr.familia.app.feature.gifts.item.WhiteField
 import fr.familia.app.feature.gifts.item.normalizeLink
+import fr.familia.app.feature.gifts.item.shownPhoto
 import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
@@ -212,7 +214,14 @@ private fun FormContent(
             LinkField(form.url, state.itemErrors, enabled, onValue = { value -> onChange { it.copy(url = value) } }, onPaste = onPasteLink)
         }
         if (state.imageUrl != null || state.previewLoading || (normalizeLink(form.url) != null && form.title.isNotBlank())) {
-            LinkPreviewCard(form.title, form.price, form.url, state.imageUrl)
+            LinkPreviewCard(form.title, form.price, form.url, state.imageUrl, shownPhoto(form.photo, state.storedPhoto))
+        }
+        if (state.showPhoto) {
+            // « Photo (facultative) » (E11): it stays mine, as the idea.
+            Label(stringResource(R.string.wish_form_photo))
+            PhotoField(form.photo, state.storedPhoto, form.title, hasLink = form.url.isNotBlank(), enabled = enabled) { photo ->
+                onChange { it.copy(photo = photo) }
+            }
         }
         Column(part(IdeaPart.Idea), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Label(stringResource(R.string.notebook_idea_name))

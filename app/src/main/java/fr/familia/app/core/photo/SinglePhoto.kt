@@ -27,6 +27,9 @@ object SinglePhoto {
      */
     fun giftItem(listId: String, visibleToBeneficiary: Boolean, memberId: String, photoId: String = newId()) =
         "giftLists/$listId/${if (visibleToBeneficiary) "shared" else "hidden"}/$memberId/$photoId"
+
+    /** notebooks/{memberId}/photos/{photoId}: the photo of a private idea, seen by its author only. */
+    fun notebookIdea(memberId: String, photoId: String = newId()) = "notebooks/$memberId/photos/$photoId"
 }
 
 /** What the member did with the photo on the edit screen. */

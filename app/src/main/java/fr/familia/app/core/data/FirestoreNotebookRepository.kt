@@ -53,9 +53,11 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
         if (isNew) {
             entry.imageUrl?.let { fields["imageUrl"] = it }
             entry.whereToFind?.let { fields["whereToFind"] = it }
+            entry.photo?.let { fields["photo"] = it }
         } else {
             fields["imageUrl"] = entry.imageUrl ?: FieldValue.delete()
             fields["whereToFind"] = entry.whereToFind ?: FieldValue.delete()
+            fields["photo"] = entry.photo ?: FieldValue.delete()
         }
         val ref = entries(memberId).document(entry.id)
         if (isNew) {
@@ -142,6 +144,7 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
             movedTo = getString("movedTo"),
             imageUrl = getString("imageUrl"),
             whereToFind = getString("whereToFind")?.takeIf { it.isNotBlank() },
+            photo = getString("photo"),
         )
     }
 

@@ -235,7 +235,9 @@ private fun FormContent(
         }
         if (state.showPhoto) {
             Label(stringResource(R.string.wish_form_photo))
-            WishPhotoField(state, enabled = !state.isSaving) { photo -> onChange { it.copy(photo = photo) } }
+            PhotoField(form.photo, state.storedPhoto, form.title, hasLink = form.url.isNotBlank(), enabled = !state.isSaving) { photo ->
+                onChange { it.copy(photo = photo) }
+            }
         }
         Column(part(ItemPart.Wish), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Label(stringResource(if (wish) R.string.wish_form_name else R.string.gift_item_field_title))
@@ -420,16 +422,21 @@ internal fun LinkField(url: String, errors: Set<GiftItemFormError>, enabled: Boo
     )
 }
 
-/** What a link gives to an idea (E12): its picture, else 🎁, the title, « 49,90 € · boutique.fr ». */
+/**
+ * What a link gives to an idea (E12): my [photo] first, else its picture, else 🎁, the title,
+ * « 49,90 € · boutique.fr ».
+ */
 @Composable
-internal fun LinkPreviewCard(title: String, price: String, url: String, imageUrl: String?) {
+internal fun LinkPreviewCard(title: String, price: String, url: String, imageUrl: String?, photo: Shown? = null) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Surface(shape = RoundedCornerShape(20.dp), color = WishLook.Field, contentColor = WishLook.Ink, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 PictureOver(
-                    imageUrl,
+                    imageUrl.takeIf { photo == null },
                     Modifier.size(84.dp).clip(RoundedCornerShape(16.dp)).background(WishLook.pastel(title)),
-                ) { Text("🎁", style = MaterialTheme.typography.headlineMedium) }
+                ) {
+                    if (photo != null) PhotoThumb(photo) else Text("🎁", style = MaterialTheme.typography.headlineMedium)
+                }
                 Column(Modifier.weight(1f)) {
                     Text(title.ifBlank { "…" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     val details = listOfNotNull(parseEuros(price)?.let { formatEuros(it) }, linkHost(url)).joinToString(" · ")
@@ -437,7 +444,11 @@ internal fun LinkPreviewCard(title: String, price: String, url: String, imageUrl
                 }
             }
         }
-        Text(stringResource(R.string.wish_form_from_link), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        Text(
+            stringResource(if (photo != null) R.string.wish_form_photo_replaces else R.string.wish_form_from_link),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -445,7 +456,7 @@ internal fun LinkPreviewCard(title: String, price: String, url: String, imageUrl
 @Composable
 private fun LinkPreview(state: GiftItemEditUiState.Editing) {
     val form = state.form
-    val photo = shownPhoto(state)
+    val photo = shownPhoto(form.photo, state.storedPhoto)
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Surface(shape = RoundedCornerShape(20.dp), color = WishLook.Field, contentColor = WishLook.Ink, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -479,15 +490,16 @@ private fun LinkPreview(state: GiftItemEditUiState.Editing) {
     }
 }
 
-private sealed interface Shown {
+/** The photo to show: one just chosen, or the one kept, whose base is [stored]. */
+internal sealed interface Shown {
     data class Local(val uri: String) : Shown
     data class Stored(val base: String) : Shown
 }
 
-private fun shownPhoto(state: GiftItemEditUiState.Editing): Shown? = when (val edit = state.form.photo) {
+internal fun shownPhoto(edit: PhotoEdit, stored: String?): Shown? = when (edit) {
     is PhotoEdit.Picked -> Shown.Local(edit.source)
     PhotoEdit.Removed -> null
-    PhotoEdit.Unchanged -> state.storedPhoto?.let { Shown.Stored(it) }
+    PhotoEdit.Unchanged -> stored?.let { Shown.Stored(it) }
 }
 
 @Composable
@@ -500,10 +512,11 @@ private fun PhotoThumb(photo: Shown) {
 
 /**
  * « Photo (facultative) » (K8): « 📷 Prendre une photo » and « 🖼 Galerie » side by side, dashed; once
- * chosen, « Ta photo », « Elle remplace l'image du lien » and « Retirer ».
+ * chosen, « Ta photo », « Elle remplace l'image du lien » (when there is a link) and « Retirer ». Shared
+ * by a wish and a private idea (E11); [stored] is the base of the photo already kept.
  */
 @Composable
-private fun WishPhotoField(state: GiftItemEditUiState.Editing, enabled: Boolean, onEdit: (PhotoEdit) -> Unit) {
+internal fun PhotoField(edit: PhotoEdit, stored: String?, title: String, hasLink: Boolean, enabled: Boolean, onEdit: (PhotoEdit) -> Unit) {
     val context = LocalContext.current
     var cameraFile by rememberSaveable { mutableStateOf<String?>(null) }
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -514,19 +527,19 @@ private fun WishPhotoField(state: GiftItemEditUiState.Editing, enabled: Boolean,
         cameraFile?.takeIf { taken }?.let { onEdit(PhotoEdit.Picked(it)) }
     }
     val hasCamera = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) }
-    val photo = shownPhoto(state)
+    val photo = shownPhoto(edit, stored)
     if (photo != null) {
         Surface(shape = RoundedCornerShape(20.dp), color = WishLook.Field, contentColor = WishLook.Ink, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Box(Modifier.size(84.dp).clip(RoundedCornerShape(16.dp)).background(WishLook.pastel(state.form.title))) { PhotoThumb(photo) }
+                Box(Modifier.size(84.dp).clip(RoundedCornerShape(16.dp)).background(WishLook.pastel(title))) { PhotoThumb(photo) }
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.wish_form_your_photo), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    if (state.form.url.isNotBlank()) {
+                    if (hasLink) {
                         Text(stringResource(R.string.wish_form_your_photo_replaces), style = MaterialTheme.typography.bodyMedium, color = WishLook.Muted)
                     }
                 }
                 Button(
-                    onClick = { onEdit(if (state.storedPhoto == null) PhotoEdit.Unchanged else PhotoEdit.Removed) },
+                    onClick = { onEdit(if (stored == null) PhotoEdit.Unchanged else PhotoEdit.Removed) },
                     enabled = enabled,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1E8DA), contentColor = WishLook.Ink),
                     modifier = Modifier.heightIn(min = 56.dp),
