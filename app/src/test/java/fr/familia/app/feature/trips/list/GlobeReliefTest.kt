@@ -48,4 +48,13 @@ class GlobeReliefTest {
         assertTrue(GLOBE_MIN_ZOOM < GlobeLook.Vivid.listZoom)
         assertTrue(GLOBE_MAX_ZOOM >= 12.0)
     }
+
+    @Test
+    fun `only image tiles count as imagery, not the elevation nor the vector map`() {
+        val images = imagerySources(
+            listOf("mapbox://mapbox.satellite" to "raster", "composite" to "vector", "globe-dem" to "raster-dem", "trips" to "geojson"),
+        )
+        assertEquals(setOf("mapbox://mapbox.satellite"), images)
+        assertFalse("globe-dem" in images)
+    }
 }

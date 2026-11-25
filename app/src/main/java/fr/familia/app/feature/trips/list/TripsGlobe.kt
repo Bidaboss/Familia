@@ -115,6 +115,10 @@ internal const val DRAWN_GLOBE_STYLE: String = Style.STANDARD
 /** Only the styles made of imagery need it to show an Earth. */
 internal fun globeNeedsImagery(styleUri: String): Boolean = styleUri == Style.SATELLITE || styleUri == Style.SATELLITE_STREETS
 
+/** Pure rule: the sources whose tiles are images (« raster »); not the elevation (« raster-dem »), not the vector map. */
+internal fun imagerySources(sources: List<Pair<String, String>>): Set<String> =
+    sources.filter { it.second == "raster" }.map { it.first }.toSet()
+
 /** Pure rule: a tile event counts as imagery unless Mapbox says it is not loaded (it often leaves « loaded » out). */
 internal fun imageryTile(isTile: Boolean, loaded: Boolean?): Boolean = isTile && loaded != false
 
@@ -352,13 +356,15 @@ fun TripsGlobe(
                                 configureSatelliteGlobe(style, globeLook)
                                 // E-66: no names, borders or roads on the globe of the list, drawn or not.
                                 cleanGlobe(style)
+                                // B1 of #613: the image sources only, read before the elevation is added;
+                                // neither its tiles nor those of the vector map count as imagery.
+                                styleSources[0] = runCatching { imagerySources(style.styleSources.map { it.id to it.type }) }.getOrDefault(emptySet())
                                 // Retour du 24/11, minuit: lands and seas drawn under the images while they come.
                                 if (globeNeedsImagery(uri)) underlayDrawnEarth(style)
                                 // Retour du 25/11 matin: the shaded mountains of the variant B.
                                 if (globeNeedsImagery(uri)) addGlobeRelief(style, globeLook)
                                 // Retour du 25/11, 7 h 05: the mountains in 3D once zoomed in.
                                 if (globeNeedsImagery(uri)) addGlobeTerrain(style)
-                                styleSources[0] = runCatching { style.styleSources.map { it.id }.toSet() }.getOrDefault(emptySet())
                                 // Before the trips: its layer lies under their dots.
                                 addHandAdded(style)
                                 addMarkers(style, accentHex(accent))
