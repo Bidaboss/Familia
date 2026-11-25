@@ -2328,6 +2328,9 @@
     </plurals>
     <string name="home_photo_to_answer">À répondre</string>
     <string name="home_photo_nothing_to_answer">Rien à répondre pour l\'instant. Profite de ta journée.</string>
+    <string name="home_photo_going_done">✓ Tu y vas</string>
+    <string name="home_photo_not_going_done">Tu n\'y vas pas</string>
+    <string name="home_photo_change">Changer</string>
     <plurals name="home_photo_more_answers">
         <item quantity="one">Et %1$d autre chose à répondre ›</item>
         <item quantity="other">Et %1$d autres choses à répondre ›</item>

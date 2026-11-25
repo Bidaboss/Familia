@@ -153,7 +153,7 @@ La photo vient d'Unsplash la première fois (il faut Internet), puis elle reste 
 1. Allume « Thèmes au choix » et choisis un thème photo (par exemple Mer de nuages). Ouvre l'Accueil. **Attendu :** plus de barre de titre ; en haut l'olivier, « Bonjour Prénom 👋 », la date, un rond « + » et ton avatar ; puis un espace libre, puis la bascule « Ma journée / Le fil ».
 2. Fais défiler. **Attendu :** le fond glisse plus lentement que les cartes ; l'en-tête part avec le contenu.
 3. « Ma journée ». **Attendu :** « Aujourd'hui » avec une petite pastille « Planning › » ; la carte du jour (« Rien de prévu » ou « 2 choses aujourd'hui ») et les 7 jours, un point jaune sous les jours chargés. Touche un jour chargé : ses lignes (heure, couleur, titre) s'affichent dans la carte.
-4. « À répondre » : au plus 2 cartes avec « J'y vais » et « Non » côte à côte ; s'il y en a plus, une ligne « Et N autres… » qui les montre toutes. Sans rien à répondre : la carte verte « Rien à répondre pour l'instant ».
+4. « À répondre » : au plus 2 cartes avec « J'y vais » et « Non » côte à côte ; s'il y en a plus, une ligne « Et N autres… » qui les montre toutes. Sans rien à répondre : la carte verte « Rien à répondre pour l'instant ». Touche « J'y vais » : la carte reste et affiche « ✓ Tu y vas » avec « Changer » ; « Changer » fait revenir les deux boutons. Sans réseau, si la réponse ne part pas, les boutons restent.
 5. « À venir » : seulement les 30 prochains jours, triés par date, « dans N jours » à droite ; sinon « Rien de prévu dans le mois ». « Tout voir › » ouvre le Planning.
 6. « En bref » : la ligne « Le fil de la famille » (ouvre le fil) puis le défi du mois.
 7. Choisis « Le fil » dans la bascule. **Attendu :** le fil s'affiche sous la même bascule, toujours sur la photo.
