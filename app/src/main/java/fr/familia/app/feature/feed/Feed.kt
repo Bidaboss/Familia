@@ -123,6 +123,27 @@ object FeedOpenRequest {
     }
 }
 
+/**
+ * The card of a touched notification (a comment, a mention: PR 7 du brief), by its thread
+ * (« post:p1 »). The gazette opens its detail once the card shows; MainActivity asks, FeedList consumes.
+ */
+object GazetteThreadRequest {
+    private val state = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val asked: kotlinx.coroutines.flow.StateFlow<String?> = state
+
+    fun ask(threadId: String) {
+        state.value = threadId
+    }
+
+    fun consume() {
+        state.value = null
+    }
+}
+
+/** The card whose detail holds the comments of [threadId], if it is in the gazette. */
+fun cardOfThread(cards: List<FeedCard>, threadId: String): FeedCard? =
+    cards.firstOrNull { it.social?.threadId == threadId && it.social?.own == null }
+
 /** Every source together: newest day first, its pinned cards on top, then newest first; a card given twice kept once. */
 fun mergeFeed(lists: List<List<FeedCard>>): List<FeedCard> =
     lists.flatten().distinctBy { it.key }.sortedWith(

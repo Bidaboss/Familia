@@ -80,9 +80,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Annonces de l'admin (récit 69): the whole message.
         val announcementId = message.data[EXTRA_ANNOUNCEMENT_ID]
         announcementId?.let { open.putExtra(EXTRA_ANNOUNCEMENT_ID, it) }
+        // La gazette: the card of a comment or of a mention, opened on its detail.
+        val gazetteThreadId = message.data[EXTRA_GAZETTE_THREAD_ID]
+        gazetteThreadId?.let { open.putExtra(EXTRA_GAZETTE_THREAD_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: feedback ?: goodDeals ?: lendItemId ?: announcementId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: feedback ?: goodDeals ?: lendItemId ?: announcementId ?: gazetteThreadId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -147,6 +150,9 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         const val EXTRA_BIRTHDAY_OF = "birthdayOf"
         const val EXTRA_WELCOME_OF = "welcomeOf"
         const val EXTRA_NOTIFICATION_TAG = "notificationTag"
+
+        /** A card of the gazette, by its thread (« post:p1 »): same key as functions/src/gazetteNotices.ts. */
+        const val EXTRA_GAZETTE_THREAD_ID = "gazetteThreadId"
         /** "list", "mine" or "crashes", same key as functions/src/feedback.ts and crashes.ts. */
         const val EXTRA_FEEDBACK = "feedback"
         /** "list", same key as functions/src/goodDeals.ts (récit 45). */

@@ -35,6 +35,7 @@ class DeepLinksTest {
         assertEquals(listOf(DeepLink.GoodDeals), fromExtras("goodDeals" to "list"))
         assertEquals(listOf(DeepLink.LendItem("i1")), fromExtras("lendItemId" to "i1"))
         assertEquals(listOf(DeepLink.Announcement("a1")), fromExtras("announcementId" to "a1"))
+        assertEquals(listOf(DeepLink.GazetteThread("post:p1")), fromExtras("gazetteThreadId" to "post:p1"))
     }
 
     @Test

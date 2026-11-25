@@ -61,6 +61,11 @@ export interface Filtered {
   reaction?: boolean;
   /** Sent by the admin principal (a good news of the meal): never held back by the burst cap. */
   fromOwner?: boolean;
+  /**
+   * A member named in the gazette: it never waits for the résumé du soir, yet unlike [direct] it
+   * keeps the quiet hours (récit 119, « mentions comprises ») and the settings of the comments.
+   */
+  named?: boolean;
 }
 
 /** The kinds of small news that can wait for the résumé du soir (récit 70). */
@@ -126,7 +131,7 @@ export function isEveningWait(now: Date): boolean {
  * coup de main, a Bonne nouvelle, and whatever aims at the member directly.
  */
 export function eveningKind(notice: Filtered): EveningKind | null {
-  if (notice.direct) return null;
+  if (notice.direct || notice.named) return null;
   if (notice.reaction) return 'reactions';
   switch (notice.channel) {
     case 'comments': return 'comments';
