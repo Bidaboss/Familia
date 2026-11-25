@@ -48,7 +48,7 @@ class GlobeTouchPhotoTest {
 
     @Test
     fun `no photo says where the search went, never the place`() {
-        assertEquals("aucune photo : nom, recherche, Wikidata et 10 km", noPhotoLine(withPoint = true))
+        assertEquals("aucune photo : nom, recherche, Wikidata, 10 à 40 km", noPhotoLine(withPoint = true))
         assertEquals("aucune photo : nom et recherche, lieu sans position", noPhotoLine(withPoint = false))
     }
 
