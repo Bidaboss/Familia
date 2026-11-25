@@ -2730,6 +2730,13 @@ Sur un téléphone en Android 10 ou plus :
 2. Relancer l'appli avec le réseau : « Administration > Plantages » ne montre aucune ligne « Photo du lieu : UnknownHostException ».
 3. Un vrai refus du site (429, 403) reste signalé comme avant.
 
+## Voyage : le globe tourne même sans aucun voyage (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Un compte sans aucun voyage (ni à venir, ni passé) : ouvrir « Voyages ». Le globe tourne en haut, sans point ; la feuille dessous dit « Aucun voyage prévu pour l'instant… », et « Nouveau voyage » reste en bas à droite.
+2. La feuille se tire en haut et en bas comme d'habitude ; « Anim » arrête et relance la rotation.
+3. Économie de batterie ou TalkBack : le dessin du chemin, comme avant.
+
 ## Voyage : les dates de début et de fin sur la carte du prochain voyage (demande du 25/11 soir)
 
 **Publier Firebase : non.** Seulement « APK de publication ».

@@ -67,6 +67,10 @@ class FirestoreEventCommentRepository(
         comments(eventId).document(commentId).delete().await()
     }
 
+    // One aggregation read per 1 000 comments: the card never reads the whole conversation.
+    override suspend fun count(eventId: String): Int? =
+        comments(eventId).count().get(com.google.firebase.firestore.AggregateSource.SERVER).await().count.toInt()
+
     override fun observeMuted(eventId: String, memberId: String): Flow<Boolean> = callbackFlow {
         val registration = event(eventId).collection("commentMutes").document(memberId).addSnapshotListener { snapshot, error ->
             if (error != null) close(error) else trySend(snapshot?.exists() == true)

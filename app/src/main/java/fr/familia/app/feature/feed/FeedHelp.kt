@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,6 +60,9 @@ fun helpForFeed(list: List<HelpRequest>, since: Instant, limit: Int): List<HelpR
 
 class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRepository?) : FeedCard {
     override val key: String = "help:${request.id}"
+
+    /** J'aime and comments on its thread (récit 115). */
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
     override val at: Instant = request.createdAt ?: Instant.EPOCH
     override val authorId: String = request.authorId
 

@@ -4,6 +4,8 @@ import fr.familia.app.core.model.WhoIsItPost
 import fr.familia.app.core.model.WhoIsItGuess
 import fr.familia.app.core.model.WhoIsItAnswer
 import fr.familia.app.core.data.WhoIsItRepository
+import fr.familia.app.core.data.GazetteThread
+import fr.familia.app.core.data.GazetteThreadRepository
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.data.AppConfig
@@ -200,6 +202,12 @@ class ReadOnlyEventCommentRepository(private val inner: EventCommentRepository, 
     override suspend fun delete(eventId: String, commentId: String) = guard.refuse()
     override fun observeMuted(eventId: String, memberId: String): Flow<Boolean> = inner.observeMuted(eventId, memberId)
     override suspend fun setMuted(eventId: String, memberId: String, muted: Boolean) = guard.refuse()
+    override suspend fun count(eventId: String): Int? = inner.count(eventId)
+}
+
+class ReadOnlyGazetteThreadRepository(private val inner: GazetteThreadRepository, private val guard: ViewAsGuard) : GazetteThreadRepository {
+    override fun observe(threadId: String): Flow<GazetteThread> = inner.observe(threadId)
+    override suspend fun react(threadId: String, memberId: String, reaction: String?) = guard.refuse()
 }
 
 class ReadOnlyHelpRequestRepository(private val inner: HelpRequestRepository, private val guard: ViewAsGuard) : HelpRequestRepository {

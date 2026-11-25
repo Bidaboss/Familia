@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,6 +49,8 @@ class FeedState(
     val canLoadMore: Boolean,
     val onMore: () -> Unit,
     val onSeen: () -> Unit,
+    /** J'aime and comments under the cards (récit 115); null without Firebase. */
+    val social: FeedSocialEnv? = null,
 )
 
 /** « Voir plus ancien » goes back 14 days each time, 12 weeks at most. */
@@ -81,6 +84,9 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
         context = family?.let { FeedContext(me, it, today, readOnly) },
         unseen = cards?.let { unseenCount(it, seenAt, me.id) } ?: 0,
         canLoadMore = pages < MAX_PAGES,
+        social = remember(container, me, readOnly) {
+            container?.gazetteThreadRepository?.let { FeedSocialEnv(it, container.gazetteCommentRepository, me, readOnly) }
+        },
         onMore = { pages += 1 },
         onSeen = {
             val at = Instant.now()
@@ -127,7 +133,11 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable 
             item(key = "day-$day") {
                 FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel), Modifier.padding(vertical = 4.dp))
             }
-            items(onDay, key = { it.key }) { card -> card.Content(context) }
+            items(onDay, key = { it.key }) { card ->
+                CompositionLocalProvider(LocalFeedSocialEnv provides state.social, LocalFeedCardSocial provides card.social) {
+                    card.Content(context)
+                }
+            }
         }
         if (state.canLoadMore) {
             item(key = "more") {

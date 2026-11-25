@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.R
 import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.EventRepository
@@ -100,6 +100,9 @@ class EventFeedCard(
     override val at: Instant = event.createdAt ?: Instant.EPOCH
     override val authorId: String = event.authorId
 
+    /** J'aime on its thread; its comments stay those of the event (récit 28), off with them. */
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key), own = comments?.let { EventOwnComments(it, event.id) }, commentable = false)
+
     @Composable
     override fun Content(context: FeedContext) {
         val navigation = LocalFeedNavigation.current
@@ -107,10 +110,6 @@ class EventFeedCard(
         val day = feedEventDay(event, context.today)
         var answered by remember(event.id) { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
-        val last = remember(event.id, comments) {
-            comments?.observe(event.id, 1)?.map { it.comments.lastOrNull() }?.catch { emit(null) } ?: flowOf(null)
-        }
-        val lastComment by last.collectAsStateWithLifecycle(initialValue = null)
         FeedCardShell(
             tone = tone,
             onOpen = { navigation.onOpenEvent(event.id) },
@@ -171,11 +170,10 @@ class EventFeedCard(
                                 }
                             }
                         },
-                        modifier = Modifier.heightIn(min = 48.dp),
+                        modifier = Modifier.heightIn(min = 56.dp),
                     ) { Text(stringResource(R.string.feed_event_going)) }
                 }
             }
-            lastComment?.let { FeedLastComment(it.authorName, it.text) }
         }
     }
 }

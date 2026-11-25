@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -72,6 +73,9 @@ fun birthdaysOn(members: List<Member>, day: LocalDate): List<Birthday> =
  */
 class BirthdayFeedCard(val birthday: Birthday, private val wishes: Boolean) : FeedCard {
     override val key: String = "birthday:${birthday.member.id}:${birthday.date}"
+
+    /** J'aime and comments on its thread (récit 115). */
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
 
     /** The start of the day: the card belongs to its day, and [pinRank] puts it first there. */
     override val at: Instant = birthday.date.atStartOfDay(FAMILY_ZONE).toInstant()

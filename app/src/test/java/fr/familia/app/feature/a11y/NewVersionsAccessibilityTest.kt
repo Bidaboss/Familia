@@ -18,6 +18,12 @@ import fr.familia.app.feature.feed.FeedState
 import fr.familia.app.feature.feed.GoodNewsFeedCard
 import fr.familia.app.feature.feed.HelpFeedCard
 import fr.familia.app.feature.home.MyDaySummary
+import fr.familia.app.feature.feed.FeedSocialEnv
+import fr.familia.app.core.data.GazetteLastComment
+import fr.familia.app.core.data.GazetteThread
+import fr.familia.app.core.data.GazetteThreadRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import fr.familia.app.feature.home.MyDaySummaryLine
 import fr.familia.app.feature.goodnews.previewGoodNewsItems
 import fr.familia.app.feature.helprequests.list.previewHelpRequests
@@ -92,6 +98,20 @@ class NewVersionsAccessibilityTest {
             canLoadMore = true,
             onMore = {},
             onSeen = {},
+            social = FeedSocialEnv(FakeThreads, null, adult, readOnly),
         )
+    }
+
+    /** Two J'aime and one comment on every card (récit 115). */
+    private object FakeThreads : GazetteThreadRepository {
+        override fun observe(threadId: String): Flow<GazetteThread> = flowOf(
+            GazetteThread(
+                reactions = mapOf("a" to "💛", "b" to "🎉"),
+                commentCount = 3,
+                last = listOf(GazetteLastComment("c1", "b", "Noé", "Trop bien, on vient !", null)),
+            ),
+        )
+
+        override suspend fun react(threadId: String, memberId: String, reaction: String?) = Unit
     }
 }
