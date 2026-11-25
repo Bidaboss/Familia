@@ -2434,6 +2434,17 @@
     <string name="theme_coast">Côte sauvage</string>
     <string name="theme_contrast">Contraste fort</string>
     <string name="theme_contrast_help">Fond uni, sans photo, textes plus marqués. Pour mieux lire.</string>
+    <string name="appearance_extent_title">Étendue de la photo</string>
+    <string name="appearance_extent_full">Tout l\'écran</string>
+    <string name="appearance_extent_top">Le haut seulement</string>
+    <string name="appearance_extent_help">Sur l\'accueil : la photo derrière tout l\'écran, ou seulement en haut, avec des cartes blanches en dessous.</string>
+    <string name="appearance_current_photo">Photo actuelle : %1$s</string>
+    <string name="appearance_credits">Crédits des photos</string>
+    <string name="appearance_credits_open">Ouvert</string>
+    <string name="appearance_credits_closed">Fermé</string>
+    <string name="appearance_credit_by">Photo de %1$s sur Unsplash</string>
+    <string name="appearance_credit_license">Licence Unsplash</string>
+    <string name="appearance_credit_open">Ouvre la page de la photo %1$s</string>
     <string name="appearance_title_font_title">Police des titres</string>
     <string name="appearance_title_font_help">Pour les titres des écrans, des cartes et des jours, sur ce téléphone.</string>
     <string name="appearance_title_font_round">Ronde</string>

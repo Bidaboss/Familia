@@ -32,14 +32,42 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
+/** Who took the photo of a theme, and its page (règle 19): « Photo de X sur Unsplash ». */
+data class ThemePhoto(val author: String, val page: String, val url: String? = null)
+
 /**
- * Where the photo of each theme is read (règle 17: the photos are data, added without touching the
- * screens). Empty until the photos come: the backdrop then shows the gradient of the theme.
+ * The photo of each theme, its author and its page: the one table of the photos (règle 17: they are
+ * data, added without touching the screens). No [ThemePhoto.url] yet: until the photos come, the
+ * screens show the gradient of the theme.
  */
 object ThemePhotos {
-    private val urls: Map<FamiliaThemeId, String> = emptyMap()
+    private val photos: Map<FamiliaThemeId, ThemePhoto> = mapOf(
+        FamiliaThemeId.Clouds to ThemePhoto("Fabrizio Conti", "https://unsplash.com/photos/KOJ3CIrt1j8"),
+        FamiliaThemeId.Alps to ThemePhoto("Daniel J. Schwarz", "https://unsplash.com/photos/qAD0TbXt5Ys"),
+        FamiliaThemeId.Sunset to ThemePhoto("Cristofer Maximilian", "https://unsplash.com/photos/uQDRDqpYJHI"),
+        FamiliaThemeId.Christmas to ThemePhoto("Vitalijs Barilo", "https://unsplash.com/photos/1PWlPce_ng4"),
+        FamiliaThemeId.Autumn to ThemePhoto("Nenad Radojčić", "https://unsplash.com/photos/kP-LMhUp4Sw"),
+        FamiliaThemeId.Lake to ThemePhoto("Daniel Roe", "https://unsplash.com/photos/lpjb_UMOyx8"),
+        FamiliaThemeId.Lavender to ThemePhoto("Thomas Despeyroux", "https://unsplash.com/photos/2aGaN2oDPQI"),
+        FamiliaThemeId.Coast to ThemePhoto("José Duarte", "https://unsplash.com/photos/yfQRbv7oYCg"),
+    )
 
-    fun url(theme: FamiliaThemeId): String? = urls[theme]
+    fun url(theme: FamiliaThemeId): String? = photos[theme]?.url
+
+    fun credit(theme: FamiliaThemeId): ThemePhoto? = photos[theme]
+}
+
+/** The photo of [theme], cropped to fill, over the gradient of its two colors until it is loaded. */
+@Composable
+fun ThemePhotoImage(theme: FamiliaThemeId, modifier: Modifier = Modifier) {
+    val accent = Color(theme.accent ?: return)
+    val dark = Color(theme.dark ?: return)
+    Box(modifier) {
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(dark, accent, dark))))
+        ThemePhotos.url(theme)?.let { url ->
+            AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        }
+    }
 }
 
 /** How far the Accueil has scrolled, for the photo behind it to glide (règle 9). */
@@ -75,8 +103,7 @@ private const val PARALLAX = 0.25f
  */
 @Composable
 fun PhotoBackdrop(theme: FamiliaThemeId, scroll: PhotoScroll, modifier: Modifier = Modifier) {
-    val accent = Color(theme.accent ?: return)
-    val dark = Color(theme.dark ?: return)
+    if (!theme.isPhoto) return
     val density = LocalDensity.current
     val top = LocalPhotoExtent.current == PhotoExtent.Top
     BoxWithConstraints(modifier.fillMaxSize().clipToBounds().then(if (top) Modifier.background(TopOnlyCream) else Modifier)) {
@@ -94,10 +121,7 @@ fun PhotoBackdrop(theme: FamiliaThemeId, scroll: PhotoScroll, modifier: Modifier
                     translationY = room / 2 - (scroll.offset * PARALLAX).coerceAtMost(room)
                 },
         ) {
-            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(dark, accent, dark))))
-            ThemePhotos.url(theme)?.let { url ->
-                AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-            }
+            ThemePhotoImage(theme, Modifier.fillMaxSize())
             if (top) Box(Modifier.fillMaxSize().background(TopOnlyVeil))
         }
         if (!top) Box(Modifier.fillMaxSize().background(PhotoVeil))
