@@ -1,16 +1,14 @@
 package fr.familia.app.feature.trips.map
 
-import android.content.Context
 import com.mapbox.maps.Style
 
 /**
- * How a globe looks (retour E-48): the imagery and the sky around it. The globe of « Voyages »
- * takes the variant kept on this phone; the other globes of the app keep [Standard]. A long touch
- * on the globe of the list goes to the next variant, so the admin compares them on a real phone;
- * the one kept becomes the default once chosen.
+ * How a globe looks (retour E-48): the imagery and the sky around it. The admin compared three
+ * variants on « Voyages » and kept C (25/11, 7 h 50); A, B and the long touch that went from one
+ * to the other are gone.
  */
 enum class GlobeLook(
-    /** The letter the admin sees: « Globe : variante A ». */
+    /** The letter of the variant, as the admin chose it: « C ». */
     val letter: String,
     val styleUri: String,
     /** The halo near the ground, the halo high up, the sky. */
@@ -21,54 +19,17 @@ enum class GlobeLook(
     val starIntensity: Double,
     /** How big the globe of the list is: 1.1 fills about 85 % of the width of a phone. */
     val listZoom: Double,
-    /**
-     * Retour du 25/11 matin (« plus de reliefs, plus de détails sur les continents »): the shading of
-     * the mountains drawn over the images, from the elevation of Mapbox (0: none, 1: strong).
-     */
-    val relief: Double = 0.0,
-    /** The images a little more contrasted and coloured, so the continents stand out (0: as they come). */
-    val pop: Double = 0.0,
 ) {
-    /**
-     * Natural colours from zoom 0 (blue oceans, green forests, ochre deserts), a vivid blue halo.
-     * Retour du 24/11 soir: the imagery of Satellite Streets, the one the map of a trip shows on the
-     * phone of the admin (classic Satellite stayed black there); its names and roads are taken off.
-     */
-    // Retour du 25/11, 6 h 55: the continents were too pale; deeper colours on A and B alike.
-    Vivid("A", Style.SATELLITE_STREETS, "#7FB8FF", "#1E6FE0", "#02050F", 0.10, 0.9, 1.1, pop = 0.4),
-
-    /**
-     * Retour du 25/11 matin: A and B looked the same. B is now the relief: the same images, the
-     * mountains shaded (Alpes, Pyrénées, Himalaya), with the same deeper colours as A.
-     */
-    Soft("B", Style.SATELLITE_STREETS, "#A8CCF5", "#2F6FC8", "#030712", 0.06, 0.8, 1.2, relief = 0.9, pop = 0.4),
-
-    /** Standard Satellite as before E-48, for the comparison and for the other globes. */
+    /** Standard Satellite: the globe of « Voyages » chosen by the admin (25/11, 7 h 50, « Ok globe C »), and of the other globes. */
     Standard("C", Style.STANDARD_SATELLITE, "#BFD9F2", "#3C6FB5", "#050B1A", 0.04, 0.7, 1.0),
     ;
 
-    /** The variant after this one, back to the first after the last. */
-    fun next(): GlobeLook = entries[(ordinal + 1) % entries.size]
-
     companion object {
-        /** The variant of the list before any choice. */
-        val LIST_DEFAULT = Vivid
+        /** The globe of the list: C, the one kept by the admin; A and B are gone. */
+        val LIST_DEFAULT = Standard
 
         /** Pure rule: the variant kept under [name], [LIST_DEFAULT] when it is unknown. */
         fun of(name: String?): GlobeLook = entries.firstOrNull { it.name == name } ?: LIST_DEFAULT
     }
 }
 
-/** Where the variant of the globe of the list is kept: on this phone only, never sent anywhere. */
-object GlobeLookStore {
-    private const val FILE = "trip_map_settings"
-    private const val KEY = "globe_look"
-
-    fun read(context: Context): GlobeLook = runCatching {
-        GlobeLook.of(context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY, null))
-    }.getOrDefault(GlobeLook.LIST_DEFAULT)
-
-    fun save(context: Context, look: GlobeLook) {
-        runCatching { context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putString(KEY, look.name).apply() }
-    }
-}

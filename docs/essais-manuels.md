@@ -2658,3 +2658,12 @@ Sur un téléphone en Android 10 ou plus :
 6. En zoomant sur des montagnes (Alpes, Pyrénées) : le relief se dresse en 3D, incliner avec deux doigts vers le haut le montre mieux.
 7. Rapproché, les points des voyages restent touchables et ouvrent leur voyage. Monter ou baisser la feuille remet le globe entier.
 8. Deux doigts rapprochés : retour au globe entier, et il reprend sa rotation 3 s après.
+
+## Voyages : un seul globe, la variante C choisie par l'admin (25/11, 7 h 50)
+
+**Publier Firebase : non.**
+1. Ouvrir « Voyages » : le globe est en Standard Satellite (variante C), sans écritures, avec les points des voyages.
+2. Appui long sur le globe : rien ne se passe, plus de message « Globe : variante … ».
+3. Sur un téléphone qui gardait A ou B : le globe est en C dès l'ouverture.
+4. Le zoom reste : deux doigts écartés pour s'approcher, le globe se promène au doigt, le relief se dresse en 3D sur les montagnes en gros plan ; deux doigts rapprochés pour revenir au globe entier.
+5. Toucher le point d'un voyage, de loin ou en gros plan : le voyage s'ouvre.

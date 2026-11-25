@@ -216,7 +216,6 @@ fun TripsScreen(
                     flight = flight,
                     onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
                     onOpenTrip = { id -> openTrip(id) },
-                    cycleLook = true,
                     accent = fr.familia.app.core.theme.LocalClayStyle.current.tabPill,
                     // E-65: the whole screen, the camera keeping the sheet as its bottom padding.
                     bottomInsetDp = with(LocalDensity.current) { sheetFromBottom.toDp().value },
