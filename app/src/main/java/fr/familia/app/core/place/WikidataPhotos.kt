@@ -28,11 +28,22 @@ val OVERPASS_SERVERS = listOf(
     "https://overpass.kumi.systems/api/interpreter",
 )
 
-/** The Overpass question: the named towns and sites around the point that name their Wikidata item. */
-fun wikidataAroundQuery(lat: Double, lng: Double): String {
+/**
+ * The wider circles around a destination when nothing was found within 10 km (demande du 25/11 soir):
+ * 20, then 30, then 40 km, one after the other, the first photo found ends the search.
+ */
+val WIKIDATA_WIDER_RADII = listOf(20_000, 30_000, 40_000)
+
+/**
+ * The Overpass question: the named towns and sites around the point that name their Wikidata item.
+ * A [wide] circle (beyond 10 km) only asks the cities, towns and villages: the hamlets and the sites
+ * would be too many, and too far to stand for the destination.
+ */
+fun wikidataAroundQuery(lat: Double, lng: Double, radius: Int = WIKIDATA_PLACE_RADIUS, wide: Boolean = false): String {
     val point = "${"%.5f".format(Locale.US, lat)},${"%.5f".format(Locale.US, lng)}"
-    val place = "node[\"place\"~\"^(city|town|village|hamlet|suburb|island|islet|locality)$\"][\"wikidata\"][\"name\"](around:$WIKIDATA_PLACE_RADIUS,$point);"
-    val site = listOf("tourism", "historic", "natural", "leisure")
+    val kinds = if (wide) "city|town|village" else "city|town|village|hamlet|suburb|island|islet|locality"
+    val place = "node[\"place\"~\"^($kinds)$\"][\"wikidata\"][\"name\"](around:$radius,$point);"
+    val site = if (wide) "" else listOf("tourism", "historic", "natural", "leisure")
         .joinToString("") { "nwr[\"$it\"][\"wikidata\"][\"name\"](around:$WIKIDATA_SITE_RADIUS,$point);" }
     return "[out:json][timeout:15];($place$site);out center 40;"
 }

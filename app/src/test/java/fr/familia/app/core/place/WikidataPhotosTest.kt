@@ -21,6 +21,15 @@ class WikidataPhotosTest {
     }
 
     @Test
+    fun `beyond 10 km the circles grow to 20, 30 then 40 km, and only ask towns and villages`() {
+        assertEquals(listOf(20_000, 30_000, 40_000), WIKIDATA_WIDER_RADII)
+        val wide = wikidataAroundQuery(lat, lng, radius = 30_000, wide = true)
+        assertTrue(wide.contains("node[\"place\"~\"^(city|town|village)$\"][\"wikidata\"][\"name\"](around:30000,41.91920,8.73860);"))
+        assertFalse(wide.contains("hamlet"))
+        assertFalse(wide.contains("tourism"))
+    }
+
+    @Test
     fun `the item named like the destination comes first, then the towns, then the sites, nearest first`() {
         val answer = """
             {"elements":[
