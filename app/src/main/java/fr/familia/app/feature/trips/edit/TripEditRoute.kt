@@ -133,7 +133,8 @@ fun TripEditRoute(
         TripEditScreen(
             state = state,
             onChange = viewModel::update,
-            onSave = viewModel::save,
+            // The destination chosen first becomes the first step of the new trip (retour du 25/11 soir).
+            onSave = { viewModel.save(if (tripId == null) chosen?.let(fr.familia.app.feature.trips.step::choiceOf) else null) },
             onDelete = viewModel::delete,
             onBack = onBack,
             cover = { modifier ->

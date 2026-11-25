@@ -118,6 +118,24 @@ internal fun shownChoices(query: String, scale: PlaceScale, known: List<Destinat
     (if (query.trim().length < SUGGEST_MIN_CHARS) known else found.orEmpty()).filter { it.scale == scale }
 
 /**
+ * The destination chosen in « Où allez-vous ? » for a new trip (retour du 25/11 soir): saved with the
+ * trip as its first destination, from the first day to the last, instead of opening the old
+ * « Nouvel élément » form. The nights are then set with − and + on the timeline.
+ */
+internal fun firstDestinationStep(id: String, trip: Trip, choice: DestinationChoice): TripStep = TripStep(
+    id = id,
+    type = StepType.Lodging,
+    place = choice.name.take(MAX_STEP_PLACE),
+    departDate = trip.startDate,
+    departTime = null,
+    arriveDate = trip.endDate.takeIf { it > trip.startDate },
+    arriveTime = null,
+    note = null,
+    lat = choice.lat,
+    lng = choice.lng,
+)
+
+/**
  * The destination a touch adds (F2 point 7): one night from [day], inside the trip; the nights are
  * then set with − and + on the timeline.
  */

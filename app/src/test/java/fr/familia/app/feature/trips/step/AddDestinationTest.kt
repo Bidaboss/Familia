@@ -65,4 +65,18 @@ class AddDestinationTest {
         assertEquals(LocalDate.of(2027, 8, 9), step.arriveDate)
         assertNull(step.departTime)
     }
+
+    @Test fun theFirstPlaceOfANewTripIsItsFirstDestinationForTheWholeTrip() {
+        val step = firstDestinationStep("s", trip, DestinationChoice("Samoure", 45.7, -1.1, "FR", PlaceScale.City))
+        assertEquals(StepType.Lodging, step.type)
+        assertEquals("Samoure", step.place)
+        assertEquals(trip.startDate, step.departDate)
+        assertEquals(trip.endDate, step.arriveDate)
+        assertEquals(45.7, step.lat!!, 0.0)
+    }
+
+    @Test fun aOneDayTripKeepsItsDestinationWithoutNight() {
+        val oneDay = trip.copy(endDate = trip.startDate)
+        assertNull(firstDestinationStep("s", oneDay, DestinationChoice("Lyon", 45.76, 4.84, "FR", PlaceScale.City)).arriveDate)
+    }
 }

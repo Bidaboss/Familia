@@ -1414,14 +1414,13 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             tripId = tripId,
-                            onSaved = { savedId, firstPlace ->
+                            onSaved = { savedId, _ ->
                                 if (tripId == null) {
-                                    // A new trip opens at once, in place of its form.
+                                    // A new trip opens at once, in place of its form, its destination already on the
+                                    // timeline (retour du 25/11 soir: no more « Nouvel élément » form after it).
                                     navController.navigate(TripDetailDestination(savedId)) {
                                         popUpTo<TripEditDestination> { inclusive = true }
                                     }
-                                    // « Ta première étape ? », already holding the destination; back leaves it for later.
-                                    if (firstPlace != null) navController.navigate(TripStepEditDestination(savedId, null, firstPlace))
                                 } else {
                                     navController.popBackStack()
                                 }

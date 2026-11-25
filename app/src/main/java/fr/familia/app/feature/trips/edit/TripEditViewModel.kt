@@ -162,7 +162,8 @@ class TripEditViewModel(
         )
     }
 
-    fun save() {
+    /** [firstDestination]: the place chosen for a new trip, saved as its first destination. */
+    fun save(firstDestination: fr.familia.app.feature.trips.step.DestinationChoice? = null) {
         val state = _uiState.value as? TripEditUiState.Editing ?: return
         val repo = trips ?: return
         val author = me ?: return
@@ -192,6 +193,13 @@ class TripEditViewModel(
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
             if (write { repo.saveTrip(trip, isNew = original == null) }) {
+                // The trip is saved: its destination follows; offline, Firestore sends it later.
+                if (original == null && firstDestination != null) {
+                    write {
+                        val step = fr.familia.app.feature.trips.step.firstDestinationStep(repo.newStepId(trip.id), trip, firstDestination)
+                        repo.saveStep(trip.id, step, isNew = true, remindAt = null)
+                    }
+                }
                 _uiState.value = TripEditUiState.Done(tripId = trip.id, deleted = false)
             } else {
                 markFailed()

@@ -2755,3 +2755,12 @@ Sur un téléphone en Android 10 ou plus :
 5. « Effacer les dates » en bas efface et laisse l'écran ouvert.
 6. Modifier un voyage déjà daté dans le passé : ses jours restent touchables à partir de son premier jour.
 7. « Départ » d'une destination dans un voyage : seuls les jours après l'arrivée sont touchables, et toucher le jour de départ ferme l'écran.
+
+## Voyage : le lieu choisi à la création devient la première destination (retours du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. « Nouveau voyage » : choisir un lieu dans « Où allez-vous ? », puis les dates, puis « Enregistrer ».
+2. Le voyage s'ouvre directement ; l'ancien écran « Nouvel élément » (Vol, Train, Bus…) n'apparaît plus.
+3. Sur la frise, le lieu choisi est la première destination, du premier au dernier jour ; ses nuits se règlent avec − et +.
+4. Dans « Voyages », la carte du voyage montre la photo et les kilomètres de ce lieu.
+5. Créer un voyage en tapant juste un nom (« Taper un nom ») : le voyage s'ouvre sans destination, comme avant.
