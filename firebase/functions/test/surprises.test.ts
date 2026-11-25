@@ -76,7 +76,7 @@ const people: Record<string, { firstName: string; profile: string; birthDate: st
 
 describe('functions', () => {
   beforeEach(async () => {
-    for (const c of ['surprises', 'members', 'notebooks', 'giftHistory', 'giftLists', 'quietQueue']) await db.recursiveDelete(db.collection(c));
+    for (const c of ['surprises', 'openSurprises', 'members', 'notebooks', 'giftHistory', 'giftLists', 'quietQueue']) await db.recursiveDelete(db.collection(c));
     const batch = db.batch();
     for (const [id, m] of Object.entries(people)) {
       batch.set(db.doc(`members/${id}`), { ...m, email: null, householdId: 'h1', isAdmin: false, uid: null });
@@ -84,6 +84,7 @@ describe('functions', () => {
     }
     batch.set(db.doc('config/app'), { features: { gifts: true } });
     batch.set(db.doc('surprises/s1'), surprise);
+    batch.set(db.doc('openSurprises/s1'), { beneficiaryId: 'camille', title: 'Noël de Camille' });
     batch.set(db.doc('surprises/s1/proposals/p1'), { kind: 'wish', title: 'Un livre', removed: false });
     batch.set(db.doc('surprises/s1/takes/p1'), { kind: 'shared', ownerId: 'ines', boughtBy: null, goal: 60 });
     await batch.commit();
@@ -175,6 +176,7 @@ describe('functions', () => {
       assert.equal((await db.collection(`surprises/s1/${c}`).get()).size, 0, c);
     }
     assert.equal((await db.collection('surprises/s1/proposals/p2/ratings').get()).size, 0);
+    assert.equal((await db.doc('openSurprises/s1').get()).exists, false);
   });
 
   test('a gift taken alone, then shared, then released: the notebooks follow (récit 9 bis)', async () => {
@@ -224,6 +226,7 @@ describe('functions', () => {
     await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'ines' });
     assert.equal(await onSurpriseOffered(db, send, 's1'), 2);
     assert.equal(await onSurpriseOffered(db, send, 's1'), 0); // A retry: nothing twice.
+    assert.equal((await db.doc('openSurprises/s1').get()).exists, false);
 
     const history = await db.collection('giftHistory/camille/items').get();
     assert.deepEqual(history.docs.map((d) => d.get('title')).sort(), ['Un livre', 'Un pull']);
@@ -279,6 +282,7 @@ describe('functions', () => {
     assert.equal(await purgeOfferedSurprises(db, new Date('2027-01-20T12:00:00Z'), remove), 0);
     assert.equal(await purgeOfferedSurprises(db, new Date('2027-01-25T13:00:00Z'), remove), 1);
     assert.equal((await db.doc('surprises/s1').get()).exists, false);
+    assert.equal((await db.doc('openSurprises/s1').get()).exists, false);
     assert.equal((await db.doc('surprises/s1/proposals/p1').get()).exists, false);
     assert.deepEqual(removed, ['giftLists/wishes-camille/i1']);
     assert.equal((await db.doc('giftHistory/camille/items/s1_wish-i1').get()).exists, true);
@@ -300,8 +304,10 @@ describe('functions', () => {
     assert.equal((await db.doc('surprises/s1/proposals/p1').get()).get('ratingCount'), 1);
     assert.equal((await db.doc('surprises/s1/takes/p1').get()).get('sharesTotal'), 20);
     assert.equal((await db.doc('surprises/s1/takes/p2').get()).exists, false);
+    await db.doc('openSurprises/s2').set({ beneficiaryId: 'ines' });
     await deleteMemberSurprises(db, 'ines');
     assert.equal((await db.doc('surprises/s2').get()).exists, false);
+    assert.equal((await db.doc('openSurprises/s2').get()).exists, false);
     assert.equal((await db.collection('giftHistory/ines/items').get()).size, 0);
   });
 });

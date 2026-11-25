@@ -69,8 +69,17 @@ export async function deleteTakeShares(db: Firestore, surpriseId: string, propos
   await db.recursiveDelete(db.collection('surprises').doc(surpriseId).collection('takes').doc(proposalId).collection('shares'));
 }
 
+/**
+ * openSurprises/{sid} tells the family (never the beneficiary) that a surprise is in preparation for
+ * someone, so nobody starts a second one. Offered or removed, it goes.
+ */
+export async function closeOpenSurprise(db: Firestore, surpriseId: string): Promise<void> {
+  await db.collection('openSurprises').doc(surpriseId).delete();
+}
+
 /** A surprise removed by its creator leaves nothing behind (members, proposals, ratings, takes, parts). */
 export async function deleteSurpriseContent(db: Firestore, surpriseId: string): Promise<void> {
+  await closeOpenSurprise(db, surpriseId);
   const surprise = db.collection('surprises').doc(surpriseId);
   const children = await surprise.listCollections();
   await Promise.all(children.map((c) => db.recursiveDelete(c)));
@@ -242,6 +251,7 @@ export async function onSurpriseOffered(db: Firestore, send: Sender, surpriseId:
     return true;
   });
   if (!mine) return 0;
+  await closeOpenSurprise(db, surpriseId);
   const surprise = await surpriseRef.get();
   const beneficiaryId = String(surprise.get('beneficiaryId') ?? '');
   const year = yearOfDate(surprise.get('date'));
@@ -380,6 +390,7 @@ export async function purgeOfferedSurprises(db: Firestore, now: Date, removePhot
         await removePhoto(photo).catch((e) => console.error(`purge: photo ${photo}`, e));
       }
     }
+    await closeOpenSurprise(db, s.id);
     await db.recursiveDelete(s.ref);
   }
   return due.size;
@@ -389,7 +400,10 @@ export async function purgeOfferedSurprises(db: Firestore, now: Date, removePhot
 
 export async function deleteMemberSurprises(db: Firestore, memberId: string): Promise<void> {
   const forThem = await db.collection('surprises').where('beneficiaryId', '==', memberId).get();
-  for (const s of forThem.docs) await db.recursiveDelete(s.ref);
+  for (const s of forThem.docs) {
+    await closeOpenSurprise(db, s.id);
+    await db.recursiveDelete(s.ref);
+  }
   await db.recursiveDelete(db.collection('giftHistory').doc(memberId));
   const inThem = await db.collection('surprises').where('memberIds', 'array-contains', memberId).get();
   for (const s of inThem.docs) {
