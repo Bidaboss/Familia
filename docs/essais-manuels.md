@@ -2646,3 +2646,15 @@ Sur un téléphone en Android 10 ou plus :
 1. Avec le journal Android filtré sur « TripOpen » : toucher un voyage. Une ligne « écran : … ms » puis une ligne « carte : … ms ».
 2. Changer le style de la carte du voyage (Satellite ↔ Rues) : aucune nouvelle ligne « carte ».
 3. Revenir, toucher un autre voyage : de nouveau une ligne « écran » et une ligne « carte ».
+
+## Voyages : un globe aux couleurs plus soutenues, et le relief en variante B (retours du 25/11 matin)
+
+**Publier Firebase : non.**
+1. Ouvrir « Voyages » (variante A) : les continents sont plus colorés qu'avant, forêts plus vertes, déserts plus chauds, océans plus profonds ; pas d'ombrage des montagnes.
+2. Admin : appui long sur le globe : « Globe : variante B. ». Les mêmes couleurs, et les grandes chaînes de montagnes ombrées (Alpes, Andes, Himalaya), visibles sans zoomer.
+3. Encore un appui long : C, Standard Satellite comme avant, sans changement de couleur.
+4. Encore un : retour à A. Le choix reste au prochain lancement.
+5. Zoom (retour du 25/11, 7 h 05) : deux doigts écartés sur le globe le rapprochent, jusqu'à une vallée ; un double toucher rapproche d'un cran. Une fois rapproché, le globe ne tourne plus tout seul : on le promène au doigt.
+6. En zoomant sur des montagnes (Alpes, Pyrénées) : le relief se dresse en 3D, incliner avec deux doigts vers le haut le montre mieux.
+7. Rapproché, les points des voyages restent touchables et ouvrent leur voyage. Monter ou baisser la feuille remet le globe entier.
+8. Deux doigts rapprochés : retour au globe entier, et il reprend sa rotation 3 s après.

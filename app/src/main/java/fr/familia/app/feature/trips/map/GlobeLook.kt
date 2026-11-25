@@ -21,16 +21,27 @@ enum class GlobeLook(
     val starIntensity: Double,
     /** How big the globe of the list is: 1.1 fills about 85 % of the width of a phone. */
     val listZoom: Double,
+    /**
+     * Retour du 25/11 matin (« plus de reliefs, plus de détails sur les continents »): the shading of
+     * the mountains drawn over the images, from the elevation of Mapbox (0: none, 1: strong).
+     */
+    val relief: Double = 0.0,
+    /** The images a little more contrasted and coloured, so the continents stand out (0: as they come). */
+    val pop: Double = 0.0,
 ) {
     /**
      * Natural colours from zoom 0 (blue oceans, green forests, ochre deserts), a vivid blue halo.
      * Retour du 24/11 soir: the imagery of Satellite Streets, the one the map of a trip shows on the
      * phone of the admin (classic Satellite stayed black there); its names and roads are taken off.
      */
-    Vivid("A", Style.SATELLITE_STREETS, "#7FB8FF", "#1E6FE0", "#02050F", 0.10, 0.9, 1.1),
+    // Retour du 25/11, 6 h 55: the continents were too pale; deeper colours on A and B alike.
+    Vivid("A", Style.SATELLITE_STREETS, "#7FB8FF", "#1E6FE0", "#02050F", 0.10, 0.9, 1.1, pop = 0.4),
 
-    /** The same imagery, a softer halo, a slightly bigger globe. */
-    Soft("B", Style.SATELLITE_STREETS, "#A8CCF5", "#2F6FC8", "#030712", 0.06, 0.8, 1.2),
+    /**
+     * Retour du 25/11 matin: A and B looked the same. B is now the relief: the same images, the
+     * mountains shaded (Alpes, Pyrénées, Himalaya), with the same deeper colours as A.
+     */
+    Soft("B", Style.SATELLITE_STREETS, "#A8CCF5", "#2F6FC8", "#030712", 0.06, 0.8, 1.2, relief = 0.9, pop = 0.4),
 
     /** Standard Satellite as before E-48, for the comparison and for the other globes. */
     Standard("C", Style.STANDARD_SATELLITE, "#BFD9F2", "#3C6FB5", "#050B1A", 0.04, 0.7, 1.0),
