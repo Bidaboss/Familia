@@ -9,11 +9,12 @@ interface SouvenirRepository {
     /** All of the member's own souvenirs, shown or not. */
     fun observeMine(memberId: String): Flow<List<Souvenir>>
 
-    /** The souvenirs [memberId] shows to the family (the rules refuse the others). */
+    /** The souvenirs of [memberId] seen by the family: all of them since récit 114 (« Réussites »). */
     fun observeShown(memberId: String): Flow<List<Souvenir>>
 
     /** The member's own counters, for « Encore 5 coups de main ». */
     fun observeCounters(memberId: String): Flow<SouvenirCounters>
 
+    /** Does nothing since récit 114: the « Réussites » are public. */
     suspend fun setShown(memberId: String, key: String, shown: Boolean)
 }

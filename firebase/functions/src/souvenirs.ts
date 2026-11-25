@@ -1,7 +1,8 @@
 // Souvenirs (PRD, récit 34): a fixed list of keepsakes, earned through one's own gestures. The
-// server gives them: members/{memberId}/souvenirs/{key}, never written by the app except `shown`.
-// No score, no total, no ranking (carte EXPERT-3): a souvenir is private until its member shows it
-// on their page. A gift souvenir never tells a reservation, so none comes from the claims.
+// server gives them: members/{memberId}/souvenirs/{key}, never written by the app. No score, no
+// total, no ranking (carte EXPERT-3). Since récit 114 they are « Réussites », public for the family:
+// each is given with shown = true (the apps not yet updated read only those), and those given
+// before are turned public once (makeSouvenirsPublicOnce). A gift souvenir never tells a reservation, so none comes from the claims.
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Notice } from './logic';
@@ -57,7 +58,7 @@ export async function giveSouvenir(db: Firestore, send: Sender, memberId: string
   const member = await db.collection('members').doc(memberId).get();
   if (!member.exists) return false;
   try {
-    await member.ref.collection('souvenirs').doc(key).create({ key, earnedAt: now, shown: false });
+    await member.ref.collection('souvenirs').doc(key).create({ key, earnedAt: now, shown: true });
   } catch (e) {
     if ((e as { code?: number }).code === 6) return false; // ALREADY_EXISTS: earned before.
     throw e;
@@ -121,6 +122,30 @@ export async function giveYearSouvenirs(db: Firestore, send: Sender, now: Date):
     if (await giveSouvenir(db, send, m.id, 'oneYear', now)) given.push(m.id);
   }
   return given;
+}
+
+/** Written once the souvenirs given before récit 114 are public. */
+export const SOUVENIRS_PUBLIC = 'migrations/souvenirsPublic';
+
+/**
+ * Récit 114 (lot A3): every souvenir given while they were private becomes public, once. Returns
+ * how many changed, or null when already done.
+ */
+export async function makeSouvenirsPublicOnce(db: Firestore, now: Date): Promise<number | null> {
+  const marker = db.doc(SOUVENIRS_PUBLIC);
+  if ((await marker.get()).exists) return null;
+  let count = 0;
+  for (const member of (await db.collection('members').select().get()).docs) {
+    const hidden = await member.ref.collection('souvenirs').where('shown', '==', false).get();
+    if (hidden.empty) continue;
+    const batch = db.batch();
+    hidden.docs.forEach((s) => batch.update(s.ref, { shown: true }));
+    await batch.commit();
+    count += hidden.size;
+  }
+  await marker.set({ count, at: now });
+  console.log(`souvenirsPublic: ${count} souvenirs made public`);
+  return count;
 }
 
 /** A member removed from the family takes their souvenirs, counters and gesture marks with them (EXPERT-1). */
