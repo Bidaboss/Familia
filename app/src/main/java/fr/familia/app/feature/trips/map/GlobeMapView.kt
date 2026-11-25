@@ -204,3 +204,59 @@ internal fun underlayDrawnEarth(style: Style) {
         )
     }.onFailure { android.util.Log.w("TripsGlobe", "drawn Earth under the images refused", it) }
 }
+
+/** The elevation of Mapbox (free with the public token), and the shading drawn from it on the globe. */
+internal const val GLOBE_DEM_SOURCE = "globe-dem"
+internal const val GLOBE_DEM_URL = "mapbox://mapbox.mapbox-terrain-dem-v1"
+internal const val GLOBE_HILLSHADE_LAYER = "globe-hillshade"
+
+/** Pure rule: the paint of the images for [pop] (0 leaves them as they come). */
+internal fun imageryPop(pop: Double): Map<String, Double> =
+    if (pop <= 0.0) {
+        emptyMap()
+    } else {
+        // Forests greener, deserts warmer, oceans deeper: more colour and contrast, the lightest parts a little darker.
+        mapOf(
+            "raster-saturation" to pop.coerceAtMost(0.6),
+            "raster-contrast" to (pop * 0.6).coerceAtMost(0.4),
+            "raster-brightness-max" to (1.0 - pop * 0.3).coerceAtLeast(0.8),
+        )
+    }
+
+/**
+ * Retour du 25/11 matin: the mountains shaded over the satellite images, at every zoom of the globe
+ * (the elevation exists from zoom 0), and the images a little stronger. Nothing for a look without relief.
+ */
+internal fun addGlobeRelief(style: Style, look: GlobeLook) {
+    if (look.relief <= 0.0 && look.pop <= 0.0) return
+    runCatching {
+        val raster = style.styleLayers.firstOrNull { it.type == "raster" }?.id ?: return
+        imageryPop(look.pop).forEach { (key, value) -> runCatching { style.setStyleLayerProperty(raster, key, Value.valueOf(value)) } }
+        if (look.relief <= 0.0 || style.styleLayerExists(GLOBE_HILLSHADE_LAYER)) return
+        if (!style.styleSourceExists(GLOBE_DEM_SOURCE)) {
+            style.addStyleSource(
+                GLOBE_DEM_SOURCE,
+                Value.valueOf(hashMapOf("type" to Value.valueOf("raster-dem"), "url" to Value.valueOf(GLOBE_DEM_URL), "tileSize" to Value.valueOf(512L))),
+            )
+        }
+        style.addStyleLayer(
+            Value.valueOf(
+                hashMapOf(
+                    "id" to Value.valueOf(GLOBE_HILLSHADE_LAYER),
+                    "type" to Value.valueOf("hillshade"),
+                    "source" to Value.valueOf(GLOBE_DEM_SOURCE),
+                    "paint" to Value.valueOf(
+                        hashMapOf(
+                            "hillshade-exaggeration" to Value.valueOf(look.relief.coerceIn(0.0, 1.0)),
+                            "hillshade-shadow-color" to Value.valueOf("#2B1D10"),
+                            "hillshade-highlight-color" to Value.valueOf("#FFF6E5"),
+                            "hillshade-accent-color" to Value.valueOf("#3A2A18"),
+                            "hillshade-illumination-anchor" to Value.valueOf("map"),
+                        ),
+                    ),
+                ),
+            ),
+            com.mapbox.maps.LayerPosition(raster, null, null),
+        )
+    }.onFailure { android.util.Log.w("TripsGlobe", "relief refused", it) }
+}

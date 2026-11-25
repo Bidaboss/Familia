@@ -69,6 +69,7 @@ import fr.familia.app.feature.trips.map.GlobeLook
 import fr.familia.app.feature.trips.map.GlobeLookStore
 import fr.familia.app.feature.trips.map.cleanGlobe
 import fr.familia.app.feature.trips.map.underlayDrawnEarth
+import fr.familia.app.feature.trips.map.addGlobeRelief
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.wholeGlobeZoom
 import fr.familia.app.feature.trips.map.recordTileError
@@ -336,6 +337,8 @@ fun TripsGlobe(
                                 cleanGlobe(style)
                                 // Retour du 24/11, minuit: lands and seas drawn under the images while they come.
                                 if (globeNeedsImagery(uri)) underlayDrawnEarth(style)
+                                // Retour du 25/11 matin: the shaded mountains of the variant B.
+                                if (globeNeedsImagery(uri)) addGlobeRelief(style, globeLook)
                                 styleSources[0] = runCatching { style.styleSources.map { it.id }.toSet() }.getOrDefault(emptySet())
                                 // Before the trips: its layer lies under their dots.
                                 addHandAdded(style)
