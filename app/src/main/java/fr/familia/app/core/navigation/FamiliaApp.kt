@@ -1032,12 +1032,13 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             photo = photoTheme?.let { theme ->
-                                PhotoHome(theme, photoScroll) {
+                                PhotoHome(theme, photoScroll) { summary ->
                                     PhotoHomeHeader(
                                         firstName = currentMember.firstName,
                                         today = today,
                                         onAdd = { addOpen = true },
                                         avatar = { AccountButton(currentMember) { accountOpen = true } },
+                                        summary = summary,
                                     )
                                 }
                             },

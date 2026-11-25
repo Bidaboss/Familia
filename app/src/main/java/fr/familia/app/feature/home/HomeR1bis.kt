@@ -5,6 +5,7 @@ import fr.familia.app.core.theme.PhotoSectionShadow
 import fr.familia.app.core.theme.PhotoSectionText
 import fr.familia.app.core.theme.LocalPhotoTheme
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -128,10 +129,16 @@ fun HomeR1bisScreen(
      * very top, above the frise, only while there is one (l'admin, 20/11).
      */
     joinMe: (@Composable () -> Unit)? = null,
-    /** « Aujourd'hui » | « Le fil » (récit 67), at the top while the fil is on. */
-    switcher: (@Composable () -> Unit)? = null,
-    /** « Le fil », shown instead of the day while chosen; « Tout Familia » stays under it. */
-    feed: (@Composable () -> Unit)? = null,
+    /**
+     * La gazette (récit 115): while the module is on, it IS the Accueil, given the line of the header
+     * that opens « Ma journée » ([myDayOpen]) over it.
+     */
+    feed: (@Composable (summary: @Composable () -> Unit) -> Unit)? = null,
+    /** « Ma journée » shown over the gazette; [onMyDay] opens or closes it. */
+    myDayOpen: Boolean = false,
+    onMyDay: (Boolean) -> Unit = {},
+    /** How many coups de main wait in [helpTodos], for the line of the header. */
+    helpCount: Int = 0,
     /**
      * The top of the Accueil on the photo of the theme (récit 113, règles 2, 3 et 13): the greeting,
      * the free part of the photo and the switch, scrolling with the day; [switcher] is then in it.
@@ -202,7 +209,36 @@ fun HomeR1bisScreen(
     }
     val padding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp)
     val photoTheme = LocalPhotoTheme.current
-    if (top != null && photoTheme != null && feed == null) {
+    if (feed != null) {
+        // La gazette est l'Accueil (récit 115); « Ma journée » opens over it, never on its own (brief §3).
+        val summary = myDaySummary(ready, days, mySurprises, surprisesToRate.size, helpCount, actions.onOpenSurprise != null)
+        val onPhotoSummary = top != null && photoTheme != null
+        Box(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize().then(if (myDayOpen) Modifier.clearAndSetSemantics { } else Modifier)) {
+                feed { MyDaySummaryLine(summary, onPhoto = onPhotoSummary, onOpen = { onMyDay(true) }) }
+            }
+            if (myDayOpen) {
+                BackHandler { onMyDay(false) }
+                val close = { onMyDay(false) }
+                MyDayLayer(photoTheme.takeIf { onPhotoSummary }) {
+                    if (onPhotoSummary) {
+                        PhotoDayList(
+                            ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme!!), actions, r1,
+                            PhotoSlots({ MyDayTitle(onPhoto = true, onClose = close) }, joinMe, firstSteps, helpTodos, nowTravelling, challenge, null, buttons, mySurprises, surprisesToRate),
+                            0, null,
+                        )
+                    } else {
+                        Column(Modifier.fillMaxSize()) {
+                            Box(Modifier.padding(horizontal = ClaySpacing.screen)) { MyDayTitle(onPhoto = false, onClose = close) }
+                            ClassicDay(Modifier.weight(1f), null, joinMe, frise, detail, firstSteps, buttons, todo, newsAndChallenge, nowTravelling, hasTodo, calm, goodNews != null || challenge != null, padding)
+                        }
+                    }
+                }
+            }
+        }
+        return
+    }
+    if (top != null && photoTheme != null) {
         PhotoDayList(
             ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme), actions, r1,
             PhotoSlots(top, joinMe, firstSteps, helpTodos, nowTravelling, challenge, goodNews?.takeIf { onOpenFeed == null }, buttons, mySurprises, surprisesToRate),
@@ -211,58 +247,74 @@ fun HomeR1bisScreen(
         return
     }
     Column(Modifier.fillMaxSize()) {
-        if (switcher != null && top == null) {
-            Box(Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 12.dp)) { switcher() }
-        }
-        if (feed != null) {
-            Box(Modifier.fillMaxWidth().weight(1f)) { feed() }
-        } else BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
-            when {
-                // Expanded (§5): two panes, each scrolling on its own.
-                maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {
-                    LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        if (top != null) item(key = "top") { top() }
-                        if (joinMe != null) item(key = "joinMe") { joinMe() }
-                        item(key = "frise") { frise() }
-                        item(key = "day") { detail() }
-                        if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
-                        item(key = "buttons") { buttons() }
-                    }
-                    LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        item(key = "todo") { todo() }
-                        item(key = "news-challenge") { newsAndChallenge() }
-                        if (nowTravelling != null) item(key = "now") { nowTravelling() }
-                    }
-                }
-                // Medium (§5): one column, with « À faire » beside the good news, the challenge and the trip.
-                maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        ClassicDay(Modifier.weight(1f), top, joinMe, frise, detail, firstSteps, buttons, todo, newsAndChallenge, nowTravelling, hasTodo, calm, goodNews != null || challenge != null, padding)
+    }
+}
+
+/** The day without photo, by width (§5): two panes, one column with two halves, or one column. */
+@Composable
+private fun ClassicDay(
+    modifier: Modifier,
+    top: (@Composable () -> Unit)?,
+    joinMe: (@Composable () -> Unit)?,
+    frise: @Composable () -> Unit,
+    detail: @Composable () -> Unit,
+    firstSteps: (@Composable () -> Unit)?,
+    buttons: @Composable () -> Unit,
+    todo: @Composable () -> Unit,
+    newsAndChallenge: @Composable () -> Unit,
+    nowTravelling: (@Composable () -> Unit)?,
+    hasTodo: Boolean,
+    calm: Boolean,
+    hasNewsOrChallenge: Boolean,
+    padding: PaddingValues,
+) {
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        when {
+            // Expanded (§5): two panes, each scrolling on its own.
+            maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {
+                LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     if (top != null) item(key = "top") { top() }
                     if (joinMe != null) item(key = "joinMe") { joinMe() }
                     item(key = "frise") { frise() }
                     item(key = "day") { detail() }
                     if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
-                    item(key = "columns") {
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Box(Modifier.weight(1f)) { todo() }
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                newsAndChallenge()
-                                nowTravelling?.invoke()
-                            }
+                    item(key = "buttons") { buttons() }
+                }
+                LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    item(key = "todo") { todo() }
+                    item(key = "news-challenge") { newsAndChallenge() }
+                    if (nowTravelling != null) item(key = "now") { nowTravelling() }
+                }
+            }
+            // Medium (§5): one column, with « À faire » beside the good news, the challenge and the trip.
+            maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (top != null) item(key = "top") { top() }
+                if (joinMe != null) item(key = "joinMe") { joinMe() }
+                item(key = "frise") { frise() }
+                item(key = "day") { detail() }
+                if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
+                item(key = "columns") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(Modifier.weight(1f)) { todo() }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            newsAndChallenge()
+                            nowTravelling?.invoke()
                         }
                     }
-                    item(key = "buttons") { buttons() }
                 }
-                else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    if (top != null) item(key = "top") { top() }
-                    if (joinMe != null) item(key = "joinMe") { joinMe() }
-                    item(key = "frise") { frise() }
-                    item(key = "day") { detail() }
-                    if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
-                    if (hasTodo || calm) item(key = "todo") { todo() }
-                    if (goodNews != null || challenge != null) item(key = "news-challenge") { newsAndChallenge() }
-                    if (nowTravelling != null) item(key = "now") { nowTravelling() }
-                    item(key = "buttons") { buttons() }
-                }
+                item(key = "buttons") { buttons() }
+            }
+            else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (top != null) item(key = "top") { top() }
+                if (joinMe != null) item(key = "joinMe") { joinMe() }
+                item(key = "frise") { frise() }
+                item(key = "day") { detail() }
+                if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
+                if (hasTodo || calm) item(key = "todo") { todo() }
+                if (hasNewsOrChallenge) item(key = "news-challenge") { newsAndChallenge() }
+                if (nowTravelling != null) item(key = "now") { nowTravelling() }
+                item(key = "buttons") { buttons() }
             }
         }
     }

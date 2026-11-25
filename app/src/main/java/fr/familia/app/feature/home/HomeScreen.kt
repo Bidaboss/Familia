@@ -24,7 +24,6 @@ import fr.familia.app.feature.feed.FeedList
 import fr.familia.app.feature.feed.FeedOpenRequest
 import fr.familia.app.feature.feed.FeedPublishBar
 import fr.familia.app.feature.feed.FeedNavigation
-import fr.familia.app.feature.feed.HomeFeedSwitch
 import fr.familia.app.feature.feed.LocalFeedGlass
 import fr.familia.app.feature.feed.LocalFeedNavigation
 import fr.familia.app.feature.feed.rememberFeedState
@@ -72,7 +71,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import fr.familia.app.core.ui.ClayCard
@@ -205,21 +203,21 @@ fun HomeRoute(
     // Le fil d'actualité (récit 67): off, the Accueil does not change, even for the admin principal.
     val feedOn = flags.isOnForFamily(Feature.NewsFeed)
     val feed = if (feedOn) rememberFeedState(container, currentMember) else null
-    // The app always opens on « Aujourd'hui ».
-    var onFeed by rememberSaveable { mutableStateOf(false) }
-    // « Le fil » of Tout Familia opens the Accueil on the fil (récit 71).
+    // La gazette is the Accueil (récit 115): the app always opens on it, « Ma journée » never opens alone.
+    var myDayOpen by rememberSaveable { mutableStateOf(false) }
+    // « La gazette » of Tout Familia brings the gazette back (récit 71).
     val feedAsked by FeedOpenRequest.asked.collectAsState()
     LaunchedEffect(feedAsked, feed != null) {
         if (feedAsked && feed != null) {
-            onFeed = true
+            myDayOpen = false
             FeedOpenRequest.consume()
         }
     }
-    // A « rejoins-moi » opens the Accueil on « Aujourd'hui », where its tile is (l'admin, 20/11).
+    // A « rejoins-moi » opens « Ma journée », where its tile is (l'admin, 20/11): the member asked for it.
     val todayAsked by TodayOpenRequest.asked.collectAsState()
     LaunchedEffect(todayAsked) {
         if (todayAsked) {
-            onFeed = false
+            myDayOpen = feed != null
             TodayOpenRequest.consume()
         }
     }
@@ -240,25 +238,13 @@ fun HomeRoute(
         )
     }
     val canPublish = flags.isOn(Feature.GoodNews)
-    // On the photo (règles 2, 3 et 13): the greeting, the free top of the photo, then the switch,
-    // all scrolling with the day or the fil.
+    // On the photo (règles 2 et 13), without the gazette: the greeting and the free top of the photo,
+    // scrolling with the day.
     val photoTop: (@Composable () -> Unit)? = photo?.let { p ->
         {
             Column {
-                p.header()
+                p.header(null)
                 Spacer(Modifier.height(PHOTO_FREE_TOP))
-                feed?.let { f ->
-                    PhotoFeedSwitch(
-                        onFeed = onFeed,
-                        unseen = f.unseen,
-                        accent = Color(p.theme.accent ?: 0xFF000000),
-                        dark = Color(p.theme.dark ?: 0xFF000000),
-                        onChoose = {
-                            onFeed = it
-                            p.scroll.reset()
-                        },
-                    )
-                }
             }
         }
     }
@@ -309,14 +295,11 @@ fun HomeRoute(
         top = photoTop,
         mySurprises = mySurprises,
         surprisesToRate = surprisesToRate,
-        feedUnseen = feed?.unseen ?: 0,
-        onOpenFeed = if (photo != null && feed != null) ({
-            onFeed = true
-            photo.scroll.reset()
-        }) else null,
-        switcher = feed?.let { f -> { HomeFeedSwitch(onFeed, f.unseen, onChoose = { onFeed = it }) } },
-        feed = feed?.takeIf { onFeed }?.let { f ->
-            {
+        myDayOpen = myDayOpen && feed != null,
+        onMyDay = { myDayOpen = it },
+        helpCount = help?.todos?.size ?: 0,
+        feed = feed?.let { f ->
+            { summary ->
                 CompositionLocalProvider(LocalFeedNavigation provides feedNavigation) {
                     // Publish from the fil itself (maquette SF1); never in presentation or « Voir comme ».
                     val publish: (@Composable () -> Unit)? = if (canPublish && f.context?.readOnly == false) {
@@ -324,13 +307,13 @@ fun HomeRoute(
                     } else {
                         null
                     }
-                    if (photo != null && photoTop != null) {
-                        // Fiche A2: « Le fil de la famille » and its « + Publier » pill, then a glass
-                        // card per actualité, on the photo.
+                    if (photo != null) {
+                        // The folded header (brief §3, fiche Y1): « Bonjour » and the line of « Ma
+                        // journée », then the gazette and its « + Publier » pill, a glass card each.
                         val canWrite = canPublish && f.context?.readOnly == false
                         val top: @Composable () -> Unit = {
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                photoTop()
+                                photo.header(summary)
                                 PhotoSection(
                                     title = stringResource(R.string.home_photo_feed),
                                     colors = PhotoColors.of(photo.theme),
@@ -341,7 +324,12 @@ fun HomeRoute(
                         }
                         CompositionLocalProvider(LocalFeedGlass provides true) { FeedList(f, top = top) }
                     } else {
-                        FeedList(f, top = publish)
+                        FeedList(f, top = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                summary()
+                                publish?.invoke()
+                            }
+                        })
                     }
                 }
             }
@@ -415,10 +403,15 @@ fun HomeRoute(
 private val PHOTO_FREE_TOP = 170.dp
 
 /** The Accueil on the photo of [theme] (récit 113): [header] at its top, [scroll] for the photo to glide. */
-class PhotoHome(val theme: FamiliaThemeId, val scroll: PhotoScroll, val header: @Composable () -> Unit)
+class PhotoHome(
+    val theme: FamiliaThemeId,
+    val scroll: PhotoScroll,
+    /** The greeting; with the gazette, given the line that opens « Ma journée » in place of the date. */
+    val header: @Composable (summary: (@Composable () -> Unit)?) -> Unit,
+)
 
 /**
- * Asks the Accueil to show « Aujourd'hui » rather than « Le fil »: the notification « rejoins-moi »
+ * Asks the Accueil to open « Ma journée » over the gazette: the notification « rejoins-moi »
  * (MainActivity), whose place is at the top of the day. Kept until the Accueil reads it.
  */
 object TodayOpenRequest {
