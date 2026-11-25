@@ -204,6 +204,8 @@ data class NotebookIdeaDestination(
     val bought: Boolean = false,
     /** A new idea from the page of this member (retour d'essai, 17/11). */
     val personId: String? = null,
+    /** « En faire une idée » from « Mes notes » (récit 114): the note the new idea starts with. */
+    val note: String? = null,
 )
 
 /** « Préparer une surprise » (récit 63): who the surprise is for. */

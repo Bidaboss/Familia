@@ -102,13 +102,19 @@ data class ProfileV2Ui(
     val onOpenRecipes: (() -> Unit)? = null,
     /** « Ajouter une recette », on my own page only (DESIGN-172). */
     val onAddRecipe: (() -> Unit)? = null,
+    /** « Renommer le foyer », for who may (see [ProfileV2State.canRenameHousehold]). */
+    val onRenameHousehold: (String) -> Unit = {},
+    /** Each letter typed in « Mes notes »; the model saves after a pause. */
+    val onEditNote: (String) -> Unit = {},
+    /** « En faire une idée »: a new idea of the carnet, about this member, with the note in it. Null while Cadeaux is off. */
+    val onMakeIdea: ((String) -> Unit)? = null,
 )
 
 /**
  * The member page (brief Famille-recettes, F6 à F8, prototype v157): lying on the photo of the theme,
  * the round photo, the first name, the surnom and the birthday, « En ce moment », then one glass card
  * per section in a fixed order (règle 7): À savoir, Goûts et passions, Cadeaux, Recettes, Moments,
- * Réussites, Actualités, Coordonnées. An empty section is hidden on someone else's page. Nothing of
+ * Réussites, Actualités, Coordonnées, Foyer (for who may rename it), Mes notes (on the others' pages). An empty section is hidden on someone else's page. Nothing of
  * what is given to someone shows on their page (« Voir comme » included).
  */
 @Composable
@@ -149,6 +155,8 @@ internal fun ContentV2(
         SuccessesPart(state.souvenirs, state.isMe)
         data?.let { NewsPart(it) }
         data?.let { CoordinatesPart(member, it, state.isMe, mayFill, v2.onSavePhone, v2.onSaveAddress) }
+        data?.household?.takeIf { data.canRenameHousehold && !viewingAs }?.let { HouseholdPart(it, data.householdSize, v2.onRenameHousehold) }
+        data?.note?.takeIf { !state.isMe && !viewingAs }?.let { NotesPart(member.firstName, it, v2.onEditNote, v2.onMakeIdea) }
         if (state.saveFailed || data?.saveFailed == true) {
             Text(
                 stringResource(R.string.profile_v2_save_failed),
