@@ -121,6 +121,9 @@ class GiftsDemoJourneyTest {
         addItem(fete, "Une écharpe")
         show(listVm("adult2"))
         waitForText("Une écharpe")
+        // The list of wishes (correctif E3): a row opens the sheet of the wish, where one takes it.
+        compose.onNodeWithText("Une écharpe").performClick()
+        waitForText("Je le prends")
         compose.onNodeWithText("Je le prends").performClick()
         waitForText("Tu l'as réservé")
         assertEquals(ClaimType.Solo, store.claimsOf(wishes).single().type)
@@ -156,6 +159,7 @@ class GiftsDemoJourneyTest {
         show(giver)
         waitForText("Un livre")
         val book = store.itemsOf(wishes).single().id
+        compose.onNodeWithText("Un livre").performClick()
         giver.openJointGift(book)
         waitForText("Cadeau commun, organisé par Adult2", substring = true)
         giver.setShare(book, 25.0)

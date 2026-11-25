@@ -232,7 +232,7 @@ class AlreadyBoughtTest {
     }
 
     @Test
-    fun `the card of a wish already bought has no « Je le prends »`() {
+    fun `the row of a wish already bought says so, and has no « Je le prends »`() {
         val row = ItemRow(bike, canEdit = false, isSurpriseIdea = false, claim = null, contributions = ContributionView(45))
         val state = GiftListUiState.Success(
             list = wishes("adult1"), beneficiary = fr.familia.app.feature.events.TestFamily.adult, today = today,
@@ -242,6 +242,6 @@ class AlreadyBoughtTest {
         compose.setContent { FamiliaTheme { GiftListScreen(state, GiftListActions()) } }
         compose.waitForIdle()
         assertEquals(0, count("Je le prends"))
-        assertEquals(1, count("Déjà acheté, participation bienvenue"))
+        assertEquals(1, count("Déjà acheté · participation souhaitée"))
     }
 }

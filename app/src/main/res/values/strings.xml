@@ -2984,13 +2984,14 @@
     <!-- Nouvel onglet Cadeaux (PRODUIT-119 et 120) -->
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
-        <item quantity="one">%d envie · la famille la voit</item>
-        <item quantity="other">%d envies · la famille les voit</item>
+        <item quantity="one">%d envie · ma fiche</item>
+        <item quantity="other">%d envies · ma fiche</item>
     </plurals>
     <string name="gifts_v2_add_wish">Ajouter une envie</string>
     <string name="gifts_v2_family">Toute la famille</string>
     <string name="gifts_v2_soon">Bientôt</string>
-    <string name="gifts_v2_my_page">Ma fiche</string>
+    <string name="gifts_v2_add_short">+ Ajouter</string>
+    <string name="gifts_v2_open_my_wishes">ouvrir mes envies</string>
     <string name="gifts_v2_open_wishes">ouvrir les envies de %1$s</string>
     <plurals name="gifts_v2_surprises_bar">
         <item quantity="one">%d surprise en préparation</item>
@@ -4127,4 +4128,18 @@
     <string name="enrich_show_prompt">Voir ou personnaliser le prompt</string>
     <string name="enrich_prompt_label">Le prompt, à modifier si tu veux</string>
     <string name="enrich_have_answer">J\'ai la réponse de l\'IA</string>
+    <!-- Listes d'envies refaites d'après le prototype (correctif E2 à E4) -->
+    <string name="wishlist_tab_theirs">Ses envies</string>
+    <string name="wishlist_tab_my_ideas">Mes idées</string>
+    <string name="wishlist_mine_notice">Toute la famille voit ces envies. Toi, tu ne vois jamais qui les réserve.</string>
+    <string name="wishlist_theirs_notice">Liste créée par %1$s depuis sa fiche. %1$s ne voit pas qui réserve.</string>
+    <string name="wishlist_theirs_empty">Pas encore d\'envie. Tu peux déjà lui préparer des idées.</string>
+    <string name="wishlist_edit_a11y">Modifier %1$s</string>
+    <string name="wishlist_ideas_private">Seul·e toi vois tes idées pour %1$s. %1$s et les autres ne les voient pas.</string>
+    <string name="wishlist_idea_only_me">Seulement toi</string>
+    <string name="wishlist_already_bought">Déjà acheté · participation souhaitée</string>
+    <string name="wishlist_new">nouveau</string>
+    <string name="wishlist_taken_by_me">Tu t\'en occupes</string>
+    <string name="wishlist_joint">Cadeau commun</string>
+    <string name="wishlist_reserved">Réservé</string>
 </resources>
