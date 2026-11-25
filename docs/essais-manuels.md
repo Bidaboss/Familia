@@ -2756,6 +2756,14 @@ Sur un téléphone en Android 10 ou plus :
 6. Modifier un voyage déjà daté dans le passé : ses jours restent touchables à partir de son premier jour.
 7. « Départ » d'une destination dans un voyage : seuls les jours après l'arrivée sont touchables, et toucher le jour de départ ferme l'écran.
 
+## Voyage : crédits des photos repliés en bas du voyage (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Dans « Voyages », la carte du prochain voyage : plus de ligne « Photo : … » sur l'image.
+2. Ouvrir le voyage : plus de crédit sur la grande photo non plus.
+3. Tout en bas du voyage, sous les photos : « Crédits des photos », replié. Le toucher : « Nom du lieu : auteur, licence, Wikimedia Commons » pour chaque photo ; le toucher encore le replie.
+4. Un voyage sans photo trouvée (dessin seul) : pas de rubrique « Crédits des photos ».
+
 ## Voyage : le temps de route en voiture et en bus (retour du 25/11 soir)
 
 **Publier Firebase : non.** Seulement « APK de publication ».

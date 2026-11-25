@@ -237,6 +237,7 @@ fun TripDetailRoute(
         cover = { success ->
             TripCoverCarousel(success.trip, success.steps, container?.placePhotos, today = success.today)
         },
+        credits = { success -> TripPhotoCredits(success.trip, success.steps, container?.placePhotos) },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
     }

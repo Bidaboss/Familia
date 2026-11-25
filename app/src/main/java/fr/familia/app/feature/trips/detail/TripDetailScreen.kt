@@ -168,6 +168,8 @@ fun TripDetailScreen(
     satelliteToken: String = "",
     /** The home of a planned trip (règle 10): the image of the place, or several going by. */
     cover: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
+    /** « Crédits des photos », folded, at the very bottom of the trip (retour du 25/11 soir). */
+    credits: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     /** « Le trajet » (règle 16): open a step, − / + on the nights; null: open only. */
     timeline: TimelineActions? = null,
     /** « Ajout rapide » (récit 104, règle 35): during the trip, for those who go; null elsewhere. */
@@ -243,6 +245,7 @@ fun TripDetailScreen(
                     PathContent(
                         state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, cover, timeline, onOpenDocuments, onOpenEnrich,
                         onBack = onBack,
+                        credits = credits,
                         onEditTrip = onEditTrip.takeIf { state.canManage },
                         onShare = onShare,
                     )
@@ -358,6 +361,7 @@ private fun PathContent(
     onOpenDocuments: (() -> Unit)? = null,
     onOpenEnrich: (() -> Unit)? = null,
     onBack: () -> Unit = {},
+    credits: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
     onEditTrip: (() -> Unit)? = null,
     onShare: (() -> Unit)? = null,
 ) {
@@ -550,6 +554,7 @@ private fun PathContent(
                 AlbumPhotosSection(photos, photoActions, stringResource(empty))
             }
         }
+        if (credits != null) item(key = "credits") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { credits(state) } }
     }
     }
     }

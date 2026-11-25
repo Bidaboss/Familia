@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -18,6 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -119,9 +123,8 @@ fun TripCoverCarousel(
                 PlaceCover(
                     // Without a step, the name is the free title of the trip: it never goes to Wikipedia (B1 of #586).
                     place.name.takeIf { steps.isNotEmpty() }, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
-                    // Under « Voyage programmé », away from the pause button and the title: the licence asks for it to be read.
-                    creditAlignment = Alignment.TopStart,
-                    creditTop = 44.dp,
+                    // Retour du 25/11 soir : the credits are at the bottom of the trip (TripPhotoCredits), not on the photo.
+                    showCredit = false,
                 )
             }
         }
@@ -196,5 +199,58 @@ private fun CoverFigure(value: String, label: String) {
     Column {
         Text(value, fontSize = 19.sp, fontWeight = FontWeight.Black, color = Color.White, maxLines = 1)
         Text(label.uppercase(), fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1)
+    }
+}
+
+/**
+ * « Crédits des photos » at the bottom of a trip (retour du 25/11 soir): folded by default, it lists
+ * the author and licence of each photo of the cover, as the licences of Wikimedia Commons ask. The
+ * photos are the ones already looked for by the cover (kept in memory by [PlacePhotos]). Nothing
+ * shows while no photo was found.
+ */
+@Composable
+fun TripPhotoCredits(trip: Trip, steps: List<TripStep>, photos: PlacePhotos?, modifier: Modifier = Modifier) {
+    if (photos == null || steps.isEmpty()) return
+    val places = coverPlaces(trip, steps)
+    var credits by androidx.compose.runtime.remember { mutableStateOf(emptyList<Pair<String, String>>()) }
+    LaunchedEffect(places, photos) {
+        val found = mutableListOf<Pair<String, String>>()
+        for (place in places) {
+            val photo = photos.of(place.name, place.point?.lat, place.point?.lng)
+            if (photo != null && found.none { it.second == photo.credit }) found += place.name to photo.credit
+        }
+        credits = found
+    }
+    if (credits.isEmpty()) return
+    var open by rememberSaveable { mutableStateOf(false) }
+    val title = stringResource(R.string.trip_photo_credits)
+    Column(modifier.fillMaxWidth()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable(role = Role.Button, onClickLabel = stringResource(if (open) R.string.trip_photo_credits_hide else R.string.trip_photo_credits_show)) { open = !open }
+                .semantics { stateDescription = if (open) "ouvert" else "replié" }
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = TripSheetColors.Ink, modifier = Modifier.weight(1f))
+            Icon(
+                if (open) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                contentDescription = null,
+                tint = TripSheetColors.Ink,
+            )
+        }
+        if (open) {
+            credits.forEach { (place, credit) ->
+                Text(
+                    stringResource(R.string.trip_photo_credit_line, place, credit),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TripSheetColors.Ink,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                )
+            }
+        }
     }
 }
