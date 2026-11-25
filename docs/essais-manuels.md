@@ -2764,3 +2764,11 @@ Sur un téléphone en Android 10 ou plus :
 3. Sur la frise, le lieu choisi est la première destination, du premier au dernier jour ; ses nuits se règlent avec − et +.
 4. Dans « Voyages », la carte du voyage montre la photo et les kilomètres de ce lieu.
 5. Créer un voyage en tapant juste un nom (« Taper un nom ») : le voyage s'ouvre sans destination, comme avant.
+
+## Voyage : toutes les feuilles à trois hauteurs s'ouvrent au milieu (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Ouvrir, sur un voyage qui a des étapes placées : « Modifier » le voyage, une étape (ex. une voiture), Valise, Documents, Phrases, Sécurité, Monnaie, Comptes, un lieu, le mot de l'étape. Chaque écran s'ouvre avec la feuille à mi-hauteur, la carte au-dessus.
+2. « Modifier » le voyage : la feuille monte un instant en haut puis redescend au milieu (plus en bas).
+3. « Voyages » et la page d'un voyage s'ouvrent toujours au milieu, comme avant.
+4. Tirer la feuille en bas ou en haut marche comme avant ; le clavier la monte toujours en haut.

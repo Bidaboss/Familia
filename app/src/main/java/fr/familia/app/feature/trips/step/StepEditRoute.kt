@@ -58,7 +58,7 @@ fun StepEditRoute(
     val steps by remember(tripId) {
         container?.tripRepository?.observeSteps(tripId)?.catch { e -> if (e is CancellationException) throw e else emit(emptyList()) } ?: flowOf(emptyList())
     }.collectAsStateWithLifecycle(initialValue = emptyList())
-    TripMapBackdrop(token = BuildConfig.MAPBOX_PUBLIC_TOKEN, trip = trip, steps = steps, focusId = stepId, startLevel = if (stepId == null) 1 else 0) { inSheet ->
+    TripMapBackdrop(token = BuildConfig.MAPBOX_PUBLIC_TOKEN, trip = trip, steps = steps, focusId = stepId, startLevel = 1) { inSheet ->
         StepEditScreen(state = state, onChange = viewModel::update, onSave = viewModel::save, onDelete = viewModel::delete, onBack = onDone, inSheet = inSheet)
     }
 }
