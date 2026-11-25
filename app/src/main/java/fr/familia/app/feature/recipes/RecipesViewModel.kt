@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
-/** A recipe of the list, with whose recipe it is. */
+/** A recipe of the list, with whose recipe it is (« De … »: its origin, or who noted it). */
 data class RecipeRow(val recipe: Recipe, val origin: String?)
 
 sealed interface RecipesUiState {
@@ -24,14 +24,35 @@ sealed interface RecipesUiState {
     data object Failed : RecipesUiState
 
     /**
-     * [rows] already filtered by [query]; [total] counts the whole book, or the recipes of
-     * [originName] when the list comes from the profile of a member.
+     * [groups] already filtered by [query], by category; [total] counts the whole book, or the
+     * recipes [memberName] noted when the list comes from the profile of a member. [isMine]: the
+     * list of my own recipes. [canAdd]: « Nouvelle recette », only on the book and on my own list
+     * (règle 19 du brief).
      */
-    data class Ready(val rows: List<RecipeRow>, val query: String, val total: Int, val originName: String? = null) : RecipesUiState
+    data class Ready(
+        val groups: List<RecipeGroup>,
+        val query: String,
+        val total: Int,
+        val memberName: String? = null,
+        val isMine: Boolean = false,
+        val canAdd: Boolean = true,
+    ) : RecipesUiState {
+        val rows: List<RecipeRow> get() = groups.flatMap { it.rows }
+        val isMemberList: Boolean get() = memberName != null
+    }
 }
 
-/** The recipe book, by title, filtered as the member types (PRD, récit 38), or only those of [originMemberId]. */
-class RecipesViewModel(recipes: RecipeRepository?, members: MemberRepository?, originMemberId: String? = null) : ViewModel() {
+/**
+ * The recipe book, grouped by category and filtered as the member types (PRD, récit 38; récit 114),
+ * or only the recipes [memberId] noted, from their profile (DESIGN-171). The search of the book
+ * also finds a first name; the one of a member's list does not (all are theirs).
+ */
+class RecipesViewModel(
+    recipes: RecipeRepository?,
+    members: MemberRepository?,
+    memberId: String? = null,
+    currentMemberId: String? = null,
+) : ViewModel() {
 
     private val query = MutableStateFlow("")
 
@@ -40,13 +61,17 @@ class RecipesViewModel(recipes: RecipeRepository?, members: MemberRepository?, o
             MutableStateFlow(RecipesUiState.Ready(emptyList(), "", 0)) // Firebase not configured (previews).
         } else {
             combine(recipes.observeRecipes(), members.observeFamily(), query) { all, family, q ->
-                val book = if (originMemberId == null) all else all.filter { it.originMemberId == originMemberId }
-                val originName = originMemberId?.let { id -> family.members.firstOrNull { it.id == id }?.firstName }
+                val book = if (memberId == null) all else all.filter { it.authorId == memberId }
+                val memberName = memberId?.let { id -> family.members.firstOrNull { it.id == id }?.firstName ?: book.firstOrNull()?.authorName ?: "" }
+                val isMine = memberId != null && memberId == currentMemberId
+                val rows = book.filter { matches(it, q, family, withNames = memberId == null) }.map { RecipeRow(it, fromLabel(it, family)) }
                 val ready: RecipesUiState = RecipesUiState.Ready(
-                    rows = book.filter { matches(it, q, family) }.map { RecipeRow(it, originLabel(it, family)) },
+                    groups = groupByCategory(rows),
                     query = q,
                     total = book.size,
-                    originName = originName,
+                    memberName = memberName,
+                    isMine = isMine,
+                    canAdd = memberId == null || isMine,
                 )
                 ready
             }

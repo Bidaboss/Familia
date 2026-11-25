@@ -14,6 +14,7 @@ import fr.familia.app.feature.recipes.RecipesScreen
 import fr.familia.app.feature.recipes.previewRecipeComments
 import fr.familia.app.feature.recipes.previewRecipeDetail
 import fr.familia.app.feature.recipes.previewRecipeEdit
+import fr.familia.app.feature.recipes.previewMemberEmptyState
 import fr.familia.app.feature.recipes.previewRecipesState
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,7 +28,8 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [34], qualifiers = "w360dp-h780dp-xxhdpi")
 class RecipeScreenshotTest {
 
-    private val list: @Composable () -> Unit = { Surface { RecipesScreen(previewRecipesState(), {}, {}, {}, {}) } }
+    private val list: @Composable () -> Unit = { Surface { RecipesScreen(previewRecipesState(), {}, {}, {}, {}, onMakeBook = {}) } }
+    private val memberEmpty: @Composable () -> Unit = { Surface { RecipesScreen(previewMemberEmptyState(), {}, {}, {}, {}, onMakeBook = {}) } }
     private val detail: @Composable () -> Unit = {
         Surface {
             RecipeDetailScreen(
@@ -53,6 +55,9 @@ class RecipeScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun recipesFontScale200() = capture("recettes_police_200", content = list)
+
+    @Test
+    fun recipesMemberEmpty() = capture("recettes_membre_vide", content = memberEmpty)
 
     @Test
     fun recipeLight() = capture("recette_clair", content = detail)

@@ -17,9 +17,9 @@ import java.text.Normalizer
  * (firestore.rules, « Carnet de recettes »). Hidden behind Feature.Recipes.
  */
 
-/** [originMemberId] set: only the recipes that come from this member (from their profile). */
+/** [memberId] set: only the recipes this member noted, from their profile (DESIGN-171). */
 @Serializable
-data class RecipesDestination(val originMemberId: String? = null)
+data class RecipesDestination(val memberId: String? = null)
 
 @Serializable
 data class RecipeDetailDestination(val recipeId: String)
@@ -58,14 +58,19 @@ fun searchKey(text: String): String =
 fun authorLabel(recipe: Recipe, family: Family): String =
     family.members.firstOrNull { it.id == recipe.authorId }?.firstName ?: recipe.authorName
 
+/** « De … » on a recipe (règle 17 du brief): its origin, or else who noted it. */
+fun fromLabel(recipe: Recipe, family: Family): String = originLabel(recipe, family) ?: authorLabel(recipe, family)
+
 /**
- * True when every word of [query] is in the title, the origin (« De … »), who noted it
- * (« Notée par … »), the tags or the ingredients: a first name finds the recipes of that member.
+ * True when every word of [query] is in the title, the tags or the ingredients, and with
+ * [withNames] also the origin (« De … ») or who noted it (« Notée par … »): a first name finds the
+ * recipes of that member. A member's own list searches without names (all are theirs).
  */
-fun matches(recipe: Recipe, query: String, family: Family): Boolean {
+fun matches(recipe: Recipe, query: String, family: Family, withNames: Boolean = true): Boolean {
     val words = searchKey(query).split(Regex("\\s+")).filter { it.isNotEmpty() }
     if (words.isEmpty()) return true
-    val parts = listOfNotNull(recipe.title, originLabel(recipe, family), authorLabel(recipe, family), recipe.ingredients)
+    val names = if (withNames) listOfNotNull(originLabel(recipe, family), authorLabel(recipe, family)) else emptyList()
+    val parts = listOf(recipe.title, recipe.ingredients) + names
     val haystack = searchKey(parts.plus(recipe.tags).joinToString(" "))
     return words.all { it in haystack }
 }

@@ -94,17 +94,52 @@ class RecipesTest {
     }
 
     @Test
-    fun `the book is by title and filtered as one types`() = runTest {
-        val vm = RecipesViewModel(FakeRecipes(listOf(soup, apple)), FakeMembers())
+    fun `the book is grouped by category, by title inside, and filtered as one types`() = runTest {
+        val tart = recipe("r3", "Tarte aux poires").copy(category = RecipeCategory.Dessert)
+        val all = listOf(soup.copy(category = RecipeCategory.Entree), apple.copy(category = RecipeCategory.Dessert), tart)
+        val vm = RecipesViewModel(FakeRecipes(all), FakeMembers(), currentMemberId = "adult1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
-        assertEquals(listOf("r1", "r2"), (vm.uiState.value as RecipesUiState.Ready).rows.map { it.recipe.id })
+        val ready = vm.uiState.value as RecipesUiState.Ready
+        assertEquals(listOf(RecipeCategory.Entree, RecipeCategory.Dessert), ready.groups.map { it.category })
+        assertEquals(listOf("r1", "r3"), ready.groups[1].rows.map { it.recipe.id })
+        assertTrue(ready.canAdd)
 
         vm.search("potiron")
 
-        val ready = vm.uiState.value as RecipesUiState.Ready
-        assertEquals(listOf("r2"), ready.rows.map { it.recipe.id })
-        assertEquals("Adult2", ready.rows.single().origin)
-        assertEquals(2, ready.total)
+        val found = vm.uiState.value as RecipesUiState.Ready
+        assertEquals(listOf("r2"), found.rows.map { it.recipe.id })
+        assertEquals("Adult2", found.rows.single().origin)
+        assertEquals(3, found.total)
+    }
+
+    @Test
+    fun `the categories keep the order of the book, an empty one has no group, and the old recipes are in Divers`() {
+        val rows = listOf(
+            RecipeRow(recipe("a", "Sirop"), null),
+            RecipeRow(recipe("b", "Mojito").copy(category = RecipeCategory.Boisson), null),
+            RecipeRow(recipe("c", "Olives").copy(category = RecipeCategory.Aperitif), null),
+        )
+        assertEquals(
+            listOf(RecipeCategory.Aperitif, RecipeCategory.Boisson, RecipeCategory.Divers),
+            groupByCategory(rows).map { it.category },
+        )
+        assertEquals(RecipeCategory.Divers, RecipeCategory.fromKey(null))
+        assertEquals(RecipeCategory.Plat, RecipeCategory.fromKey("plat"))
+    }
+
+    @Test
+    fun `without an origin a recipe says who noted it`() {
+        val family = TestFamily.family
+        assertEquals("Adult1", fromLabel(apple, family))
+        assertEquals("Mamie Rose", fromLabel(apple.copy(origin = "Mamie Rose"), family))
+    }
+
+    @Test
+    fun `a member's list searches without first names`() {
+        val family = TestFamily.family
+        assertTrue(matches(apple, "adult1", family))
+        assertFalse(matches(apple, "adult1", family, withNames = false))
+        assertTrue(matches(apple, "pommes dessert", family, withNames = false))
     }
 
     @Test
@@ -273,12 +308,23 @@ class RecipesTest {
     }
 
     @Test
-    fun `the list from a profile keeps only the recipes of that member`() = runTest {
-        val vm = RecipesViewModel(FakeRecipes(listOf(soup, apple)), FakeMembers(), originMemberId = "adult2")
+    fun `the list from a profile keeps the recipes that member noted, without « Nouvelle recette » unless it is mine`() = runTest {
+        val byAdult2 = recipe("r3", "Riz au lait").copy(authorId = "adult2", authorName = "Adult2")
+        val fake = FakeRecipes(listOf(soup, apple, byAdult2))
+        val vm = RecipesViewModel(fake, FakeMembers(), memberId = "adult2", currentMemberId = "adult1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val ready = vm.uiState.value as RecipesUiState.Ready
-        assertEquals(listOf("r2"), ready.rows.map { it.recipe.id })
-        assertEquals("Adult2" to 1, ready.originName to ready.total)
+        // The soup only comes from adult2: adult1 noted it, so it stays on adult1's list.
+        assertEquals(listOf("r3"), ready.rows.map { it.recipe.id })
+        assertEquals("Adult2" to 1, ready.memberName to ready.total)
+        assertFalse(ready.canAdd)
+        assertFalse(ready.isMine)
+
+        val mine = RecipesViewModel(fake, FakeMembers(), memberId = "adult1", currentMemberId = "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { mine.uiState.collect {} }
+        val myList = mine.uiState.value as RecipesUiState.Ready
+        assertEquals(setOf("r1", "r2"), myList.rows.map { it.recipe.id }.toSet())
+        assertTrue(myList.canAdd && myList.isMine)
     }
 
     @Test
