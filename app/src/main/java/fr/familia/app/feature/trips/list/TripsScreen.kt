@@ -527,8 +527,8 @@ private fun HeroCard(
             landscape = trip.landscape,
             photos = photos,
             modifier = Modifier.fillMaxSize(),
-            creditAlignment = Alignment.TopStart,
-            creditTop = 50.dp,
+            // Retour du 25/11 soir : the credit is inside the trip, at its bottom.
+            showCredit = false,
         )
         Row(
             Modifier

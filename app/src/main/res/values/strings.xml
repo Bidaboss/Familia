@@ -342,6 +342,10 @@
     <string name="place_article_title">À savoir sur %1$s</string>
     <string name="place_cover_photo">Photo de %1$s</string>
     <string name="place_cover_credit">Photo : %1$s</string>
+    <string name="trip_photo_credits">Crédits des photos</string>
+    <string name="trip_photo_credits_show">Afficher les crédits</string>
+    <string name="trip_photo_credits_hide">Replier les crédits</string>
+    <string name="trip_photo_credit_line">%1$s : %2$s</string>
     <string name="trip_cover_planned">Voyage programmé</string>
     <string name="trip_cover_ongoing">En cours</string>
     <string name="trip_cover_over">Terminé</string>
