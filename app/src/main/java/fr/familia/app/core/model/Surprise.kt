@@ -192,3 +192,17 @@ data class OfferedSurprise(
 /** The last offered first. */
 fun sortOffered(list: List<OfferedSurprise>): List<OfferedSurprise> =
     list.sortedWith(compareByDescending<OfferedSurprise> { it.offeredAt }.thenByDescending { it.date })
+
+/** Accueil « À répondre »: « Surprise de X : n idées à noter » (audit de fidélité, point 8). */
+data class SurpriseToRate(val surpriseId: String, val beneficiaryId: String, val count: Int)
+
+/**
+ * How many proposals of a surprise [memberId] has not noted yet: every wish still there (one the
+ * members took out of the list is not counted) and every idea added by someone else.
+ */
+fun toRateCount(wishItemIds: List<String>, proposals: List<SurpriseProposal>, myRatings: Map<String, Int>, memberId: String): Int {
+    val removed = proposals.filter { it.removed }.map { it.id }.toSet()
+    val wishes = wishItemIds.map { wishProposalId(it) }.filter { it !in removed }
+    val ideas = proposals.filter { it.kind == ProposalKind.Idea && !it.removed && it.authorId != memberId }.map { it.id }
+    return (wishes + ideas).count { it !in myRatings }
+}
