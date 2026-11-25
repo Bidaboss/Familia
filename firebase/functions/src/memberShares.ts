@@ -15,6 +15,10 @@
 //   whoIsIt/{id} they posted           → with its answer, guesses and files (onWhoIsItDeleted)
 //   goodNews/{memberId}/, whoIsIt/{memberId}/ in Storage (a file sent without its post)
 //   memberPhotos/{memberId}          (their profile photo)
+//   gazetteThreads/*/comments they wrote → the count and the latest of the card follow (onGazetteCommentRemoved)
+//   gazetteThreads/*.reactions.{memberId} (their J'aime)
+//   gazetteThreads/wishes:{memberId}[:*], gazetteThreads/birthday:{memberId}:* (the cards of their own
+//                                        wishes and birthday), with their comments
 //
 // Already removed elsewhere when a member goes: rsvps, bags, trip documents and voice notes
 // (deleteMemberData), wishes and notebook (onMemberDeletedGifts), surprises and their parts
@@ -22,6 +26,7 @@
 // Capsules keep their rule (EXPERT-1): they still open, the admin principal decides on the rest.
 // The events, trips, polls and coups de main they created stay: they belong to the family agenda.
 
+import { FieldPath, FieldValue } from 'firebase-admin/firestore';
 import type { DocumentReference, Firestore } from 'firebase-admin/firestore';
 
 /** Removes the files under a Storage folder (prefix ends with « / »). */
@@ -106,6 +111,24 @@ export async function deleteSharedBy(db: Firestore, memberId: string, removeFold
       }
       await remove(await authoredIn(db, `trips/${t.id}/films`, memberId));
       await folder(`trips/${t.id}/${memberId}/`);
+    }
+  });
+
+  // La gazette (renfort sur #685, B1): their comments and J'aime under the cards of the others,
+  // and the threads of the cards about them, which go with them.
+  await attempt(async () => {
+    for (const t of (await db.collection('gazetteThreads').select('reactions').get()).docs) {
+      const about = (kind: string) => t.id === `${kind}:${memberId}` || t.id.startsWith(`${kind}:${memberId}:`);
+      if (about('wishes') || about('birthday')) {
+        await db.recursiveDelete(t.ref);
+        result.documents++;
+        continue;
+      }
+      await remove(await authoredIn(db, `gazetteThreads/${t.id}/comments`, memberId));
+      const reactions = t.get('reactions') as Record<string, unknown> | undefined;
+      if (reactions && Object.prototype.hasOwnProperty.call(reactions, memberId)) {
+        await t.ref.update(new FieldPath('reactions', memberId), FieldValue.delete());
+      }
     }
   });
 
