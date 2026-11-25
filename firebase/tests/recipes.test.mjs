@@ -22,7 +22,8 @@ function recipe(author, overrides = {}) {
     servings: 6,
     ingredients: '4 pommes\n150 g de farine\n3 œufs',
     steps: 'Couper les pommes.\nMélanger le reste.\nCuire 40 minutes.',
-    tags: ['dessert'],
+    tags: ['dimanche'],
+    category: 'dessert',
     authorId: author.memberId,
     authorName: author.memberId,
     createdAt: serverTimestamp(),
@@ -64,15 +65,29 @@ describe('recipes (récit 38)', () => {
     await assertFails(setDoc(doc(db, 'recipes/r7'), recipe(ADULT, { secret: true })));
   });
 
-  test('the author or the admin principal edits and removes it, nobody else', async () => {
+  test('only its author edits and removes it, not even the admin principal (récit 114)', async () => {
     await stored('r1', ADULT);
     const edit = { title: 'Gâteau de Mamie', updatedAt: serverTimestamp() };
     await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'recipes/r1'), edit));
+    await assertFails(updateDoc(doc(as(env, ADMIN), 'recipes/r1'), edit));
     await assertSucceeds(updateDoc(doc(as(env, ADULT), 'recipes/r1'), edit));
-    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'recipes/r1'), edit));
     await assertFails(updateDoc(doc(as(env, ADULT), 'recipes/r1'), { authorId: 'adult2', updatedAt: serverTimestamp() }));
     await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1')));
-    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1')));
+    await assertFails(deleteDoc(doc(as(env, ADMIN), 'recipes/r1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'recipes/r1')));
+  });
+
+  test('its category is one of 8, and an older app may still leave it out (récit 114)', async () => {
+    const db = as(env, ADULT);
+    for (const [i, category] of ['aperitif', 'entree', 'plat', 'accompagnement', 'dessert', 'boisson', 'sauce', 'divers'].entries()) {
+      await assertSucceeds(setDoc(doc(db, `recipes/c${i}`), recipe(ADULT, { category })));
+    }
+    await assertFails(setDoc(doc(db, 'recipes/bad1'), recipe(ADULT, { category: 'goûter' })));
+    await assertFails(setDoc(doc(db, 'recipes/bad2'), recipe(ADULT, { category: 3 })));
+    const { category, ...old } = recipe(ADULT);
+    await assertSucceeds(setDoc(doc(db, 'recipes/old'), old));
+    await assertSucceeds(updateDoc(doc(db, 'recipes/old'), { category: 'plat', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'recipes/old'), { category: 'Plat', updatedAt: serverTimestamp() }));
   });
 
   test('a recipe may have a little story and say a child is on its photos (récit 47)', async () => {
@@ -84,7 +99,7 @@ describe('recipes (récit 38)', () => {
     const child = { childInPhotos: true, updatedAt: serverTimestamp() };
     await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'recipes/r4'), child));
     await assertSucceeds(updateDoc(doc(db, 'recipes/r4'), child));
-    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'recipes/r4'), { childInPhotos: false, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as(env, ADMIN), 'recipes/r4'), { childInPhotos: false, updatedAt: serverTimestamp() }));
     await assertFails(updateDoc(doc(db, 'recipes/r4'), { childInPhotos: 'oui', updatedAt: serverTimestamp() }));
   });
 
@@ -109,20 +124,22 @@ describe('recipes (récit 38)', () => {
     await assertFails(updateDoc(doc(db, 'recipes/r1'), { originMemberId: 'nobody', updatedAt: serverTimestamp() }));
   });
 
-  test('the author or the admin principal adds up to 3 photos, and the family sees them', async () => {
+  test('only its author adds up to 3 photos, and the family sees them', async () => {
     await stored('r1', ADULT);
     const photo = (author, slot) => ({ authorId: author.memberId, authorName: author.memberId, slot, createdAt: serverTimestamp() });
     await assertSucceeds(setDoc(doc(as(env, ADULT), 'recipes/r1/photos/adult1_1'), photo(ADULT, 1)));
-    await assertSucceeds(setDoc(doc(as(env, ADMIN), 'recipes/r1/photos/admin1_3'), photo(ADMIN, 3)));
+    await assertSucceeds(setDoc(doc(as(env, ADULT), 'recipes/r1/photos/adult1_3'), photo(ADULT, 3)));
+    await assertFails(setDoc(doc(as(env, ADMIN), 'recipes/r1/photos/admin1_2'), photo(ADMIN, 2)));
     await assertFails(setDoc(doc(as(env, ADULT), 'recipes/r1/photos/adult1_4'), photo(ADULT, 4)));
     await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/photos/adult2_1'), photo(OTHER_ADULT, 1)));
     await assertSucceeds(getDocs(collection(as(env, NEIGHBOUR), 'recipes/r1/photos')));
     await assertFails(getDocs(collection(as(env, STRANGER), 'recipes/r1/photos')));
     await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/photos/adult1_1')));
-    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1/photos/adult1_1')));
+    await assertFails(deleteDoc(doc(as(env, ADMIN), 'recipes/r1/photos/adult1_1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'recipes/r1/photos/adult1_1')));
   });
 
-  test('every member comments in their own name; the author, the recipe author or the admin removes it', async () => {
+  test('every member comments in their own name; the author or the recipe author removes it, not the admin', async () => {
     await stored('r1', ADULT);
     const comment = (author, text = 'Avec moins de sucre, parfait.') => ({
       text, authorId: author.memberId, authorName: author.memberId, createdAt: serverTimestamp(),
@@ -142,6 +159,7 @@ describe('recipes (récit 38)', () => {
     await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c2')));
     await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c1')));
     await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'recipes/r1/comments/c2')));
-    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1/comments/c3')));
+    await assertFails(deleteDoc(doc(as(env, ADMIN), 'recipes/r1/comments/c3')));
+    await assertSucceeds(deleteDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c3')));
   });
 });

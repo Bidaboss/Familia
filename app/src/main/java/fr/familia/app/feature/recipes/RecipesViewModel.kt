@@ -90,7 +90,7 @@ class RecipeDetailViewModel(
                 val state: RecipeDetailUiState = when {
                     removed == true -> RecipeDetailUiState.Removed
                     recipe == null || me == null -> RecipeDetailUiState.Missing
-                    else -> RecipeDetailUiState.Ready(recipe, originLabel(recipe, family), canManageRecipe(recipe, me, family), removed == false)
+                    else -> RecipeDetailUiState.Ready(recipe, originLabel(recipe, family), canManageRecipe(recipe, me), removed == false)
                 }
                 state
             }

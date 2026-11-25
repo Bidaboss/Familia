@@ -4,8 +4,9 @@ import java.time.Instant
 
 /**
  * A family recipe (PRD, récit 38), in recipes/{recipeId}. [ingredients] and [steps] are kept as
- * texts, one per line; [originMemberId] says whose recipe it is when they are in the family,
- * otherwise [origin] tells it freely (« Mamie Jeanne »).
+ * texts, one per line. It belongs to its author only (récit 114); [origin] tells freely where it
+ * comes from (« Mamie Jeanne »). [originMemberId] is a leftover of the « personne d'origine »:
+ * the server turns it into [origin] text, so new recipes leave it null.
  */
 data class Recipe(
     val id: String,
@@ -21,6 +22,8 @@ data class Recipe(
     val createdAt: Instant?,
     /** Its little story (« Mamie la faisait chaque dimanche »), for the book of récit 47; may be empty. */
     val story: String = "",
+    /** One of 8 (DESIGN-170); an old recipe without one is « Divers ». */
+    val category: RecipeCategory = RecipeCategory.Divers,
 ) {
     val ingredientLines: List<String> get() = lines(ingredients)
     val stepLines: List<String> get() = lines(steps)
@@ -35,6 +38,24 @@ data class Recipe(
         const val MAX_STORY = 600
 
         fun lines(text: String): List<String> = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
+    }
+}
+
+/** The category of a recipe (récit 114, DESIGN-170), stored by its [key] in the field "category". */
+enum class RecipeCategory(val key: String) {
+    Aperitif("aperitif"),
+    Entree("entree"),
+    Plat("plat"),
+    Accompagnement("accompagnement"),
+    Dessert("dessert"),
+    Boisson("boisson"),
+    Sauce("sauce"),
+    Divers("divers"),
+    ;
+
+    companion object {
+        /** No category or an unknown one (a recipe written before): « Divers ». */
+        fun fromKey(key: String?): RecipeCategory = entries.firstOrNull { it.key == key } ?: Divers
     }
 }
 

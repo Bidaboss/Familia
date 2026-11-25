@@ -350,13 +350,14 @@ describe('recipes folder (récit 38)', () => {
     await assertFails(uploadString(ref(storageAs(ADULT), file('adult1', '4.jpg')), 'x', 'raw', jpeg));
   });
 
-  test('nobody else sends photos, but the admin principal may, and removes them', async () => {
+  test('nobody else sends or removes photos, not even the admin principal (récit 114)', async () => {
     await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult2')), 'x', 'raw', jpeg));
     await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult1')), 'x', 'raw', jpeg));
     await uploadString(ref(storageAs(ADULT), file('adult1', '2.jpg')), 'x', 'raw', jpeg);
     await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult1', '2.jpg'))));
-    await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('adult1', '2.jpg'))));
-    await assertSucceeds(uploadString(ref(storageAs(ADMIN), file('admin1')), 'x', 'raw', jpeg));
+    await assertFails(deleteObject(ref(storageAs(ADMIN), file('adult1', '2.jpg'))));
+    await assertFails(uploadString(ref(storageAs(ADMIN), file('admin1')), 'x', 'raw', jpeg));
+    await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult1', '2.jpg'))));
   });
 });
 

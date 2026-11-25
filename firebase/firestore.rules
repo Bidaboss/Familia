@@ -2677,8 +2677,11 @@ service cloud.firestore {
     //
     // recipes/{recipeId}: a family recipe, seen by every member. Ingredients and steps are kept as
     // texts, one per line, so the rules can bound them. Any member writes one in their own name;
-    // the author, or the admin principal, edits and removes it. originMemberId says whose recipe
-    // it is (a member of the family, or null with a free origin such as « Mamie Jeanne »).
+    // only its author edits and removes it, the admin principal has no right on it (récit 114,
+    // DESIGN-173). category is one of 8 (DESIGN-170); the old ones have none until the server
+    // gives them « divers », and an older app does not write it. origin is the free « D'où vient
+    // la recette ? »; originMemberId is a leftover of the « personne d'origine », still accepted
+    // from an older app and turned into origin text by the server (onRecipeWritten).
     // A tag of a recipe: a short text, as parseTags() makes it in the app.
     function isRecipeTag(t) {
       return t is string && t.size() > 0 && t.size() <= 24;
@@ -2690,7 +2693,9 @@ service cloud.firestore {
       return r.keys().hasAll(['title', 'origin', 'originMemberId', 'servings', 'ingredients', 'steps', 'tags',
                               'authorId', 'authorName', 'createdAt', 'updatedAt'])
         && r.keys().hasOnly(['title', 'origin', 'originMemberId', 'servings', 'ingredients', 'steps', 'tags',
-                             'authorId', 'authorName', 'createdAt', 'updatedAt', 'story', 'childInPhotos'])
+                             'authorId', 'authorName', 'createdAt', 'updatedAt', 'story', 'childInPhotos', 'category'])
+        && (!('category' in r) || r.category in ['aperitif', 'entree', 'plat', 'accompagnement', 'dessert',
+                                                 'boisson', 'sauce', 'divers'])
         && r.title is string && r.title.size() > 0 && r.title.size() <= 80
         && r.origin is string && r.origin.size() <= 80
         && (r.originMemberId == null
@@ -2712,7 +2717,7 @@ service cloud.firestore {
     }
 
     function canManageRecipe(r) {
-      return r.authorId == myMemberId() || isOwner();
+      return r.authorId == myMemberId();
     }
 
     match /recipes/{recipeId} {
@@ -2735,8 +2740,8 @@ service cloud.firestore {
     }
 
     // recipes/{recipeId}/photos/{photoId} (récit 38, partie 2): the photos of the dish, shaped like
-    // the photos of a trip (isValidAlbumPhoto) but with 3 places, 1 to 3. Whoever may change the
-    // recipe adds and removes them; the files are in Storage at recipes/{recipeId}/{authorId}/.
+    // the photos of a trip (isValidAlbumPhoto) but with 3 places, 1 to 3. The author of the recipe
+    // adds and removes them; the files are in Storage at recipes/{recipeId}/{authorId}/.
     // Deleting the recipe deletes them on the server (onRecipeDeleted).
     function recipeOf(recipeId) {
       return get(/databases/$(database)/documents/recipes/$(recipeId)).data;
@@ -2753,8 +2758,8 @@ service cloud.firestore {
     }
 
     // recipes/{recipeId}/comments/{commentId} (récit 38): every member reads and writes comments in
-    // their own name, 1 to 500 characters, never edited. Its author, the author of the recipe or the
-    // admin principal removes one. Deleting the recipe deletes them on the server.
+    // their own name, 1 to 500 characters, never edited. Its author or the author of the recipe
+    // removes one (récit 114: the admin principal no longer). Deleting the recipe deletes them on the server.
     match /recipes/{recipeId}/comments/{commentId} {
       allow read: if isMember();
       allow create: if isMember()

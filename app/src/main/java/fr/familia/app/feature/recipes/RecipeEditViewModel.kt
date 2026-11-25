@@ -9,6 +9,7 @@ import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeCategory
 import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.ui.pickGroups
@@ -130,7 +131,7 @@ class RecipeEditViewModel(
         val family = loaded?.first ?: return unavailable()
         val existing = loaded.second
         val current = family.members.firstOrNull { it.id == currentMemberId } ?: return unavailable()
-        if (recipeId != null && (existing == null || !canManageRecipe(existing, current, family))) return unavailable()
+        if (recipeId != null && (existing == null || !canManageRecipe(existing, current))) return unavailable()
         me = current
         original = existing
         // Kept with the draft: a recipe saved just before Android stopped the app is not written twice.
@@ -254,6 +255,8 @@ class RecipeEditViewModel(
             authorName = original?.authorName ?: author.firstName,
             createdAt = original?.createdAt,
             story = form.story.trim(),
+            // Kept as it is until the form offers it (récit 114, lot B).
+            category = original?.category ?: RecipeCategory.Divers,
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
