@@ -31,6 +31,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 
 /**
  * A photo of Unsplash (règle 19): its id, the name of its file on the images server of Unsplash, and
@@ -137,7 +142,15 @@ fun PhotoBackdrop(theme: FamiliaThemeId, scroll: PhotoScroll, modifier: Modifier
     if (!theme.isPhoto) return
     val density = LocalDensity.current
     val top = LocalPhotoExtent.current == PhotoExtent.Top
-    BoxWithConstraints(modifier.fillMaxSize().clipToBounds().then(if (top) Modifier.background(TopOnlyCream) else Modifier)) {
+    val haze = LocalPhotoHaze.current
+    BoxWithConstraints(
+        modifier
+            .fillMaxSize()
+            .clipToBounds()
+            .then(if (top) Modifier.background(TopOnlyCream) else Modifier)
+            // What the glass cards blur, on Android 12 and newer (photoCard).
+            .then(if (haze != null && !top) Modifier.hazeSource(haze) else Modifier),
+    ) {
         // « Le haut seulement »: the photo covers the top 380 dp and melts into the cream.
         val shown: Dp = if (top) TOP_ONLY_HEIGHT else maxHeight
         val height: Dp = shown * PHOTO_HEIGHT
@@ -206,20 +219,41 @@ private val PhotoVeil = Brush.verticalGradient(
 )
 
 /**
- * A card on the photo (règle 10, A5): frosted cream with a light white edge. Without the blur of
- * Android 12 for now, so at 85 % (the fallback of A5), which keeps every text readable whatever the
- * photo.
+ * A card on the photo (règle 10, A5): frosted cream with a light white edge. On Android 12 and newer
+ * (RenderEffect), the photo behind is really blurred (16 dp) under a cream at 62 %, as in A5; before,
+ * and while nothing provides [LocalPhotoHaze], a cream at 85 % without blur, which keeps every text
+ * readable whatever the photo. « Le haut seulement »: white cards at 92 % with a cream edge, never a
+ * blur (the cards lie on the cream, not on the photo).
  */
 @Composable
 fun Modifier.photoCard(radius: Dp = 24.dp): Modifier {
     val shape = RoundedCornerShape(radius)
-    // « Le haut seulement »: white cards at 92 % with a cream edge, never a blur.
-    return if (LocalPhotoExtent.current == PhotoExtent.Top) {
-        clip(shape).background(Color.White.copy(alpha = 0.92f)).border(1.dp, Color(0xFFF1EADF), shape)
+    if (LocalPhotoExtent.current == PhotoExtent.Top) {
+        return clip(shape).background(Color.White.copy(alpha = 0.92f)).border(1.dp, Color(0xFFF1EADF), shape)
+    }
+    val haze = LocalPhotoHaze.current
+    val edge = Color.White.copy(alpha = 0.5f)
+    return if (haze != null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        clip(shape).hazeEffect(haze, PhotoGlassStyle).border(1.dp, edge, shape)
     } else {
-        clip(shape).background(PhotoCardColor).border(1.dp, Color.White.copy(alpha = 0.5f), shape)
+        clip(shape).background(PhotoCardColor).border(1.dp, edge, shape)
     }
 }
+
+/** The glass of A5 with the real blur: 16 dp of blur under a cream at 62 %, no grain. */
+private val PhotoGlassStyle = HazeStyle(
+    backgroundColor = Color(0xFFFFFAF2),
+    tint = HazeTint(Color(0x9EFFFAF2)),
+    blurRadius = 16.dp,
+    noiseFactor = 0f,
+    fallbackTint = HazeTint(Color(0xD9FFFAF2)),
+)
+
+/**
+ * The blur shared by [PhotoBackdrop] (what is blurred) and [photoCard] (where), provided by the app
+ * around the screens that lie on the photo. Null: no blur, the 85 % cream.
+ */
+val LocalPhotoHaze = staticCompositionLocalOf<HazeState?> { null }
 
 /** The cream of the cards on the photo, 85 % opaque. */
 val PhotoCardColor = Color(0xD9FFFAF2)

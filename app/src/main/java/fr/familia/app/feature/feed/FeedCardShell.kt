@@ -28,8 +28,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.TextStyle
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.PhotoSectionShadow
+import fr.familia.app.core.theme.PhotoSectionText
+import fr.familia.app.core.theme.photoCard
 import fr.familia.app.core.ui.MemberAvatar
 
 /**
@@ -62,6 +69,10 @@ fun FeedCardShell(
     header: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    if (LocalFeedGlass.current) {
+        GlassCard(onOpen, modifier, header, content)
+        return
+    }
     val shape = RoundedCornerShape(TILE_CORNER)
     val card = LocalClayColors.current.card
     // Brown-black shadow: 10 % on a light card, 35 % on a dark one, so it still lifts the tile.
@@ -91,14 +102,61 @@ fun FeedCardShell(
 
 private val TILE_CORNER = 22.dp
 
+/**
+ * Whether the fil lies on the photo of the Accueil (récit 113, fiche A2): its cards are then of glass,
+ * its day titles white on the photo. Provided by the Accueil only.
+ */
+val LocalFeedGlass = staticCompositionLocalOf { false }
+
+/** The dark ink of the glass cards, the same in light and dark mode (DESIGN-160). */
+private val GlassInk = Color(0xFF2B1D12)
+private val GlassSoftInk = Color(0xFF6B4A1F)
+
+/**
+ * A card of the fil on the photo (fiche A2): the glass of the Accueil (radius 24), no shadow nor
+ * outline. Its texts keep the dark ink of the cream glass, in dark mode too.
+ */
+@Composable
+private fun GlassCard(
+    onOpen: (() -> Unit)?,
+    modifier: Modifier,
+    header: (@Composable () -> Unit)?,
+    content: @Composable () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme.copy(
+        onSurface = GlassInk,
+        onSurfaceVariant = GlassSoftInk,
+        onBackground = GlassInk,
+        outlineVariant = Color(0x33000000),
+    )
+    MaterialTheme(colorScheme = scheme, typography = MaterialTheme.typography, shapes = MaterialTheme.shapes) {
+        CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides GlassInk) {
+            Column(
+                modifier
+                    .fillMaxWidth()
+                    .photoCard(GLASS_CORNER)
+                    .then(if (onOpen != null) Modifier.clickable(onClick = onOpen) else Modifier)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                header?.invoke()
+                content()
+            }
+        }
+    }
+}
+
+private val GLASS_CORNER = 24.dp
+
 /** « (I) Inès · 9 h 12          [Bonne nouvelle] »: who, when, and the module. */
 @Composable
 fun FeedHeader(member: Member?, name: String, time: String, label: String, tone: FeedTone) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (member != null) MemberAvatar(member, size = 30.dp)
+        val glass = LocalFeedGlass.current
+        if (member != null) MemberAvatar(member, size = if (glass) 40.dp else 30.dp)
         Text(
             "$name · $time",
-            style = MaterialTheme.typography.bodyMedium,
+            style = if (glass) MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp) else MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -145,9 +203,16 @@ fun FeedLastComment(name: String, text: String) {
 /** « Aujourd'hui ———— », the day of the cards under it. */
 @Composable
 fun FeedDayHeader(label: String, modifier: Modifier = Modifier) {
+    val glass = LocalFeedGlass.current
+    // On the photo: white with its shadow, like « Aujourd'hui » (dark with « Le haut seulement »).
+    val ink = if (glass) PhotoSectionText else MaterialTheme.colorScheme.onSurface
+    val style: TextStyle = if (glass) MaterialTheme.typography.titleLarge.copy(shadow = PhotoSectionShadow) else MaterialTheme.typography.titleLarge
     Row(modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        Text(label, style = style, color = ink, modifier = Modifier.semantics { heading() })
         Spacer(Modifier.width(10.dp))
-        Box(Modifier.weight(1f).height(2.dp).clip(RoundedCornerShape(1.dp)).background(MaterialTheme.colorScheme.outlineVariant))
+        Box(
+            Modifier.weight(1f).height(2.dp).clip(RoundedCornerShape(1.dp))
+                .background(if (glass) ink.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
+        )
     }
 }

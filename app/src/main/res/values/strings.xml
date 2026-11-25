@@ -2406,6 +2406,7 @@
         <item quantity="one">%1$d nouveauté</item>
         <item quantity="other">%1$d nouveautés</item>
     </plurals>
+    <string name="home_photo_feed_publish">+ Publier</string>
     <string name="home_photo_feed_none">Rien de nouveau depuis ta dernière visite</string>
     <string name="home_r1_todo">À faire</string>
     <string name="home_r1_calm">Rien à faire aujourd\'hui. Profites-en pour le défi !</string>
