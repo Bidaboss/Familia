@@ -547,7 +547,7 @@
     <string name="genealogy_pick_no_account">sans compte</string>
     <string name="tree_of_life_tab_tree">Arbre</string>
     <string name="tree_of_life_tab_list">Liste</string>
-    <string name="tree_of_life_hint">Pince pour zoomer. Touche quelqu\'un pour voir sa fiche.</string>
+    <string name="tree_of_life_hint">Glisse du doigt pour voir toute la famille. Touche quelqu\'un pour voir sa fiche.</string>
     <string name="tree_of_life_add_kin">Ajouter un proche</string>
     <string name="tree_of_life_roots">Nos racines</string>
     <string name="tree_of_life_couple">%1$s et %2$s</string>

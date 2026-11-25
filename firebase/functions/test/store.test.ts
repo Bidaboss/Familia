@@ -147,6 +147,17 @@ test('removing a member deletes their answers, bags, alerts, trip documents, voi
   assert.equal((await db.doc('usage/noe/days/2026-11-20').get()).exists, true);
 });
 
+test('removing a member deletes their private notes and the notes of the others about them (récit 114)', async () => {
+  await db.doc('members/ines/notes/noe').set({ text: 'Aime le thé vert', updatedAt: now });
+  await db.doc('members/noe/notes/ines').set({ text: 'Pointure 38', updatedAt: now });
+  await db.doc('members/noe/notes/camille').set({ text: 'Un livre de cuisine', updatedAt: now });
+  await db.doc('members/ines').delete();
+  await deleteMemberData(db, 'ines');
+  assert.equal((await db.collection('members/ines/notes').get()).size, 0);
+  assert.equal((await db.doc('members/noe/notes/ines').get()).exists, false);
+  assert.equal((await db.doc('members/noe/notes/camille').get()).exists, true);
+});
+
 test('at 18 h, those coming tomorrow are reminded, children without the app through their adults', async () => {
   const { sent, send } = fakeSender();
   await sendDayBeforeReminders(db, send, now);
