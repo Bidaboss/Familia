@@ -52,6 +52,7 @@ fun GenealogyTab(
     container: AppContainer?,
     currentMember: Member,
     onOpenProfile: ((String) -> Unit)? = null,
+    onMakePoster: (() -> Unit)? = null,
 ) {
     val viewModel = genealogyViewModel(container, currentMember)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,7 +61,8 @@ fun GenealogyTab(
         state = state,
         onOpenProfile = onOpenProfile,
         actions = rememberGenealogyActions(viewModel),
-        onMakePoster = null,
+        // The tree left Tout Familia: « Faire l'affiche » comes along (récit 53).
+        onMakePoster = onMakePoster?.takeIf { LocalFeatureFlags.current.isOn(Feature.TreePoster) && LocalViewAs.current.viewed == null },
         onBack = null,
         treeOfLife = LocalFeatureFlags.current.isOn(Feature.ArbreDeVie),
         inFamilyTab = true,

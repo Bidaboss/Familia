@@ -24,7 +24,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRail
-import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -1994,6 +1993,7 @@ fun FamiliaApp(
                                         container = container,
                                         currentMember = currentMember,
                                         onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
+                                        onMakePoster = { navController.navigate(TreePosterDestination) },
                                     )
                                 }
                             } else {
@@ -2382,9 +2382,7 @@ private fun allModules(
     module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }
     }
-    module(features.isOn(Feature.Genealogy), "tree", R.string.all_tree, Icons.Outlined.AccountTree, ModuleFamily.Remember) {
-        navController.navigate(GenealogyDestination) { launchSingleTop = true }
-    }
+    // No « Arbre » here any more: the tree lives in Famille > Arbre (brief Famille-recettes, règle 15 bis).
     module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
     }

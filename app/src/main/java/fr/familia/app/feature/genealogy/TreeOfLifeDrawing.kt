@@ -19,7 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -74,6 +74,7 @@ import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.theme.LocalClayStyle
 import fr.familia.app.core.theme.Nunito
 import fr.familia.app.core.theme.OnMemberColor
+import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.LocalMemberInitials
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.memberColor
@@ -117,6 +118,8 @@ internal fun TreeOfLifeDrawing(
     onOpen: (String) -> Unit,
     outlined: Boolean,
     modifier: Modifier = Modifier,
+    /** Room under the roots, so a button over the bottom never hides anyone. */
+    bottomSpace: Dp = 0.dp,
 ) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -127,7 +130,7 @@ internal fun TreeOfLifeDrawing(
     }
     val (left, top, right, bottom) = life.bounds
     val width = (right - left).dp + PAD * 2
-    val height = (bottom - top).dp + PAD * 2
+    val height = (bottom - top).dp + PAD * 2 + bottomSpace
     // From the top left of the drawing to its point (0, 0), the top of the trunk.
     val ox = -left.dp + PAD
     val oy = -top.dp + PAD
@@ -409,9 +412,18 @@ internal fun rememberPrefersList(): Boolean {
 internal fun isHighContrast(style: ClayStyle): Boolean =
     style.shadow == ClayShadow.None && style.border != null
 
-/** The « Arbre » tab: the hint, the drawing and, for who may edit, « + » at the top right. */
+/**
+ * The « Arbre » tab: the hint, « Faire l'affiche » when [onMakePoster], the drawing and, for who may
+ * edit, « + Ajouter un proche » at the bottom right (brief Famille-recettes, règle 11: a dark
+ * extended button with its text, no more the round « + » at the top).
+ */
 @Composable
-internal fun TreeOfLifeView(state: GenealogyUiState.Ready, onOpen: (String) -> Unit, onAddKin: (() -> Unit)?) {
+internal fun TreeOfLifeView(
+    state: GenealogyUiState.Ready,
+    onOpen: (String) -> Unit,
+    onAddKin: (() -> Unit)?,
+    onMakePoster: (() -> Unit)? = null,
+) {
     val outlined = isHighContrast(LocalClayStyle.current)
     Column(Modifier.fillMaxSize()) {
         Text(
@@ -419,21 +431,24 @@ internal fun TreeOfLifeView(state: GenealogyUiState.Ready, onOpen: (String) -> U
             fontSize = 13.sp,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
+        if (onMakePoster != null) {
+            ClayLink(stringResource(R.string.tree_poster_open), onClick = onMakePoster, modifier = Modifier.padding(start = 12.dp))
+        }
         Box(Modifier.fillMaxSize()) {
-            TreeOfLifeDrawing(state.tree, state.words, onOpen, outlined)
+            TreeOfLifeDrawing(state.tree, state.words, onOpen, outlined, bottomSpace = if (onAddKin != null) 88.dp else 0.dp)
             if (onAddKin != null) {
-                FloatingActionButton(
+                ExtendedFloatingActionButton(
                     onClick = onAddKin,
-                    containerColor = Color(0xFFC9B8F5),
-                    contentColor = Palette.Label,
-                    modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).size(56.dp),
-                ) {
-                    Icon(
-                        Icons.Outlined.Add,
-                        contentDescription = stringResource(R.string.tree_of_life_add_kin),
-                    )
-                }
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    text = { Text(stringResource(R.string.tree_of_life_add_kin)) },
+                    containerColor = AddKinColor,
+                    contentColor = Color.White,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).heightIn(min = 56.dp),
+                )
             }
         }
     }
 }
+
+/** The dark of the Famille tabs, for « + Ajouter un proche ». */
+private val AddKinColor = Color(0xFF3A2A1A)
