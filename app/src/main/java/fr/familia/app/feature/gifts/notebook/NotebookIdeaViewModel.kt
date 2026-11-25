@@ -3,6 +3,7 @@ package fr.familia.app.feature.gifts.notebook
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.data.LinkPreviewRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.NotebookRepository
 import fr.familia.app.core.model.GiftOccasion
@@ -14,10 +15,14 @@ import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.feature.gifts.item.GiftItemForm
 import fr.familia.app.feature.gifts.item.GiftItemFormError
 import fr.familia.app.feature.gifts.item.normalizeLink
+import fr.familia.app.feature.gifts.item.onlineWhere
+import fr.familia.app.feature.gifts.item.priceText
 import fr.familia.app.feature.gifts.item.validateItem
 import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.core.model.householdGroups
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,9 +41,11 @@ data class NotebookIdeaForm(
     val price: String = "",
     val note: String = "",
     val status: GiftStatus = GiftStatus.Idea,
+    /** « Où trouver le cadeau ? » (correctif E11), 120 characters at most. */
+    val whereToFind: String = "",
 ) {
     /** The title, link, price and note checked like an item of a list. */
-    val asItem: GiftItemForm get() = GiftItemForm(title, url, price, note)
+    val asItem: GiftItemForm get() = GiftItemForm(title, url, price, note, whereToFind = whereToFind)
 }
 
 enum class NotebookIdeaError { PersonMissing, NameTooLong, BadYear }
@@ -60,6 +67,11 @@ sealed interface NotebookIdeaUiState {
         val saveFailed: Boolean = false,
         /** A new idea from the page of this member (retour d'essai du 18/11): they stay chosen. */
         val fixedPerson: Member? = null,
+        /** The picture of the link's page (correctif E12), kept with the idea. */
+        val imageUrl: String? = null,
+        val previewLoading: Boolean = false,
+        /** Opened from a surprise (E13): the idea stays mine until I add it to the surprise. */
+        val fromSurprise: Boolean = false,
     ) : NotebookIdeaUiState
 
     data object Done : NotebookIdeaUiState
@@ -84,6 +96,10 @@ class NotebookIdeaViewModel(
     private val startNote: String? = null,
     private val saved: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
+    /** Reads the image, title and price of a link (« Coller », or a link typed); null reads nothing. */
+    private val previews: LinkPreviewRepository? = null,
+    /** Opened from a surprise (E13): only the words of the 🔒 change. */
+    private val fromSurprise: Boolean = false,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<NotebookIdeaUiState>(NotebookIdeaUiState.Loading)
@@ -94,6 +110,10 @@ class NotebookIdeaViewModel(
     private var people: List<Member> = emptyList()
     private var fixedPerson: Member? = null
     private var showErrors = false
+    /** The picture read for [previewedUrl]: dropped if the member changes the link. */
+    private var previewImage: String? = null
+    private var previewedUrl: String? = null
+    private var typedPreview: Job? = null
 
     init {
         viewModelScope.launch { load() }
@@ -128,6 +148,7 @@ class NotebookIdeaViewModel(
                 price = e.price?.let { p -> if (p % 1.0 == 0.0) p.toLong().toString() else p.toString().replace('.', ',') }.orEmpty(),
                 note = e.note.orEmpty(),
                 status = e.status,
+                whereToFind = e.whereToFind.orEmpty(),
             )
         } ?: NotebookIdeaForm(
             personId = startPersonId?.takeIf { id -> people.any { it.id == id } },
@@ -140,7 +161,68 @@ class NotebookIdeaViewModel(
         val form = (restoredDraft() ?: initialForm).fixed()
         _uiState.value = NotebookIdeaUiState.Editing(
             form, isNew = existing == null, people = people, hasChanges = form != initialForm, fixedPerson = fixedPerson,
+            imageUrl = imageFor(form), fromSurprise = fromSurprise,
         )
+        // An idea saved with a link but no picture: its page gives one now.
+        if (existing != null && existing.imageUrl == null && existing.url != null) readPreview(existing.url, fillForm = false)
+    }
+
+    /** Fills what the member has not typed yet with what the link's page says (E12). */
+    private suspend fun readPreview(url: String, fillForm: Boolean = true) {
+        val repo = previews ?: return
+        val preview = try {
+            repo.preview(url)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        val state = _uiState.value as? NotebookIdeaUiState.Editing ?: return
+        if (preview == null) {
+            _uiState.value = state.copy(previewLoading = false)
+            return
+        }
+        previewImage = preview.imageUrl
+        previewedUrl = url
+        val form = if (!fillForm) state.form else state.form.copy(
+            title = state.form.title.ifBlank { preview.title.orEmpty().take(80) },
+            price = state.form.price.ifBlank { preview.price?.let(::priceText).orEmpty() },
+            whereToFind = state.form.whereToFind.ifBlank { onlineWhere(url).orEmpty() },
+        )
+        if (fillForm) keepDraft(form)
+        _uiState.value = state.copy(form = form, hasChanges = form != initialForm, imageUrl = imageFor(form), previewLoading = false)
+    }
+
+    /** The picture goes with its link: none once the member types another one. */
+    private fun imageFor(form: NotebookIdeaForm): String? {
+        val link = normalizeLink(form.url)
+        return if (link != null && previewedUrl != null && link == normalizeLink(previewedUrl.orEmpty())) {
+            previewImage
+        } else {
+            original?.imageUrl?.takeIf { link == original?.url }
+        }
+    }
+
+    /** « Coller » (E12): the link of the clipboard, then what its page says fills what is still empty. */
+    fun pasteLink(url: String) {
+        update { it.copy(url = url) }
+        typedPreview?.cancel()
+        val state = _uiState.value as? NotebookIdeaUiState.Editing ?: return
+        val link = normalizeLink(url) ?: return
+        if (previews == null) return
+        _uiState.value = state.copy(previewLoading = true)
+        viewModelScope.launch { readPreview(link) }
+    }
+
+    /** A link typed or pasted from the keyboard is read too, once typing stops. */
+    private fun readTypedLink(url: String) {
+        typedPreview?.cancel()
+        val link = normalizeLink(url) ?: return
+        if (previews == null || link == previewedUrl?.let(::normalizeLink)) return
+        typedPreview = viewModelScope.launch {
+            delay(TYPED_LINK_PAUSE_MILLIS)
+            readPreview(link)
+        }
     }
 
     /** From a member's page, the idea stays for that member whatever the form asks. */
@@ -160,7 +242,9 @@ class NotebookIdeaViewModel(
             itemErrors = if (showErrors) validateItem(form.asItem) else emptySet(),
             hasChanges = form != initialForm,
             saveFailed = false,
+            imageUrl = imageFor(form),
         )
+        if (form.url != state.form.url) readTypedLink(form.url)
     }
 
     fun save() {
@@ -187,6 +271,8 @@ class NotebookIdeaViewModel(
             price = parseEuros(form.price),
             note = form.note.trim().ifEmpty { null },
             status = form.status,
+            imageUrl = state.imageUrl,
+            whereToFind = form.whereToFind.trim().ifEmpty { null },
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
@@ -234,6 +320,7 @@ class NotebookIdeaViewModel(
         saved[DRAFT_PRICE] = form.price
         saved[DRAFT_NOTE] = form.note
         saved[DRAFT_STATUS] = form.status.name
+        saved[DRAFT_WHERE] = form.whereToFind
     }
 
     /** The draft kept by Android; a member who left the family is dropped. */
@@ -249,6 +336,7 @@ class NotebookIdeaViewModel(
             price = saved[DRAFT_PRICE] ?: "",
             note = saved[DRAFT_NOTE] ?: "",
             status = saved.get<String>(DRAFT_STATUS)?.let { name -> GiftStatus.entries.firstOrNull { it.name == name } } ?: GiftStatus.Idea,
+            whereToFind = saved[DRAFT_WHERE] ?: "",
         )
     }
 }
@@ -271,6 +359,10 @@ private const val DRAFT_URL = "draft.url"
 private const val DRAFT_PRICE = "draft.price"
 private const val DRAFT_NOTE = "draft.note"
 private const val DRAFT_STATUS = "draft.status"
+private const val DRAFT_WHERE = "draft.where"
 private val DRAFT_KEYS = listOf(
-    DRAFT_PERSON, DRAFT_OTHER, DRAFT_OCCASION, DRAFT_YEAR, DRAFT_TITLE, DRAFT_URL, DRAFT_PRICE, DRAFT_NOTE, DRAFT_STATUS,
+    DRAFT_PERSON, DRAFT_OTHER, DRAFT_OCCASION, DRAFT_YEAR, DRAFT_TITLE, DRAFT_URL, DRAFT_PRICE, DRAFT_NOTE, DRAFT_STATUS, DRAFT_WHERE,
 )
+
+/** The pause after the last letter of a typed link before its page is read. */
+private const val TYPED_LINK_PAUSE_MILLIS = 800L

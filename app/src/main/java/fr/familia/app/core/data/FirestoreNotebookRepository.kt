@@ -48,6 +48,15 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
             "status" to entry.status.firestoreValue,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
+        // Written only when set on a new idea, so that the rules of an older server still take it;
+        // an edit removes them when dropped.
+        if (isNew) {
+            entry.imageUrl?.let { fields["imageUrl"] = it }
+            entry.whereToFind?.let { fields["whereToFind"] = it }
+        } else {
+            fields["imageUrl"] = entry.imageUrl ?: FieldValue.delete()
+            fields["whereToFind"] = entry.whereToFind ?: FieldValue.delete()
+        }
         val ref = entries(memberId).document(entry.id)
         if (isNew) {
             fields["createdAt"] = FieldValue.serverTimestamp()
@@ -131,6 +140,8 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
             listId = getString("listId"),
             itemId = getString("itemId"),
             movedTo = getString("movedTo"),
+            imageUrl = getString("imageUrl"),
+            whereToFind = getString("whereToFind")?.takeIf { it.isNotBlank() },
         )
     }
 

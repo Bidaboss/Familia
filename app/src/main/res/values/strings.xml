@@ -1183,6 +1183,14 @@
     <string name="notebook_idea_delete_title">Retirer « %1$s » ?</string>
     <string name="notebook_idea_unavailable_title">Idée introuvable</string>
     <string name="notebook_idea_unavailable_body">Elle a été retirée entre-temps.</string>
+    <string name="notebook_idea_for_title">Une idée pour %1$s</string>
+    <string name="notebook_idea_lock">🔒 Toi seul·e verras cette idée. %1$s et les autres ne la voient pas.</string>
+    <string name="notebook_idea_lock_nobody">🔒 Toi seul·e verras cette idée.</string>
+    <string name="notebook_idea_lock_surprise">🔒 Toi seul·e verras cette idée tant que tu ne l\'ajoutes pas à la surprise. %1$s ne la voit jamais.</string>
+    <string name="notebook_idea_name">Nom de l\'idée</string>
+    <string name="notebook_idea_note">Note pour moi (facultatif)</string>
+    <string name="notebook_idea_note_hint">Taille, couleur…</string>
+    <string name="notebook_idea_save">Enregistrer l\'idée</string>
     <string name="notebook_edit_idea">Modifier</string>
     <string name="notebook_propose">Proposer à la famille</string>
     <string name="notebook_archive">Archives (%1$d)</string>

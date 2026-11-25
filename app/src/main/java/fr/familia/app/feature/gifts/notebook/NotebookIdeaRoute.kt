@@ -23,6 +23,8 @@ fun NotebookIdeaRoute(
     startBought: Boolean = false,
     startPersonId: String? = null,
     startNote: String? = null,
+    /** Opened from a surprise (E13): only the words of the 🔒 change. */
+    fromSurprise: Boolean = false,
 ) {
     val viewModel: NotebookIdeaViewModel = viewModel(
         factory = viewModelFactory {
@@ -33,6 +35,8 @@ fun NotebookIdeaRoute(
                     startPersonId = startPersonId,
                     startNote = startNote,
                     saved = createSavedStateHandle(),
+                    previews = container?.linkPreviewRepository,
+                    fromSurprise = fromSurprise,
                 )
             }
         },
@@ -41,5 +45,12 @@ fun NotebookIdeaRoute(
     LaunchedEffect(state) {
         if (state == NotebookIdeaUiState.Done) onDone()
     }
-    NotebookIdeaScreen(state = state, onChange = viewModel::update, onSave = viewModel::save, onDelete = viewModel::delete, onBack = onDone)
+    NotebookIdeaScreen(
+        state = state,
+        onChange = viewModel::update,
+        onSave = viewModel::save,
+        onDelete = viewModel::delete,
+        onBack = onDone,
+        onPasteLink = viewModel::pasteLink,
+    )
 }

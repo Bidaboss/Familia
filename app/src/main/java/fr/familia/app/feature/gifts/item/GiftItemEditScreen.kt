@@ -92,6 +92,7 @@ import fr.familia.app.core.ui.form.FormChip
 import fr.familia.app.core.ui.form.FormDeleteButton
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.scrollToFirstError
+import fr.familia.app.feature.gifts.PictureOver
 import fr.familia.app.feature.gifts.WishLook
 import fr.familia.app.feature.gifts.WishPill
 import fr.familia.app.feature.gifts.detail.linkHost
@@ -174,7 +175,7 @@ fun GiftItemEditScreen(
 }
 
 @Composable
-private fun Round(content: @Composable () -> Unit) {
+internal fun Round(content: @Composable () -> Unit) {
     Surface(shape = CircleShape, color = Color.White, contentColor = WishLook.Ink, border = BorderStroke(1.dp, WishLook.Edge)) { content() }
 }
 
@@ -344,7 +345,7 @@ private fun FormContent(
 }
 
 @Composable
-private fun Label(text: String) {
+internal fun Label(text: String) {
     Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
 }
 
@@ -357,7 +358,7 @@ private fun InfoBox(text: String) {
 
 /** A white rounded field with a beige edge (E6), 56 dp at least. */
 @Composable
-private fun WhiteField(
+internal fun WhiteField(
     value: String,
     onValue: (String) -> Unit,
     placeholder: String,
@@ -400,7 +401,7 @@ private fun WhiteField(
 
 /** « Colle un lien ici », with the dark « Coller » that takes the link of the clipboard (E6). */
 @Composable
-private fun LinkField(url: String, errors: Set<GiftItemFormError>, enabled: Boolean, onValue: (String) -> Unit, onPaste: (String) -> Unit) {
+internal fun LinkField(url: String, errors: Set<GiftItemFormError>, enabled: Boolean, onValue: (String) -> Unit, onPaste: (String) -> Unit) {
     val clipboard = LocalClipboardManager.current
     WhiteField(
         value = url,
@@ -417,6 +418,27 @@ private fun LinkField(url: String, errors: Set<GiftItemFormError>, enabled: Bool
             ) { Text(stringResource(R.string.wish_form_paste), fontWeight = FontWeight.Bold) }
         },
     )
+}
+
+/** What a link gives to an idea (E12): its picture, else 🎁, the title, « 49,90 € · boutique.fr ». */
+@Composable
+internal fun LinkPreviewCard(title: String, price: String, url: String, imageUrl: String?) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Surface(shape = RoundedCornerShape(20.dp), color = WishLook.Field, contentColor = WishLook.Ink, modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                PictureOver(
+                    imageUrl,
+                    Modifier.size(84.dp).clip(RoundedCornerShape(16.dp)).background(WishLook.pastel(title)),
+                ) { Text("🎁", style = MaterialTheme.typography.headlineMedium) }
+                Column(Modifier.weight(1f)) {
+                    Text(title.ifBlank { "…" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    val details = listOfNotNull(parseEuros(price)?.let { formatEuros(it) }, linkHost(url)).joinToString(" · ")
+                    if (details.isNotEmpty()) Text(details, style = MaterialTheme.typography.bodyMedium, color = WishLook.Muted)
+                }
+            }
+        }
+        Text(stringResource(R.string.wish_form_from_link), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+    }
 }
 
 /** What the link gives (E7): its picture (or my photo, which comes first), the title, « 49,90 € · boutique.fr ». */

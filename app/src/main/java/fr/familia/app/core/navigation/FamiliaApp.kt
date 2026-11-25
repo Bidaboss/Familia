@@ -1727,7 +1727,7 @@ fun FamiliaApp(
                             surpriseId = args.surpriseId,
                             onBack = { navController.popBackStack() },
                             onSettings = { navController.navigate(SurpriseEditDestination(surpriseId = args.surpriseId)) },
-                            onAddIdea = { personId -> navController.navigate(NotebookIdeaDestination(personId = personId)) },
+                            onAddIdea = { personId -> navController.navigate(NotebookIdeaDestination(personId = personId, fromSurprise = true)) },
                         )
                     }
                     composable<NotebookDestination> {
@@ -1765,6 +1765,7 @@ fun FamiliaApp(
                             startBought = route.bought,
                             startPersonId = route.personId,
                             startNote = route.note,
+                            fromSurprise = route.fromSurprise,
                         )
                     }
                     composable<GiftListDestination> { entry ->
