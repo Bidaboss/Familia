@@ -2787,3 +2787,11 @@ Sur un téléphone en Android 10 ou plus :
 1. Dans un voyage, « Enrichir avec une IA », copier le texte : sous « Règles de la réponse », on lit « Demande confirmation des étapes proposées », « Je peux te challenger dans tes propositions » et « Lorsque je valide, propose un objet JSON valide… dans un bloc prévu à copier… ».
 2. Le coller dans une IA : elle propose les étapes et attend la validation ; après « Je valide », elle donne le JSON dans un bloc avec un bouton copier.
 3. Coller ce JSON dans Familia : il est lu comme avant (le bloc de code autour est ignoré).
+
+## Voyage : une seule photo par destination, jamais un montage (demande du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Ajouter une destination dans une grande ville dont la page Wikipédia montre un montage (par exemple Ajaccio, Lyon ou Nice) : la vignette montre une seule photo, pas trois ou quatre photos collées.
+2. Si aucune autre photo n'existe, le dessin habituel remplace la photo, sans erreur.
+3. Les destinations qui avaient déjà une vraie photo la gardent.
+4. Dans un voyage avec un trajet en voiture puis une destination, le diaporama de la grande photo ne montre que les destinations : jamais le lieu de départ du trajet. Dans la liste des voyages, la photo du prochain voyage est celle de sa première destination.

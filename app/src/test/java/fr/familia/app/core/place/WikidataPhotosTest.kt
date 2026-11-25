@@ -82,4 +82,33 @@ class WikidataPhotosTest {
         assertEquals("Camille Martin, CC BY-SA 4.0, Wikimedia Commons", photo.credit)
         assertNull(parseCommonsPhoto("""{"query":{"pages":[{"imageinfo":[{"url":"https://ailleurs.example/a.jpg"}]}]}}"""))
     }
+
+    @Test
+    fun `a montage of several photos is never the photo of a destination`() {
+        assertTrue(isMontageName("Montage Ajaccio.jpg"))
+        assertTrue(isMontageName("Lyon_collage_2.jpg"))
+        assertTrue(isMontageName("Mosaïque de Nice.jpg"))
+        assertFalse(isMontageName("Port de nuit.jpg"))
+        assertFalse(isMontageName("Vue de Nice depuis le château.jpg"))
+        assertFalse(isMontageName("View of the harbour.jpg"))
+        assertTrue(isMontageName("Vues de Bastia.jpg"))
+        assertFalse(isPhotoFile("Montage Ajaccio.jpg"))
+        val claims = """{"claims":{"P18":[
+            {"mainsnak":{"datavalue":{"value":"Montage Ajaccio.jpg","type":"string"}}},
+            {"mainsnak":{"datavalue":{"value":"Port de nuit.jpg","type":"string"}}}
+        ]}}"""
+        assertEquals("Port de nuit.jpg", parseWikidataImage(claims))
+    }
+
+    @Test
+    fun `an image much taller or much wider than a cover is skipped`() {
+        assertTrue(hasCoverShape(null, null))
+        assertTrue(hasCoverShape(960, 640))
+        assertFalse(hasCoverShape(600, 900))
+        assertFalse(hasCoverShape(4000, 1000))
+        val tall = """{"query":{"pages":[{"imageinfo":[{
+            "thumburl":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Ajaccio.jpg/960px-Ajaccio.jpg",
+            "thumbwidth":960,"thumbheight":1600}]}]}}"""
+        assertNull(parseCommonsPhoto(tall))
+    }
 }
