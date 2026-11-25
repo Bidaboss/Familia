@@ -156,6 +156,61 @@ class GenealogyTreeTest {
     }
 
     @Test
+    fun `the grandparents of a son-in-law never push his couple below their cousins`() {
+        val sam = m("sam", "Sam")
+        val tom = m("tom", "Tom")
+        val zoe = m("zoe", "Zoé")
+        val pierre = Kin("pierre", "Pierre", living = true, householdId = "h1")
+        val rose = Kin("rose", "Rose", living = false, householdId = "h1")
+        val tree = GenealogyTree(
+            listOf(camille, ines, noe, lou, sam, tom, zoe),
+            listOf(pierre, rose),
+            listOf(
+                KinLink.partners("camille", "ines"),
+                KinLink.parent("camille", "noe"), KinLink.parent("ines", "noe"),
+                KinLink.parent("camille", "lou"), KinLink.parent("ines", "lou"),
+                KinLink.partners("noe", "sam"),
+                KinLink.parent("noe", "tom"), KinLink.parent("sam", "tom"),
+                KinLink.parent("lou", "zoe"),
+                // Sam's father and grandmother, added as relatives.
+                KinLink.parent("pierre", "sam"), KinLink.parent("rose", "pierre"),
+            ),
+        )
+        val g = tree.generations
+        assertEquals(g.getValue("noe"), g.getValue("lou"))
+        assertEquals(g.getValue("noe"), g.getValue("sam"))
+        assertEquals(g.getValue("tom"), g.getValue("zoe"))
+        assertEquals(g.getValue("camille"), g.getValue("pierre"))
+        assertEquals(g.getValue("camille") - 1, g.getValue("rose"))
+        assertEquals(0, g.values.min())
+    }
+
+    @Test
+    fun `someone with no link stands by their household, a child one row below its adults`() {
+        fun p(id: String, household: String, profile: MemberProfile = MemberProfile.Adult) =
+            Member(id, id.replaceFirstChar { it.uppercase() }, null, null, household, profile, false, emptyList(), null)
+        val tree = GenealogyTree(
+            listOf(
+                p("camille", "h1"), p("ines", "h1"), p("noe", "h2"), p("sam", "h2"),
+                p("tom", "h2", MemberProfile.ChildWithApp),
+                // Unlinked: a baby of Noé and Sam, a partner of Lou's not yet linked, a far cousin.
+                p("lili", "h2", MemberProfile.ChildWithoutApp), p("lou", "h3"), p("alix", "h3"), p("max", "h9"),
+            ),
+            emptyList(),
+            listOf(
+                KinLink.partners("camille", "ines"),
+                KinLink.parent("camille", "noe"), KinLink.parent("ines", "noe"), KinLink.parent("camille", "lou"),
+                KinLink.partners("noe", "sam"), KinLink.parent("noe", "tom"),
+            ),
+        )
+        val g = tree.generations
+        assertEquals(2, g.getValue("tom"))
+        assertEquals(2, g.getValue("lili"))
+        assertEquals(1, g.getValue("alix"))
+        assertEquals(0, g.getValue("max")) // no household to go by: beside the eldest members
+    }
+
+    @Test
     fun `a link to someone no longer there is left out`() {
         val tree = GenealogyTree(listOf(camille), emptyList(), listOf(KinLink.parent("gone", "camille")))
         assertTrue(tree.links.isEmpty())

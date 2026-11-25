@@ -27,7 +27,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,7 +40,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -104,13 +102,13 @@ private object Palette {
 
 /** The same chance for the leaves and flowers at each opening. */
 private const val SEED = 2111
-private const val MAX_ZOOM = 3f
 private val PAD = 16.dp
 
 /**
  * « L'arbre de vie » (spec DESIGN du 18/11, switch arbreDeVie): [TreeOfLife] drawn on a Canvas, the
  * people on top as medallions one can touch. [outlined] (Contraste fort) rings them in dark. The
- * drawing keeps its own size (never under 56 dp to touch), one pans along it and pinches from 1 to 3.
+ * drawing keeps its own size (never under 56 dp to touch) and one moves it with a finger, no zoom
+ * (brief Famille-recettes, règle 11).
  */
 @Composable
 internal fun TreeOfLifeDrawing(
@@ -133,22 +131,19 @@ internal fun TreeOfLifeDrawing(
     // From the top left of the drawing to its point (0, 0), the top of the trunk.
     val ox = -left.dp + PAD
     val oy = -top.dp + PAD
-    // Never smaller than its own size: a medallion keeps its 56 dp to touch (grille). One pans to
-    // see the rest, and pinches up to 3, never so far that the drawing leaves the screen.
-    var zoom by remember { mutableFloatStateOf(1f) }
+    // Always its own size: a medallion keeps its 56 dp to touch (grille). One moves it with a
+    // finger to see the rest, never so far that the drawing leaves the screen.
     var pan by remember { mutableStateOf(Offset.Zero) }
     var view by remember { mutableStateOf(IntSize.Zero) }
     val widthPx = with(density) { width.toPx() }
     val heightPx = with(density) { height.toPx() }
-    fun clamped(offset: Offset, scale: Float): Offset {
-        val spareX = max(0f, (widthPx * scale - view.width) / 2)
-        val spareY = max(0f, heightPx * scale - view.height)
+    fun clamped(offset: Offset): Offset {
+        val spareX = max(0f, (widthPx - view.width) / 2)
+        val spareY = max(0f, heightPx - view.height)
         return Offset(offset.x.coerceIn(-spareX, spareX), offset.y.coerceIn(-spareY, 0f))
     }
-    val transform = rememberTransformableState { change, move, _ ->
-        zoom = (zoom * change).coerceIn(1f, MAX_ZOOM)
-        pan = clamped(pan + move, zoom)
-    }
+    // Two fingers move it too, they never zoom.
+    val transform = rememberTransformableState { _, move, _ -> pan = clamped(pan + move) }
     Box(
         modifier
             .fillMaxSize()
@@ -165,9 +160,6 @@ internal fun TreeOfLifeDrawing(
                     layout(placeable.width, placeable.height) { placeable.place(0, 0) }
                 }
                 .graphicsLayer {
-                    scaleX = zoom
-                    scaleY = zoom
-                    transformOrigin = TransformOrigin(0.5f, 0f)
                     translationX = pan.x
                     translationY = pan.y
                 },
