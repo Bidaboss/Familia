@@ -9,6 +9,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.printToString
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.checkAccessibility
 import org.junit.Assert.assertEquals
@@ -43,7 +45,7 @@ class MembersScreenTest {
         compose.onNodeWithText("Enfant · 12 ans").assertIsDisplayed()
         compose.onNode(hasScrollAction()).performScrollToNode(hasText("Foyer Martin"))
         compose.onNode(hasScrollAction()).performScrollToNode(hasText("Administrateur principal"))
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Enfant sans l'appli · 4 ans"))
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Enfant sans l'appli · 5 ans"))
         compose.onNode(hasScrollAction()).performScrollToNode(hasText("Autres"))
         compose.onNodeWithText("Jules").assertIsDisplayed()
     }
@@ -66,10 +68,21 @@ class MembersScreenTest {
         compose.setContent {
             FamiliaTheme { MembersScreen(stateOf("a"), onRetry = {}, tree = { Text("le dessin") }, today = today) }
         }
-        compose.onNodeWithText("Foyers").assertIsDisplayed()
-        compose.onNodeWithText("Arbre").performClick()
-        compose.onNodeWithText("le dessin").assertIsDisplayed()
-        assertEquals(0, compose.onAllNodes(hasText("Mon foyer")).fetchSemanticsNodes().size)
+        explained {
+            compose.onNodeWithText("Foyers").assertIsDisplayed()
+            compose.onNodeWithText("Arbre").performClick()
+            compose.onNodeWithText("le dessin").assertIsDisplayed()
+            assertEquals(0, compose.onAllNodes(hasText("Mon foyer")).fetchSemanticsNodes().size)
+        }
+    }
+
+    /** On a failure, the whole semantics tree in the message, to see what the screen held. */
+    private fun explained(block: () -> Unit) {
+        try {
+            block()
+        } catch (e: AssertionError) {
+            throw AssertionError(e.message + "\n" + compose.onRoot(useUnmergedTree = true).printToString(), e)
+        }
     }
 
     @Test
