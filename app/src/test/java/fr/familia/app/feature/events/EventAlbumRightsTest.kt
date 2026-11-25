@@ -6,6 +6,7 @@ import fr.familia.app.feature.events.album.eventAlbumRights
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -40,10 +41,19 @@ class EventAlbumRightsTest {
     }
 
     @Test
-    fun `the author of the event and the admin principal remove any photo`() = runTest {
-        assertTrue(rights("adult1", christmas).canManage)
+    fun `the admin principal removes any photo, the author of the event no longer does (récit 121)`() = runTest {
+        assertFalse(rights("adult1", christmas).canManage)
         assertTrue(rights("admin1", christmas).canManage)
         assertFalse(rights("adult2", christmas).canManage)
+    }
+
+    @Test
+    fun `the responsible adults and the chef de famille of a child remove its photos (récit 121)`() = runTest {
+        assertEquals(setOf("kid1"), rights("adult1", christmas).caredForIds)
+        assertEquals(setOf("kid2"), rights("adult2", christmas).caredForIds)
+        // admin1 is a chef de famille of h1, the household of kid1.
+        assertEquals(setOf("kid1"), rights("admin1", christmas).caredForIds)
+        assertEquals(emptySet<String>(), rights("kid1", christmas).caredForIds)
     }
 
     @Test

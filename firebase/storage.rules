@@ -81,10 +81,9 @@ service firebase.storage {
     // {slot}-thumb.jpg, about 30 KB, with a slot from 1 to 30 (30 photos per participant, see the
     // document trips/{tripId}/photos/{authorId}_{slot} in firestore.rules). The followers of the trip
     // see them. A participant sends their own before writing the document, and may send their own
-    // slot again (the rule cannot also read the record: see LIMIT above). The author, the creator
-    // of the trip or the admin principal removes them; deleting the trip removes them on the server.
-    // An admin who is not the creator would read a third document: the app then removes the
-    // record anyway, and the files go with the trip.
+    // slot again (the rule cannot also read the record: see LIMIT above). The author or the admin
+    // principal removes them (récit 121); whoever removes the record, the server removes its
+    // files, and deleting the trip removes them all.
     function tripData(tripId) {
       return firestore.get(docPath('trips/' + tripId)).data;
     }
@@ -181,14 +180,15 @@ service firebase.storage {
         && myMemberId() in tripData(tripId).participantIds
         && ((fileName.matches('^([1-9]|[12][0-9]|30)[.]jpg$') && isJpegUnder(512 * 1024))
             || (fileName.matches('^([1-9]|[12][0-9]|30)-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
-      allow delete: if isMember()
-        && (authorId == myMemberId() || tripData(tripId).creatorId == myMemberId() || isOwner());
+      // Récit 121: its author or the admin principal. A responsible adult of a child removes the
+      // record only (firestore.rules): the server then removes the files (onTripPhotoDeleted).
+      allow delete: if isMember() && (authorId == myMemberId() || isOwner());
     }
 
     // Album of an event (PRD, récit 41): events/{eventId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg,
     // like the trips. Every member sees them; a member who said « je viens » sends their own from
-    // the day of the event (checked by the record, see LIMIT above). The author, the
-    // author of the event or the admin principal removes them.
+    // the day of the event (checked by the record, see LIMIT above). The author or the
+    // admin principal removes them (récit 121); the server removes them after the record.
     function eventData(eventId) {
       return firestore.get(docPath('events/' + eventId)).data;
     }
@@ -203,8 +203,8 @@ service firebase.storage {
         && firestore.get(docPath('events/' + eventId + '/rsvps/' + myMemberId())).data.status == 'yes'
         && ((fileName.matches('^([1-9]|[12][0-9]|30)[.]jpg$') && isJpegUnder(512 * 1024))
             || (fileName.matches('^([1-9]|[12][0-9]|30)-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
-      allow delete: if isMember()
-        && (authorId == myMemberId() || eventData(eventId).authorId == myMemberId() || isOwner());
+      // Récit 121: as for a trip, its author or the admin principal; the server does the rest.
+      allow delete: if isMember() && (authorId == myMemberId() || isOwner());
     }
 
     // Plus de photos (PRD, récit 44): the cover of an event, events/{eventId}/cover/{authorId}/{photoId}.jpg

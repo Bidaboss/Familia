@@ -154,12 +154,13 @@ describe('trips folder (récit 15)', () => {
     await assertFails(uploadString(ref(storage, file('adult3', '1-thumb.jpg')), bytes(65 * 1024), 'raw', jpeg));
   });
 
-  test('the author or the creator of the trip removes a photo, nobody else', async () => {
+  test('the author removes a photo, not the creator of the trip (récit 121), nobody else', async () => {
     await uploadString(ref(storageAs(NEIGHBOUR), file('adult3')), 'x', 'raw', jpeg);
     await uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '2.jpg')), 'x', 'raw', jpeg);
     await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult3'))));
+    await assertFails(deleteObject(ref(storageAs(ADULT), file('adult3', '2.jpg'))));
     await assertSucceeds(deleteObject(ref(storageAs(NEIGHBOUR), file('adult3'))));
-    await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult3', '2.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(NEIGHBOUR), file('adult3', '2.jpg'))));
   });
 
   test('the admin principal removes them too, so no file is left behind', async () => {
@@ -203,12 +204,13 @@ describe('events folder (récit 41)', () => {
     await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '31.jpg')), 'x', 'raw', jpeg));
   });
 
-  test('the author or the author of the event removes a photo', async () => {
+  test('the author removes a photo, not the author of the event (récit 121), nobody else', async () => {
     await uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3')), 'x', 'raw', jpeg);
     await uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '2.jpg')), 'x', 'raw', jpeg);
     await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('e1', 'adult3'))));
+    await assertFails(deleteObject(ref(storageAs(ADULT), file('e1', 'adult3', '2.jpg'))));
     await assertSucceeds(deleteObject(ref(storageAs(NEIGHBOUR), file('e1', 'adult3'))));
-    await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('e1', 'adult3', '2.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '2.jpg'))));
   });
 
   test('the admin principal removes them too', async () => {

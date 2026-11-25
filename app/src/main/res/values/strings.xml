@@ -1742,8 +1742,9 @@
     <string name="albums_feed_photo">Photo de %1$s</string>
     <string name="album_photo_position">%1$d sur %2$d</string>
     <string name="album_photo_remove">Supprimer</string>
+    <string name="album_photo_more">Plus d\'actions sur la photo</string>
     <string name="album_photo_remove_title">Supprimer cette photo ?</string>
-    <string name="album_photo_remove_body">Elle disparaît de l\'album pour tout le monde.</string>
+    <string name="album_photo_remove_body">Elle disparaît définitivement de l\'album, pour tout le monde.</string>
     <string name="album_photo_keep">Garder</string>
     <string name="album_film_make">Faire le film</string>
     <string name="album_film_help">Toutes les photos, des plus anciennes aux plus récentes, en une minute environ. Le film se fait sur ton téléphone.</string>

@@ -14,6 +14,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { sendDepartureReminders } from './departures';
 import { onRequest } from 'firebase-functions/v2/https';
 import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
+import { albumPhotoFiles, cleanAfterAlbumPhoto, type AlbumKind, type AlbumPhotoData } from './albumPhotos';
 import { RECURRING_EVENTS, ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
 import { CARPOOL, clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
 import {
@@ -258,6 +259,23 @@ export const onEventPhotoCreated = onDocumentCreated('events/{eventId}/photos/{p
   const authorId = event.data?.get('authorId');
   if (typeof authorId !== 'string' || authorId === '') return;
   await grow('albumPhoto', () => addLeaf(getFirestore(), authorId, treeMark.albumPhoto(event.params.eventId, event.params.photoId), new Date()));
+});
+
+// Supprimer une photo d'album (récit 121): whoever removed it (its author, a responsible adult of
+// the child who added it, the admin principal), its files, its place in a word of a step and the
+// card of the gazette of its day, once empty, go with it.
+async function removeAlbumPhoto(kind: AlbumKind, albumId: string, photoId: string, data: AlbumPhotoData | undefined): Promise<void> {
+  const bucket = getStorage().bucket();
+  await Promise.all(albumPhotoFiles(kind, albumId, data).map((path) => bucket.file(path).delete({ ignoreNotFound: true })));
+  await cleanAfterAlbumPhoto(getFirestore(), kind, albumId, photoId, data);
+}
+
+export const onEventPhotoDeleted = onDocumentDeleted('events/{eventId}/photos/{photoId}', async (event) => {
+  await removeAlbumPhoto('events', event.params.eventId, event.params.photoId, event.data?.data() as AlbumPhotoData | undefined);
+});
+
+export const onTripPhotoDeleted = onDocumentDeleted('trips/{tripId}/photos/{photoId}', async (event) => {
+  await removeAlbumPhoto('trips', event.params.tripId, event.params.photoId, event.data?.data() as AlbumPhotoData | undefined);
 });
 
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {

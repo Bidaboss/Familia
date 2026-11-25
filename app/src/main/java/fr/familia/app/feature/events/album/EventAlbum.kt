@@ -1,6 +1,7 @@
 package fr.familia.app.feature.events.album
 
 import fr.familia.app.core.album.AlbumRights
+import fr.familia.app.core.album.albumCaredForIds
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RsvpRepository
@@ -15,8 +16,9 @@ import java.time.LocalDate
 /*
  * The album of an event (PRD, récit 41, carte ENG-2): one album per event, opened on its day.
  * Those who said « je viens » add photos of their own (30 at most); everyone who sees the event
- * sees the album. The author of a photo, the author of the event or the admin principal removes
- * it. The rules check the same (firestore.rules, storage.rules). Hidden behind Feature.EventAlbums.
+ * sees the album. A photo is removed by its author, a responsible adult of the child who added it,
+ * or the admin principal, never by the author of the event when another adult added it (récit 121).
+ * The rules check the same (firestore.rules, storage.rules). Hidden behind Feature.EventAlbums.
  */
 
 fun eventAlbumFolder(eventId: String): String = "events/$eventId"
@@ -38,7 +40,7 @@ fun eventAlbumRights(
         AlbumRights(me = null, canAdd = false, canManage = false)
     } else {
         val coming = answers.any { it.memberId == me.id && it.status == RsvpStatus.Yes }
-        AlbumRights(me, canAdd = coming && isAlbumOpen(event, day), canManage = event.authorId == me.id || family.isOwner(me))
+        AlbumRights(me, canAdd = coming && isAlbumOpen(event, day), canManage = family.isOwner(me), caredForIds = albumCaredForIds(family, me))
     }
 }
 
