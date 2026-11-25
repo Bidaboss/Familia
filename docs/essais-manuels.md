@@ -2722,3 +2722,10 @@ Sur un téléphone en Android 10 ou plus :
 2. Revenir sur « Voyages » sans quitter l'appli : la photo revient tout de suite, sans nouvelle attente.
 3. Une destination au milieu de nulle part (plus de 40 km de tout village connu) : le dessin reste, comme avant, et rien dans « Plantages ».
 
+
+## Voyage : le globe tourne même sans aucun voyage (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Un compte sans aucun voyage (ni à venir, ni passé) : ouvrir « Voyages ». Le globe tourne en haut, sans point ; la feuille dessous dit « Aucun voyage prévu pour l'instant… », et « Nouveau voyage » reste en bas à droite.
+2. La feuille se tire en haut et en bas comme d'habitude ; « Anim » arrête et relance la rotation.
+3. Économie de batterie ou TalkBack : le dessin du chemin, comme avant.
