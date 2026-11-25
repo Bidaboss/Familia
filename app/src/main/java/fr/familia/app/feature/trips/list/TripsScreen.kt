@@ -488,7 +488,7 @@ private fun tripDescription(summary: TripSummary, extra: String?): String {
 /**
  * The card of the next trip (E-30, E-31, E-32), as the prototype: the photo of the place fills the
  * card; over it « Voyage programmé » top left, « Dans 142 nuits » top right, and at the bottom, on a
- * dark gradient, the name then the month, the days and the kilometres. The whole card opens the trip;
+ * dark gradient, the name, the first and last days, then the month, the days and the kilometres. The whole card opens the trip;
  * Étapes, À prévoir and Comptes are only inside it.
  */
 @Composable
@@ -504,6 +504,9 @@ private fun HeroCard(
     val description = tripDescription(summary, wait.lowercase())
     val openLabel = stringResource(R.string.trips_open_action)
     val days = tripLength(trip)
+    // The first and the last day, under the name (retour du 25/11 soir) : « Du 11 au 16 avril 2027 ».
+    val (from, to) = tripRangeEnds(trip, weekday = false)
+    val dates = if (trip.startDate == trip.endDate) stringResource(R.string.trips_hero_date_single, to) else stringResource(R.string.trips_hero_dates, from, to)
     val figures = listOfNotNull(
         HeroFigure(fr.familia.app.core.ui.frenchDate(trip.startDate, "MMMM").replaceFirstChar { it.titlecase() }, trip.startDate.year.toString()),
         HeroFigure("$days", pluralStringResource(R.plurals.trips_figure_days, days)),
@@ -512,7 +515,7 @@ private fun HeroCard(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(210.dp)
+            .height(240.dp)
             .clip(RoundedCornerShape(24.dp))
             .clickable(role = Role.Button, onClick = { onOpenTrip(trip.id) })
             .clearAndSetSemantics { contentDescription = "$description. $openLabel" },
@@ -563,6 +566,8 @@ private fun HeroCard(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(trip.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            // Large text (19 sp bold): over a pale photo or the sand, white keeps the 3:1 of large text.
+            Text(dates, style = MaterialTheme.typography.titleMedium, fontSize = 19.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
                 figures.forEach { figure ->
                     Column {
