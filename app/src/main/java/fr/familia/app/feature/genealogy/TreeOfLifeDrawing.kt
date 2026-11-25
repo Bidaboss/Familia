@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -72,8 +73,11 @@ import fr.familia.app.core.theme.ClayShadow
 import fr.familia.app.core.theme.ClayStyle
 import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.theme.LocalClayStyle
+import fr.familia.app.core.theme.LocalPhotoTheme
 import fr.familia.app.core.theme.Nunito
 import fr.familia.app.core.theme.OnMemberColor
+import fr.familia.app.core.theme.PhotoSectionShadow
+import fr.familia.app.core.theme.PhotoSectionText
 import fr.familia.app.core.ui.LocalMemberInitials
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.memberColor
@@ -157,9 +161,14 @@ internal fun TreeOfLifeDrawing(
     ) {
         Box(
             Modifier
-                .layout { measurable, _ ->
+                .layout { measurable, constraints ->
                     val placeable = measurable.measure(Constraints.fixed(width.roundToPx(), height.roundToPx()))
-                    layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+                    // Never report more than the view: a bigger size was centered by Compose, the top
+                    // of the foliage cut off (retour de l'admin, 26/11). The drawing starts at its top,
+                    // centered across, and one moves it with a finger from there.
+                    val w = placeable.width.coerceAtMost(constraints.maxWidth)
+                    val h = placeable.height.coerceAtMost(constraints.maxHeight)
+                    layout(w, h) { placeable.place((w - placeable.width) / 2, 0) }
                 }
                 .graphicsLayer {
                     translationX = pan.x
@@ -424,12 +433,17 @@ internal fun TreeOfLifeView(
 ) {
     val outlined = isHighContrast(LocalClayStyle.current)
     Column(Modifier.fillMaxSize()) {
+        // On the photo of the Famille tab: white with a shadow, like the other texts on a photo.
+        val onPhoto = LocalPhotoTheme.current != null
         Text(
             stringResource(R.string.tree_of_life_hint),
             fontSize = 13.sp,
+            color = if (onPhoto) PhotoSectionText else Color.Unspecified,
+            style = if (onPhoto) LocalTextStyle.current.copy(shadow = PhotoSectionShadow) else LocalTextStyle.current,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
-        Box(Modifier.fillMaxSize()) {
+        // A card with rounded corners and margins, never a hard cut across the photo.
+        Box(Modifier.fillMaxSize().padding(start = 12.dp, end = 12.dp, top = 4.dp).clip(RoundedCornerShape(24.dp))) {
             TreeOfLifeDrawing(state.tree, state.words, onOpen, outlined, bottomSpace = if (onAddKin != null) 88.dp else 0.dp)
             if (onAddKin != null) {
                 ExtendedFloatingActionButton(
