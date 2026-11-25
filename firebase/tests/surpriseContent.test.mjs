@@ -148,6 +148,8 @@ describe('proposals', () => {
   });
 
   test('the ✕ of Résultats: any member, nothing else; never the server\'s sum', async () => {
+    await assertFails(updateDoc(doc(as(env, KID), `${S}/proposals/wish-w1`), { removed: true }));
+    await env.withSecurityRulesDisabled(async (ctx) => { await deleteDoc(doc(ctx.firestore(), `${S}/takes/wish-w1`)); });
     const p = doc(as(env, KID), `${S}/proposals/wish-w1`);
     await assertSucceeds(updateDoc(p, { removed: true }));
     await assertSucceeds(updateDoc(p, { removed: false }));
@@ -222,6 +224,15 @@ describe('takes and parts', () => {
     await assertFails(updateDoc(t(OTHER_ADULT), { sharesCount: 2, ...stamp() }));
   });
 
+  test('« Acheté par » is cleared by its buyer or the owner of the take alone', async () => {
+    const t = (who) => doc(as(env, who), `${S}/takes/wish-w1`);
+    await assertSucceeds(updateDoc(t(ADULT), { boughtBy: 'adult1', ...stamp() }));
+    await assertFails(updateDoc(t(KID), { boughtBy: null, ...stamp() }));
+    await assertSucceeds(updateDoc(t(ADULT), { boughtBy: null, ...stamp() }));
+    await assertSucceeds(updateDoc(t(KID), { boughtBy: 'kid1', ...stamp() }));
+    await assertSucceeds(updateDoc(t(OTHER_ADULT), { boughtBy: null, ...stamp() }));
+  });
+
   test('my part in whole euros, adults only, read by me and the owner', async () => {
     const part = doc(as(env, ADULT), `${S}/takes/wish-w1/shares/adult1`);
     await assertSucceeds(setDoc(part, { amount: 20, ...stamp() }));
@@ -265,6 +276,13 @@ describe('« C\'est offert »', () => {
     await assertFails(updateDoc(doc(as(env, OTHER_ADULT), S), { status: 'preparing', title: 'Encore', updatedAt: serverTimestamp() }));
     await assertFails(updateDoc(doc(as(env, ADULT), `${S}/proposals/wish-w1`), { removed: true }));
     await assertFails(setDoc(doc(as(env, ADULT), `${S}/proposals/wish-w1/ratings/adult1`), { stars: 4, ...stamp() }));
+  });
+
+  test('offered, the parts and the surprise itself stay', async () => {
+    await store(`${S}/takes/wish-w1/shares/adult1`, { amount: 20, updatedAt: OLD });
+    await store(S, surprise({ status: 'offered', offeredAt: OLD, offeredBy: 'adult1' }));
+    await assertFails(deleteDoc(doc(as(env, ADULT), `${S}/takes/wish-w1/shares/adult1`)));
+    await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), S)));
   });
 
   test('not by a member who declined', async () => {
