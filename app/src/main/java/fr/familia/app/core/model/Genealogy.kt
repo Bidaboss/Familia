@@ -127,37 +127,59 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
     }
 
     /**
-     * One generation below the lowest of one's parents' ones, and partners side by side (the
-     * deeper of the two), like the parents of one child. Settled in a few passes: a family has few
-     * generations.
+     * One row per generation (brief Famille-recettes, règle 13): a child one below their parents,
+     * partners and brothers and sisters on one row, settled from the links between members first,
+     * so relatives added on one side (the grandparents of a son-in-law) never push a couple and
+     * their children a row below their cousins. Someone with no link to the family (an unlinked
+     * child) stands by their household: a child one row below its adults, an adult beside them.
+     * A loop of parents, a mistake, keeps the first row found. 0 is the eldest row.
      */
     val generations: Map<String, Int> = run {
-        val gen = people.keys.associateWith { 0 }.toMutableMap()
-        repeat(people.size + 1) {
-            var changed = false
-            for (link in this.links) {
-                val want = when (link.kind) {
-                    KinLinkKind.Parent -> gen.getValue(link.aId) + 1 to link.bId
-                    KinLinkKind.Partner -> maxOf(gen.getValue(link.aId), gen.getValue(link.bId)).let { g ->
-                        if (gen.getValue(link.aId) < g) g to link.aId else g to link.bId
-                    }
-                }
-                val (value, who) = want
-                if (gen.getValue(who) < value && value <= people.size) {
-                    gen[who] = value
-                    changed = true
-                }
-            }
-            // The parents of one child stand on one row, like partners.
-            for (child in people.keys) {
-                val parents = parentsOf(child)
-                if (parents.size < 2) continue
-                val g = parents.maxOf { gen.getValue(it) }
-                parents.filter { gen.getValue(it) < g }.forEach { gen[it] = g; changed = true }
-            }
-            if (!changed) return@run gen
+        val steps = people.keys.associateWith { mutableListOf<Pair<String, Int>>() }
+        for (link in this.links) {
+            val down = if (link.kind == KinLinkKind.Parent) 1 else 0
+            steps.getValue(link.aId).add(link.bId to down)
+            steps.getValue(link.bId).add(link.aId to -down)
         }
-        gen
+        fun isMember(id: String) = people[id] is TreePerson.OfMember
+        val ordered = people.keys.sortedWith(compareBy({ !isMember(it) }, { it }))
+        // Each group of linked people, walked from a member: the links between members are
+        // followed first, those through a relative only after them (first row found wins).
+        val gen = HashMap<String, Int>()
+        val groups = mutableListOf<List<String>>()
+        for (start in ordered) if (start !in gen) {
+            val group = mutableListOf<String>()
+            val queue = ArrayDeque(listOf(start to 0))
+            while (queue.isNotEmpty()) {
+                val (id, g) = queue.removeFirst()
+                if (id in gen) continue
+                gen[id] = g
+                group.add(id)
+                for ((next, step) in steps.getValue(id)) {
+                    if (next in gen) continue
+                    if (isMember(id) && isMember(next)) queue.addFirst(next to g + step) else queue.addLast(next to g + step)
+                }
+            }
+            groups.add(group)
+        }
+        val main = groups.maxByOrNull { group -> group.count(::isMember) } ?: emptyList()
+        val trunk = main.filter(::isMember).minOfOrNull { gen.getValue(it) } ?: 0
+        fun isChild(id: String) = (people[id] as? TreePerson.OfMember)?.member?.profile.let { it != null && it != MemberProfile.Adult }
+        for (group in groups) {
+            if (group === main) continue
+            val shift = group.filter(::isMember).firstNotNullOfOrNull { id ->
+                main.filter { isMember(it) && people.getValue(it).householdId == people.getValue(id).householdId }
+                    .sortedWith(compareBy({ isChild(it) }, { it }))
+                    .firstOrNull()
+                    ?.let { other ->
+                        val below = (if (isChild(id)) 1 else 0) - (if (isChild(other)) 1 else 0)
+                        gen.getValue(other) + below - gen.getValue(id)
+                    }
+            } ?: ((if (group.any(::isMember)) trunk else 0) - group.minOf { gen.getValue(it) })
+            group.forEach { gen[it] = gen.getValue(it) + shift }
+        }
+        val eldest = gen.values.minOrNull() ?: 0
+        people.keys.associateWith { gen.getValue(it) - eldest }
     }
 
     /**
