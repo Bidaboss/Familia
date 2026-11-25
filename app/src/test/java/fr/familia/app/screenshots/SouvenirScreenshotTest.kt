@@ -48,7 +48,7 @@ class SouvenirScreenshotTest {
                     camille, "Foyer Martin", isMe = true, canEdit = true, souvenirs = previewSouvenirs(),
                     counters = SouvenirCounters(reactions = 4, helpGiven = 2, weeklyAnswers = 1),
                 ),
-                {}, {}, { _, _ -> },
+                {}, {},
             )
         }
     }
@@ -60,7 +60,7 @@ class SouvenirScreenshotTest {
                 MemberProfileUiState.Ready(
                     camille, "Foyer Martin", isMe = false, canEdit = false, souvenirs = previewSouvenirs().filter { it.shown },
                 ),
-                {}, {}, { _, _ -> },
+                {}, {},
             )
         }
     }

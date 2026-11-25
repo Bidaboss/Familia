@@ -1951,14 +1951,11 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onEdit = { navController.navigate(MemberEditDestination(memberId)) },
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination(memberId)) }) else null,
+                            onAddRecipe = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipeEditDestination()) }) else null,
                             giftActions = ProfileGiftActions(
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
-                                onOpenNotebook = { navController.navigate(NotebookDestination) },
-                                onAddIdea = { id -> navController.navigate(NotebookIdeaDestination(personId = id)) },
-                                onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
-                                onProposeIdea = { id -> navController.navigate(ProposeIdeaDestination(id)) },
+                                onPrepareSurprise = { id -> navController.navigate(SurpriseEditDestination(beneficiaryId = id)) },
                             ),
-                            onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                         )
                     }

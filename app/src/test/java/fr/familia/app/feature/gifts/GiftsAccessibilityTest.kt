@@ -2,7 +2,6 @@ package fr.familia.app.feature.gifts
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createComposeRule
-import fr.familia.app.core.model.MemberCard
 import fr.familia.app.core.ui.checkAccessibility
 import fr.familia.app.feature.gifts.detail.GiftListActions
 import fr.familia.app.feature.gifts.detail.GiftListScreen
@@ -19,8 +18,6 @@ import fr.familia.app.feature.gifts.notebook.ProposeIdeaScreen
 import fr.familia.app.feature.gifts.notebook.previewNotebook
 import fr.familia.app.feature.gifts.notebook.previewNotebookIdea
 import fr.familia.app.feature.gifts.notebook.previewProposeIdea
-import fr.familia.app.feature.members.card.MemberCardContent
-import fr.familia.app.feature.members.card.MemberCardUiState
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,17 +73,4 @@ class GiftsAccessibilityTest {
 
     @Test
     fun `propose an idea`() = check { ProposeIdeaScreen(previewProposeIdea(), ProposeIdeaActions(), today = LocalDate.of(2026, 11, 16)) }
-
-    @Test
-    fun `« Goûts et passions » on the page of a member`() = check {
-        MemberCardContent(
-            MemberCardUiState.Ready(
-                MemberCard("a", shoes = "39", tastes = "Le chocolat noir, les polars", hobbies = "La randonnée, le jardin"),
-                firstName = "Camille",
-                isMe = true,
-                canEdit = true,
-            ),
-            onSave = { true },
-        )
-    }
 }
