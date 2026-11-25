@@ -721,6 +721,24 @@ service cloud.firestore {
               && reminderId == 'series-' + request.resource.data.seriesId));
     }
 
+    // « Mes notes » (récit 114, lot A4): members/{memberId}/notes/{aboutId}, a private notepad of
+    // [memberId] about another member [aboutId] (« aime le thé vert », an idea for later). Only its
+    // author reads and writes it: never the person it is about, nor the admin principal, nor
+    // « Voir comme ». One per person, 2000 characters at most. The server deletes it with its
+    // author or with the person it is about.
+    match /members/{memberId}/notes/{aboutId} {
+      allow read, delete: if isMember() && myMemberId() == memberId;
+      allow create, update: if isMember()
+        && myMemberId() == memberId
+        && aboutId != memberId
+        && exists(memberPath(aboutId))
+        && request.resource.data.keys().hasOnly(['text', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['text', 'updatedAt'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.updatedAt == request.time;
+    }
+
     match /members/{memberId}/settings/{settingId} {
       allow read: if isMember() && myMemberId() == memberId;
       allow create, update: if isMember()
