@@ -2146,7 +2146,7 @@ service cloud.firestore {
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                              'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion', 'photo',
                              'alreadyBought', 'contributedTotal', 'coBeneficiaryId', 'whereToFind'])
-        // « Où trouver le cadeau ? » (correctif E6, Kévin 25/11 9 h 50): free text, a shop, a town or a site.
+        // « Où trouver le cadeau ? » (correctif E6): free text, a shop, a town or a site.
         && (!('whereToFind' in i) || i.whereToFind == null || (i.whereToFind is string && i.whereToFind.size() <= 120))
         // « Déjà acheté, participation bienvenue » (récit 68): a bool, and the total of the
         // participations in whole euros, kept by those who take part (see contributions below).
