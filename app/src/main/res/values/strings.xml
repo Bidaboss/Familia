@@ -1480,6 +1480,12 @@
     </plurals>
     <string name="feed_social_field">Écrire un commentaire…</string>
     <string name="feed_social_send">Envoyer le commentaire</string>
+    <string name="feed_detail_title">Publication</string>
+    <string name="feed_detail_photos">Photos</string>
+    <string name="feed_detail_film">Film</string>
+    <string name="feed_detail_birthday">Anniversaire</string>
+    <string name="feed_detail_help">Coup de main</string>
+    <string name="feed_detail_weekly">Question de la semaine</string>
     <string name="feed_social_failed">Pas de réseau : réessaie dans un moment.</string>
     <string name="feed_comment_field">Écrire un commentaire</string>
     <plurals name="feed_comment_count">

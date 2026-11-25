@@ -2,7 +2,13 @@ package fr.familia.app.feature.feed
 
 import fr.familia.app.core.data.GazetteThread
 import fr.familia.app.core.data.gazetteThreadId
+import fr.familia.app.core.model.EventComment
+import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** J'aime and comments of the cards of the gazette (récit 115). */
@@ -25,5 +31,25 @@ class FeedSocialTest {
         val thread = GazetteThread(reactions = mapOf("a" to "👏"))
         assertEquals("👏", thread.reactionOf("a"))
         assertEquals(null, thread.reactionOf("b"))
+    }
+
+    private fun member(id: String, profile: MemberProfile = MemberProfile.Adult, parents: List<String> = emptyList()) =
+        Member(id, id, null, null, "h1", profile, isAdmin = false, parentIds = parents, uid = null)
+
+    @Test
+    fun `a comment of the gazette is removed by its author, a parent of its author, or the admin principal`() {
+        val owner = member("owner")
+        val parent = member("parent")
+        val other = member("other")
+        val child = member("child", MemberProfile.ChildWithApp, parents = listOf("parent"))
+        val family = Family(emptyList(), listOf(owner, parent, other, child), ownerId = "owner")
+        val ofChild = EventComment("c1", "Trop bien", "child", "child", null)
+        val ofOther = EventComment("c2", "Oui", "other", "other", null)
+        assertTrue(canRemoveGazetteComment(family, ofChild, child))
+        assertTrue(canRemoveGazetteComment(family, ofChild, parent))
+        assertTrue(canRemoveGazetteComment(family, ofChild, owner))
+        assertFalse(canRemoveGazetteComment(family, ofChild, other))
+        // Never what another adult wrote (récit 121).
+        assertFalse(canRemoveGazetteComment(family, ofOther, parent))
     }
 }

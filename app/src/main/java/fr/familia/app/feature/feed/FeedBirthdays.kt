@@ -75,7 +75,7 @@ class BirthdayFeedCard(val birthday: Birthday, private val wishes: Boolean) : Fe
     override val key: String = "birthday:${birthday.member.id}:${birthday.date}"
 
     /** J'aime and comments on its thread (récit 115). */
-    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key), title = R.string.feed_detail_birthday)
 
     /** The start of the day: the card belongs to its day, and [pinRank] puts it first there. */
     override val at: Instant = birthday.date.atStartOfDay(FAMILY_ZONE).toInstant()

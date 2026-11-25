@@ -24,6 +24,8 @@ class FirestoreEventCommentRepository(
     private val db: FirebaseFirestore,
     private val parent: String = "events",
     private val expires: Boolean = true,
+    /** False for la gazette: no « ne plus être prévenu » there yet (its notices come with PR 7). */
+    private val mutes: Boolean = true,
 ) : EventCommentRepository {
 
     private fun event(eventId: String) = db.collection(parent).document(eventId)
@@ -71,7 +73,7 @@ class FirestoreEventCommentRepository(
     override suspend fun count(eventId: String): Int? =
         comments(eventId).count().get(com.google.firebase.firestore.AggregateSource.SERVER).await().count.toInt()
 
-    override fun observeMuted(eventId: String, memberId: String): Flow<Boolean> = callbackFlow {
+    override fun observeMuted(eventId: String, memberId: String): Flow<Boolean> = if (!mutes) kotlinx.coroutines.flow.flowOf(false) else callbackFlow {
         val registration = event(eventId).collection("commentMutes").document(memberId).addSnapshotListener { snapshot, error ->
             if (error != null) close(error) else trySend(snapshot?.exists() == true)
         }
@@ -79,6 +81,7 @@ class FirestoreEventCommentRepository(
     }
 
     override suspend fun setMuted(eventId: String, memberId: String, muted: Boolean) {
+        if (!mutes) return
         val ref = event(eventId).collection("commentMutes").document(memberId)
         if (muted) ref.set(mapOf("mutedAt" to FieldValue.serverTimestamp())).await() else ref.delete().await()
     }
