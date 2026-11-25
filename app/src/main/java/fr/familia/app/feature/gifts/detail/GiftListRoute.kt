@@ -114,6 +114,8 @@ fun GiftListRoute(
             onMarkWishReceived = if (showClaimOccasion && readerId == currentMember.id) viewModel::askWishReceived else null,
             onAddIdea = onAddIdea?.let { add -> shown?.let { success -> { add(success.beneficiary.id) } } },
             onOpenIdea = onOpenIdea,
+            onSetWishOccasion = viewModel::setWishOccasion,
+            onRemoveWish = viewModel::removeWish,
             onShareOutside = shown?.takeIf { shareOn && it.canSendOutside }?.let { success ->
                 { share(context, wishesShare(context, success.list.id, success.beneficiary.firstName)) }
             },
