@@ -6,7 +6,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
 import fr.familia.app.core.model.GiftHistoryItem
+import fr.familia.app.core.model.OfferedSurprise
 import fr.familia.app.core.model.OpenSurprise
+import fr.familia.app.core.model.sortOffered
 import fr.familia.app.core.model.ProposalKind
 import fr.familia.app.core.model.SurpriseProposal
 import fr.familia.app.core.model.Surprise
@@ -322,6 +324,37 @@ class FirestoreSurpriseRepository(private val db: FirebaseFirestore) : SurpriseR
                 "updatedAt" to FieldValue.serverTimestamp(),
             ),
         ).await()
+    }
+
+    override fun observeOffered(adminId: String): Flow<List<OfferedSurprise>> = callbackFlow {
+        // The rules let the admin read only what was not offered to them: the query says so.
+        val registration = db.collection("offeredSurprises").whereNotEqualTo("beneficiaryId", adminId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else {
+                    trySend(
+                        sortOffered(
+                            snapshot?.documents.orEmpty().map { doc ->
+                                OfferedSurprise(
+                                    id = doc.id,
+                                    title = doc.getString("title").orEmpty(),
+                                    date = doc.getString("date")?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+                                    beneficiaryName = doc.getString("beneficiaryName").orEmpty(),
+                                    offeredAt = doc.getTimestamp("offeredAt")?.toDate()?.toInstant(),
+                                    cancelAsked = doc.getBoolean("cancelAsked") == true,
+                                )
+                            },
+                        ),
+                    )
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun askCancelOffered(surpriseId: String) {
+        db.collection("offeredSurprises").document(surpriseId)
+            .update(mapOf("cancelAsked" to true, "cancelAskedAt" to FieldValue.serverTimestamp())).await()
     }
 
     /**

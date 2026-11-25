@@ -1,6 +1,7 @@
 package fr.familia.app.core.data
 
 import fr.familia.app.core.model.GiftHistoryItem
+import fr.familia.app.core.model.OfferedSurprise
 import fr.familia.app.core.model.OpenSurprise
 import fr.familia.app.core.model.SurpriseProposal
 import fr.familia.app.core.model.Surprise
@@ -93,4 +94,13 @@ interface SurpriseRepository {
      * rest (« Déjà offert à X », the notebooks, the end of the reminders).
      */
     suspend fun markOffered(surpriseId: String, memberId: String)
+
+    /**
+     * Administration > « Surprises offertes récemment », for the admin principal [adminId] alone,
+     * never the ones they were given.
+     */
+    fun observeOffered(adminId: String): Flow<List<OfferedSurprise>>
+
+    /** « Annuler C'est offert »: asked once, the server puts the surprise back and tells the members. */
+    suspend fun askCancelOffered(surpriseId: String)
 }
