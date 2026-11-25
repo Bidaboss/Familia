@@ -139,11 +139,6 @@ enum class Feature(
      */
     OpeningAnimation("openingAnimation", R.string.feature_opening_animation),
     /**
-     * L'onglet Famille « par foyer » (PRD récit 64, Kévin le 18/11) : ma carte, mon foyer, puis les
-     * autres foyers repliés. Lu avec isOnForFamily : éteint, même l'admin principal garde l'ancien onglet.
-     */
-    FamilyTabV2("familyTabV2", R.string.feature_family_tab_v2),
-    /**
      * « Comment ça marche » sous le défi du mois, et le mot facultatif du foyer qui le lance (PRD
      * récit 65, rév. 289). Lu avec isOnForFamily : éteint, même l'admin principal garde l'écran d'avant.
      */

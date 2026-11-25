@@ -19,10 +19,12 @@ fun MembersRoute(
     onOpenProfile: ((memberId: String) -> Unit)? = null,
     /** The « Arbre » tab, while the module Arbre is on (brief Famille-recettes, règle 1). */
     tree: (@Composable () -> Unit)? = null,
+    /** ⚙ Gérer (F5): the screen checks again that the reader is the admin principal. */
+    onManage: (() -> Unit)? = null,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { MembersViewModel(container?.memberRepository, currentMember.id, container?.memberPhotoRepository) }
+            initializer { MembersViewModel(container?.memberRepository, currentMember.id) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -36,5 +38,6 @@ fun MembersRoute(
         renameFailed = renameFailed,
         onRenameFailureShown = viewModel::renameFailureShown,
         tree = tree,
+        onManage = onManage,
     )
 }

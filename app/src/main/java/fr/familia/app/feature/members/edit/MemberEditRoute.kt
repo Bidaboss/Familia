@@ -53,7 +53,7 @@ fun MemberEditRoute(
 }
 
 /** Opens the Android share sheet (WhatsApp, SMS…) with the invitation text. */
-private fun shareInvitation(context: Context, firstName: String, email: String) {
+internal fun shareInvitation(context: Context, firstName: String, email: String) {
     val link = BuildConfig.DOWNLOAD_URL
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
