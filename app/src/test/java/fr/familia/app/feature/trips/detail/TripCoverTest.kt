@@ -6,6 +6,8 @@ import fr.familia.app.core.model.TripStep
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -30,8 +32,23 @@ class TripCoverTest {
     }
 
     @Test
-    fun withoutADestinationTheTitleNeverGoesToWikipedia() {
-        val places = coverPlaces(trip, listOf(step(StepType.Car, "Samoure-Gare → Les Pins", 11)))
+    fun aTripWithoutAStayShowsWhereItsTransportsArriveAndItsActivitiesNeverADeparture() {
+        val steps = listOf(
+            step(StepType.Flight, "Samoure-Gare → Port-Clair", 11),
+            step(StepType.Activity, "Le phare", 12),
+            step(StepType.Car, "Port-Clair → Les Pins", 13),
+        )
+        val places = coverPlaces(trip, steps)
+        assertEquals(listOf("Port-Clair", "Le phare", "Les Pins"), places.map { it.name })
+        assertTrue(places.all { it.fromStep })
+        // The point of a route is not the one of its arrival; an activity keeps its own.
+        assertNull(places[0].point)
+        assertNotNull(places[1].point)
+    }
+
+    @Test
+    fun withoutAnyStepTheTitleNeverGoesToWikipedia() {
+        val places = coverPlaces(trip, emptyList())
         assertEquals(listOf("Printemps"), places.map { it.name })
         assertFalse(places.single().fromStep)
     }
