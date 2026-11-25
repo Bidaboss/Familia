@@ -62,7 +62,7 @@ service cloud.firestore {
       return isOwner() || isChefOf(householdId);
     }
 
-    // Récit 114 (Kévin, 25/11 19 h 52): an adult who looks after a child, with or without the app:
+    // Récit 114 (l'admin, 25/11 19 h 52): an adult who looks after a child, with or without the app:
     // one of its responsible adults (parentIds) or a chef de famille of its household. They write
     // its surnom, its card, its photo and its wishes, never its profile, household or parents
     // (the admin principal's), and never anything of another adult.
@@ -171,7 +171,7 @@ service cloud.firestore {
                 && (!('phone' in request.resource.data) || isPhone(request.resource.data.phone))))
         && (!('nickname' in request.resource.data) || isNickname(request.resource.data.nickname));
 
-      // Récit 114 (Kévin, 25/11 19 h 52): whoever looks after a child sets or removes its surnom.
+      // Récit 114 (l'admin, 25/11 19 h 52): whoever looks after a child sets or removes its surnom.
       // Its first name, birth date, profile, household and parents stay the admin principal's.
       allow update: if caresFor(memberId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nickname'])
@@ -2269,7 +2269,7 @@ service cloud.firestore {
         && (request.resource.data.get('alreadyBought', false) == true
             || resource.data.get('contributedTotal', 0) == 0);
 
-      // Récit 114 (Kévin, 25/11 19 h 52): whoever looks after a child (caresFor) edits a wish of its
+      // Récit 114 (l'admin, 25/11 19 h 52): whoever looks after a child (caresFor) edits a wish of its
       // « Mes envies » that it sees, as its author would: its author, who shares it and its total
       // stay. Never an idea kept from it, never refused for a reservation: it would tell.
       allow update: if isMember()
@@ -2324,7 +2324,7 @@ service cloud.firestore {
         && list().revealed == false
         && (resource.data.visibleToBeneficiary == true || !exists(claimPath()));
 
-      // Récit 114 (Kévin, 25/11 19 h 52): whoever looks after a child (caresFor: a responsible adult
+      // Récit 114 (l'admin, 25/11 19 h 52): whoever looks after a child (caresFor: a responsible adult
       // or the chef of its household, with or without the app) removes a wish of its « Mes envies »
       // that it sees, whoever wrote it. Never an idea kept from it, never refused for a reservation.
       allow delete: if isMember()

@@ -23,7 +23,7 @@ fun Family.canAddMembers(me: Member): Boolean = isOwner(me)
 fun Family.canEditMember(me: Member, member: Member): Boolean = isOwner(me)
 
 /**
- * True when [me] looks after the child [member] (récit 114, Kévin 25/11 19 h 52): one of its
+ * True when [me] looks after the child [member] (récit 114, l'admin, 25/11 19 h 52): one of its
  * responsible adults, or a chef de famille of its household, with or without the app. They write
  * its surnom, card, photo and wishes, never its profile, household or parents, and never anything
  * of another adult. Same as caresFor in the rules.

@@ -1,4 +1,4 @@
-// Récit 114 (Kévin, 25/11 19 h 52): whoever looks after a child, one of its responsible adults or
+// Récit 114 (l'admin, 25/11 19 h 52): whoever looks after a child, one of its responsible adults or
 // the chef of its household, with or without the app, writes its surnom, its card and its wishes;
 // never its profile, household or parents, and never anything of another adult.
 // Fictional family from helpers.mjs: admin1 (admin principal), admin2 (chef of h1), adult1, adult2
