@@ -39,6 +39,13 @@ fun SurpriseRoute(
             onRate = viewModel::rate,
             onToggleIdea = { viewModel.toggleIdea(it, currentMember.firstName) },
             onAddIdea = { (state as? SurpriseUiState.Ready)?.let { onAddIdea(it.beneficiary.id) } },
+            onRemove = viewModel::setRemoved,
+            onTakeAlone = viewModel::takeAlone,
+            onTakeTogether = viewModel::takeTogether,
+            onRelease = viewModel::release,
+            onShare = viewModel::setShare,
+            onValidate = viewModel::setValidated,
+            onDecline = { (state as? SurpriseUiState.Ready)?.let(viewModel::decline) },
         ),
     )
 }

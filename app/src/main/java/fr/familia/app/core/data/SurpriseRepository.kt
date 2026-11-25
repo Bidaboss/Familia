@@ -4,6 +4,9 @@ import fr.familia.app.core.model.GiftHistoryItem
 import fr.familia.app.core.model.OpenSurprise
 import fr.familia.app.core.model.SurpriseProposal
 import fr.familia.app.core.model.Surprise
+import fr.familia.app.core.model.SurpriseMemberRow
+import fr.familia.app.core.model.SurpriseTake
+import fr.familia.app.core.model.TakeKind
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -51,4 +54,37 @@ interface SurpriseRepository {
 
     /** « Déjà offert à X »: what the person already received, never read by them. */
     fun observeHistory(beneficiaryId: String): Flow<List<GiftHistoryItem>>
+
+    /** ✕ of Résultats: out of the list (or back in); it stays in the wishes or ideas of the person. */
+    suspend fun setRemoved(surpriseId: String, proposal: SurpriseProposal, removed: Boolean)
+
+    /** What is taken in a surprise, by proposal. */
+    fun observeTakes(surpriseId: String): Flow<List<SurpriseTake>>
+
+    /**
+     * « Je le prends » or « Cadeau commun » of [goal] euros. The proposal of a wish never noted is
+     * written with it.
+     */
+    suspend fun take(surpriseId: String, proposal: SurpriseProposal, memberId: String, kind: TakeKind, goal: Int?)
+
+    /** « Je ne le prends plus », or the joint gift closed by its owner: its parts go too. */
+    suspend fun release(surpriseId: String, proposalId: String)
+
+    /** My parts in the joint gifts of a surprise, by proposal. */
+    fun observeMyShares(surpriseId: String, memberId: String): Flow<Map<String, Int>>
+
+    /** The parts of my joint gift, by member: only its owner reads them. */
+    fun observeShares(surpriseId: String, proposalId: String): Flow<Map<String, Int>>
+
+    /** My part in whole euros; null takes it back. */
+    suspend fun setShare(surpriseId: String, proposalId: String, memberId: String, amount: Int?)
+
+    /** Who validated, who does not take part. */
+    fun observeMemberRows(surpriseId: String): Flow<List<SurpriseMemberRow>>
+
+    /** « Valider ma participation », or take it back. */
+    suspend fun setValidated(surpriseId: String, memberId: String, validated: Boolean)
+
+    /** « Je ne participe pas »: final, only the creator invites again. */
+    suspend fun decline(surpriseId: String, memberId: String)
 }
