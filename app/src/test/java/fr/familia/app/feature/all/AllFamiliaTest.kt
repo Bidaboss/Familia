@@ -8,16 +8,16 @@ class AllFamiliaTest {
 
     private fun module(key: String) = AllModule(ModuleSpec.entries.first { it.key == key }) {}
 
-    private val modules = listOf(module("polls") to "Sondages", module("recipes") to "Recettes", module("where") to "Où je suis")
+    private val modules = listOf(module("polls") to "Sondages", module("recipes") to "Recettes", module("lending") to "On se prête")
 
     @Test
     fun `a blank search shows every module`() {
-        assertEquals(listOf("polls", "recipes", "where"), filterModules(modules, "  ").map { it.key })
+        assertEquals(listOf("polls", "recipes", "lending"), filterModules(modules, "  ").map { it.key })
     }
 
     @Test
     fun `the search forgets accents and capitals`() {
-        assertEquals(listOf("where"), filterModules(modules, "OU JE").map { it.key })
+        assertEquals(listOf("lending"), filterModules(modules, "ON SE PRETE").map { it.key })
         assertEquals(listOf("recipes"), filterModules(modules, "RECET").map { it.key })
         assertEquals(emptyList<String>(), filterModules(modules, "zzz").map { it.key })
     }
