@@ -114,18 +114,41 @@ fun GenealogyScreen(
             )
         },
     ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
-            when (state) {
-                GenealogyUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
-                GenealogyUiState.Failed -> EmptyState(
-                    icon = Icons.Outlined.CloudOff,
-                    title = stringResource(R.string.genealogy_failed_title),
-                    body = stringResource(R.string.genealogy_failed_body),
-                )
-                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster, onBack, treeOfLife)
-            }
+        GenealogyContent(state, onOpenProfile, actions, onMakePoster, onBack, treeOfLife, Modifier.padding(padding))
+    }
+    GenealogyFailure(actionFailed, onFailureShown)
+}
+
+/**
+ * The tree without its title bar: the page « Arbre généalogique », or the « Arbre » tab of Famille
+ * ([inFamilyTab], brief Famille règle 1: the drawing only, no « Liste », no way back).
+ */
+@Composable
+internal fun GenealogyContent(
+    state: GenealogyUiState,
+    onOpenProfile: ((String) -> Unit)?,
+    actions: GenealogyActions?,
+    onMakePoster: (() -> Unit)?,
+    onBack: (() -> Unit)?,
+    treeOfLife: Boolean,
+    modifier: Modifier = Modifier,
+    inFamilyTab: Boolean = false,
+) {
+    Box(modifier.fillMaxSize()) {
+        when (state) {
+            GenealogyUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
+            GenealogyUiState.Failed -> EmptyState(
+                icon = Icons.Outlined.CloudOff,
+                title = stringResource(R.string.genealogy_failed_title),
+                body = stringResource(R.string.genealogy_failed_body),
+            )
+            is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster, onBack, treeOfLife, inFamilyTab)
         }
     }
+}
+
+@Composable
+internal fun GenealogyFailure(actionFailed: Boolean, onFailureShown: () -> Unit) {
     if (actionFailed) {
         AlertDialog(
             onDismissRequest = onFailureShown,
@@ -154,8 +177,9 @@ private fun ReadyTree(
     onOpenProfile: ((String) -> Unit)?,
     actions: GenealogyActions?,
     onMakePoster: (() -> Unit)?,
-    onBack: () -> Unit,
+    onBack: (() -> Unit)?,
     treeOfLife: Boolean = false,
+    inFamilyTab: Boolean = false,
 ) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
@@ -200,16 +224,17 @@ private fun ReadyTree(
             title = stringResource(R.string.genealogy_empty_title),
             body = stringResource(R.string.genealogy_empty_body),
             // Who cannot add a link yet still gets a way on, never a dead end.
-            action = if (addFirst != null) addFirst else {
-                { ClayLink(stringResource(R.string.empty_go_back), onClick = onBack) }
+            action = addFirst ?: onBack?.let { back ->
+                { ClayLink(stringResource(R.string.empty_go_back), onClick = back) }
             },
         )
     } else Column(Modifier.fillMaxSize()) {
         // L'arbre de vie (spec DESIGN du 18/11), behind its switch: « Arbre » draws it, « Liste »
         // keeps the rows, the plain reading for TalkBack and Contraste fort, where it opens.
-        val prefersList = rememberPrefersList()
+        // In the Famille tab, the drawing only (DESIGN-174: no « Liste », TalkBack reads each medallion).
+        val prefersList = rememberPrefersList() && !inFamilyTab
         var view by rememberSaveable { mutableStateOf(if (treeOfLife && !prefersList) TreeView.Tree else TreeView.List) }
-        if (treeOfLife) {
+        if (treeOfLife && !inFamilyTab) {
             TreeViewSwitch(view, onChange = { view = it }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
         }
         if (treeOfLife && view == TreeView.Tree) {

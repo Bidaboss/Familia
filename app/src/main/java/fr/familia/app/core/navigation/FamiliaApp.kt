@@ -132,6 +132,7 @@ import fr.familia.app.feature.capsules.CapsulesDestination
 import fr.familia.app.feature.capsules.CapsulesRoute
 import fr.familia.app.feature.genealogy.GenealogyDestination
 import fr.familia.app.feature.genealogy.GenealogyRoute
+import fr.familia.app.feature.genealogy.GenealogyTab
 import fr.familia.app.feature.genealogy.poster.TreePosterDestination
 import fr.familia.app.feature.genealogy.poster.TreePosterRoute
 import fr.familia.app.core.album.book.PhotoBookDestination
@@ -233,11 +234,9 @@ import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.theme.LocalPhotoHaze
 import fr.familia.app.core.theme.LocalPhotoTheme
-import fr.familia.app.core.theme.onPhotoBanner
 import fr.familia.app.core.theme.LocalPhotoExtent
 import fr.familia.app.core.theme.PhotoBackdrop
 import fr.familia.app.core.theme.PhotoScroll
-import fr.familia.app.core.theme.PhotoBanner
 import fr.familia.app.core.theme.PhotoTitleShadow
 import fr.familia.app.feature.home.PhotoHome
 import fr.familia.app.feature.home.PhotoHomeHeader
@@ -880,22 +879,22 @@ fun FamiliaApp(
         // The 8 photos into the cache once a photo shows, on Wi-Fi only (prefetchThemePhotos).
         val appContext = LocalContext.current.applicationContext
         LaunchedEffect(photoTheme != null) { if (photoTheme != null) fr.familia.app.core.theme.prefetchThemePhotos(appContext) }
-        // Règle 20 (DESIGN-157 A): Famille shows the same photo in a banner at its top.
-        val onMembers = currentDestination.isOn(TopLevelDestination.Members)
-        val bannerScroll = remember { PhotoScroll() }
-        LaunchedEffect(onMembers) { bannerScroll.reset() }
-        // Cadeaux lies on the whole photo, its tiles in frosted glass (brief Cadeaux et Surprise §0, fiche C1).
-        val giftsPhoto = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Gifts) }
+        // Cadeaux and Famille lie on the whole photo, their tiles in frosted glass (brief Cadeaux et
+        // Surprise §0, fiche C1; brief Famille-recettes F1).
+        val giftsPhoto = LocalPhotoTheme.current?.takeIf {
+            currentDestination.isOn(TopLevelDestination.Gifts) || currentDestination.isOn(TopLevelDestination.Members)
+        }
         val giftsScroll = remember { PhotoScroll() }
+        // Each tab starts with its photo at the top.
+        val onMembers = currentDestination.isOn(TopLevelDestination.Members)
+        LaunchedEffect(onMembers) { giftsScroll.reset() }
         Box(if (photoTheme != null) Modifier.fillMaxSize() else Modifier.fillMaxSize().themeBackground()) {
         if (photoTheme != null) PhotoBackdrop(photoTheme, photoScroll)
         if (giftsPhoto != null) PhotoBackdrop(giftsPhoto, giftsScroll)
-        if (onMembers) PhotoBanner(bannerScroll)
         Scaffold(
             // The theme's background and its pattern show behind the tabs, the photo behind the Accueil and Cadeaux.
             modifier = Modifier
                 .nestedScroll(topBarScroll.nestedScrollConnection)
-                .then(if (onMembers) Modifier.nestedScroll(bannerScroll.connection) else Modifier)
                 .then(if (giftsPhoto != null) Modifier.nestedScroll(giftsScroll.connection) else Modifier),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
@@ -915,9 +914,7 @@ fun FamiliaApp(
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
-                        // Famille: white while the title lies on the dark top of its banner, the same limit as
-                        // Tout Familia (onPhotoBanner); TabTopBar also turns it dark once the content is under it.
-                        onPhoto = ((onMembers && onPhotoBanner(bannerScroll)) || giftsPhoto != null) && LocalPhotoTheme.current != null,
+                        onPhoto = giftsPhoto != null,
                         onOpenTrips = onTrips,
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
@@ -1984,12 +1981,15 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                             onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
-                            onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
-                            onOpenCapsules = if (capsulesOn) ({ navController.navigate(CapsulesDestination) }) else null,
-                            onOpenGenealogy = if (features.isOn(Feature.Genealogy)) ({ navController.navigate(GenealogyDestination) }) else null,
-                            onOpenWhoIsIt = if (features.isOn(Feature.WhoIsIt)) ({ navController.navigate(WhoIsItDestination) }) else null,
-                            onOpenWishes = if (features.isOn(Feature.Gifts)) {
-                                { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
+                            // Famille > Arbre (brief Famille-recettes, règle 1), while the module Arbre is on.
+                            tree = if (features.isOn(Feature.Genealogy)) {
+                                {
+                                    GenealogyTab(
+                                        container = container,
+                                        currentMember = currentMember,
+                                        onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
+                                    )
+                                }
                             } else {
                                 null
                             },

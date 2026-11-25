@@ -145,7 +145,6 @@
     <string name="members_error_title">La famille ne s\'affiche pas</string>
     <string name="members_error_body">L\'appli n\'a pas pu lire la liste de la famille. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="members_add">Ajouter un membre</string>
-    <string name="members_edit_action">modifier</string>
     <string name="action_back">Retour</string>
     <string name="action_retry">Réessayer</string>
     <string name="action_cancel">Annuler</string>
@@ -167,16 +166,6 @@
     <string name="member_remove_owner_only">Seul l\'admin principal peut retirer %1$s.</string>
     <string name="administration_title">Administration</string>
     <string name="members_treasures">Nos trésors</string>
-    <string name="members_other_households">Les autres foyers</string>
-    <string name="members_me_birthday">Anniversaire le %1$s</string>
-    <string name="members_me_open">Voir et modifier ma fiche</string>
-    <string name="members_household_unfolded">déplié</string>
-    <plurals name="members_household_folded">
-        <item quantity="one">replié, %d membre</item>
-        <item quantity="other">replié, %d membres</item>
-    </plurals>
-    <string name="members_household_unfold">déplier</string>
-    <string name="members_household_fold">replier</string>
     <string name="members_treasure_recipes">Recettes</string>
     <string name="members_treasure_recipes_open">ouvrir les recettes</string>
     <string name="members_treasure_tree">Arbre</string>
@@ -617,7 +606,7 @@
     <string name="member_remove">Retirer de la famille</string>
     <string name="member_remove_blocked">Ajoute d\'abord un autre adulte responsable pour : %1$s.</string>
     <string name="member_remove_title">Retirer %1$s de la famille ?</string>
-    <string name="member_remove_body">La fiche de %1$s disparaît et cette adresse n\'ouvre plus l\'appli. Tu pourras l\'ajouter à nouveau plus tard.</string>
+    <string name="member_remove_body">La fiche de %1$s, ses envies, ses photos, ses commentaires et les recettes notées disparaissent de Familia, et cette adresse n\'ouvre plus l\'appli. Cela ne peut pas se défaire.</string>
     <string name="member_remove_confirm">Retirer</string>
     <string name="feedback_title">Une idée ? Un souci ?</string>
     <string name="feedback_intro">Dis-nous ce qui te plaît, ce qui manque ou ce qui ne marche pas : l\'admin de la famille le reçoit.</string>
@@ -734,12 +723,37 @@
     <string name="loading_offline">Pas de réseau pour l\'instant. L\'écran se remplira tout seul dès son retour.</string>
     <string name="pending_network">En attente du réseau</string>
     <string name="members_me">%1$s (toi)</string>
+    <!-- Famille, onglet Foyers (brief Famille-recettes F1, 25/11) -->
+    <string name="members_f1_count">%1$s · %2$s</string>
+    <plurals name="members_f1_people">
+        <item quantity="one">%d personne</item>
+        <item quantity="many">%d de personnes</item>
+        <item quantity="other">%d personnes</item>
+    </plurals>
+    <plurals name="members_f1_homes">
+        <item quantity="one">%d foyer</item>
+        <item quantity="many">%d de foyers</item>
+        <item quantity="other">%d foyers</item>
+    </plurals>
+    <string name="members_tab_households">Foyers</string>
+    <string name="members_tab_tree">Arbre</string>
+    <string name="members_my_household">Mon foyer</string>
+    <string name="members_f1_owner">Administrateur principal</string>
+    <string name="members_f1_child">Enfant</string>
+    <string name="members_f1_child_without_app">Enfant sans l\'appli</string>
+    <string name="members_f1_chef">chef de foyer</string>
+    <string name="members_f1_with">%1$s · %2$s</string>
+    <string name="members_f1_birthday_today">🎂 Aujourd\'hui</string>
+    <plurals name="members_f1_birthday">
+        <item quantity="one">🎂 Demain</item>
+        <item quantity="many">🎂 Dans %d jours</item>
+        <item quantity="other">🎂 Dans %d jours</item>
+    </plurals>
+    <string name="members_open_profile">voir sa fiche</string>
+    <string name="members_message_name">Écrire un message à %1$s</string>
     <string name="profile_adult">Adulte</string>
     <string name="profile_child_with_app">Enfant, avec l\'appli</string>
     <string name="profile_child_without_app">Enfant, sans l\'appli</string>
-    <string name="profile_with_owner">%1$s · admin principal</string>
-    <string name="profile_with_admin">%1$s · chef de famille</string>
-    <string name="profile_without_email">%1$s · adresse Google à ajouter</string>
     <string name="app_version">Version %1$s</string>
 
     <string name="sign_in_intro">Les nouvelles, le planning et les cadeaux de la famille, au même endroit.</string>
@@ -1061,7 +1075,6 @@
     <string name="gift_list_missing_body">Elle a été supprimée, ou tu ne fais pas partie des personnes qui la voient.</string>
     <string name="gift_list_unavailable_body">Seuls la personne qui a créé la liste, et pour ses propres listes le bénéficiaire, peuvent la modifier.</string>
     <string name="gift_list_empty">Aucun article pour l\'instant. Touche « Ajouter » pour proposer une idée.</string>
-    <string name="members_wishes_button">Envies</string>
     <string name="gift_wishes_empty_other">%1$s n\'a encore rien noté. Reviens plus tard, ou demande-lui ce qui lui ferait plaisir.</string>
     <string name="gift_list_empty_mine">Aucun article pour l\'instant. Touche « Ajouter » pour dire ce qui te ferait plaisir.</string>
     <string name="gift_list_hidden_mine">Les réservations te restent cachées.</string>
@@ -1220,8 +1233,6 @@
     <string name="error_gift_bad_price">Indique un montant, par exemple 25 ou 19,90.</string>
     <string name="error_gift_note_too_long">500 caractères au plus.</string>
     <!-- Photo de profil (PRD, récit 3 bis) -->
-    <string name="photo_change_action">changer la photo</string>
-    <string name="photo_view_action">voir la photo en grand</string>
     <string name="photo_viewer_close">Fermer</string>
     <string name="photo_viewer_change">Changer la photo</string>
     <string name="photo_of">Photo de %1$s</string>
@@ -1235,13 +1246,11 @@
     <string name="photo_crop_confirm">Valider</string>
     <string name="photo_unreadable_title">Cette photo ne s\'ouvre pas</string>
     <string name="photo_unreadable_body">Choisis-en une autre, ou prends une nouvelle photo.</string>
-    <string name="photo_failed_title">La photo n\'a pas changé</string>
     <string name="photo_add">Ajouter une photo</string>
     <string name="photo_remove_confirm_title">Retirer la photo ?</string>
     <string name="photo_remove_confirm_body">La photo disparaîtra quand tu enregistreras.</string>
     <string name="photo_remove_confirm">Retirer</string>
     <string name="photo_chosen">Photo choisie</string>
-    <string name="photo_failed_body">La photo n\'a pas été enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
@@ -2500,17 +2509,6 @@
         <item quantity="many">%d de nouveautés</item>
         <item quantity="other">%d nouveautés</item>
     </plurals>
-    <plurals name="members_r1_count">
-        <item quantity="one">Nous %1$d, en %2$s</item>
-        <item quantity="many">Nous %1$d, en %2$s</item>
-        <item quantity="other">Nous %1$d, en %2$s</item>
-    </plurals>
-    <plurals name="members_r1_homes">
-        <item quantity="one">%d foyer</item>
-        <item quantity="many">%d de foyers</item>
-        <item quantity="other">%d foyers</item>
-    </plurals>
-    <string name="members_r1_treasures">Nos trésors</string>
     <string name="all_search">Chercher un module</string>
     <string name="all_none">Aucun module ne porte ce nom.</string>
     <string name="all_family_organise">S\'organiser</string>
