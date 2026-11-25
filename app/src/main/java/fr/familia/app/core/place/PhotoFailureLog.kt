@@ -15,10 +15,15 @@ class PhotoUnavailable(detail: String) : Exception(detail)
 object PhotoFailureLog {
     private val written = HashSet<String>()
 
+    /** True for a real failure (refusal, timeout, image error); false for the plain « aucune photo » answer. */
+    fun isReportable(line: String): Boolean = !line.startsWith("aucune photo")
+
     fun record(context: Context, detail: String) {
         val line = detail.take(60)
         synchronized(written) { if (!written.add(line)) return }
         android.util.Log.w("PlacePhotos", "photo non affichée : $line")
+        // « Aucune photo » is a normal answer (a place nobody photographed): logged, not shown as a crash.
+        if (!isReportable(line)) return
         runCatching {
             PendingCrashStore(context.applicationContext).add(pendingCrash(PhotoUnavailable(line), "Photo du lieu : $line".take(80), System.currentTimeMillis()))
         }
