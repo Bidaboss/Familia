@@ -2820,3 +2820,10 @@ Sur un téléphone en Android 10 ou plus :
 **Publier Firebase : non.** Seulement « APK de publication ».
 1. Ouvrir un voyage dont la grande photo montrait le dessin depuis la version précédente (par exemple une destination au bord de mer) : une photo revient, même si elle est plus haute que large (un phare, une église).
 2. Un montage de plusieurs photos reste écarté.
+
+## Voyage : un voyage sans séjour retrouve ses photos (retour du 25/11, « les photos ne chargent plus »)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Ouvrir un ancien voyage qui n'a que des vols, des trajets ou des activités, sans destination : la grande photo montre le lieu d'arrivée des trajets et les activités, jamais un lieu de départ.
+2. Dans la liste des voyages, sa tuile montre la photo du premier de ces lieux.
+3. Un voyage avec des destinations ne montre toujours que ses destinations.

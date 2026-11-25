@@ -86,16 +86,15 @@ class TripsViewModel(
                 list.map { trip ->
                     combine(repo.observeSteps(trip.id), repo.observeCovers(trip.id)) { steps, covers -> steps to covers }
                         .map { (steps, covers) ->
-                            // The photo is the one of the first destination, never of a transport nor its departure (retour du 25/11 soir).
-                            val destination = fr.familia.app.feature.trips.detail.tripTimeline(trip, steps).destinations
-                                .map { it.step }.firstOrNull { it.hasPosition }
-                            val where = destination ?: steps.firstOrNull { it.hasPosition }
+                            // The photo is the one of the first destination, never of a transport nor its departure (retour du 25/11 soir);
+                            // a trip without a stay takes the first arrival or activity, as its cover does.
+                            val first = fr.familia.app.feature.trips.detail.coverPlaces(trip, steps).firstOrNull { it.fromStep }
                             trip.id to TripWhere(
-                                point = where?.let { GeoPoint(it.lat!!, it.lng!!) },
-                                name = destination?.let { fr.familia.app.feature.trips.detail.placeName(it) },
+                                point = first?.point ?: steps.firstOrNull { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) },
+                                name = first?.name,
                                 km = fr.familia.app.feature.trips.detail.tripFigures(trip, steps, 0)?.distanceKm,
                                 // « Autre photo »: the photo chosen for the first destination, for everyone.
-                                cover = destination?.let { covers[it.id] },
+                                cover = first?.stepId?.let { covers[it] },
                             )
                         }
                         .catch { e -> if (e is CancellationException) throw e else emit(trip.id to TripWhere(null, null, null)) }

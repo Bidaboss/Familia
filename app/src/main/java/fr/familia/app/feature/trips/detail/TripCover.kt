@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.offset
 import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.R
+import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.place.PlacePhoto
@@ -69,15 +70,24 @@ data class CoverPlace(val name: String, val point: GeoPoint?, val fromStep: Bool
 
 /**
  * The places of the cover (règle 10): the destinations only, in the order of the trip, never a transport
- * nor its departure (retour du 25/11 soir), at most [MAX_COVER_PLACES], each once. Without a destination,
- * the title of the trip and the drawn landscape.
+ * nor its departure (retour du 25/11 soir), at most [MAX_COVER_PLACES], each once. A trip without a
+ * destination (made before the stays, often only flights, drives and activities) shows where its
+ * transports arrive and its activities, never a departure. Without any of them, the title of the trip
+ * and the drawn landscape.
  */
 fun coverPlaces(trip: Trip, steps: List<TripStep>): List<CoverPlace> {
-    val places = tripTimeline(trip, steps).destinations.map { row ->
-        CoverPlace(placeName(row.step), row.step.takeIf { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) }, stepId = row.step.id)
+    val stays = tripTimeline(trip, steps).destinations.map { it.step }
+    val shown = stays.ifEmpty { steps.sortedWith(compareBy<TripStep>({ it.departDate }, { it.departTime })) }
+    val places = shown.map { step ->
+        // The point of a transport is the one of the whole route: only its arrival name is asked.
+        val point = step.takeIf { it.hasPosition && !isRoute(it) }?.let { GeoPoint(it.lat!!, it.lng!!) }
+        CoverPlace(placeName(step), point, stepId = step.id)
     }.filter { it.name.isNotEmpty() }.distinctBy { it.name.lowercase() }
     return places.ifEmpty { listOf(CoverPlace(trip.title, null, fromStep = false)) }.take(MAX_COVER_PLACES)
 }
+
+/** A transport written « Paris → Bordeaux »: its point is not the one of its arrival. */
+private fun isRoute(step: TripStep): Boolean = step.type != StepType.Lodging && step.type != StepType.Activity && '→' in step.place
 
 const val MAX_COVER_PLACES = 5
 
