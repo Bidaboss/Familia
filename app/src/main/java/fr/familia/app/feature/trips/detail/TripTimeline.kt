@@ -23,7 +23,8 @@ sealed interface TimelineRow {
     }
 
     /** A transport or an activity, with the distance from the destination before when both have a point. */
-    data class Move(override val step: TripStep, val km: Int?) : TimelineRow
+    /** [from]: the last step with a point before it, for the time by road of a car or a bus. */
+    data class Move(override val step: TripStep, val km: Int?, val from: TripStep? = null) : TimelineRow
 }
 
 /** The whole line, its nights planned against the nights of the trip. */
@@ -49,7 +50,7 @@ fun tripTimeline(trip: Trip, steps: List<TripStep>): TripTimeline {
             val end = (step.arriveDate?.takeIf { it > step.departDate } ?: next ?: trip.endDate).coerceAtLeast(step.departDate)
             rows += TimelineRow.Destination(step, index + 1, step.departDate, end)
         } else {
-            rows += TimelineRow.Move(step, distanceKm(last, step))
+            rows += TimelineRow.Move(step, distanceKm(last, step), last)
         }
         if (step.hasPosition) last = step
     }
