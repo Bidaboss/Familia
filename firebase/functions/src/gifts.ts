@@ -171,7 +171,7 @@ export async function giftAudience(db: Firestore): Promise<(ids: string[]) => st
 }
 
 /** PRD, récit 10: at D-21 every adult but the birthday member is reminded; at D-14 again if nothing is reserved. */
-export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now: Date): Promise<number> {
+export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now: Date, alreadyTold: Set<string> = new Set()): Promise<number> {
   const audience = await giftAudience(db);
   const singleList = (await db.doc('config/app').get()).get('features.singleList') === true;
   const today = parisDay(now);
@@ -182,7 +182,7 @@ export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now
       if (second && (await hasReservation(db, member.id))) continue;
       const wishes = await db.doc(`giftLists/wishes-${member.id}`).get();
       const notice = birthdayNotice(member, addDays(today, days), second, wishes.exists ? wishes.id : null, singleList);
-      const recipients = audience(birthdayRecipients(members, member.id));
+      const recipients = audience(birthdayRecipients(members, member.id)).filter((id) => !alreadyTold.has(id));
       if (recipients.length > 0) sent += await notify(db, send, recipients, notice);
     }
   }
