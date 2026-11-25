@@ -55,6 +55,16 @@ jobs:
           key="$RUNNER_TEMP/firebase-key.json"
           trap 'rm -f "$key"' EXIT
           printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
-          GOOGLE_APPLICATION_CREDENTIALS="$key" npx firebase deploy \
-            --only firestore:rules,firestore:indexes,storage,functions,hosting \
-            --non-interactive
+          # --force: functions with a retry policy (onOfferedSurpriseUpdated, #632) are refused
+          # without it in non-interactive mode. Up to 3 tries, 60 s apart: Google answers 409, 429
+          # or 503 now and then when two publications follow each other closely.
+          for try in 1 2 3; do
+            if GOOGLE_APPLICATION_CREDENTIALS="$key" npx firebase deploy \
+              --only firestore:rules,firestore:indexes,storage,functions,hosting \
+              --non-interactive --force; then
+              exit 0
+            fi
+            echo "::warning::Publication refusée (essai $try sur 3)."
+            [ "$try" -lt 3 ] && sleep 60
+          done
+          exit 1

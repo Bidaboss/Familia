@@ -327,6 +327,13 @@ describe('functions', () => {
     const p = await db.doc('surprises/s1/proposals/wish-i1').get();
     assert.deepEqual([p.get('title'), p.get('price')], ['Un grand livre', 30]);
     assert.match(sent[0].notice.body, /Une envie a changé : « Un grand livre »/);
+    assert.equal(sent[0].notice.tag, 'surprise-s1-wish-i1');
+    // A second edit within 10 minutes: the proposal follows, nobody is rung again.
+    sent.length = 0;
+    const t0 = new Date();
+    assert.equal(await onWishChangedForSurprises(db, send, 'wishes-camille', 'i1', wish, { ...wish, title: 'Un très grand livre' }, new Date(t0.getTime() + 60_000)), 0);
+    assert.equal((await db.doc('surprises/s1/proposals/wish-i1').get()).get('title'), 'Un très grand livre');
+    assert.equal(await onWishChangedForSurprises(db, send, 'wishes-camille', 'i1', wish, { ...wish, title: 'Un autre livre' }, new Date(t0.getTime() + 11 * 60_000)), 2);
     assert.ok(!sent.some((x) => x.token === 'token-camille'));
   });
 

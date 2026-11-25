@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.triStateToggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,6 +68,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.ChoiceTile
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.TripDocument
 import fr.familia.app.core.data.TripDocumentKind
@@ -416,7 +415,7 @@ private fun AddDocumentDialog(suggested: String, groups: List<PickGroup>, onConf
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Column(Modifier.selectableGroup()) {
+                Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     TripDocumentKind.entries.forEach { option ->
                         RadioLine(stringResource(kindLabel(option)), option == kind) { kind = option }
                     }
@@ -468,7 +467,7 @@ private fun ShareDialog(title: String, groups: List<PickGroup>, initial: Set<Str
  * everyone, then the travellers by household (HouseholdMemberPicker). Alone on the trip: private.
  */
 @Composable
-private fun SharingChoice(groups: List<PickGroup>, shared: Boolean, onShared: (Boolean) -> Unit, selected: Set<String>, onSelected: (Set<String>) -> Unit) {
+internal fun SharingChoice(groups: List<PickGroup>, shared: Boolean, onShared: (Boolean) -> Unit, selected: Set<String>, onSelected: (Set<String>) -> Unit) {
     Text(
         stringResource(R.string.documents_who),
         style = MaterialTheme.typography.titleMedium,
@@ -479,7 +478,7 @@ private fun SharingChoice(groups: List<PickGroup>, shared: Boolean, onShared: (B
         Text(stringResource(R.string.documents_alone), style = MaterialTheme.typography.bodyMedium)
         return
     }
-    Column(Modifier.selectableGroup()) {
+    Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         RadioLine(stringResource(R.string.documents_private_choice), !shared) { onShared(false) }
         RadioLine(stringResource(R.string.documents_shared_choice), shared) { onShared(true) }
     }
@@ -504,18 +503,16 @@ private fun SharingChoice(groups: List<PickGroup>, shared: Boolean, onShared: (B
     }
 }
 
+/** One choice as a tile (refonte, DESIGN-57): no more radio buttons. */
 @Composable
 private fun RadioLine(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
-    }
+    ChoiceTile(
+        title = label,
+        selected = selected,
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        titleStyle = MaterialTheme.typography.bodyLarge,
+    )
 }
 
 private val TripDocumentTypes = arrayOf("application/pdf", "image/jpeg", "image/png")
