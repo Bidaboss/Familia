@@ -2004,6 +2004,20 @@
         <item quantity="other">%d recettes</item>
     </plurals>
     <string name="profile_v2_recipes_add_hint">Partage une recette de famille</string>
+    <string name="profile_edit_identity">Identité</string>
+    <string name="profile_edit_nickname">Surnom (facultatif)</string>
+    <string name="profile_edit_nickname_hint">Papi, Mamie…</string>
+    <string name="profile_edit_birth">Date de naissance</string>
+    <string name="profile_edit_now_hint">Je lis… Je prépare…</string>
+    <string name="profile_edit_lock_name">Seul l\'administrateur peut changer le prénom.</string>
+    <string name="profile_edit_lock_birth">Seul l\'administrateur peut changer la date de naissance.</string>
+    <string name="profile_edit_lock_address">Seul l\'administrateur peut changer l\'adresse du foyer. Le chef de foyer peut seulement renommer le foyer.</string>
+    <string name="profile_edit_phone_hint">06 12 34 56 78</string>
+    <string name="profile_edit_phone_invalid">Des chiffres seulement, avec des espaces si tu veux.</string>
+    <string name="profile_edit_leave_title">Quitter sans enregistrer ?</string>
+    <string name="profile_edit_leave_body">Tes changements seront perdus.</string>
+    <string name="profile_edit_leave_stay">Rester</string>
+    <string name="profile_edit_leave_go">Quitter</string>
     <string name="profile_v2_household">Foyer</string>
     <plurals name="profile_v2_household_people">
         <item quantity="one">%d personne</item>

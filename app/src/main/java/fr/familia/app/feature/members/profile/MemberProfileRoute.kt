@@ -77,11 +77,15 @@ fun MemberProfileRoute(
         },
     )
     val v2State by v2Model.state.collectAsStateWithLifecycle()
+    val edit by v2Model.edit.collectAsStateWithLifecycle()
     val viewingAs = LocalViewAs.current.viewed != null
+    // My own page opens « Modifier » in place (règle 3, F10); another's still goes to the form, for the admin.
+    val mine = memberId == currentMember.id && !viewingAs
+    val shown = (state as? MemberProfileUiState.Ready)?.let { if (mine) it.copy(canEdit = true) else it } ?: state
     MemberProfileScreen(
-        state = state,
+        state = shown,
         onBack = onBack,
-        onEdit = onEdit,
+        onEdit = if (mine) v2Model::startEdit else onEdit,
         onDismissBravo = viewModel::dismissBravo,
         wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
         v2 = ProfileV2Ui(
@@ -99,6 +103,11 @@ fun MemberProfileRoute(
             onRenameHousehold = v2Model::renameHousehold,
             onEditNote = v2Model::editNote,
             onMakeIdea = if (giftsOn && !viewingAs) ({ note -> giftActions.onMakeIdea(memberId, note) }) else null,
+            edit = edit?.takeIf { mine },
+            onStartEdit = if (mine) v2Model::startEdit else null,
+            onDraft = v2Model::updateDraft,
+            onCancelEdit = v2Model::cancelEdit,
+            onSaveEdit = v2Model::saveEdit,
         ),
     )
 }
