@@ -1244,8 +1244,10 @@ service cloud.firestore {
     //
     // reactions is a map memberId -> one of 💛 🎉 👏 🔥 (PRD 119 f): each member sets or removes only
     // their own. commentCount and last (the 2 latest comments, for the card) are kept by the server
-    // alone (onGazetteCommentWritten). The events, the recipes and the words of a step keep their
-    // own comments: their thread takes no comment. Comments: 1 to 500 characters, @mentions, a
+    // alone (onGazetteCommentWritten). The events and the recipes keep their own comments: their
+    // thread takes the J'aime only. The words of a step (hearts and comments of their own) and the
+    // old bonnes nouvelles (lot 2) have no thread. A removed thing takes its threads with it
+    // (deleteGazetteThreadsOfThing), a removed member their comments and J'aime (deleteSharedBy). Comments: 1 to 500 characters, @mentions, a
     // child with the app too, without approval (PRD 119 a); its author changes the text; its
     // author, a responsible adult of its author and the admin principal remove it.
     function threadKind(threadId) {

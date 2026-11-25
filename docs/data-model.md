@@ -1537,7 +1537,9 @@ Une carte de la gazette, par sa clé : la clé de la `FeedCard` où « / » devi
 - `reactions` : `{ memberId: '💛' | '🎉' | '👏' | '🔥' }`, chacun écrit ou retire seulement la sienne.
 - `commentCount`, `last` (les 2 derniers commentaires : `id`, `authorId`, `authorName`, `text` coupé à 200 caractères, `createdAt`) : tenus par le serveur seul (`onGazetteCommentWritten`, `onGazetteCommentRemoved`).
 - Lecture : qui voit la carte. Toute la famille, sauf un coup de main (`viewerIds` de la demande, et l'admin principal), les photos et le film d'un voyage (`readerIds` du voyage), et les envies d'un membre, jamais lues par ce membre. Un autre type de carte est refusé.
-- Les événements, les recettes et les mots d'étape gardent leurs propres commentaires : leur fil ne prend que des J'aime.
+- Les événements et les recettes gardent leurs propres commentaires : leur fil ne prend que des J'aime. Les mots d'étape (cœurs et commentaires à eux) et les anciennes bonnes nouvelles (retirées au lot 2) n'ont pas de fil.
+- Une chose supprimée emporte les fils de ses cartes (`deleteGazetteThreadsOfThing`) : un événement (sa carte et son album), une recette, un coup de main, un bon plan, un voyage (son album et ses films), un film.
+- Un membre retiré emporte ses commentaires, ses J'aime et les fils des cartes qui parlent de lui, ses envies et son anniversaire (`deleteSharedBy`).
 
 ### `gazetteThreads/{threadId}/comments/{commentId}`
 `text` (1 à 500 caractères), `authorId`, `authorName`, `createdAt`, `mentionIds` (facultatif, 20 au plus), `editedAt` après une modification. Un enfant avec l'appli commente sans validation. Son auteur modifie le texte ; son auteur, un adulte responsable de l'auteur et l'admin principal le retirent.

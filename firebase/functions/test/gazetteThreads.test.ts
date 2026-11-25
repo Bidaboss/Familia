@@ -4,7 +4,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { deleteGazetteThread, lastText, refreshGazetteThread } from '../src/gazetteThreads';
+import { deleteGazetteThread, deleteGazetteThreadsOfThing, lastText, refreshGazetteThread } from '../src/gazetteThreads';
 
 const app = initializeApp({ projectId: 'demo-familia' }, 'gazette-threads');
 const db = getFirestore(app);
@@ -71,5 +71,31 @@ describe('count and 2 latest', () => {
     await deleteGazetteThread(db, 'post:p1');
     assert.equal((await thread().get()).exists, false);
     assert.equal((await thread().collection('comments').get()).size, 0);
+  });
+});
+
+describe('a thing removed takes the threads of its cards', () => {
+  const ids = async () => (await db.collection('gazetteThreads').get()).docs.map((d) => d.id).sort();
+
+  test('a trip: every day of its album and its films, not those of another trip', async () => {
+    for (const id of ['album:trips:t1:2026-07-01', 'album:trips:t1:2026-07-02', 'film:t1:f1', 'album:trips:t10:2026-07-01', 'film:t10:f1', 'recipe:r1']) {
+      await thread(id).set({ reactions: { camille: '💛' } });
+    }
+    await add('c1', 'camille', 'Un', 1, 'album:trips:t1:2026-07-01');
+    await deleteGazetteThreadsOfThing(db, { trip: 't1' });
+    assert.deepEqual(await ids(), ['album:trips:t10:2026-07-01', 'film:t10:f1', 'recipe:r1']);
+    assert.equal((await thread('album:trips:t1:2026-07-01').collection('comments').get()).size, 0);
+  });
+
+  test('an event: its card and its album; a recipe, a coup de main, a bon plan, a film: their card', async () => {
+    for (const id of ['event:e1', 'album:events:e1:2026-07-01', 'event:e2', 'recipe:r1', 'help:h1', 'deal:d1', 'film:t1:f1', 'film:t1:f2']) {
+      await thread(id).set({ reactions: { camille: '💛' } });
+    }
+    await deleteGazetteThreadsOfThing(db, { event: 'e1' });
+    await deleteGazetteThreadsOfThing(db, { recipe: 'r1' });
+    await deleteGazetteThreadsOfThing(db, { help: 'h1' });
+    await deleteGazetteThreadsOfThing(db, { deal: 'd1' });
+    await deleteGazetteThreadsOfThing(db, { film: 'f1', trip: 't1' });
+    assert.deepEqual(await ids(), ['event:e2', 'film:t1:f2']);
   });
 });

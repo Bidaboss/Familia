@@ -4,7 +4,7 @@
 // reads one document, never the whole conversation (brief §9, « ne charger les commentaires complets
 // qu'à l'ouverture du détail »). The notifications of the comments come with PR 5 of the brief.
 
-import { Firestore, Timestamp } from 'firebase-admin/firestore';
+import { FieldPath, Firestore, Timestamp } from 'firebase-admin/firestore';
 
 /** What a card shows of one of the latest comments: who, what, when. */
 export interface LastComment {
@@ -62,3 +62,42 @@ export async function deleteGazetteThread(db: Firestore, threadId: string): Prom
   await ref.delete();
 }
 
+
+/**
+ * The threads whose id starts with [prefix] (« album:trips:t1: », every day of the album of a trip)
+ * go with their J'aime and their comments. Returns how many went.
+ */
+export async function deleteGazetteThreadsFrom(db: Firestore, prefix: string): Promise<number> {
+  const found = await db.collection('gazetteThreads')
+    .where(FieldPath.documentId(), '>=', prefix)
+    .where(FieldPath.documentId(), '<', `${prefix}\uf8ff`)
+    .select().get();
+  for (const d of found.docs) await deleteGazetteThread(db, d.id);
+  return found.size;
+}
+
+/**
+ * The cards that go when their thing goes (relecture du renfort sur #685, C2): a removed event,
+ * recipe, coup de main, bon plan, trip or film takes the thread of its card with it, so its
+ * comments do not stay readable by the family.
+ */
+export async function deleteGazetteThreadsOfThing(
+  db: Firestore,
+  thing: { event: string } | { recipe: string } | { help: string } | { deal: string } | { trip: string } | { film: string; trip: string },
+): Promise<void> {
+  if ('film' in thing) {
+    await deleteGazetteThread(db, `film:${thing.trip}:${thing.film}`);
+  } else if ('trip' in thing) {
+    await deleteGazetteThreadsFrom(db, `album:trips:${thing.trip}:`);
+    await deleteGazetteThreadsFrom(db, `film:${thing.trip}:`);
+  } else if ('event' in thing) {
+    await deleteGazetteThread(db, `event:${thing.event}`);
+    await deleteGazetteThreadsFrom(db, `album:events:${thing.event}:`);
+  } else if ('recipe' in thing) {
+    await deleteGazetteThread(db, `recipe:${thing.recipe}`);
+  } else if ('help' in thing) {
+    await deleteGazetteThread(db, `help:${thing.help}`);
+  } else {
+    await deleteGazetteThread(db, `deal:${thing.deal}`);
+  }
+}

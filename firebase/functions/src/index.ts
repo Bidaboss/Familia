@@ -56,7 +56,7 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
-import { refreshGazetteThread } from './gazetteThreads';
+import { deleteGazetteThreadsOfThing, refreshGazetteThread } from './gazetteThreads';
 import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices } from './prefs';
@@ -335,6 +335,8 @@ export const onHelpRequestWrite = onDocumentWrittenWithAuthContext('helpRequests
   const after = event.data?.after.data() as HelpRequestData | undefined;
   // Deleted: its image goes too (l'admin 16/11, a QR code), even if the notices below fail.
   if (before && !after) await getStorage().bucket().deleteFiles({ prefix: `helpRequests/${event.params.requestId}/` });
+  // And its card in la gazette, with its comments (renfort sur #685, C2).
+  if (before && !after) await deleteGazetteThreadsOfThing(getFirestore(), { help: event.params.requestId });
   await onHelpRequestWritten(getFirestore(), sendHelp, event.params.requestId, before, after, actorUid(event), new Date());
   if (after?.status === 'taken' && before?.status !== 'taken' && after.volunteerId) {
     const volunteerId = after.volunteerId;
@@ -382,6 +384,7 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
 // A bon plan removed (by its author, the admin principal or the cleanup) takes its photo with it.
 export const onGoodDealDeleted = onDocumentDeleted('goodDeals/{dealId}', async (event) => {
   await getStorage().bucket().deleteFiles({ prefix: `goodDeals/${event.params.dealId}/` });
+  await deleteGazetteThreadsOfThing(getFirestore(), { deal: event.params.dealId });
 });
 
 // On se prête (récit 51): an ask to the owner, the answer to the one who asked. The loan lives
@@ -781,12 +784,14 @@ export const onTripFilmCreated = onDocumentCreated('trips/{tripId}/films/{filmId
 export const onTripFilmDeleted = onDocumentDeleted('trips/{tripId}/films/{filmId}', async (event) => {
   const path = filmFile(event.params.tripId, event.params.filmId, event.data?.data() as FilmData | undefined);
   if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
+  await deleteGazetteThreadsOfThing(getFirestore(), { film: event.params.filmId, trip: event.params.tripId });
 });
 
 export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {
   await deleteTripContents(getFirestore(), event.params.tripId);
   // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
+  await deleteGazetteThreadsOfThing(getFirestore(), { trip: event.params.tripId });
 });
 
 // « Ma valise » (récit 62): a participant taken off the trip leaves their bag behind. It goes,
@@ -806,6 +811,8 @@ export const onTripDeletedAccounts = onDocumentDeleted('trips/{tripId}', async (
 // Les comptes d'un événement (PRODUIT-57) go with it too.
 export const onEventDeletedAccounts = onDocumentDeleted('events/{eventId}', async (event) => {
   await deleteExpenseBook(getFirestore(), 'event', event.params.eventId);
+  // The cards of the event in la gazette, and their comments (renfort sur #685, C2).
+  await deleteGazetteThreadsOfThing(getFirestore(), { event: event.params.eventId });
 });
 
 // Each change of an expense goes in its history, with who made it (récit 16 bis).
@@ -866,6 +873,7 @@ export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (ev
     getFirestore().recursiveDelete(recipe.collection('photos')),
     getFirestore().recursiveDelete(recipe.collection('comments')),
     getStorage().bucket().deleteFiles({ prefix: `recipes/${event.params.recipeId}/` }),
+    deleteGazetteThreadsOfThing(getFirestore(), { recipe: event.params.recipeId }),
   ]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
   if (failed) throw failed.reason;
