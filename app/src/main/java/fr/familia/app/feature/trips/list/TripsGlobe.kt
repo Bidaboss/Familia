@@ -10,7 +10,6 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
-import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +49,6 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimati
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
-import com.mapbox.maps.plugin.gestures.OnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.OnScaleListener
 import com.mapbox.maps.plugin.gestures.addOnScaleListener
@@ -58,9 +56,7 @@ import com.mapbox.android.gestures.StandardScaleGestureDetector
 import com.mapbox.maps.CameraBoundsOptions
 import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
-import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.gestures
-import fr.familia.app.R
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.map.GlobeHealth
 import fr.familia.app.feature.trips.map.MAP_STYLE_TIMEOUT_MS
@@ -70,10 +66,8 @@ import fr.familia.app.feature.trips.map.mapErrorLine
 import fr.familia.app.feature.trips.map.viewErrorLine
 import fr.familia.app.feature.trips.map.mapFailureReason
 import fr.familia.app.feature.trips.map.GlobeLook
-import fr.familia.app.feature.trips.map.GlobeLookStore
 import fr.familia.app.feature.trips.map.cleanGlobe
 import fr.familia.app.feature.trips.map.underlayDrawnEarth
-import fr.familia.app.feature.trips.map.addGlobeRelief
 import fr.familia.app.feature.trips.map.addGlobeTerrain
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.wholeGlobeZoom
@@ -192,15 +186,13 @@ fun TripsGlobe(
     handAdded: List<GeoPoint> = emptyList(),
     /** How big the globe is: the zoom of the variant kept (E-48) when null, smaller in a short frame. */
     zoom: Double? = null,
-    /** E-48: a long touch goes to the next variant of the globe (the admin compares them on « Voyages »). */
-    cycleLook: Boolean = false,
     /** The accent yellow of the app (the pill of the bottom bar): the dots of the coming trips (E-38). */
     accent: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFFF2C14E),
     /** E-65: the height of the sheet over the bottom of the globe, in dp; the globe stays whole above it. */
     bottomInsetDp: Float = 0f,
 ) {
     val context = LocalContext.current
-    val look = remember { GlobeLookStore.read(context) }
+    val look = GlobeLook.LIST_DEFAULT
     val shownZoom = zoom ?: look.listZoom
     val started = LocalLifecycleOwner.current.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
     var powerSave by remember { mutableStateOf(powerSaveOn(context)) }
@@ -361,10 +353,8 @@ fun TripsGlobe(
                                 styleSources[0] = runCatching { imagerySources(style.styleSources.map { it.id to it.type }) }.getOrDefault(emptySet())
                                 // Retour du 24/11, minuit: lands and seas drawn under the images while they come.
                                 if (globeNeedsImagery(uri)) underlayDrawnEarth(style)
-                                // Retour du 25/11 matin: the shaded mountains of the variant B.
-                                if (globeNeedsImagery(uri)) addGlobeRelief(style, globeLook)
                                 // Retour du 25/11, 7 h 05: the mountains in 3D once zoomed in.
-                                if (globeNeedsImagery(uri)) addGlobeTerrain(style)
+                                addGlobeTerrain(style)
                                 // Before the trips: its layer lies under their dots.
                                 addHandAdded(style)
                                 addMarkers(style, accentHex(accent))
@@ -420,21 +410,6 @@ fun TripsGlobe(
                             false
                         },
                     )
-                    if (cycleLook) {
-                        map.gestures.addOnMapLongClickListener(
-                            OnMapLongClickListener {
-                                val next = GlobeLookStore.read(context).next()
-                                GlobeLookStore.save(context, next)
-                                // E-69: the new variant shows at once, the drawn Earth included; its imagery is watched again.
-                                fellBack[0] = false
-                                tileSources.clear()
-                                runCatching { drawGlobe(next.styleUri, next) }.onFailure { Log.w("TripsGlobe", "variant refused", it) }
-                                armImageryCheck(next.styleUri)
-                                Toast.makeText(context, context.getString(R.string.globe_look_next, next.letter), Toast.LENGTH_LONG).show()
-                                true
-                            },
-                        )
-                    }
                     // The finger moves the globe: no rotation under it; it starts again after a pause (E-33).
                     map.gestures.addOnMoveListener(
                         object : OnMoveListener {

@@ -60,21 +60,18 @@ class TripsGlobeTest {
         assertEquals(labelImageId("Nice"), labelImageId("Nice"))
     }
 
-    // E-48: the globe fills about 85 % of the width of a phone.
-    @Test fun theListGlobeIsBiggerThanBefore() = assertEquals(1.1, GLOBE_LIST_ZOOM, 0.0)
-
-    @Test fun theGlobeOfTheListShowsTheNaturalColoursFirst() {
-        assertEquals(GlobeLook.Vivid, GlobeLook.LIST_DEFAULT)
-        assertEquals(com.mapbox.maps.Style.SATELLITE_STREETS, GlobeLook.Vivid.styleUri)
-        assertEquals(GlobeLook.Vivid, GlobeLook.of(null))
-        assertEquals(GlobeLook.Vivid, GlobeLook.of("inconnue"))
-        assertEquals(GlobeLook.Soft, GlobeLook.of("Soft"))
+    // 25/11, 7 h 50 (« Ok globe C »): the globe of the list is Standard Satellite, its own size.
+    @Test fun theListGlobeIsTheOneTheAdminKept() {
+        assertEquals(GlobeLook.Standard, GlobeLook.LIST_DEFAULT)
+        assertEquals(com.mapbox.maps.Style.STANDARD_SATELLITE, GlobeLook.LIST_DEFAULT.styleUri)
+        assertEquals(1.0, GLOBE_LIST_ZOOM, 0.0)
+        assertEquals(listOf("C"), GlobeLook.entries.map { it.letter })
     }
 
-    @Test fun aLongTouchGoesThroughTheThreeVariants() {
-        assertEquals(GlobeLook.Soft, GlobeLook.Vivid.next())
-        assertEquals(GlobeLook.Standard, GlobeLook.Soft.next())
-        assertEquals(GlobeLook.Vivid, GlobeLook.Standard.next())
-        assertEquals(listOf("A", "B", "C"), GlobeLook.entries.map { it.letter })
+    // A variant kept on a phone before the choice (« Vivid », « Soft ») comes back as C.
+    @Test fun anOldVariantComesBackAsTheOneKept() {
+        assertEquals(GlobeLook.Standard, GlobeLook.of("Vivid"))
+        assertEquals(GlobeLook.Standard, GlobeLook.of("Soft"))
+        assertEquals(GlobeLook.Standard, GlobeLook.of(null))
     }
 }
