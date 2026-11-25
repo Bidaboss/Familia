@@ -2654,3 +2654,7 @@ Sur un téléphone en Android 10 ou plus :
 2. Admin : appui long sur le globe : « Globe : variante B. ». Les mêmes couleurs, et les grandes chaînes de montagnes ombrées (Alpes, Andes, Himalaya), visibles sans zoomer.
 3. Encore un appui long : C, Standard Satellite comme avant, sans changement de couleur.
 4. Encore un : retour à A. Le choix reste au prochain lancement.
+5. Zoom (retour du 25/11, 7 h 05) : deux doigts écartés sur le globe le rapprochent, jusqu'à une vallée ; un double toucher rapproche d'un cran. Une fois rapproché, le globe ne tourne plus tout seul : on le promène au doigt.
+6. En zoomant sur des montagnes (Alpes, Pyrénées) : le relief se dresse en 3D, incliner avec deux doigts vers le haut le montre mieux.
+7. Rapproché, les points des voyages restent touchables et ouvrent leur voyage. Monter ou baisser la feuille remet le globe entier.
+8. Deux doigts rapprochés : retour au globe entier, et il reprend sa rotation 3 s après.

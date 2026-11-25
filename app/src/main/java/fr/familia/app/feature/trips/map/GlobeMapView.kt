@@ -210,6 +210,31 @@ internal const val GLOBE_DEM_SOURCE = "globe-dem"
 internal const val GLOBE_DEM_URL = "mapbox://mapbox.mapbox-terrain-dem-v1"
 internal const val GLOBE_HILLSHADE_LAYER = "globe-hillshade"
 
+/** The elevation source of the globe, added once. */
+private fun addGlobeDem(style: Style) {
+    if (style.styleSourceExists(GLOBE_DEM_SOURCE)) return
+    style.addStyleSource(
+        GLOBE_DEM_SOURCE,
+        Value.valueOf(hashMapOf("type" to Value.valueOf("raster-dem"), "url" to Value.valueOf(GLOBE_DEM_URL), "tileSize" to Value.valueOf(512L))),
+    )
+}
+
+/** How high the mountains stand when the fingers zoom in (1: true height). */
+internal const val GLOBE_TERRAIN_EXAGGERATION = 1.3
+
+/**
+ * Retour du 25/11, 7 h 05 (« zoomer pour parcourir le monde »): the true relief in 3D, which only
+ * shows once zoomed in on a region; seen whole, the globe does not change.
+ */
+internal fun addGlobeTerrain(style: Style) {
+    runCatching {
+        addGlobeDem(style)
+        style.setStyleTerrain(
+            Value.valueOf(hashMapOf("source" to Value.valueOf(GLOBE_DEM_SOURCE), "exaggeration" to Value.valueOf(GLOBE_TERRAIN_EXAGGERATION))),
+        )
+    }.onFailure { android.util.Log.w("TripsGlobe", "terrain refused", it) }
+}
+
 /** Pure rule: the paint of the images for [pop] (0 leaves them as they come). */
 internal fun imageryPop(pop: Double): Map<String, Double> =
     if (pop <= 0.0) {
@@ -233,12 +258,7 @@ internal fun addGlobeRelief(style: Style, look: GlobeLook) {
         val raster = style.styleLayers.firstOrNull { it.type == "raster" }?.id ?: return
         imageryPop(look.pop).forEach { (key, value) -> runCatching { style.setStyleLayerProperty(raster, key, Value.valueOf(value)) } }
         if (look.relief <= 0.0 || style.styleLayerExists(GLOBE_HILLSHADE_LAYER)) return
-        if (!style.styleSourceExists(GLOBE_DEM_SOURCE)) {
-            style.addStyleSource(
-                GLOBE_DEM_SOURCE,
-                Value.valueOf(hashMapOf("type" to Value.valueOf("raster-dem"), "url" to Value.valueOf(GLOBE_DEM_URL), "tileSize" to Value.valueOf(512L))),
-            )
-        }
+        addGlobeDem(style)
         style.addStyleLayer(
             Value.valueOf(
                 hashMapOf(

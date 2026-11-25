@@ -52,6 +52,10 @@ import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.OnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.OnMoveListener
+import com.mapbox.maps.plugin.gestures.OnScaleListener
+import com.mapbox.maps.plugin.gestures.addOnScaleListener
+import com.mapbox.android.gestures.StandardScaleGestureDetector
+import com.mapbox.maps.CameraBoundsOptions
 import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
@@ -70,6 +74,7 @@ import fr.familia.app.feature.trips.map.GlobeLookStore
 import fr.familia.app.feature.trips.map.cleanGlobe
 import fr.familia.app.feature.trips.map.underlayDrawnEarth
 import fr.familia.app.feature.trips.map.addGlobeRelief
+import fr.familia.app.feature.trips.map.addGlobeTerrain
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.wholeGlobeZoom
 import fr.familia.app.feature.trips.map.recordTileError
@@ -128,6 +133,13 @@ internal const val GLOBE_DEGREES_PER_SECOND = 4.0
 
 /** E-33: after a touch the globe stays where the finger left it, then turns again after this pause. */
 internal const val GLOBE_RESUME_AFTER_TOUCH_MS = 3_000L
+
+/** Retour du 25/11, 7 h 05: how far the fingers may zoom: a little smaller than the globe, down to a valley. */
+internal const val GLOBE_MIN_ZOOM = 0.5
+internal const val GLOBE_MAX_ZOOM = 14.0
+
+/** Pure rule: the globe turns by itself only when it is seen whole (at most one step closer than its own zoom). */
+internal fun globeTurnsAt(zoom: Double, globeZoom: Double): Boolean = zoom <= globeZoom + 1.0
 
 /**
  * E-34: the globe gives up for the landscape only when its style never came. Once the style is
@@ -291,6 +303,11 @@ fun TripsGlobe(
                 }
                 if (now - last < gap) return@withFrameNanos
                 val began = System.nanoTime()
+                // Retour du 25/11, 7 h 05: zoomed in to look around the world, the globe holds still.
+                if (!globeTurnsAt(map.cameraState.zoom, shownZoom)) {
+                    last = now
+                    return@withFrameNanos
+                }
                 lng = turnedLongitude(lng, now - last)
                 map.setCamera(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(lng, lat)).build())
                 // Measure: when moving the camera costs more than a frame, the rate is halved.
@@ -339,6 +356,8 @@ fun TripsGlobe(
                                 if (globeNeedsImagery(uri)) underlayDrawnEarth(style)
                                 // Retour du 25/11 matin: the shaded mountains of the variant B.
                                 if (globeNeedsImagery(uri)) addGlobeRelief(style, globeLook)
+                                // Retour du 25/11, 7 h 05: the mountains in 3D once zoomed in.
+                                if (globeNeedsImagery(uri)) addGlobeTerrain(style)
                                 styleSources[0] = runCatching { style.styleSources.map { it.id }.toSet() }.getOrDefault(emptySet())
                                 // Before the trips: its layer lies under their dots.
                                 addHandAdded(style)
@@ -418,6 +437,20 @@ fun TripsGlobe(
                             override fun onMoveEnd(detector: MoveGestureDetector) { moving = false; touches++ }
                         },
                     )
+                    // Retour du 25/11, 7 h 05: two fingers zoom in on the world, down to the relief of a valley;
+                    // the rotation waits for them too.
+                    runCatching {
+                        map.mapboxMap.setBounds(CameraBoundsOptions.Builder().minZoom(GLOBE_MIN_ZOOM).maxZoom(GLOBE_MAX_ZOOM).build())
+                        map.gestures.pinchToZoomEnabled = true
+                        map.gestures.doubleTapToZoomInEnabled = true
+                        map.gestures.addOnScaleListener(
+                            object : OnScaleListener {
+                                override fun onScaleBegin(detector: StandardScaleGestureDetector) { moving = true }
+                                override fun onScale(detector: StandardScaleGestureDetector) = Unit
+                                override fun onScaleEnd(detector: StandardScaleGestureDetector) { moving = false; touches++ }
+                            },
+                        )
+                    }
                     // Everything drawn: also ready, in case the style came another way.
                     listeners[1] = map.mapboxMap.subscribeMapLoaded { ready = true; GlobeHealth.markWorking(context) }
                     view = map
