@@ -1956,7 +1956,10 @@ fun FamiliaApp(
                             giftActions = ProfileGiftActions(
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onPrepareSurprise = { id -> navController.navigate(SurpriseEditDestination(beneficiaryId = id)) },
+<<<<<<< HEAD
                                 onMakeIdea = { id, note -> navController.navigate(NotebookIdeaDestination(personId = id, note = note)) },
+=======
+>>>>>>> origin/claude/project-thread-kju5gm
                             ),
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                         )

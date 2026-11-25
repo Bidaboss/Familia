@@ -2004,6 +2004,7 @@
         <item quantity="other">%d recettes</item>
     </plurals>
     <string name="profile_v2_recipes_add_hint">Partage une recette de famille</string>
+<<<<<<< HEAD
     <string name="profile_v2_household">Foyer</string>
     <plurals name="profile_v2_household_people">
         <item quantity="one">%d personne</item>
@@ -2017,6 +2018,8 @@
     <string name="profile_v2_notes_label">Mes notes sur %1$s</string>
     <string name="profile_v2_notes_count">%1$d / %2$d · enregistré tout seul</string>
     <string name="profile_v2_notes_idea">En faire une idée</string>
+=======
+>>>>>>> origin/claude/project-thread-kju5gm
     <string name="profile_v2_successes">Ses réussites</string>
     <string name="profile_v2_successes_mine">Mes réussites</string>
     <string name="profile_v2_success_on">le %1$s</string>
