@@ -1,5 +1,9 @@
 package fr.familia.app.feature.members
 
+import fr.familia.app.core.theme.LocalPhotoTheme
+import fr.familia.app.core.theme.LocalClayColors
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.ui.res.pluralStringResource
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.theme.ClayTint
@@ -122,7 +126,22 @@ fun MembersScreen(
                 }
             },
         )
-        is MembersUiState.Success -> Box(modifier.fillMaxSize()) {
+        // On a photo theme (règle 20, A4): the list in a white card, its top corners round, laid
+        // over the bottom of the banner of the photo.
+        is MembersUiState.Success -> Box(
+            modifier
+                .fillMaxSize()
+                .then(
+                    if (LocalPhotoTheme.current != null) {
+                        Modifier
+                            .padding(top = BANNER_CARD_TOP, start = 12.dp, end = 12.dp)
+                            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                            .background(LocalClayColors.current.card)
+                    } else {
+                        Modifier
+                    },
+                ),
+        ) {
             val canAdd = onEditMember != null && state.canAddMembers
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -495,3 +514,6 @@ private fun MembersScreenErrorPreview() {
 
 /** One color per household in the R1 bis Famille, in the order of the households. */
 private val R1_HOUSEHOLD_TINTS = listOf(ClayTint.Household, ClayTint.Family, ClayTint.Birthday, ClayTint.Plain)
+
+/** Under the title, the photo stays free on this height before the card of the list (A4). */
+private val BANNER_CARD_TOP = 56.dp

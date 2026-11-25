@@ -58,6 +58,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.runtime.remember
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import fr.familia.app.core.theme.PhotoBanner
+import fr.familia.app.core.theme.PhotoScroll
+import fr.familia.app.core.theme.PhotoTitleShadow
+import fr.familia.app.core.theme.onPhotoBanner
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.feature.home.DayTone
@@ -108,13 +115,24 @@ fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
         fontScale >= 1.3f -> 3
         else -> 4
     }
+    // The photo of the theme in a banner at the top (règle 20, A4), scrolling with the modules.
+    val banner = remember { PhotoScroll() }
+    val onPhoto = onPhotoBanner(banner)
+    Box(Modifier.fillMaxSize().themeBackground()) {
+    PhotoBanner(banner)
     Scaffold(
-        modifier = Modifier.themeBackground(),
+        modifier = Modifier.nestedScroll(banner.connection),
         containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
-                title = { Text(stringResource(R.string.home_r1_all)) },
+                title = {
+                    Text(
+                        stringResource(R.string.home_r1_all),
+                        style = if (onPhoto) LocalTextStyle.current.copy(shadow = PhotoTitleShadow) else LocalTextStyle.current,
+                    )
+                },
                 navigationIcon = { BackButton(onClick = onBack) },
+                contentColor = if (onPhoto) Color.White else Color.Unspecified,
             )
         },
     ) { padding ->
@@ -161,6 +179,7 @@ fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
                 }
             }
         }
+    }
     }
 }
 
