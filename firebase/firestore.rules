@@ -1264,7 +1264,10 @@ service cloud.firestore {
 
     function seesThread(threadId) {
       let kind = threadKind(threadId);
-      return kind in ['post', 'event', 'recipe', 'birthday', 'weekly', 'deal']
+      return kind in ['event', 'recipe', 'birthday', 'weekly', 'deal']
+        // A publication (récit 117): only while it exists, so a removed one never comes back.
+        || (kind == 'post' && threadPart(threadId, 1) != ''
+            && exists(/databases/$(database)/documents/gazettePosts/$(threadPart(threadId, 1))))
         || (kind == 'album' && threadPart(threadId, 1) == 'events')
         || (kind == 'album' && threadPart(threadId, 1) == 'trips' && seesTripOf(threadPart(threadId, 2)))
         || (kind == 'film' && seesTripOf(threadPart(threadId, 1)))
@@ -1321,6 +1324,52 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt', 'mentionIds'])
         && isCommentText(request.resource.data.text)
         && hasCommentMentions(request.resource.data)
+        && request.resource.data.editedAt == request.time;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId()
+            || isParentOf(resource.data.authorId)
+            || isOwner());
+    }
+
+    // --- La gazette : les publications (récits 117, 119 et 121) ---------------------------------
+    //
+    // gazettePosts/{postId}: what a member publishes with « ＋ Publier »: a word of up to 1 000
+    // characters, up to 6 photos in Storage (gazettePosts/{authorId}/{postId}/, see storage.rules),
+    // or both, and the members named (20 at most). The whole family reads it, a child with the app
+    // publishes without approval (PRD 119 a). Its author changes the text and the members named,
+    // never the photos (editedAt shows « modifié »). Its author, a responsible adult of its author
+    // and the admin principal remove it (récit 121); the server then removes its photos and its
+    // thread (onGazettePostDeleted). Its J'aime and comments live on gazetteThreads/post:{postId}.
+    function isGazettePhotoIds(ids) {
+      return ids is list && ids.size() <= 6
+        && isPhotoId(ids, 0) && isPhotoId(ids, 1) && isPhotoId(ids, 2)
+        && isPhotoId(ids, 3) && isPhotoId(ids, 4) && isPhotoId(ids, 5);
+    }
+
+    function isGazettePost(p) {
+      return p.keys().hasAll(['authorId', 'authorName', 'text', 'photoIds', 'mentionIds', 'createdAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'text', 'photoIds', 'mentionIds', 'createdAt', 'editedAt'])
+        && p.text is string && p.text.size() <= 1000
+        && isGazettePhotoIds(p.photoIds)
+        // A word, a photo, or both.
+        && (p.text.trim().size() > 0 || p.photoIds.size() > 0)
+        && isIdList(p.mentionIds, 0, 20)
+        && !(p.authorId in p.mentionIds);
+    }
+
+    match /gazettePosts/{postId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && postId.matches('^[A-Za-z0-9]{1,40}$')
+        && isGazettePost(request.resource.data)
+        && !('editedAt' in request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow update: if isMember()
+        && resource.data.authorId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'mentionIds', 'editedAt'])
+        && isGazettePost(request.resource.data)
         && request.resource.data.editedAt == request.time;
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId()

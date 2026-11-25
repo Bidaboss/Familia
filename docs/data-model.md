@@ -1536,10 +1536,18 @@ Derrière l'interrupteur `myReminders`, éteint par défaut. Interrupteur étein
 Une carte de la gazette, par sa clé : la clé de la `FeedCard` où « / » devient « : » (`post:p1`, `help:r1`, `wishes:m3:2026-11-25`, `album:trips:t1:2026-11-20`, `film:t1:f1`). Le document naît au premier J'aime ou au premier commentaire.
 - `reactions` : `{ memberId: '💛' | '🎉' | '👏' | '🔥' }`, chacun écrit ou retire seulement la sienne.
 - `commentCount`, `last` (les 2 derniers commentaires : `id`, `authorId`, `authorName`, `text` coupé à 200 caractères, `createdAt`) : tenus par le serveur seul (`onGazetteCommentWritten`, `onGazetteCommentRemoved`).
-- Lecture : qui voit la carte. Toute la famille, sauf un coup de main (`viewerIds` de la demande, et l'admin principal), les photos et le film d'un voyage (`readerIds` du voyage), et les envies d'un membre, jamais lues par ce membre. Un autre type de carte est refusé.
+- Lecture : qui voit la carte. Toute la famille (une publication seulement tant qu'elle existe), sauf un coup de main (`viewerIds` de la demande, et l'admin principal), les photos et le film d'un voyage (`readerIds` du voyage), et les envies d'un membre, jamais lues par ce membre. Un autre type de carte est refusé.
 - Les événements et les recettes gardent leurs propres commentaires : leur fil ne prend que des J'aime. Les mots d'étape (cœurs et commentaires à eux) et les anciennes bonnes nouvelles (retirées au lot 2) n'ont pas de fil.
-- Une chose supprimée emporte les fils de ses cartes (`deleteGazetteThreadsOfThing`) : un événement (sa carte et son album), une recette, un coup de main, un bon plan, un voyage (son album et ses films), un film.
+- Une chose supprimée emporte les fils de ses cartes (`deleteGazetteThreadsOfThing`) : un événement (sa carte et son album), une recette, un coup de main, un bon plan, un voyage (son album et ses films), un film, une publication.
 - Un membre retiré emporte ses commentaires, ses J'aime et les fils des cartes qui parlent de lui, ses envies et son anniversaire (`deleteSharedBy`).
 
 ### `gazetteThreads/{threadId}/comments/{commentId}`
 `text` (1 à 500 caractères), `authorId`, `authorName`, `createdAt`, `mentionIds` (facultatif, 20 au plus), `editedAt` après une modification. Un enfant avec l'appli commente sans validation. Son auteur modifie le texte ; son auteur, un adulte responsable de l'auteur et l'admin principal le retirent.
+
+### `gazettePosts/{postId}` (récits 117, 119 et 121)
+Une publication de « ＋ Publier » : `authorId`, `authorName`, `text` (1 000 caractères au plus), `photoIds` (6 au plus, fichiers `gazettePosts/{authorId}/{postId}/{photoId}.jpg` et `-thumb.jpg` dans Storage, 512 Ko et 64 Ko au plus), `mentionIds` (20 au plus, jamais l'auteur), `createdAt`, et `editedAt` après une modification (« modifié »). Un mot, des photos, ou les deux.
+- Lecture : toute la famille. Un enfant avec l'appli publie sans validation.
+- Modifier : son auteur seul, le texte et les mentions, jamais les photos.
+- Supprimer (récit 121, avec confirmation) : son auteur, un adulte responsable de son auteur, l'admin principal. `onGazettePostDeleted` retire ses photos et miniatures, et son fil `gazetteThreads/post:{postId}` avec ses J'aime et commentaires. Un membre retiré emporte ses publications (`deleteSharedBy`).
+- Les photos de plus de 2 ans (PRD 119 d) seront effacées par une tâche planifiée existante, avant novembre 2028.
+- Tests : `firebase/tests/gazettePosts.test.mjs`, `firebase/tests/storage.test.mjs`, `firebase/functions/test/gazettePosts.test.ts`.

@@ -139,6 +139,7 @@ import fr.familia.app.feature.lending.LendItemEditRoute
 import fr.familia.app.feature.lending.LendItemsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
+import fr.familia.app.feature.feed.publish.PostEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
@@ -1059,6 +1060,8 @@ fun FamiliaApp(
                             onOpenGoodNewsFeed = { navController.navigate(GoodNewsFeedDestination) },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
+                            onPublishPost = { navController.navigate(GazettePostDestination()) },
+                            onEditPost = { id -> navController.navigate(GazettePostDestination(id)) },
                             onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                             onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                             onJoinMe = { navController.navigate(JoinMeDestination) { launchSingleTop = true } },
@@ -1966,6 +1969,15 @@ fun FamiliaApp(
                             onOpen = { id -> navController.navigate(WeeklyQuestionDestination(id)) },
                             onBack = { navController.popBackStack() },
                             onShareGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
+                        )
+                    }
+                    composable<GazettePostDestination> { entry ->
+                        PostEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            postId = entry.toRoute<GazettePostDestination>().postId,
+                            onDone = { navController.popBackStack() },
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<GoodNewsEditDestination> { entry ->
