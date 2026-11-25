@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.ChoiceTile
 import fr.familia.app.core.ui.form.FormChip
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormLabel
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -35,7 +35,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -47,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
@@ -133,12 +131,21 @@ internal fun RepeatSection(
             onDismissRequest = { picking = false },
             title = { Text(stringResource(R.string.event_repeat)) },
             text = {
-                Column(Modifier.selectableGroup().verticalScroll(rememberScrollState())) {
+                Column(
+                    Modifier.selectableGroup().verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     choices.forEach { choice ->
-                        RadioLine(repeatLabel(choice, date), selected = form.repeat == choice) {
-                            onChange { it.copy(repeat = choice) }
-                            picking = false
-                        }
+                        ChoiceTile(
+                            title = repeatLabel(choice, date),
+                            selected = form.repeat == choice,
+                            onClick = {
+                                onChange { it.copy(repeat = choice) }
+                                picking = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            titleStyle = MaterialTheme.typography.bodyLarge,
+                        )
                     }
                 }
             },
@@ -164,22 +171,30 @@ private fun EndSection(form: EventForm, invalid: Boolean, onChange: ((EventForm)
     var datePicker by rememberSaveable { mutableStateOf(false) }
     val start = form.date ?: return
     val end = form.end
-    Column(Modifier.selectableGroup()) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             stringResource(R.string.event_repeat_ends),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        RadioLine(stringResource(R.string.event_repeat_end_never), selected = end == RepeatEnd.Never) {
-            onChange { it.copy(end = RepeatEnd.Never) }
-        }
-        RadioLine(
-            if (end is RepeatEnd.OnDay) stringResource(R.string.event_repeat_end_on, end.day.format(dateFormatter))
-            else stringResource(R.string.event_repeat_end_on_pick),
-            selected = end is RepeatEnd.OnDay,
-        ) { datePicker = true }
-        RadioLine(stringResource(R.string.event_repeat_end_after_pick), selected = end is RepeatEnd.After) {
-            if (end !is RepeatEnd.After) onChange { it.copy(end = RepeatEnd.After(DEFAULT_TIMES)) }
+        // Refonte (DESIGN-57): pills like « Se répète » above, no more radio buttons.
+        ChipGroup {
+            FormChip(
+                stringResource(R.string.event_repeat_end_never),
+                selected = end == RepeatEnd.Never,
+                onClick = { onChange { it.copy(end = RepeatEnd.Never) } },
+            )
+            FormChip(
+                if (end is RepeatEnd.OnDay) stringResource(R.string.event_repeat_end_on, end.day.format(dateFormatter))
+                else stringResource(R.string.event_repeat_end_on_pick),
+                selected = end is RepeatEnd.OnDay,
+                onClick = { datePicker = true },
+            )
+            FormChip(
+                stringResource(R.string.event_repeat_end_after_pick),
+                selected = end is RepeatEnd.After,
+                onClick = { if (end !is RepeatEnd.After) onChange { it.copy(end = RepeatEnd.After(DEFAULT_TIMES)) } },
+            )
         }
         if (end is RepeatEnd.After) {
             OutlinedTextField(
@@ -246,21 +261,6 @@ internal fun SeriesScopeDialog(
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
-}
-
-@Composable
-private fun RadioLine(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-    }
 }
 
 /** « Chaque semaine, le mardi », « Chaque mois, le 2e dimanche », « Chaque année, le 12 mars »… */
