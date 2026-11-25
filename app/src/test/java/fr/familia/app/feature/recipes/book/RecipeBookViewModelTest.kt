@@ -4,6 +4,7 @@ import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeCategory
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.recipes.FakeRecipes
 import fr.familia.app.testing.MainDispatcherRule
@@ -34,14 +35,14 @@ class RecipeBookViewModelTest {
         override suspend fun deletePhoto(photo: AlbumPhoto) = Unit
     }
 
-    private fun recipe(id: String, title: String, tags: List<String> = emptyList()) =
-        Recipe(id, title, "", null, null, "farine", "Cuire.", tags, "adult1", "Adult1", null)
+    private fun recipe(id: String, title: String, category: RecipeCategory = RecipeCategory.Divers) =
+        Recipe(id, title, "", null, null, "farine", "Cuire.", emptyList(), "adult1", "Adult1", null, category = category)
 
     private fun photo(recipeId: String, author: String) = AlbumPhoto("recipes/$recipeId", author, author, 1, null)
 
     @Test
     fun `every recipe is ticked at first, the cover follows the ticks, and the book goes to the printer`() = runTest {
-        val tart = recipe("1", "Tarte", listOf("dessert"))
+        val tart = recipe("1", "Tarte", RecipeCategory.Dessert)
         val soup = recipe("2", "Soupe")
         var printed: BookContent? = null
         val file = File("livre.pdf")
@@ -70,7 +71,7 @@ class RecipeBookViewModelTest {
         val content = printed!!
         assertEquals("Nos recettes", content.title)
         assertEquals(photo("1", "adult1"), content.coverPhoto)
-        assertEquals(listOf("Dessert", null), content.sections.map { it.name })
+        assertEquals(listOf(RecipeCategory.Dessert, RecipeCategory.Divers), content.sections.map { it.category })
         assertEquals(file, vm.made.value)
         vm.shared()
         assertNull(vm.made.value)

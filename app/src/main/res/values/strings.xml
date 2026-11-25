@@ -1863,6 +1863,14 @@
         <item quantity="many">Divers (%1$d)</item>
         <item quantity="other">Divers (%1$d)</item>
     </plurals>
+    <string name="recipe_chapter_aperitif">Apéritifs</string>
+    <string name="recipe_chapter_entree">Entrées</string>
+    <string name="recipe_chapter_plat">Plats</string>
+    <string name="recipe_chapter_accompagnement">Accompagnements</string>
+    <string name="recipe_chapter_dessert">Desserts</string>
+    <string name="recipe_chapter_boisson">Boissons</string>
+    <string name="recipe_chapter_sauce">Sauces</string>
+    <string name="recipe_chapter_divers">Divers</string>
     <string name="recipes_search_member">Recette ou ingrédient</string>
     <string name="recipes_member_empty_title">%1$s n\'a pas encore noté de recette</string>
     <string name="recipes_member_empty_body">Ses recettes apparaîtront ici dès qu\'elle ou il en notera une.</string>
@@ -2081,7 +2089,6 @@
     <string name="recipe_book_empty_body">Le livre se fera dès qu\'il y aura des recettes dans le carnet. Note la première, les autres suivront.</string>
     <string name="recipe_book_empty_back">Revenir au carnet</string>
     <string name="recipe_book_contents">Sommaire</string>
-    <string name="recipe_book_other">Autres recettes</string>
     <string name="recipe_field_story">Son histoire</string>
     <string name="recipe_field_story_help">Facultatif, pour le livre de recettes.</string>
     <string name="recipe_edit_add_photo">Ajouter une photo du plat</string>

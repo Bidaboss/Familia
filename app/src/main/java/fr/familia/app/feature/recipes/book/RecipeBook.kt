@@ -5,10 +5,9 @@ import fr.familia.app.core.data.recipeOrder
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeCategory
 import fr.familia.app.core.share.photoAllowed
-import fr.familia.app.feature.recipes.searchKey
 import kotlinx.serialization.Serializable
-import java.util.Locale
 
 /*
  * The book of the family recipes (PRD, récit 47), behind Feature.RecipeBook: the member picks the
@@ -22,8 +21,8 @@ data object RecipeBookDestination
 /** A recipe as it goes into the book: [photo] is the one allowed by [bookPhotoAllowed], or null. */
 data class BookRecipe(val recipe: Recipe, val origin: String?, val photo: AlbumPhoto?)
 
-/** A part of the contents: the first tag of its recipes, or null for « Autres recettes ». */
-data class BookSection(val name: String?, val recipes: List<BookRecipe>)
+/** A chapter of the book: one category (DESIGN-170), its recipes by title. */
+data class BookSection(val category: RecipeCategory, val recipes: List<BookRecipe>)
 
 /** What the printer needs; [coverPhoto] is one of the photos of the book, or none. */
 data class BookContent(val title: String, val year: Int, val coverPhoto: AlbumPhoto?, val sections: List<BookSection>) {
@@ -32,23 +31,16 @@ data class BookContent(val title: String, val year: Int, val coverPhoto: AlbumPh
 }
 
 /**
- * The parts of the book: each recipe goes under its first tag (« dessert » and « Dessert » are one
- * part), parts by name, recipes by title, and those without a tag last, under « Autres recettes ».
+ * The chapters of the book, one per category in the order of the carnet (Apéritifs first, Divers
+ * last; plan récit 114, question 2), the recipes by title inside; a category without a recipe has
+ * no chapter. Free tags no longer make chapters.
  */
 fun bookSections(recipes: List<BookRecipe>): List<BookSection> {
-    val collator = java.text.Collator.getInstance(Locale.FRENCH)
-    val (tagged, others) = recipes.partition { it.recipe.tags.isNotEmpty() }
-    val parts = tagged.groupBy { searchKey(it.recipe.tags.first()) }
-        .map { (_, list) ->
-            val sorted = list.sortedWith(compareBy(recipeOrder) { it.recipe })
-            BookSection(capitalized(sorted.first().recipe.tags.first()), sorted)
-        }
-        .sortedWith(compareBy(collator) { it.name.orEmpty() })
-    val rest = if (others.isEmpty()) emptyList() else listOf(BookSection(null, others.sortedWith(compareBy(recipeOrder) { it.recipe })))
-    return parts + rest
+    val byCategory = recipes.groupBy { it.recipe.category }
+    return RecipeCategory.entries.mapNotNull { category ->
+        byCategory[category]?.let { list -> BookSection(category, list.sortedWith(compareBy(recipeOrder) { it.recipe })) }
+    }
 }
-
-private fun capitalized(tag: String): String = tag.replaceFirstChar { it.titlecase(Locale.FRENCH) }
 
 /**
  * Carte EXPERT-2 in the book, which leaves the app: the photo of a recipe that comes from a child
