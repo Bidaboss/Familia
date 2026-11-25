@@ -95,6 +95,11 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         db.collection(MEMBERS).document(memberId).update("phone", phone ?: FieldValue.delete()).await()
     }
 
+    override suspend fun saveNickname(memberId: String, nickname: String?) {
+        val value = nickname?.trim()?.takeIf { it.isNotEmpty() }?.take(Member.NICKNAME_MAX)
+        db.collection(MEMBERS).document(memberId).update("nickname", value ?: FieldValue.delete()).await()
+    }
+
     override fun newHouseholdId(): String = db.collection(HOUSEHOLDS).document().id
 
     override suspend fun saveHousehold(household: Household) {
@@ -130,6 +135,7 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         uid = getString("uid"),
         colorIndex = getLong("colorIndex")?.toInt(),
         phone = getString("phone"),
+        nickname = getString("nickname")?.takeIf { it.isNotBlank() },
     )
 
     private fun Member.toFirestore(): Map<String, Any?> = buildMap {
@@ -145,6 +151,8 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         colorIndex?.let { put("colorIndex", it) }
         // Never for a child (the rules refuse it), absent rather than null.
         phone?.takeIf { profile == MemberProfile.Adult }?.let { put("phone", it) }
+        // Récit 114: kept when the admin principal saves the rest; absent rather than null.
+        nickname?.takeIf { it.isNotBlank() }?.let { put("nickname", it) }
     }
 
     private companion object {

@@ -63,7 +63,7 @@ data class ProfileV2State(
     val kinship: Kinship,
     val moments: List<Event>,
     val photos: List<GoodNews>,
-    /** I may change the address of this household (the admin principal or its chef). */
+    /** I may change the address of this household: the admin principal only (récit 114, C2). */
     val managesHousehold: Boolean,
     val saving: Boolean = false,
     val saveFailed: Boolean = false,
@@ -244,7 +244,7 @@ class MemberProfileV2ViewModel(
             kinship = kinshipOf(memberId, fam, t.first.first, t.first.second, t.first.third),
             moments = nextMomentsOf(m.first, m.second, member, fam),
             photos = photosOf(n, memberId, readerId),
-            managesHousehold = reader != null && (fam.ownerId == reader.id || (reader.isAdmin && reader.householdId == member.householdId)),
+            managesHousehold = reader != null && fam.ownerId == reader.id,
             saving = sf.first,
             saveFailed = sf.second,
             hasTastes = t.second.first,

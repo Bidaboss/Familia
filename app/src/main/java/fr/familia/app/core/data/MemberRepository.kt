@@ -33,13 +33,16 @@ interface MemberRepository {
     suspend fun saveMember(member: Member, previousEmail: String?)
 
     /**
-     * The admin principal, or a chef de famille for their household. Removes [member], its email entry and its photo in one batch, so they lose access at once.
+     * The admin principal only (récit 114, C2). Removes [member], its email entry and its photo in one batch, so they lose access at once.
      * [updatedChildren] are the children who listed them as responsible adult, saved without them.
      */
     suspend fun removeMember(member: Member, updatedChildren: List<Member>)
 
     /** Coordonnées (récit 66): my own phone, or none; an adult only, nothing else changes. */
     suspend fun savePhone(memberId: String, phone: String?) {}
+
+    /** Récit 114: my own surnom, or none (the admin principal saves it with the rest of the member). */
+    suspend fun saveNickname(memberId: String, nickname: String?) {}
 
     /** A fresh id for a household that is not saved yet. */
     fun newHouseholdId(): String

@@ -158,7 +158,7 @@ private fun MemberCardDialog(card: MemberCard, onSave: (MemberCard) -> Boolean, 
         },
         confirmButton = {
             TextButton(
-                onClick = { if (onSave(MemberCard(card.memberId, shoes, tastes, hobbies))) onDismiss() },
+                onClick = { if (onSave(card.copy(shoes = shoes, tastes = tastes, hobbies = hobbies))) onDismiss() },
                 modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.member_save)) }
         },

@@ -1,5 +1,5 @@
-// A chef de famille manages the members and events of their own household only (PRD,
-// « Périmètre d'un chef de famille », carte DEV-8). SECOND_ADMIN is chef of h1; NEIGHBOUR lives in h2.
+// A chef de famille manages the events of their own household and renames it (PRD, « Périmètre
+// d'un chef de famille », carte DEV-8); since récit 114 (C2), the members are the admin principal's. SECOND_ADMIN is chef of h1; NEIGHBOUR lives in h2.
 import { after, afterEach, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
@@ -42,32 +42,36 @@ describe('members', () => {
     await assertFails(updateDoc(doc(chef(), 'members/adult1'), { isAdmin: true }));
   });
 
-  test('a chef edits the members of their household, not those of another one', async () => {
-    await assertSucceeds(updateDoc(doc(chef(), 'members/adult1'), { firstName: 'Nouveau prénom' }));
+  test('a chef no longer edits anyone of their household, children included (récit 114, C2)', async () => {
+    await assertFails(updateDoc(doc(chef(), 'members/adult1'), { firstName: 'Nouveau prénom' }));
     await assertFails(updateDoc(doc(chef(), 'members/adult3'), { firstName: 'Nouveau prénom' }));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'members/kid9'), adultDoc({ memberId: 'kid9', email: null },
+        { profile: 'childWithoutApp', email: null, parentIds: ['adult1'] }));
+    });
+    await assertFails(updateDoc(doc(chef(), 'members/kid9'), { firstName: 'Noa' }));
+    await assertFails(updateDoc(doc(chef(), 'members/kid9'), { profile: 'childWithApp' }));
+    await assertFails(updateDoc(doc(chef(), 'members/kid9'), { parentIds: ['admin2'] }));
+    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'members/kid9'), { firstName: 'Noa' }));
   });
 
   test('a chef never moves a member to another household', async () => {
     await assertFails(updateDoc(doc(chef(), 'members/adult1'), { householdId: 'h2' }));
   });
 
-  test("a chef never changes another chef's address, which would hand over their access", async () => {
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await updateDoc(doc(ctx.firestore(), 'members/adult1'), { isAdmin: true });
-    });
+  test('a chef no longer changes an address, not even their own: invitations are the admin principal\'s', async () => {
     const db = chef();
-    const batch = writeBatch(db);
-    batch.update(doc(db, 'members/adult1'), { email: 'taken@example.com' });
-    batch.delete(doc(db, 'memberEmails/adult1@example.com'));
-    batch.set(doc(db, 'memberEmails/taken@example.com'), { memberId: 'adult1' });
-    await assertFails(batch.commit());
-    // The rest of that chef's card stays editable, and a chef still edits their own address.
-    await assertSucceeds(updateDoc(doc(db, 'members/adult1'), { firstName: 'Autre prénom' }));
     const own = writeBatch(db);
     own.update(doc(db, 'members/admin2'), { email: 'admin2.new@example.com' });
     own.delete(doc(db, 'memberEmails/admin2@example.com'));
     own.set(doc(db, 'memberEmails/admin2.new@example.com'), { memberId: 'admin2' });
-    await assertSucceeds(own.commit());
+    await assertFails(own.commit());
+    const admin = as(env, ADMIN);
+    const byAdmin = writeBatch(admin);
+    byAdmin.update(doc(admin, 'members/admin2'), { email: 'admin2.new@example.com' });
+    byAdmin.delete(doc(admin, 'memberEmails/admin2@example.com'));
+    byAdmin.set(doc(admin, 'memberEmails/admin2.new@example.com'), { memberId: 'admin2' });
+    await assertSucceeds(byAdmin.commit());
   });
 
   test('a chef never touches the admin principal', async () => {
@@ -75,38 +79,20 @@ describe('members', () => {
     await assertFails(removeMember(chef(), ADMIN));
   });
 
-  test('a chef removes a member of their household, but not another chef or someone elsewhere', async () => {
-    await assertSucceeds(removeMember(chef(), { memberId: 'adult1', email: 'adult1@example.com' }));
+  test('only the admin principal removes a member, a chef never does', async () => {
+    await assertFails(removeMember(chef(), { memberId: 'adult1', email: 'adult1@example.com' }));
     await assertFails(removeMember(chef(), NEIGHBOUR));
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await updateDoc(doc(ctx.firestore(), 'members/adult2'), { isAdmin: true });
-    });
-    await assertFails(removeMember(chef(), { memberId: 'adult2', email: 'adult2@example.com' }));
-  });
-
-  test('a chef picks responsible adults in their household only', async () => {
-    const kid = { memberId: 'kid9', email: null };
-    const child = (parentIds) => ({ ...adultDoc(kid, { profile: 'childWithoutApp', email: null, parentIds }) });
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'members/kid9'), child(['adult1']));
-    });
-    await assertSucceeds(updateDoc(doc(chef(), 'members/kid9'), { firstName: 'Noa' }));
-    await assertFails(updateDoc(doc(chef(), 'members/kid9'), { parentIds: ['adult1', 'adult3'] }));
-  });
-
-  test('a chef keeps a responsible adult the admin principal chose elsewhere, while editing the rest', async () => {
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'members/kid9'), adultDoc({ memberId: 'kid9', email: null },
-        { profile: 'childWithoutApp', email: null, parentIds: ['adult1', 'adult3'] }));
-    });
-    await assertSucceeds(updateDoc(doc(chef(), 'members/kid9'), { firstName: 'Noa' }));
-    await assertFails(updateDoc(doc(chef(), 'members/kid9'), { parentIds: ['adult3'] }));
+    await assertSucceeds(removeMember(as(env, ADMIN), { memberId: 'adult1', email: 'adult1@example.com' }));
   });
 });
 
 describe('households', () => {
   test('a chef renames their own household only, and never creates or deletes one', async () => {
     await assertSucceeds(updateDoc(doc(chef(), 'households/h1'), { name: 'Les Un' }));
+    // Récit 114: the address of the household is the admin principal's.
+    await assertFails(updateDoc(doc(chef(), 'households/h1'), { address: '1 rue des Lilas' }));
+    await assertFails(updateDoc(doc(chef(), 'households/h1'), { name: 'Les Un bis', address: '1 rue des Lilas' }));
+    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'households/h1'), { address: '1 rue des Lilas' }));
     await assertFails(updateDoc(doc(chef(), 'households/h2'), { name: 'Les Deux' }));
     await assertFails(setDoc(doc(chef(), 'households/h3'), { name: 'Foyer 3' }));
     await assertFails(deleteDoc(doc(chef(), 'households/h2')));

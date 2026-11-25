@@ -26,7 +26,7 @@ data class Member(
     val birthDate: LocalDate?,
     val householdId: String,
     val profile: MemberProfile,
-    /** Chef de famille: manages the members and events of their own household (PRD, carte DEV-8). */
+    /** Chef de famille: renames their household and manages its events (PRD, carte DEV-8; récit 114, C2). */
     val isAdmin: Boolean,
     val parentIds: List<String>,
     val uid: String?,
@@ -34,7 +34,17 @@ data class Member(
     val colorIndex: Int? = null,
     /** Coordonnées (récit 66): optional, for an adult only, set by the member themselves. */
     val phone: String? = null,
-)
+    /**
+     * Récit 114: a surnom shown next to the first name (« Marie · Mamie »), never instead of it in
+     * the notices. Set by the member or the admin principal; null when there is none.
+     */
+    val nickname: String? = null,
+) {
+    companion object {
+        /** The rules check it too. */
+        const val NICKNAME_MAX = 24
+    }
+}
 
 /** Firestore stores emails in lower case so a member is recognised whatever the casing typed. */
 fun normalizeEmail(email: String): String = email.trim().lowercase()

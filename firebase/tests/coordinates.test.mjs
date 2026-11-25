@@ -35,14 +35,14 @@ describe('phone of a member', () => {
     await assertFails(updateDoc(doc(as(env, ADMIN), 'members/kid1'), { phone: '06 12 34 56 78' }));
   });
 
-  test('the admin principal and a chef edit the rest of a member and keep their phone', async () => {
+  test('the admin principal edits the rest of a member and keeps their phone; a chef no longer (récit 114)', async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
       await updateDoc(doc(ctx.firestore(), 'members/adult1'), { phone: '06 12 34 56 78' });
     });
     // The form sends the whole member back, phone as it was.
     const whole = adultDoc(ADULT, { phone: '06 12 34 56 78' });
     await assertSucceeds(setDoc(doc(as(env, ADMIN), 'members/adult1'), { ...whole, firstName: 'Autre prénom' }));
-    await assertSucceeds(setDoc(doc(as(env, SECOND_ADMIN), 'members/adult1'), { ...whole, firstName: 'Encore un autre' }));
+    await assertFails(setDoc(doc(as(env, SECOND_ADMIN), 'members/adult1'), { ...whole, firstName: 'Encore un autre' }));
   });
 
   test('neither the admin principal nor a chef sets, changes or removes the phone of someone else', async () => {

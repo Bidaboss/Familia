@@ -43,10 +43,6 @@ service cloud.firestore {
       return /databases/$(database)/documents/config/family;
     }
 
-    function ownerId() {
-      return exists(familyConfigPath()) ? get(familyConfigPath()).data.ownerMemberId : null;
-    }
-
     // Without config/family the get fails: nobody is admin principal, and an "isOwner() || …"
     // falls back on the other rights.
     function isOwner() {
@@ -90,24 +86,13 @@ service cloud.firestore {
         && (m.parentIds.size() < 4 || isAdultMember(m.parentIds[3]));
     }
 
-    // A chef de famille chooses responsible adults in the child's household only.
-    function isAdultOf(memberId, householdId) {
-      return isAdultMember(memberId) && getAfter(memberPath(memberId)).data.householdId == householdId;
-    }
-
-    function parentsInHousehold(m) {
-      return (m.parentIds.size() < 1 || isAdultOf(m.parentIds[0], m.householdId))
-        && (m.parentIds.size() < 2 || isAdultOf(m.parentIds[1], m.householdId))
-        && (m.parentIds.size() < 3 || isAdultOf(m.parentIds[2], m.householdId))
-        && (m.parentIds.size() < 4 || isAdultOf(m.parentIds[3], m.householdId));
-    }
-
     // Shape of a member document written by the admin principal or a chef de famille. Profiles
     // and parents follow docs/data-model.md.
     // colorIndex is optional: one of the 13 member colors of the app.
     function isValidMember(m) {
       return m.keys().hasAll(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid'])
-        && m.keys().hasOnly(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid', 'colorIndex', 'phone'])
+        && m.keys().hasOnly(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid', 'colorIndex', 'phone', 'nickname'])
+        && (!('nickname' in m) || isNickname(m.nickname))
         && (!('colorIndex' in m) || (m.colorIndex is int && m.colorIndex >= 0 && m.colorIndex <= 12))
         // Coordonnées (récit 66): an optional phone, for an adult only, never for a child.
         && (!('phone' in m) || (isPhone(m.phone) && m.profile == 'adult'))
@@ -130,7 +115,7 @@ service cloud.firestore {
 
     // --- Collections ----------------------------------------------------------------------------
 
-    // memberEmails/{email} -> { memberId }. Written by whoever manages the member's household,
+    // memberEmails/{email} -> { memberId }. Written by the admin principal (récit 114, C2),
     // always in the same batch as
     // the member document it points to. Anyone signed in may read the entry for their own address,
     // so the app can tell "not in the family" apart from a permission error.
@@ -139,15 +124,14 @@ service cloud.firestore {
       allow create: if isMember()
         && request.resource.data.keys().hasOnly(['memberId'])
         && getAfter(memberPath(request.resource.data.memberId)).data.email == email
-        && managesHousehold(getAfter(memberPath(request.resource.data.memberId)).data.householdId);
+        // Récit 114 (C2): adding a member and their invitation is for the admin principal only.
+        && isOwner();
       // Removing a member or changing their address must drop the old entry, otherwise the
       // person would keep access.
       allow delete: if isMember()
         && (!existsAfter(memberPath(resource.data.memberId))
             || getAfter(memberPath(resource.data.memberId)).data.email != email)
-        && (isOwner()
-            || (exists(memberPath(resource.data.memberId))
-                && isChefOf(get(memberPath(resource.data.memberId)).data.householdId)));
+        && isOwner();
       allow update: if false;
     }
 
@@ -162,12 +146,16 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid']);
 
-      // Coordonnées (récit 66): an adult sets or removes their own phone, and nothing else.
+      // Coordonnées (récit 66): an adult sets or removes their own phone. Récit 114: anyone with the
+      // app sets or removes their own surnom (« Mamie »). Nothing else of their own card: first
+      // name, birth date, profile, household and parents are the admin principal's.
       allow update: if isMember()
         && myMemberId() == memberId
-        && resource.data.profile == 'adult'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phone'])
-        && (!('phone' in request.resource.data) || isPhone(request.resource.data.phone));
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phone', 'nickname'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone'])
+            || (resource.data.profile == 'adult'
+                && (!('phone' in request.resource.data) || isPhone(request.resource.data.phone))))
+        && (!('nickname' in request.resource.data) || isNickname(request.resource.data.nickname));
 
       // Only the admin principal adds a member (the family rarely grows, so the chefs have no
       // button for it). No linked account yet.
@@ -176,10 +164,10 @@ service cloud.firestore {
         && request.resource.data.uid == null
         && emailIndexMatches(memberId, request.resource.data.email);
 
-      // The admin principal edits anyone and names the chefs. A chef de famille edits the members
-      // of their household, never the chef flag, never the admin principal, and keeps the member
-      // in that household. Nobody changes the linked account.
-      allow update: if isMember()
+      // Only the admin principal edits a member and names the chefs (récit 114, C2: a chef de
+      // famille no longer edits the members of their household, children included; they only
+      // rename it). Nobody changes the linked account.
+      allow update: if isOwner()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == resource.data.uid
         // Coordonnées (récit 66): the phone is the member's own. Whoever edits the rest of the
@@ -190,29 +178,13 @@ service cloud.firestore {
         && (resource.data.uid == null || request.resource.data.email != null)
         && emailIndexMatches(memberId, request.resource.data.email)
         && (resource.data.email == null || resource.data.email == request.resource.data.email
-            || !existsAfter(emailIndexPath(resource.data.email)))
-        && (isOwner()
-            || (isChefOf(resource.data.householdId)
-                && request.resource.data.householdId == resource.data.householdId
-                && request.resource.data.isAdmin == resource.data.isAdmin
-                && memberId != ownerId()
-                // Changing another chef's address would hand their access to someone else.
-                && (resource.data.isAdmin == false
-                    || memberId == myMemberId()
-                    || request.resource.data.email == resource.data.email)
-                && (request.resource.data.parentIds == resource.data.parentIds
-                    || parentsInHousehold(request.resource.data))));
+            || !existsAfter(emailIndexPath(resource.data.email)));
 
-      // The admin principal or a chef of the household removes a member (a separation, for
-      // example), never themselves; a chef never removes another chef or the admin principal.
-      // The email entry goes in the same batch.
-      allow delete: if isMember()
+      // Only the admin principal removes a member (a separation, for example; récit 114, C2),
+      // never themselves. The email entry goes in the same batch.
+      allow delete: if isOwner()
         && memberId != myMemberId()
-        && (resource.data.email == null || !existsAfter(emailIndexPath(resource.data.email)))
-        && (isOwner()
-            || (isChefOf(resource.data.householdId)
-                && resource.data.isAdmin == false
-                && memberId != ownerId()));
+        && (resource.data.email == null || !existsAfter(emailIndexPath(resource.data.email)));
     }
 
     function isValidHousehold(h) {
@@ -223,17 +195,25 @@ service cloud.firestore {
         && (!('address' in h) || (h.address is string && h.address.size() > 0 && h.address.size() <= 200));
     }
 
+    // Récit 114: a surnom shown next to the first name (« Marie · Mamie »), 1 to 24 characters.
+    function isNickname(value) {
+      return value is string && value.size() > 0 && value.size() <= 24;
+    }
+
     // A phone number as people type it: digits, spaces, dots, dashes, brackets and a leading +.
     function isPhone(value) {
       return value is string && value.matches('^[+]?[0-9 .()-]{6,24}$');
     }
 
     // households/{householdId}. Readable by the whole family. The admin principal creates and
-    // deletes them (the app only offers to delete an empty one); a chef renames their own.
+    // deletes them (the app only offers to delete an empty one) and sets their address; a chef
+    // only renames their own (récit 114, C2).
     match /households/{householdId} {
       allow read: if isMember();
       allow create: if isOwner() && isValidHousehold(request.resource.data);
-      allow update: if managesHousehold(householdId) && isValidHousehold(request.resource.data);
+      allow update: if isValidHousehold(request.resource.data)
+        && (isOwner()
+            || (isChefOf(householdId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])));
       allow delete: if isOwner();
     }
 
@@ -2661,8 +2641,9 @@ service cloud.firestore {
     // memberCards/{memberId} -> { shoes, tastes, hobbies, updatedBy, updatedAt }: the shoe size,
     // tastes and hobbies or passions of a member, free texts, blank when unknown. The whole family reads it, to
     // pick a present. Those who change the photo change the card. An empty card is deleted; the
-    // functions delete it with its member (onMemberDeletedCard). The sizes and allergies of the
-    // first version (top, bottom, allergies) are still accepted from an older app, never required.
+    // functions delete it with its member (onMemberDeletedCard). Récit 114, all optional:
+    // « À savoir » (allergies, diet, avoid: « ne pas offrir »), the sizes of « Goûts et passions »
+    // (top, bottom, ring: tour de doigt) and « En ce moment » (now, one free line).
     function isCardSize(v) {
       return v is string && v.size() <= 20;
     }
@@ -2675,14 +2656,19 @@ service cloud.firestore {
       allow read: if isMember();
       allow create, update: if canChangePhoto(memberId)
         && exists(memberPath(memberId))
-        && request.resource.data.keys().hasOnly(['tastes', 'hobbies', 'top', 'bottom', 'shoes', 'allergies', 'updatedBy', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['tastes', 'hobbies', 'top', 'bottom', 'shoes', 'ring', 'allergies', 'diet',
+                                                 'avoid', 'now', 'updatedBy', 'updatedAt'])
         && request.resource.data.keys().hasAll(['tastes', 'updatedBy', 'updatedAt'])
         && isCardText(request.resource.data.tastes)
         && isCardText(request.resource.data.get('hobbies', ''))
         && isCardSize(request.resource.data.get('top', ''))
         && isCardSize(request.resource.data.get('bottom', ''))
         && isCardSize(request.resource.data.get('shoes', ''))
+        && isCardSize(request.resource.data.get('ring', ''))
         && isCardText(request.resource.data.get('allergies', ''))
+        && isCardText(request.resource.data.get('diet', ''))
+        && isCardText(request.resource.data.get('avoid', ''))
+        && request.resource.data.get('now', '') is string && request.resource.data.get('now', '').size() <= 80
         && request.resource.data.updatedBy == myMemberId()
         && request.resource.data.updatedAt == request.time;
       allow delete: if canChangePhoto(memberId);
