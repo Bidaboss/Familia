@@ -41,11 +41,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
@@ -53,7 +55,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -154,6 +155,9 @@ data class FicheEdit(
 }
 
 /** Le compteur de « Mes notes » s'arrête là (prototype v157), comme la note d'une idée de cadeau. */
+/** How long the page waits for its card, wishes, recipes and note before showing without them. */
+internal const val EXTRAS_WAIT_MS = 400L
+
 internal const val NOTE_MAX = 500
 
 /** A note is saved once the typing pauses this long, never at each letter. */
@@ -281,6 +285,15 @@ class MemberProfileV2ViewModel(
         emit(value)
     }
 
+    /**
+     * Waits for a source's first value at most [EXTRAS_WAIT_MS], then lets the page show without it: the
+     * page then opens whole, not in two steps where tiles pop in (« Ses envies (0) » then « (3) »).
+     */
+    private fun <T> Flow<T>.firstWithin(fallback: T): Flow<T> = channelFlow {
+        val timer = launch { delay(EXTRAS_WAIT_MS); send(fallback) }
+        collect { timer.cancel(); send(it) }
+    }
+
     private val family = (members?.observeFamily() ?: emptyFlow())
     private val kin = (genealogy?.observeKin() ?: flowOf(emptyList())).orElse(emptyList())
     private val links = (genealogy?.observeLinks() ?: flowOf(emptyList())).orElse(emptyList())
@@ -304,12 +317,12 @@ class MemberProfileV2ViewModel(
     /** The card, the number of wishes and of recipes written, read on every page; my note on the others'. */
     private val extras: Flow<Extras> = run {
         val card = (memberCards?.observeCard(memberId)?.map<MemberCard?, MemberCard?> { it ?: MemberCard(memberId) } ?: flowOf(null))
-            .orElse(null).onStart { emit(null) }
-        val wishes = (gifts?.observeItems(wishesListId(memberId), hiddenFromMe = true)?.map { it.size } ?: flowOf(0)).orElse(0).onStart { emit(0) }
+            .orElse(null).firstWithin(null)
+        val wishes = (gifts?.observeItems(wishesListId(memberId), hiddenFromMe = true)?.map { it.size } ?: flowOf(0)).orElse(0).firstWithin(0)
         val recipe = (recipes?.observeRecipes()?.map { list -> list.count { it.authorId == memberId } } ?: flowOf(0))
-            .orElse(0).onStart { emit(0) }
+            .orElse(0).firstWithin(0)
         val note = (notes?.takeIf { readerId != memberId }?.observe(readerId, memberId)?.map<String, String?> { it } ?: flowOf(null))
-            .orElse(null).onStart { emit(null) }
+            .orElse(null).firstWithin(null)
         combine(card, wishes, recipe, note) { c, w, r, n -> Extras(c, w, r, n) }
     }
 

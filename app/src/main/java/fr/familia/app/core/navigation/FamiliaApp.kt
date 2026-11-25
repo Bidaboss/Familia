@@ -89,6 +89,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.navigation.NavBackStackEntry
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -1015,6 +1022,11 @@ fun FamiliaApp(
                     navController = navController,
                     startDestination = startTab.route,
                     modifier = Modifier.fillMaxSize(),
+                    // A page that lies on its own photo (a member's page, a list of envies) opens and closes at
+                    // once: during a fade the screen left behind showed on the cream, without its photo nor
+                    // its bars, for a moment (retour de l'admin, 25/11 : « un autre écran avant la fiche », Famille et Cadeaux).
+                    enterTransition = { if (touchesPhotoPage()) EnterTransition.None else fadeIn(tween(NAV_FADE_MS)) },
+                    exitTransition = { if (touchesPhotoPage()) ExitTransition.None else fadeOut(tween(NAV_FADE_MS)) },
                 ) {
                     composable<HomeRoute> {
                         HomeTab(
@@ -2489,3 +2501,15 @@ private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
         restoreState = true
     }
 }
+
+/** The fade of Navigation Compose between two screens, kept everywhere but around a member's page. */
+private const val NAV_FADE_MS = 700
+
+/** True when a page drawing its own photo opens or closes: it then shows at once, with no fade. */
+internal fun AnimatedContentTransitionScope<NavBackStackEntry>.touchesPhotoPage(): Boolean =
+    initialState.destination.isPhotoPage() || targetState.destination.isPhotoPage()
+
+/** The pages that draw their own photo, over the tabs that lie on the photo of the app. */
+internal fun NavDestination.isPhotoPage(): Boolean =
+    hasRoute<MemberProfileDestination>() || hasRoute<GiftListDestination>()
+
