@@ -30,6 +30,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +50,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -64,13 +66,14 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 /** The days chosen so far: the start alone after one touch, both after two. */
 data class DateRange(val start: LocalDate?, val end: LocalDate?) {
     /** Nights between the start and the end; null while the end is not chosen. */
     val nights: Long? get() = if (start != null && end != null) ChronoUnit.DAYS.between(start, end) else null
 
-    /** « Enregistrer » is on once both days are chosen; a trip of one day (start = end) counts (E-63). */
+    /** Both days are chosen: the page saves and closes; a trip of one day (start = end) counts (E-63). */
     val complete: Boolean get() = start != null && end != null
 }
 
@@ -85,9 +88,17 @@ fun pickDay(range: DateRange, day: LocalDate): DateRange = when {
     else -> DateRange(range.start, day)
 }
 
-/** How far the calendar goes back (a trip already done, in Souvenirs) and forward. */
-const val DATES_MONTHS_BACK = 60L
+/** How far the calendar goes forward. */
 const val DATES_MONTHS_AHEAD = 36L
+
+/**
+ * The first day that can be touched (retour du 25/11 soir): today, or the start of a trip already
+ * dated in the past, so that its own days stay shown and can be kept.
+ */
+fun firstPickableDay(start: LocalDate?, today: LocalDate): LocalDate = if (start != null && start < today) start else today
+
+/** How long the chosen trip shows before the page closes by itself, once the last day is touched. */
+const val AUTO_CLOSE_MS = 450L
 
 /** One line of the calendar: the name of a month, or a week of it (null: a day of another month). */
 sealed interface CalendarLine {
@@ -121,7 +132,7 @@ private val spokenDay = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.F
 
 /**
  * « Dates du voyage » (fiche F4): the whole screen, the months one under the other, the trip from the
- * start to the end highlighted. Past days stay touchable, paler: a trip already done is allowed.
+ * start to the end highlighted. Days before today are pale and cannot be touched (retour du 25/11 soir).
  */
 @Composable
 fun TripDatesDialog(
@@ -154,10 +165,22 @@ fun TripDatesScreen(
 ) {
     var range by rememberSaveable(stateSaver = DateRangeSaver) { mutableStateOf(DateRange(start, end)) }
     val today = remember { familyToday() }
+    // Retour du 25/11 soir : no day before today; a trip already dated in the past keeps its own days.
+    val earliest = firstPickableDay(start, today)
     val opensOn = YearMonth.from(start ?: today)
-    val first = minOf(YearMonth.from(today).minusMonths(DATES_MONTHS_BACK), opensOn)
+    val first = YearMonth.from(earliest)
     val last = maxOf(YearMonth.from(today).plusMonths(DATES_MONTHS_AHEAD), YearMonth.from(end ?: opensOn))
     val lines = remember(first, last) { calendarLines(first, last) }
+    // Retour du 25/11 soir : touching the last day saves and closes, after a short look at the band.
+    var closing by remember { mutableStateOf(false) }
+    LaunchedEffect(closing, range) {
+        val chosenStart = range.start
+        val chosenEnd = range.end
+        if (closing && chosenStart != null && chosenEnd != null) {
+            delay(AUTO_CLOSE_MS)
+            onSave(chosenStart, chosenEnd)
+        }
+    }
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = lines.indexOf(CalendarLine.Month(opensOn)).coerceAtLeast(0))
     Surface(Modifier.fillMaxSize(), color = Cream, contentColor = Ink) {
         Column(Modifier.fillMaxSize()) {
@@ -173,8 +196,26 @@ fun TripDatesScreen(
                         fontFamily = Fredoka,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.semantics { heading() },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f).semantics { heading() },
                     )
+                    // « Enregistrer » at the top (retour du 25/11 soir): at the bottom it went under the
+                    // gesture bar on some phones, and the dates could not be saved.
+                    val chosenStart = range.start
+                    val chosenEnd = range.end
+                    Button(
+                        onClick = { if (chosenStart != null && chosenEnd != null) onSave(chosenStart, chosenEnd) },
+                        enabled = range.complete && !closing,
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Ink,
+                            contentColor = Color.White,
+                            disabledContainerColor = SaveDisabled,
+                            disabledContentColor = Color.White,
+                        ),
+                        modifier = Modifier.heightIn(min = 56.dp),
+                    ) { Text(stringResource(R.string.trip_dates_save), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
                 }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     HeaderDay(stringResource(R.string.trip_dates_start), range.start, Modifier.weight(1f), TextAlign.Start)
@@ -209,9 +250,10 @@ fun TripDatesScreen(
                                 Box(Modifier.weight(1f).height(56.dp)) {
                                     if (day != null) {
                                         val fixed = range.start
-                                        val open = !fixedStart || (fixed != null && day > fixed && (latest == null || day <= latest))
+                                        val open = day >= earliest && (!fixedStart || (fixed != null && day > fixed && (latest == null || day <= latest)))
                                         DayCell(day, range, past = day < today || !open, enabled = open, onPick = {
                                             range = if (fixedStart) DateRange(fixed, day) else pickDay(range, day)
+                                            if (range.complete) closing = true
                                         })
                                     }
                                 }
@@ -220,11 +262,11 @@ fun TripDatesScreen(
                     }
                 }
             }
-            // The bar of the bottom (E-63): fixed above the calendar that scrolls, two rows, out of the gesture bar.
+            // The bar of the bottom (E-63): fixed above the calendar that scrolls, out of the gesture bar.
             Column(Modifier.fillMaxWidth().shadow(4.dp).background(Cream).navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(
-                        onClick = { range = DateRange(null, null) },
+                        onClick = { closing = false; range = DateRange(null, null) },
                         enabled = range.start != null && !fixedStart,
                         modifier = Modifier.heightIn(min = 56.dp),
                         colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF1F3B4D)),
@@ -246,20 +288,6 @@ fun TripDatesScreen(
                         textAlign = TextAlign.End,
                     )
                 }
-                val chosenStart = range.start
-                val chosenEnd = range.end
-                Button(
-                    onClick = { if (chosenStart != null && chosenEnd != null) onSave(chosenStart, chosenEnd) },
-                    enabled = range.complete,
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Ink,
-                        contentColor = Color.White,
-                        disabledContainerColor = SaveDisabled,
-                        disabledContentColor = Color.White,
-                    ),
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                ) { Text(stringResource(R.string.trip_dates_save), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
             }
         }
     }
