@@ -15,6 +15,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
+import fr.familia.app.core.model.caresFor
 import fr.familia.app.core.photo.PhotoEdit
 import fr.familia.app.core.photo.SinglePhoto
 import fr.familia.app.core.photo.SinglePhotoSaver
@@ -206,8 +207,11 @@ class GiftItemEditViewModel(
         val coEditor = existing?.coBeneficiaryId
             ?.let { co -> loadedFamily.members.firstOrNull { it.id == co } }
             ?.takeIf { co -> target.kind == GiftListKind.Wishes && keepsListsOf(current, co) }
-        if (itemId != null && (existing == null || (existing.authorId != current.id && coEditor == null))) return unavailable()
         val beneficiary = loadedFamily.members.firstOrNull { it.id == target.beneficiaryId } ?: return unavailable()
+        // Récit 114: the adults who look after a child edit or remove its wishes, never a surprise idea.
+        val carer = existing != null && existing.authorId != current.id && target.kind == GiftListKind.Wishes &&
+            existing.visibleToBeneficiary && caresFor(current, beneficiary)
+        if (itemId != null && (existing == null || (existing.authorId != current.id && coEditor == null && !carer))) return unavailable()
         sharedEditor = coEditor != null && existing?.authorId != current.id
 
         list = target
@@ -243,7 +247,8 @@ class GiftItemEditViewModel(
             targetId = savedTarget,
             showAlreadyBought = showsAlreadyBought(target),
             alreadyBoughtLocked = existing?.let { it.alreadyBought && it.contributedTotal > 0 } == true,
-            coChoices = if (existing?.coBeneficiaryId != null) emptyList() else coChoices(loadedFamily, target),
+            // Who shares a wish is chosen by its author only: the rules keep it for the others.
+            coChoices = if (existing?.coBeneficiaryId != null || carer) emptyList() else coChoices(loadedFamily, target),
             sharedWith = if (sharedEditor) beneficiary.firstName else coEditorName(loadedFamily, existing),
             sharedByOther = if (sharedEditor) beneficiary.firstName else null,
         )
