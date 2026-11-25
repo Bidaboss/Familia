@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Edit
@@ -358,7 +358,7 @@ private fun MemberRow(
                 Icon(Icons.Outlined.Call, contentDescription = stringResource(R.string.profile_v2_call_name, member.firstName))
             }
             IconButton(onClick = { text(context, phone) }, modifier = Modifier.size(56.dp)) {
-                Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = stringResource(R.string.members_message_name, member.firstName))
+                Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = stringResource(R.string.members_message_name, member.firstName))
             }
         } else if (onClick != null) {
             Icon(
