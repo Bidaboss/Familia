@@ -110,6 +110,8 @@ class HomeActions(
     val onOpenSurprise: ((String) -> Unit)? = null,
     /** The Cadeaux tab, for several surprises to confirm at once. */
     val onOpenGifts: () -> Unit = {},
+    /** A bon plan of Entraide, from its card in la gazette (récit 116). */
+    val onOpenGoodDeal: (String) -> Unit = {},
 )
 
 /** Connects the Accueil tab to its ViewModel; each module feeds its card only while it shows. */
@@ -234,6 +236,8 @@ fun HomeRoute(
             onOpenCapsule = onOpenCapsule,
             onOpenRecap = onOpenRecap,
             onOpenYear = onOpenYear,
+            onOpenGiftList = actions.onOpenList,
+            onOpenGoodDeal = actions.onOpenGoodDeal,
         )
     }
     val canPublish = flags.isOn(Feature.GoodNews)

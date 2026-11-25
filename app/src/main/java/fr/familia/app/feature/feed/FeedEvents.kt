@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.data.EventCommentRepository
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.model.Event
@@ -39,6 +40,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -59,8 +61,13 @@ class EventFeedSource(
     private val meId: String,
 ) : FeedSource {
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun cards(window: FeedWindow): Flow<List<FeedCard>> =
-        events.observeCreatedSince(window.since, window.limit)
+    override fun cards(window: FeedWindow): Flow<List<FeedCard>> {
+        val today = window.now.atZone(FAMILY_ZONE).toLocalDate()
+        // The events of the next 3 days come back up (récit 116, règle 2), even planned long ago.
+        val soon = events.observeBetween(today, today.plusDays(RESURFACE_DAYS)).catch { emit(emptyList()) }
+        return combine(events.observeCreatedSince(window.since, window.limit), soon) { created, coming ->
+            (created + coming).distinctBy { it.id }
+        }
             .map(::newEvents)
             .flatMapLatest { list ->
                 val answers = rsvps?.observeAnswersOf(meId, list.map { it.id })?.catch { emit(emptyMap()) } ?: flowOf(null)
@@ -72,10 +79,31 @@ class EventFeedSource(
                             canAnswer = rsvps != null && answered != null && event.id !in answered,
                             rsvps = rsvps,
                             comments = comments,
+                            at = feedEventAt(event, window.now),
                         )
                     }
+                        // An event of the next days still before its 8 h stays out until it comes back up.
+                        .filter { !it.at.isBefore(window.since) }
                 }
             }
+    }
+}
+
+/** How many days before its date an event comes back up in la gazette (règle 2). */
+const val RESURFACE_DAYS = 3L
+
+/** An event comes back up at 8 h, 3 days before its date (règle 2). */
+private val RESURFACE_TIME = java.time.LocalTime.of(8, 0)
+
+/**
+ * When the card of [event] stands in la gazette: when it was planned, then, from 8 h three days before
+ * its date, at that time: the same card comes back up (règle 2: « la carte remonte », never a second
+ * one). An event planned in those 3 days stays where it was planned.
+ */
+fun feedEventAt(event: Event, now: Instant): Instant {
+    val planned = event.createdAt ?: Instant.EPOCH
+    val back = event.date.minusDays(RESURFACE_DAYS).atTime(RESURFACE_TIME).atZone(FAMILY_ZONE).toInstant()
+    return if (!now.isBefore(back) && planned.isBefore(back)) back else planned
 }
 
 /** The events of the fil: with their creation time, and not one of a series. */
@@ -95,9 +123,10 @@ class EventFeedCard(
     val canAnswer: Boolean,
     private val rsvps: RsvpRepository?,
     private val comments: EventCommentRepository?,
+    /** Where it stands in la gazette (feedEventAt): when planned, or 3 days before. */
+    override val at: Instant = event.createdAt ?: Instant.EPOCH,
 ) : FeedCard {
     override val key: String = "event:${event.id}"
-    override val at: Instant = event.createdAt ?: Instant.EPOCH
     override val authorId: String = event.authorId
 
     /** J'aime on its thread; its comments stay those of the event (récit 28), off with them. */
