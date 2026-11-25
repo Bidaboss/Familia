@@ -2755,3 +2755,11 @@ Sur un téléphone en Android 10 ou plus :
 5. « Effacer les dates » en bas efface et laisse l'écran ouvert.
 6. Modifier un voyage déjà daté dans le passé : ses jours restent touchables à partir de son premier jour.
 7. « Départ » d'une destination dans un voyage : seuls les jours après l'arrivée sont touchables, et toucher le jour de départ ferme l'écran.
+
+## Voyage : le temps de route en voiture et en bus (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Un voyage avec deux destinations et une « Voiture » entre elles : sur la frise, la ligne de la voiture montre d'abord « ≈ … km à vol d'oiseau », puis, une seconde après, « 4 h 35 de route · 452 km » (trajet le plus rapide, autoroutes comprises).
+2. Même chose pour un « Bus ».
+3. Un « Vol » ou un « Train » : toujours « ≈ … km à vol d'oiseau ».
+4. Mode avion : la voiture garde le vol d'oiseau, sans erreur.

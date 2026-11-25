@@ -67,6 +67,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.drawBehind
 import fr.familia.app.core.data.TripVoiceNote
 import fr.familia.app.R
+import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.model.TripPlace
@@ -638,10 +639,28 @@ private fun InsertItem(text: String, icon: androidx.compose.ui.graphics.vector.I
     )
 }
 
+/** The time by road of a car or a bus (retour du 25/11 soir); null in previews and tests: as the crow flies then. */
+val LocalRoadRoutes = androidx.compose.runtime.staticCompositionLocalOf<fr.familia.app.core.place.RoadRoutes?> { null }
+
+/** By road for a car or a bus; as the crow flies for a plane, a train, a boat. */
+internal fun goesByRoad(type: StepType): Boolean = type == StepType.Car || type == StepType.Bus
+
 @Composable
 private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val label = stepTypeLabel(row.step.type)
-    val distance = row.km?.let { stringResource(R.string.timeline_km, it) }
+    val roads = LocalRoadRoutes.current
+    val from = row.from
+    val to = row.step
+    val road by androidx.compose.runtime.produceState<fr.familia.app.core.place.RoadRoute?>(null, roads, from?.lat, from?.lng, to.lat, to.lng, to.type) {
+        value = if (roads != null && goesByRoad(to.type) && from != null && from.hasPosition && to.hasPosition) {
+            roads.between(from.lat!!, from.lng!!, to.lat!!, to.lng!!)
+        } else {
+            null
+        }
+    }
+    // « 4 h 35 de route · 452 km » once the road is known; until then, or without it, as the crow flies.
+    val distance = road?.let { stringResource(R.string.timeline_road, fr.familia.app.core.place.roadTime(it.minutes), it.km) }
+        ?: row.km?.let { stringResource(R.string.timeline_km, it) }
     // B of #602: the touch zone is the Box of 56 dp; the white band of 48 dp (E-57) is drawn inside it.
     Box(
         modifier
