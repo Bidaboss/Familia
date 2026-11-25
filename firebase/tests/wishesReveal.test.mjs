@@ -122,12 +122,14 @@ describe('the occasion of a reservation of « Mes envies » (rév. 186)', () => 
     });
   });
 
-  test('its holder chooses it, nobody else, and nothing else changes', async () => {
+  // La bascule vers les surprises: an old reservation is not changed any more, only released.
+  test('nobody changes it any more, its holder still releases it', async () => {
     const claim = (who) => doc(as(env, who), 'giftLists/wishes-adult1/claims/i1');
-    await assertSucceeds(updateDoc(claim(OTHER_ADULT), { occasion: 'christmas' }));
-    await assertSucceeds(updateDoc(claim(OTHER_ADULT), { occasion: 'birthday' }));
+    await assertFails(updateDoc(claim(OTHER_ADULT), { occasion: 'christmas' }));
+    await assertFails(updateDoc(claim(OTHER_ADULT), { occasion: 'birthday' }));
     await assertFails(updateDoc(claim(OTHER_ADULT), { occasion: 'other' }));
     await assertFails(updateDoc(claim(OTHER_ADULT), { occasion: 'christmas', holderName: 'Autre' }));
     await assertFails(updateDoc(claim(NEIGHBOUR), { occasion: 'christmas' }));
+    await assertSucceeds(deleteDoc(claim(OTHER_ADULT)));
   });
 });

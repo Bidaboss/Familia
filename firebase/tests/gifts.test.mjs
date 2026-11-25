@@ -383,10 +383,14 @@ describe('items (récit 8)', () => {
 });
 
 describe('reservations and joint gifts (récit 9)', () => {
-  test('a viewer takes an item, then releases it', async () => {
+  // La bascule vers les surprises (plan Cadeaux et Surprise, PR 3): a gift is reserved only in a
+  // surprise now. Nobody reserves in a list any more; an old reservation is still released.
+  test('since the switch to surprises, nobody reserves; an old reservation is released by its holder', async () => {
     const db = as(env, NEIGHBOUR);
-    await assertSucceeds(setDoc(doc(db, 'giftLists/own1/claims/idea'), newClaim(NEIGHBOUR)));
-    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'giftLists/own1/claims/idea'), newClaim(OTHER_ADULT)));
+    await assertFails(setDoc(doc(db, 'giftLists/own1/claims/idea'), newClaim(NEIGHBOUR)));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'giftLists/own1/claims/idea'), { type: 'solo', holderId: 'adult3', holderName: 'adult3', createdAt: OLD });
+    });
     await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'giftLists/own1/claims/idea')));
     await assertSucceeds(deleteDoc(doc(db, 'giftLists/own1/claims/idea')));
   });
@@ -408,16 +412,19 @@ describe('reservations and joint gifts (récit 9)', () => {
 
   test('a child takes an item alone, never a joint gift (carte PRODUIT-19)', async () => {
     const db = as(env, KID);
-    await assertSucceeds(setDoc(doc(db, 'giftLists/wishes-adult1/claims/w1'), newClaim(KID)));
-    await assertSucceeds(deleteDoc(doc(db, 'giftLists/wishes-adult1/claims/w1')));
+    // Since the switch to surprises, not even alone.
+    await assertFails(setDoc(doc(db, 'giftLists/wishes-adult1/claims/w1'), newClaim(KID)));
     await assertFails(setDoc(doc(db, 'giftLists/wishes-adult1/claims/w1'), newClaim(KID, 'shared')));
     await assertFails(setDoc(doc(db, 'giftLists/own1/claims/mine/shares/kid1'), newShare(KID)));
   });
 
-  test('adults join a joint gift and change their part', async () => {
+  test('since the switch, nobody joins an old joint gift nor changes a part; an old part is taken back', async () => {
     const db = as(env, NEIGHBOUR);
-    await assertSucceeds(setDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), newShare(NEIGHBOUR)));
-    await assertSucceeds(updateDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), { amount: 25, updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), newShare(NEIGHBOUR)));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'giftLists/own1/claims/mine/shares/adult3'), { amount: 20, memberName: 'adult3', received: false, updatedAt: OLD });
+    });
+    await assertFails(updateDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), { amount: 25, updatedAt: serverTimestamp() }));
     await assertFails(updateDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), { received: true, updatedAt: serverTimestamp() }));
     await assertSucceeds(deleteDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3')));
   });
@@ -429,14 +436,14 @@ describe('reservations and joint gifts (récit 9)', () => {
     await assertFails(setDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), { ...newShare(NEIGHBOUR), received: true }));
   });
 
-  test('the responsible marks a part received, and nothing else', async () => {
+  test('the responsible does not mark a part received any more (the old system is closed)', async () => {
     const db = as(env, OTHER_ADULT);
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), 'giftLists/own1/claims/mine/shares/adult3'), {
         amount: 20, memberName: 'adult3', received: false, updatedAt: OLD,
       });
     });
-    await assertSucceeds(updateDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), { received: true, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), { received: true, updatedAt: serverTimestamp() }));
     await assertFails(updateDoc(doc(db, 'giftLists/own1/claims/mine/shares/adult3'), { amount: 1, updatedAt: serverTimestamp() }));
     await assertFails(updateDoc(doc(as(env, NEIGHBOUR), 'giftLists/own1/claims/mine/shares/adult2'), { received: true, updatedAt: serverTimestamp() }));
   });
@@ -465,26 +472,18 @@ describe('at the same moment (passe « en même temps »)', () => {
     return value;
   }
 
-  test('two people reserve the same item in the same second: exactly one wins', async () => {
+  // Since the switch to surprises (PR 3), a reservation in a list is refused, at the same moment
+  // too, and a queued one sent after the network came back with the old app.
+  test('two people reserve the same item in the same second: both are refused since the switch', async () => {
     const results = await Promise.allSettled([
       setDoc(doc(as(env, NEIGHBOUR), 'giftLists/own1/claims/idea'), newClaim(NEIGHBOUR)),
       setDoc(doc(as(env, OTHER_ADULT), 'giftLists/own1/claims/idea'), newClaim(OTHER_ADULT)),
     ]);
-    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
-    const claim = await stored(async (db) => (await getDoc(doc(db, 'giftLists/own1/claims/idea'))).data());
-    const winner = results[0].status === 'fulfilled' ? NEIGHBOUR : OTHER_ADULT;
-    assert.equal(claim.holderId, winner.memberId);
+    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 0);
+    assert.equal(await stored(async (db) => (await getDoc(doc(db, 'giftLists/own1/claims/idea'))).exists()), false);
   });
 
-  test('a reservation sent again after the network came back is refused when another came first', async () => {
-    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'giftLists/own1/claims/idea'), newClaim(OTHER_ADULT)));
-    // The phone of the neighbour sends its queued reservation: the same write, now over the first.
-    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/own1/claims/idea'), newClaim(NEIGHBOUR)));
-    const claim = await stored(async (db) => (await getDoc(doc(db, 'giftLists/own1/claims/idea'))).data());
-    assert.equal(claim.holderId, OTHER_ADULT.memberId);
-  });
-
-  test('two parts added together to a joint gift are both kept', async () => {
+  test('two parts added together to an old joint gift are both refused since the switch', async () => {
     // A joint gift on « Mes envies » of adult1, which the whole family reads.
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), 'giftLists/wishes-adult1/claims/w1'), {
@@ -495,9 +494,9 @@ describe('at the same moment (passe « en même temps »)', () => {
       setDoc(doc(as(env, NEIGHBOUR), 'giftLists/wishes-adult1/claims/w1/shares/adult3'), newShare(NEIGHBOUR, 15)),
       setDoc(doc(as(env, OTHER_ADULT), 'giftLists/wishes-adult1/claims/w1/shares/adult2'), newShare(OTHER_ADULT, 25)),
     ]);
-    assert.deepEqual(results.map((r) => r.status), ['fulfilled', 'fulfilled']);
+    assert.deepEqual(results.map((r) => r.status), ['rejected', 'rejected']);
     const shares = await stored((db) => getDocs(collection(db, 'giftLists/wishes-adult1/claims/w1/shares')));
-    assert.deepEqual(shares.docs.map((d) => d.id).sort(), ['adult2', 'adult3']);
+    assert.equal(shares.size, 0);
   });
 
   test('a wish removed by its author while someone reserves it: no reservation is left on nothing', async () => {
@@ -567,8 +566,8 @@ describe('the ideas of the family (récit 9 ter)', () => {
     await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/items/n1'), newItem(NEIGHBOUR)));
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/items/n2'), newItem(NEIGHBOUR, { visibleToBeneficiary: true })));
     await assertFails(setDoc(doc(as(env, ADULT), 'giftLists/ideas-adult1/items/n3'), newItem(ADULT)));
-    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/claims/n1'), newClaim(NEIGHBOUR)));
-    await assertSucceeds(updateDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/claims/n1'), { occasion: 'christmas' }));
+    // Since the switch to surprises, an idea is taken only in a surprise.
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/claims/n1'), newClaim(NEIGHBOUR)));
   });
 
   test('they are permanent: nobody deletes them, and their shape stays that of a permanent list', async () => {
