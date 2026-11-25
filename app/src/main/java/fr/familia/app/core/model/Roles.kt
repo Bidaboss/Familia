@@ -43,3 +43,10 @@ fun Family.canChangePhoto(me: Member, member: Member): Boolean =
         isOwner(me) ||
         (member.profile != MemberProfile.Adult && me.profile == MemberProfile.Adult && me.householdId == member.householdId) ||
         caresFor(me, member)
+
+/**
+ * True when [me] may open « Modifier » on the page of [member]: their own, a child they look after
+ * ([caresFor]: its surnom and card only), anyone for the admin principal.
+ */
+fun Family.canEditFiche(me: Member, member: Member): Boolean =
+    me.id == member.id || isOwner(me) || caresFor(me, member)

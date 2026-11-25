@@ -25,6 +25,7 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.canChangePhoto
+import fr.familia.app.core.model.canEditFiche
 import fr.familia.app.core.model.cleaned
 import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.managesHousehold
@@ -110,8 +111,8 @@ data class ProfileV2State(
     val note: String? = null,
     /** The member of the page, as the family list has them (surnom and phone for « Modifier »). */
     val member: Member? = null,
-    /** A parent on their child's page: « C'est l'administrateur qui tient la fiche à jour » (récit 114). */
-    val adminKeeps: Boolean = false,
+    /** « Modifier » opens for the reader: their own page, a child they look after, anyone for the admin. */
+    val canEdit: Boolean = false,
 )
 
 /**
@@ -354,7 +355,7 @@ class MemberProfileV2ViewModel(
                 (reader.id == memberId || (fam.ownerId == reader.id && member.isAdmin)),
             note = t.second.note,
             member = member,
-            adminKeeps = reader != null && member.profile != MemberProfile.Adult && fam.ownerId != reader.id && reader.id in member.parentIds,
+            canEdit = reader != null && fam.canEditFiche(reader, member),
         )
     }.orElse(null).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -429,7 +430,8 @@ class MemberProfileV2ViewModel(
         val member = current.member ?: return
         val fam = lastFamily ?: return
         val owner = fam.ownerId == readerId
-        if (readerId != memberId && !owner) return
+        val reader = fam.members.firstOrNull { it.id == readerId } ?: return
+        if (!fam.canEditFiche(reader, member)) return
         val start = FicheDraft(
             nickname = member.nickname.orEmpty(),
             phone = member.phone.orEmpty(),

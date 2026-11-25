@@ -33,6 +33,10 @@ class FicheAdminModelTest {
         val saved = mutableListOf<Member>()
         val removed = mutableListOf<Pair<Member, List<Member>>>()
         val households = mutableListOf<Household>()
+        val nicknames = mutableListOf<String?>()
+        override suspend fun saveNickname(memberId: String, nickname: String?) {
+            nicknames += nickname
+        }
         override suspend fun saveMember(member: Member, previousEmail: String?) {
             saved += member
         }
@@ -67,13 +71,47 @@ class FicheAdminModelTest {
     }
 
     @Test
-    fun `a parent never opens Modifier on their child's page, and reads why`() = runTest {
+    fun `a responsible adult opens Modifier on their child's page, without Profil nor Foyer`() = runTest {
         val vm = model("adult1", "kid1")
+        assertTrue(vm.state.value!!.canEdit)
         vm.startEdit()
+        val edit = vm.edit.value!!
+        assertNull(edit.draft.form)
+        assertNull(edit.admin)
+    }
+
+    @Test
+    fun `the chef of the household looks after its children, never another adult nor another household`() = runTest {
+        val chef = TestFamily.family.copy(
+            members = TestFamily.family.members.map {
+                when (it.id) {
+                    "adult2" -> it.copy(isAdmin = true)
+                    "kid2" -> it.copy(parentIds = emptyList())
+                    else -> it
+                }
+            },
+        )
+        assertTrue(model("adult2", "kid2", Members(chef)).state.value!!.canEdit)
+        assertFalse(model("adult2", "kid1", Members(chef)).state.value!!.canEdit)
+        assertFalse(model("adult1", "adult2").state.value!!.canEdit)
+        assertFalse(model("adult1", "kid2").state.value!!.canEdit)
+        val other = model("adult1", "adult2")
+        other.startEdit()
+        assertNull(other.edit.value)
+    }
+
+    @Test
+    fun `a responsible adult saves the child's surnom, and nothing of the admin`() = runTest {
+        val members = Members(withPhone)
+        val vm = model("adult1", "kid1", members)
+        vm.startEdit()
+        vm.updateDraft(vm.edit.value!!.draft.copy(nickname = "Titi"))
+        vm.saveEdit()
+        runCurrent()
+        assertEquals(listOf("Titi"), members.nicknames)
+        assertTrue(members.saved.isEmpty())
+        assertTrue(members.households.isEmpty())
         assertNull(vm.edit.value)
-        assertTrue(vm.state.value!!.adminKeeps)
-        assertFalse(model("admin1", "kid1").state.value!!.adminKeeps)
-        assertFalse(model("adult2", "kid1").state.value!!.adminKeeps)
     }
 
     @Test

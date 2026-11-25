@@ -185,10 +185,6 @@ internal fun ContentV2(
         }
         data?.household?.takeIf { data.canRenameHousehold && !viewingAs && edit == null }?.let { HouseholdPart(it, data.householdSize, v2.onRenameHousehold) }
         data?.note?.takeIf { !state.isMe && !viewingAs }?.let { NotesPart(member.firstName, it, v2.onEditNote, v2.onMakeIdea) }
-        if (data?.adminKeeps == true && edit == null) {
-            // A parent sees why there is no « Modifier » on their child's page, never a refusal (récit 114).
-            Text(stringResource(R.string.profile_admin_keeps), style = onPhotoStyle(MaterialTheme.typography.bodyLarge), modifier = Modifier.padding(horizontal = 8.dp))
-        }
         if (state.saveFailed || data?.saveFailed == true) {
             Text(
                 stringResource(R.string.profile_v2_save_failed),
