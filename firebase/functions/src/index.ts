@@ -71,6 +71,9 @@ import { dropBags, leftTheTrip, sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 import { deleteStepPlaces } from './tripPlaces';
+import {
+  deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, updateRatingAverage, updateTakeTotal,
+} from './surprises';
 
 initializeApp();
 
@@ -500,6 +503,28 @@ export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe
 // « Merci » on « On m'a offert »: its givers are told, once (PRD rév. 189).
 export const onReceivedGiftUpdated = onDocumentUpdated('giftLists/{listId}/received/{itemId}', async (event) => {
   await thankGivers(getFirestore(), send, event.params.listId, event.data?.before.data(), event.data?.after.data());
+});
+
+// Cadeaux et Surprise: the average of a proposal, without telling who rated what (ratings are private).
+export const onSurpriseRatingWritten = onDocumentWritten('surprises/{sid}/proposals/{pid}/ratings/{memberId}', async (event) => {
+  await updateRatingAverage(getFirestore(), event.params.sid, event.params.pid);
+});
+
+export const onSurpriseProposalDeleted = onDocumentDeleted('surprises/{sid}/proposals/{pid}', async (event) => {
+  await deleteProposalRatings(getFirestore(), event.params.sid, event.params.pid);
+});
+
+// A joint gift: the total of its parts, in whole euros.
+export const onSurpriseShareWritten = onDocumentWritten('surprises/{sid}/takes/{pid}/shares/{memberId}', async (event) => {
+  await updateTakeTotal(getFirestore(), event.params.sid, event.params.pid);
+});
+
+export const onSurpriseTakeDeleted = onDocumentDeleted('surprises/{sid}/takes/{pid}', async (event) => {
+  await deleteTakeShares(getFirestore(), event.params.sid, event.params.pid);
+});
+
+export const onSurpriseDeleted = onDocumentDeleted('surprises/{sid}', async (event) => {
+  await deleteSurpriseContent(getFirestore(), event.params.sid);
 });
 
 // D-21 and D-14 before a birthday (PRD, récit 10).
