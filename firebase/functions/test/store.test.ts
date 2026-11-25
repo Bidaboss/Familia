@@ -126,7 +126,8 @@ test('removing a member deletes their answers, bags, alerts, trip documents, voi
   const folders = await deleteMemberData(db, 'ines');
   // Other tests leave trips behind: each trip gives its two folders, for this member only.
   assert.ok(folders.includes('trips/corse/documents/ines/') && folders.includes('trips/corse/voice/ines/'));
-  assert.ok(folders.every((f) => /^trips\/[^/]+\/(documents|voice)\/ines\/$/.test(f)));
+  assert.ok(folders.includes('notebooks/ines/photos/'));
+  assert.ok(folders.every((f) => f === 'notebooks/ines/photos/' || /^trips\/[^/]+\/(documents|voice)\/ines\/$/.test(f)));
   assert.equal((await db.doc('events/meal/rsvps/ines').get()).exists, false);
   assert.equal((await db.doc('events/later/rsvps/ines').get()).exists, false);
   assert.equal((await db.doc('events/meal/rsvps/noe').get()).exists, true);
