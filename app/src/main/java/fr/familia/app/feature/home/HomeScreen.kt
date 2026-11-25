@@ -285,9 +285,28 @@ fun HomeRoute(
         }?.catch { emit(emptyList()) } ?: flowOf(emptyList())
     }
     val mySurprises by mySurprisesFlow.collectAsState(initial = emptyList())
+    // « Surprise de X : n idées à noter » (audit Cadeaux, point 8): before the day, the proposals I
+    // have not rated yet, with the first name of the beneficiary.
+    val toRateFlow = remember(container, currentMember.id, actions.onOpenSurprise != null) {
+        val repository = container?.surpriseRepository?.takeIf { actions.onOpenSurprise != null }
+        val family = container?.memberRepository?.observeFamily()
+        if (repository == null || family == null) {
+            flowOf(emptyList())
+        } else {
+            val today = java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris"))
+            combine(
+                fr.familia.app.feature.gifts.surprise.observeSurprisesToRate(repository, container?.giftRepository, currentMember.id, today),
+                family,
+            ) { rates, fam ->
+                rates.map { rate -> PhotoSurpriseToRate(rate.surpriseId, fam.members.firstOrNull { it.id == rate.beneficiaryId }?.firstName.orEmpty(), rate.count) }
+            }.catch { emit(emptyList()) }
+        }
+    }
+    val surprisesToRate by toRateFlow.collectAsState(initial = emptyList())
     HomeR1bisScreen(
         top = photoTop,
         mySurprises = mySurprises,
+        surprisesToRate = surprisesToRate,
         feedUnseen = feed?.unseen ?: 0,
         onOpenFeed = if (photo != null && feed != null) ({
             onFeed = true

@@ -2411,6 +2411,12 @@
     <string name="home_photo_feed_publish">+ Publier</string>
     <string name="home_photo_surprise_day">C\'est le jour J : confirme</string>
     <string name="home_photo_surprise_confirm">Confirmer</string>
+    <string name="home_photo_surprise_rate_title">Surprise de %1$s</string>
+    <string name="home_photo_surprise_rate_anonymous">Une surprise</string>
+    <plurals name="home_photo_surprise_rate_count">
+        <item quantity="one">%1$d idée à noter</item>
+        <item quantity="other">%1$d idées à noter</item>
+    </plurals>
     <plurals name="home_photo_surprises_count">
         <item quantity="one">%1$d surprise à confirmer</item>
         <item quantity="other">%1$d surprises à confirmer</item>

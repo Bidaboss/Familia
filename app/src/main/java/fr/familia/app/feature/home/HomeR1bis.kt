@@ -142,6 +142,8 @@ fun HomeR1bisScreen(
     onOpenFeed: (() -> Unit)? = null,
     /** My surprises: the one of the day shows first in « À répondre » on the photo. */
     mySurprises: List<fr.familia.app.core.model.Surprise> = emptyList(),
+    /** « Surprise de X : n idées à noter », after the surprise of the day. */
+    surprisesToRate: List<PhotoSurpriseToRate> = emptyList(),
 ) {
     val onPhoto = top != null
     val ready = state as? HomeUiState.Ready ?: return
@@ -203,7 +205,7 @@ fun HomeR1bisScreen(
     if (top != null && photoTheme != null && feed == null) {
         PhotoDayList(
             ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme), actions, r1,
-            PhotoSlots(top, joinMe, firstSteps, helpTodos, nowTravelling, challenge, goodNews?.takeIf { onOpenFeed == null }, buttons, mySurprises),
+            PhotoSlots(top, joinMe, firstSteps, helpTodos, nowTravelling, challenge, goodNews?.takeIf { onOpenFeed == null }, buttons, mySurprises, surprisesToRate),
             feedUnseen, onOpenFeed,
         )
         return
