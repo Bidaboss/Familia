@@ -35,7 +35,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,7 +45,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -71,8 +69,6 @@ import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.photo.CoverThumbnail
 import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.theme.LocalPhotoTheme
-import fr.familia.app.core.theme.PhotoBackdrop
-import fr.familia.app.core.theme.PhotoScroll
 import fr.familia.app.core.theme.PhotoSectionShadow
 import fr.familia.app.core.theme.PhotoSectionText
 import fr.familia.app.core.theme.photoCard
@@ -106,7 +102,6 @@ internal fun WishListScreen(
     modifier: Modifier = Modifier,
 ) {
     val photo = LocalPhotoTheme.current
-    val scroll = remember { PhotoScroll() }
     val owner = state.isMine || state.keptFromMe
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var openItemId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -128,7 +123,7 @@ internal fun WishListScreen(
         return
     }
     Box(modifier.fillMaxSize().then(if (photo == null) Modifier.themeBackground() else Modifier)) {
-        if (photo != null) PhotoBackdrop(photo, scroll)
+        // The photo lies behind the whole app (FamiliaApp), as behind the tab: nothing flashes cream between them.
         Column(Modifier.fillMaxSize()) {
             WishHeader(
                 title = if (owner) stringResource(R.string.gift_my_wishes) else state.beneficiary.firstName,
@@ -136,7 +131,7 @@ internal fun WishListScreen(
                 onShare = actions.onShareOutside?.takeIf { state.canSendOutside },
             )
             LazyColumn(
-                modifier = Modifier.fillMaxSize().nestedScroll(scroll.connection),
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {

@@ -883,8 +883,11 @@ fun FamiliaApp(
         LaunchedEffect(photoTheme != null) { if (photoTheme != null) fr.familia.app.core.theme.prefetchThemePhotos(appContext) }
         // Cadeaux and Famille lie on the whole photo, their tiles in frosted glass (brief Cadeaux et
         // Surprise §0, fiche C1; brief Famille-recettes F1).
+        // A list of Cadeaux lies on the same photo, drawn once here and not by the screen, so that
+        // nothing flashes cream while one goes from the tab to a list and back (retour du 25/11).
         val giftsPhoto = LocalPhotoTheme.current?.takeIf {
-            currentDestination.isOn(TopLevelDestination.Gifts) || currentDestination.isOn(TopLevelDestination.Members)
+            currentDestination.isOn(TopLevelDestination.Gifts) || currentDestination.isOn(TopLevelDestination.Members) ||
+                currentDestination?.hasRoute<GiftListDestination>() == true
         }
         val giftsScroll = remember { PhotoScroll() }
         // Each tab starts with its photo at the top.
