@@ -224,13 +224,9 @@ private fun ProposalTile(row: ProposalRow, by: String?, onRate: (ProposalRow, In
             by?.let { Text(it, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
             Text(row.proposal.title, style = MaterialTheme.typography.titleMedium)
             row.proposal.price?.let { Text(euros(it), style = MaterialTheme.typography.bodyMedium) }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(if (wish) R.string.surprise_rate_wish else R.string.surprise_rate_idea), style = MaterialTheme.typography.bodyMedium)
-                    Text(ratingLabel(row), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = StarOn)
-                }
-                Stars(row, onRate)
-            }
+            Text(stringResource(if (wish) R.string.surprise_rate_wish else R.string.surprise_rate_idea), style = MaterialTheme.typography.bodyMedium)
+            Text(ratingLabel(row), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = StarOn)
+            Stars(row, onRate)
         }
     }
 }
@@ -250,7 +246,7 @@ private fun ratingLabel(row: ProposalRow): String {
     }
 }
 
-/** Five stars of 48 dp to touch; touching my note again takes it back. */
+/** Five stars of 56 dp on their own line (280 dp, fits a 360 dp phone); touching my note again takes it back. */
 @Composable
 private fun Stars(row: ProposalRow, onRate: (ProposalRow, Int) -> Unit) {
     val mine = row.myStars
@@ -259,7 +255,7 @@ private fun Stars(row: ProposalRow, onRate: (ProposalRow, Int) -> Unit) {
             val on = mine != null && n <= mine
             val label = pluralStringResource(R.plurals.surprise_star, n, n)
             Box(
-                Modifier.size(48.dp)
+                Modifier.size(56.dp)
                     .clickable(role = Role.Button) { onRate(row, n) }
                     .semantics { contentDescription = label; selected = mine == n },
                 contentAlignment = Alignment.Center,
