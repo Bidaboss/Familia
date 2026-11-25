@@ -2407,6 +2407,12 @@
         <item quantity="other">%1$d nouveautés</item>
     </plurals>
     <string name="home_photo_feed_publish">+ Publier</string>
+    <string name="home_photo_surprise_day">C\'est le jour J : confirme</string>
+    <string name="home_photo_surprise_confirm">Confirmer</string>
+    <plurals name="home_photo_surprises_count">
+        <item quantity="one">%1$d surprise à confirmer</item>
+        <item quantity="other">%1$d surprises à confirmer</item>
+    </plurals>
     <string name="home_photo_feed_none">Rien de nouveau depuis ta dernière visite</string>
     <string name="home_r1_todo">À faire</string>
     <string name="home_r1_calm">Rien à faire aujourd\'hui. Profites-en pour le défi !</string>

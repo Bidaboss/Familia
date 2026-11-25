@@ -100,6 +100,10 @@ class HomeActions(
     /** « Tous les sondages » and « Nouveau sondage » of the block Sondages (BUG-1). */
     val onOpenPolls: () -> Unit = {},
     val onNewPoll: () -> Unit = {},
+    /** A surprise of mine on its day, « C'est offert ? » (récit 113 with Cadeaux): set while surprises are on. */
+    val onOpenSurprise: ((String) -> Unit)? = null,
+    /** The Cadeaux tab, for several surprises to confirm at once. */
+    val onOpenGifts: () -> Unit = {},
 )
 
 /** Connects the Accueil tab to its ViewModel; each module feeds its card only while it shows. */
@@ -250,8 +254,15 @@ fun HomeRoute(
         }
     }
     Box(if (photo != null) Modifier.nestedScroll(photo.scroll.connection) else Modifier) {
+    // My surprises, for « À répondre » on the photo: the one of the day waits for « C'est offert ».
+    val mySurprisesFlow = remember(container, currentMember.id, actions.onOpenSurprise != null) {
+        container?.surpriseRepository?.takeIf { actions.onOpenSurprise != null }?.observeMine(currentMember.id)
+            ?: kotlinx.coroutines.flow.flowOf(emptyList())
+    }
+    val mySurprises by mySurprisesFlow.collectAsState(initial = emptyList())
     HomeR1bisScreen(
         top = photoTop,
+        mySurprises = mySurprises,
         feedUnseen = feed?.unseen ?: 0,
         onOpenFeed = if (photo != null && feed != null) ({
             onFeed = true

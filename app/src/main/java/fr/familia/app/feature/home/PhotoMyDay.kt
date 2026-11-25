@@ -378,6 +378,7 @@ internal class PhotoSlots(
     /** Only while there is no fil: « Publier » lives in the fil (règle 8). */
     val goodNews: (@Composable (Modifier, compact: Boolean) -> Unit)?,
     val end: @Composable () -> Unit,
+    val surprises: List<fr.familia.app.core.model.Surprise> = emptyList(),
 )
 
 /**
@@ -406,6 +407,8 @@ internal fun PhotoDayList(
     val shownTodos = (ready.todos + given.values.map { it.todo }.filter { it.key !in pendingKeys }).sortedBy { it.date }
     val answers = if (allAnswers) shownTodos else shownTodos.take(PHOTO_ANSWERS_SHOWN)
     val more = shownTodos.size - answers.size
+    val surprise = remember(slots.surprises, ready.today) { fr.familia.app.core.model.surprisesToConfirm(slots.surprises, ready.today) }
+        ?.takeIf { actions.onOpenSurprise != null }
     val answering = HomeR1bisActions(
         onAnswer = { id, going ->
             ready.todos.firstOrNull { it is HomeTodo.Answer && it.event.id == id }?.let { todo ->
@@ -427,7 +430,14 @@ internal fun PhotoDayList(
         }
         item(key = "today") { PhotoTodayCard(days, ready.today, chosen, onChoose, colors, actions) }
         slots.firstSteps?.let { item(key = "firstSteps") { it() } }
-        item(key = "answer-title") { PhotoSection(stringResource(R.string.home_photo_to_answer), colors, count = ready.todos.size) }
+        item(key = "answer-title") { PhotoSection(stringResource(R.string.home_photo_to_answer), colors, count = ready.todos.size + (surprise?.count ?: 0)) }
+        surprise?.let { s ->
+            item(key = "answer-surprise") {
+                PhotoSurpriseCard(s, colors) {
+                    if (s.count == 1) actions.onOpenSurprise?.invoke(s.firstId) else actions.onOpenGifts()
+                }
+            }
+        }
         items(answers, key = { "answer-" + it.key }) { todo ->
             // « ✓ Tu y vas » only once the answer is written: it left « À répondre ». A failed answer keeps the buttons.
             val reply = (todo as? HomeTodo.Answer)?.let { given[it.event.id] }?.takeIf { !it.changing && todo.key !in pendingKeys }
@@ -439,7 +449,7 @@ internal fun PhotoDayList(
         }
         if (more > 0) item(key = "answer-more") { PhotoMoreLine(more) { allAnswers = true } }
         slots.helpTodos?.let { item(key = "help") { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { it() } } }
-        if (shownTodos.isEmpty() && slots.helpTodos == null) item(key = "answer-none") { PhotoNothingToAnswer() }
+        if (shownTodos.isEmpty() && slots.helpTodos == null && surprise == null) item(key = "answer-none") { PhotoNothingToAnswer() }
         slots.nowTravelling?.let { item(key = "now") { it() } }
         item(key = "upcoming-title") {
             PhotoSection(stringResource(R.string.home_photo_upcoming), colors, pill = stringResource(R.string.home_photo_see_all), onPill = actions.onOpenPlanning)
@@ -452,6 +462,43 @@ internal fun PhotoDayList(
         slots.goodNews?.let { item(key = "brief-news") { it(Modifier.fillMaxWidth(), false) } }
         slots.challenge?.let { item(key = "brief-challenge") { it(Modifier.fillMaxWidth(), true) } }
         item(key = "end") { slots.end() }
+    }
+}
+
+/**
+ * « C'est le jour J : confirme » (audit Cadeaux, point 8): a surprise of mine has reached its day and
+ * waits for « C'est offert ». First in « À répondre »; the whole card opens it (or Cadeaux for several).
+ */
+@Composable
+private fun PhotoSurpriseCard(surprise: fr.familia.app.core.model.SurprisesToConfirm, colors: PhotoColors, onOpen: () -> Unit) {
+    val detail = if (surprise.count == 1) {
+        surprise.firstTitle
+    } else {
+        pluralStringResource(R.plurals.home_photo_surprises_count, surprise.count, surprise.count)
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .photoCard()
+            .clickable(role = Role.Button, onClick = onOpen)
+            .heightIn(min = 72.dp)
+            .padding(16.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFE8D6))) {
+            Text("🎁", fontSize = 20.sp, modifier = Modifier.clearAndSetSemantics { })
+        }
+        Column(Modifier.padding(start = 14.dp).weight(1f)) {
+            Text(stringResource(R.string.home_photo_surprise_day), color = PhotoBrown, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+            Text(detail, color = PhotoSoftBrown, fontSize = 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+        Text(
+            stringResource(R.string.home_photo_surprise_confirm),
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(start = 8.dp).clip(RoundedCornerShape(20.dp)).background(colors.filled).padding(horizontal = 14.dp, vertical = 8.dp),
+        )
     }
 }
 
