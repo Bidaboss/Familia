@@ -256,6 +256,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
 import fr.familia.app.feature.home.HomeRoute as HomeTab
 import fr.familia.app.feature.discover.Discover
 import fr.familia.app.feature.discover.DiscoverModule
@@ -2235,9 +2237,18 @@ private fun TabTopBar(
     /** The tab lies on the banner of its photo (règle 20): its title is white until the content scrolls under it. */
     onPhoto: Boolean = false,
 ) {
-    val overPhoto = onPhoto && (scrollBehavior?.state?.overlappedFraction ?: 0f) == 0f
+    // On a photo the bar stays see-through while scrolling (the cream flat used to hide the photo):
+    // a light dark fade under it keeps the white title readable.
+    val overPhoto = onPhoto
     TopAppBar(
         scrollBehavior = scrollBehavior,
+        modifier = if (onPhoto) {
+            Modifier.drawBehind {
+                drawRect(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), Color.Transparent)))
+            }
+        } else {
+            Modifier
+        },
         navigationIcon = {
             if (onBack != null) {
                 Surface(shape = CircleShape, color = LocalClayColors.current.card, shadowElevation = 2.dp, modifier = Modifier.padding(start = 4.dp)) {
@@ -2246,10 +2257,10 @@ private fun TabTopBar(
             }
         },
         // Transparent at rest, so the theme's pattern shows behind the title; the surface color once
-        // the content scrolls under it.
+        // the content scrolls under it (still see-through on a photo).
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
-            scrolledContainerColor = MaterialTheme.colorScheme.surface,
+            scrolledContainerColor = if (onPhoto) Color.Transparent else MaterialTheme.colorScheme.surface,
             titleContentColor = if (overPhoto) Color.White else FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
         ),
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
