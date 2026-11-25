@@ -1,5 +1,6 @@
 package fr.familia.app.feature.genealogy
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import fr.familia.app.core.model.GenealogyTree
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
@@ -141,8 +143,9 @@ class LinkSheetTest {
                 TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "camille", isOwner = true), onOpen = {}, onAddKin = { added = true }, onMakePoster = { poster = true })
             }
         }
-        compose.onNodeWithText("Ajouter un proche").performClick()
-        compose.onNodeWithText("Faire l'affiche de l'arbre").performClick()
+        // Under the drawing, both are reached by their action (the drawing takes the touches around).
+        compose.onNodeWithText("Ajouter un proche").performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNodeWithText("Faire l'affiche de l'arbre").performSemanticsAction(SemanticsActions.OnClick)
         assertTrue(added && poster)
     }
 
