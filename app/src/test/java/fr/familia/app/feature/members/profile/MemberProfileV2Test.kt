@@ -130,7 +130,7 @@ class MemberProfileV2Test {
                         ready(member, isMe, souvenirs),
                         ProfileV2Ui(
                             state, onOpenWishes = {}, onPrepareSurprise = onPrepareSurprise, onOpenRecipes = {}, onAddRecipe = onAddRecipe,
-                            onEditNote = onEditNote, onMakeIdea = onMakeIdea,
+                            onEditNote = onEditNote, onMakeIdea = onMakeIdea, onStartEdit = if (isMe) ({}) else null,
                         ),
                         wishes = null,
                     )

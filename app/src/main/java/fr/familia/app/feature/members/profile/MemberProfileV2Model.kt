@@ -103,7 +103,21 @@ data class ProfileV2State(
      * page, in « Voir comme » and while it is loading: the tile is not shown.
      */
     val note: String? = null,
+    /** The member of the page, as the family list has them (surnom and phone for « Modifier »). */
+    val member: Member? = null,
 )
+
+/**
+ * What « Modifier » changes on my own page (règle 3, F10), typed but not saved yet: my surnom, my
+ * phone (an adult only) and my card. The first name, the birth date and the address stay the
+ * admin principal's.
+ */
+data class FicheDraft(val nickname: String, val phone: String, val card: MemberCard)
+
+/** « Modifier » under way: the draft, whether it differs from the page, and whether it can be saved. */
+data class FicheEdit(val draft: FicheDraft, val changed: Boolean, val phoneValid: Boolean, val saving: Boolean = false) {
+    val canSave: Boolean get() = changed && phoneValid && !saving
+}
 
 /** Le compteur de « Mes notes » s'arrête là (prototype v157), comme la note d'une idée de cadeau. */
 internal const val NOTE_MAX = 500
@@ -146,6 +160,9 @@ internal fun birthdaySoon(birthDate: LocalDate?, today: LocalDate): Boolean =
 /** How many events and photos « Ses moments » shows. */
 internal const val MOMENTS_MAX = 3
 internal const val PHOTOS_MAX = 6
+
+/** The longest phone the rules take. */
+private const val PHONE_MAX = 24
 
 /** Offline, a write shows at once and leaves with the network: past this, it is taken as sent. */
 private const val WRITE_TIMEOUT = 4_000L
@@ -285,6 +302,7 @@ class MemberProfileV2ViewModel(
                 fam.managesHousehold(reader, member.householdId) &&
                 (reader.id == memberId || (fam.ownerId == reader.id && member.isAdmin)),
             note = t.second.note,
+            member = member,
         )
     }.orElse(null).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -311,6 +329,67 @@ class MemberProfileV2ViewModel(
         val card = typed.copy(memberId = memberId).cleaned() ?: return false
         write { if (sendWrite(WRITE_TIMEOUT) { repo.saveCard(card, readerId) } == null) error("refused") }
         return true
+    }
+
+    private val draft = MutableStateFlow<FicheDraft?>(null)
+    private var draftStart: FicheDraft? = null
+
+    /** « Modifier » on my own page, null while the page is only read. */
+    val edit: StateFlow<FicheEdit?> = combine(draft, saving) { d, s ->
+        d?.let { FicheEdit(it, changed = it != draftStart, phoneValid = it.phone.isBlank() || isPhone(it.phone.trim()), saving = s) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** « Modifier » (règle 3): the same page, its fields open. My own page only, never in « Voir comme ». */
+    fun startEdit() {
+        if (readerId != memberId || draft.value != null) return
+        val current = state.value ?: return
+        val member = current.member ?: return
+        val start = FicheDraft(member.nickname.orEmpty(), member.phone.orEmpty(), current.card ?: MemberCard(memberId))
+        draftStart = start
+        failed.value = false
+        draft.value = start
+    }
+
+    fun updateDraft(typed: FicheDraft) {
+        if (draft.value == null) return
+        draft.value = typed.copy(
+            nickname = typed.nickname.take(Member.NICKNAME_MAX),
+            phone = typed.phone.take(PHONE_MAX),
+            card = typed.card.copy(memberId = memberId),
+        )
+    }
+
+    /** « Annuler », or « Quitter » after « Quitter sans enregistrer ? »: nothing is saved. */
+    fun cancelEdit() {
+        draft.value = null
+        draftStart = null
+    }
+
+    /**
+     * « Enregistrer »: only what changed is sent, each part on its own write. Once all are taken (or
+     * queued offline), the page goes back to reading; a refusal keeps the fields open and says so.
+     */
+    fun saveEdit() {
+        val typed = draft.value ?: return
+        val start = draftStart ?: return
+        if (typed == start) return cancelEdit()
+        val phone = typed.phone.trim()
+        if (phone.isNotEmpty() && !isPhone(phone)) return
+        val card = typed.card.cleaned() ?: return run { failed.value = true }
+        val nickname = typed.nickname.trim()
+        val adult = state.value?.member?.let(::hasCoordinates) == true
+        val repo = members
+        saving.value = true
+        failed.value = false
+        viewModelScope.launch {
+            val sent = buildList {
+                if (repo != null && nickname != start.nickname.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.saveNickname(memberId, nickname.ifEmpty { null }) })
+                if (repo != null && adult && phone != start.phone.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.savePhone(memberId, phone.ifEmpty { null }) })
+                cards?.let { c -> if (card != start.card.cleaned()) add(sendWrite(WRITE_TIMEOUT) { c.saveCard(card, readerId) }) }
+            }
+            saving.value = false
+            if (sent.all { it != null }) cancelEdit() else failed.value = true
+        }
     }
 
     /** « Renommer le foyer »: 1 to 40 characters, the rules check who may. */

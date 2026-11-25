@@ -108,6 +108,13 @@ data class ProfileV2Ui(
     val onEditNote: (String) -> Unit = {},
     /** « En faire une idée »: a new idea of the carnet, about this member, with the note in it. Null while Cadeaux is off. */
     val onMakeIdea: ((String) -> Unit)? = null,
+    /** « Modifier » open on my own page (règle 3), null while the page is only read. */
+    val edit: FicheEdit? = null,
+    /** Opens « Modifier » from an invitation of my page (« Remplir mes goûts », « Ajouter mon téléphone »). */
+    val onStartEdit: (() -> Unit)? = null,
+    val onDraft: (FicheDraft) -> Unit = {},
+    val onCancelEdit: () -> Unit = {},
+    val onSaveEdit: () -> Unit = {},
 )
 
 /**
@@ -133,29 +140,44 @@ internal fun ContentV2(
     val mayEditCard = data?.canEditCard == true && !viewingAs
     val card = data?.card
     var editingCard by rememberSaveable { mutableStateOf(false) }
+    val edit = v2.edit?.takeIf { state.isMe && !viewingAs }
     Column(
         Modifier
             .fillMaxSize()
             .then(if (scrollConnection != null) Modifier.nestedScroll(scrollConnection) else Modifier)
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = if (edit != null) 24.dp else 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Header(state, today, onSavePhoto = v2.onSavePhoto?.takeIf { mayFill }, onRemovePhoto = v2.onRemovePhoto)
-        card?.let { NowCard(it, editable = mayFill && mayEditCard, onSave = { text -> v2.onSaveCard(it.copy(now = text)) }) }
-        member.phone?.takeIf { hasCoordinates(member) && !state.isMe }?.let { ContactButtons(it) }
-        if (mayFill && data != null) FillGauge(member, data, state.souvenirs.isNotEmpty())
-        wishes?.invoke(member)
-        val onEditCard = if (mayEditCard) ({ editingCard = true }) else null
-        card?.let { KnowPart(it, state.isMe, onEditCard) }
-        card?.let { TastesPart(it, state.isMe, onEditCard) }
+        if (edit != null) {
+            // « Modifier » in place (F10): the same tiles, only their fields open.
+            IdentityEdit(member, edit.draft, hasCard = card != null, v2.onDraft)
+            if (card != null) {
+                KnowEdit(edit.draft, v2.onDraft)
+                TastesEdit(edit.draft, kid = member.profile != MemberProfile.Adult, v2.onDraft)
+            }
+        } else {
+            card?.let { NowCard(it, editable = mayFill && mayEditCard, onSave = { text -> v2.onSaveCard(it.copy(now = text)) }) }
+            member.phone?.takeIf { hasCoordinates(member) && !state.isMe }?.let { ContactButtons(it) }
+            if (mayFill && data != null) FillGauge(member, data, state.souvenirs.isNotEmpty())
+            wishes?.invoke(member)
+            // On my own page everything changes through « Modifier »; the pencils stay for who keeps a child's or another's card.
+            val onEditCard = if (mayEditCard && !state.isMe) ({ editingCard = true }) else null
+            card?.let { KnowPart(it, state.isMe, onEditCard) }
+            card?.let { TastesPart(it, state.isMe, onEditCard, invite = if (mayFill && mayEditCard) v2.onStartEdit else null) }
+        }
         GiftsPart(member, state.isMe, today, data?.wishCount ?: 0, v2.onOpenWishes, v2.onPrepareSurprise?.takeIf { !state.isMe && !viewingAs })
         v2.onOpenRecipes?.let { open -> RecipesPart(state.isMe, data?.recipeCount ?: 0, open, v2.onAddRecipe?.takeIf { mayFill }) }
         data?.let { MomentsPart(it, state.isMe, v2.onOpenEvent) }
         SuccessesPart(state.souvenirs, state.isMe)
         data?.let { NewsPart(it) }
-        data?.let { CoordinatesPart(member, it, state.isMe, mayFill, v2.onSavePhone, v2.onSaveAddress) }
-        data?.household?.takeIf { data.canRenameHousehold && !viewingAs }?.let { HouseholdPart(it, data.householdSize, v2.onRenameHousehold) }
+        if (edit != null) {
+            if (hasCoordinates(member)) CoordinatesEdit(data?.household?.address, edit, v2.onDraft)
+        } else {
+            data?.let { CoordinatesPart(member, it, state.isMe, mayFill, v2.onStartEdit, v2.onSaveAddress) }
+        }
+        data?.household?.takeIf { data.canRenameHousehold && !viewingAs && edit == null }?.let { HouseholdPart(it, data.householdSize, v2.onRenameHousehold) }
         data?.note?.takeIf { !state.isMe && !viewingAs }?.let { NotesPart(member.firstName, it, v2.onEditNote, v2.onMakeIdea) }
         if (state.saveFailed || data?.saveFailed == true) {
             Text(
@@ -404,7 +426,7 @@ private fun KnowPart(card: MemberCard, isMe: Boolean, onEdit: (() -> Unit)?) {
  * invitation.
  */
 @Composable
-private fun TastesPart(card: MemberCard, isMe: Boolean, onEdit: (() -> Unit)?) {
+private fun TastesPart(card: MemberCard, isMe: Boolean, onEdit: (() -> Unit)?, invite: (() -> Unit)? = null) {
     val rows = buildList<@Composable () -> Unit> {
         if (card.shoes.isNotBlank()) add { FicheRow("👟", stringResource(R.string.member_card_shoes), card.shoes) }
         if (card.top.isNotBlank()) add { FicheRow("👕", stringResource(R.string.profile_v2_size_top), card.top) }
@@ -413,14 +435,15 @@ private fun TastesPart(card: MemberCard, isMe: Boolean, onEdit: (() -> Unit)?) {
         if (card.tastes.isNotBlank()) add { FicheRow("❤️", stringResource(R.string.member_card_tastes), card.tastes) }
         if (card.hobbies.isNotBlank()) add { FicheRow("✨", stringResource(R.string.profile_v2_passions), card.hobbies) }
     }
-    if (rows.isEmpty() && !(isMe && onEdit != null)) return
+    val fill = invite ?: onEdit
+    if (rows.isEmpty() && !(isMe && fill != null)) return
     FicheSection(
         stringResource(if (isMe) R.string.member_card_section_mine else R.string.member_card_section),
         onEdit = onEdit,
         editLabel = stringResource(R.string.profile_v2_tastes_edit),
     ) {
         if (rows.isEmpty()) {
-            FicheRow("❤️", stringResource(R.string.member_card_fill_mine), stringResource(R.string.member_card_invite), onClick = onEdit)
+            FicheRow("❤️", stringResource(R.string.member_card_fill_mine), stringResource(R.string.member_card_invite), onClick = fill)
         } else {
             FicheRows(rows)
         }
@@ -574,7 +597,8 @@ private fun CoordinatesPart(
     data: ProfileV2State,
     isMe: Boolean,
     mayFill: Boolean,
-    onSavePhone: (String) -> Unit,
+    /** My phone changes through « Modifier » (règle 3). */
+    onStartEdit: (() -> Unit)?,
     onSaveAddress: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -609,7 +633,7 @@ private fun CoordinatesPart(
                         "📞",
                         stringResource(if (isMe) R.string.profile_v2_phone_title else R.string.profile_v2_phone),
                         phone ?: stringResource(R.string.profile_v2_phone_add),
-                        onClick = if (mayFill) ({ editing = "phone" }) else null,
+                        onClick = if (mayFill) onStartEdit else null,
                         onClickLabel = stringResource(if (phone == null) R.string.profile_v2_phone_add else R.string.profile_v2_phone_edit),
                         trailing = if (phone != null && !isMe) ({ RoundAction(Icons.Outlined.Phone, stringResource(R.string.profile_v2_call)) { dial(context, phone) } }) else null,
                     )
@@ -632,16 +656,6 @@ private fun CoordinatesPart(
         if (isMe) FicheSmall(stringResource(R.string.profile_v2_coordinates_help))
     }
     when (editing) {
-        "phone" -> TextDialog(
-            title = stringResource(R.string.profile_v2_phone_title),
-            initial = phone.orEmpty(),
-            max = 24,
-            keyboard = KeyboardType.Phone,
-            valid = { it.isBlank() || isPhone(it.trim()) },
-            hint = stringResource(R.string.profile_v2_coordinates_empty_removes),
-            onSave = { onSavePhone(it); editing = null },
-            onDismiss = { editing = null },
-        )
         "address" -> TextDialog(
             title = stringResource(R.string.profile_v2_address_title),
             initial = address.orEmpty(),
