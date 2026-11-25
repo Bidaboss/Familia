@@ -71,7 +71,7 @@ class SurpriseResultsTest {
     }
 
     @Test
-    fun `a joint gift: the others read the total, its owner reads every part`() {
+    fun `a joint gift, the others read the total, its owner reads every part`() {
         val take = SurpriseTake("wish-w1", TakeKind.Shared, "admin1", goal = 49, sharesTotal = 30, sharesCount = 2)
         val mine = state(takes = listOf(take), myShares = mapOf("wish-w1" to 10))
         val row = mine.results.first { it.proposal.id == "wish-w1" }
