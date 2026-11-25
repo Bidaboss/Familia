@@ -264,7 +264,7 @@ private fun PostPlaceLine(post: GazettePost, place: PostPlace, canStop: Boolean,
             Text("📍", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.width(8.dp))
             Column {
-                if (sharing && ends != null) {
+                if (ends != null && sharing) {
                     Text(place.label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
                         stringResource(R.string.gazette_post_place_live, timeLeft(Duration.between(now, ends))),

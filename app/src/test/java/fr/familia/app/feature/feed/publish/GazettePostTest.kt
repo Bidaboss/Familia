@@ -147,7 +147,7 @@ class GazettePostTest {
         val chef = m("chef", "h1", admin = true)
         val otherChef = m("chef2", "h2", admin = true)
         val parent = m("parent", "h1")
-        val child = m("child", "h1", MemberProfile.ChildWithApp, parents = listOf("parent"))
+        val child = m("child", "h1", profile = MemberProfile.ChildWithApp, parents = listOf("parent"))
         val family = Family(emptyList(), listOf(owner, chef, otherChef, parent, child), ownerId = "owner")
         val byChild = post("p", "child")
         assertTrue(canRemoveGazettePost(byChild, chef, family))
