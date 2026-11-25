@@ -9,8 +9,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.NotebookOccasion
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.gifts.item.photoSaver
 
 /** Connects the idea form to its ViewModel; [onDone] closes it once saved or removed. */
 @Composable
@@ -26,6 +29,7 @@ fun NotebookIdeaRoute(
     /** Opened from a surprise (E13): only the words of the 🔒 change. */
     fromSurprise: Boolean = false,
 ) {
+    val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
     val viewModel: NotebookIdeaViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -37,6 +41,7 @@ fun NotebookIdeaRoute(
                     saved = createSavedStateHandle(),
                     previews = container?.linkPreviewRepository,
                     fromSurprise = fromSurprise,
+                    photos = if (morePhotos) photoSaver(container) else null,
                 )
             }
         },

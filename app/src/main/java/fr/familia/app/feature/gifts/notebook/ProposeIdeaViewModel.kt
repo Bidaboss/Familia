@@ -152,7 +152,8 @@ class ProposeIdeaViewModel(
         choice.value = choice.value.copy(listId = listId, isSaving = true, saveFailed = false)
         viewModelScope.launch {
             val itemId = itemIds.getOrPut(listId) { giftRepo.newItemId(listId) }
-            // The private note stays in the notebook: it may say where the gift is hidden.
+            // The private note stays in the notebook: it may say where the gift is hidden. Its photo
+            // too (E11): its path is private to me, so the gift shows the picture of its link.
             val item = GiftItem(
                 id = itemId, title = entry.title, url = entry.url, price = entry.price, note = null,
                 imageUrl = entry.imageUrl, whereToFind = entry.whereToFind,

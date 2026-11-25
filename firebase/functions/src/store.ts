@@ -140,7 +140,8 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   }
   // « À emporter » (récit 62): their bags, which nobody else could read, go too.
   const trips = await db.collection('trips').select().get();
-  const folders: string[] = [];
+  // The photos of their private ideas (correctif E11), also one sent without its idea.
+  const folders: string[] = [`notebooks/${memberId}/photos/`];
   for (const trip of trips.docs) {
     folders.push(`trips/${trip.id}/documents/${memberId}/`, `trips/${trip.id}/voice/${memberId}/`);
     writer.delete(trip.ref.collection('bags').doc(memberId));

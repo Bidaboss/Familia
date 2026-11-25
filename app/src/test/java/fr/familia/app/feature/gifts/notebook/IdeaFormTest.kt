@@ -4,6 +4,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import fr.familia.app.core.data.LinkPreview
 import fr.familia.app.core.data.LinkPreviewRepository
+import fr.familia.app.core.photo.PhotoEdit
+import fr.familia.app.core.photo.PhotoStorage
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.checkAccessibility
 import fr.familia.app.feature.events.FakeMembers
@@ -13,6 +16,7 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -65,6 +69,55 @@ class IdeaFormTest {
         vm.update { it.copy(title = "Un pull", whereToFind = "x".repeat(121)) }
         vm.save()
         assertTrue(GiftItemFormError.WhereTooLong in vm.editing().itemErrors)
+    }
+
+    @Test
+    fun `its photo goes to my private folder, and a photo taken off is removed`() = runTest {
+        val sent = mutableListOf<String>()
+        val removed = mutableListOf<String>()
+        val photos = SinglePhotoSaver(
+            uploader = { _, photo, _ -> sent += photo },
+            storage = object : PhotoStorage {
+                override suspend fun upload(path: String, jpeg: ByteArray) = Unit
+                override suspend fun downloadUrl(path: String) = path
+                override suspend fun delete(path: String) { removed += path }
+            },
+        )
+        val notebook = FakeNotebook()
+        val vm = NotebookIdeaViewModel(notebook, FakeMembers(), "adult1", null, startPersonId = "adult2", photos = photos)
+        assertTrue(vm.editing().showPhoto)
+        vm.update { it.copy(title = "Un pull", photo = PhotoEdit.Picked("content://photo/1")) }
+        vm.save()
+        vm.uiState.first { it == NotebookIdeaUiState.Done }
+        val saved = notebook.entries.value.single()
+        assertTrue(saved.photo!!.startsWith("notebooks/adult1/photos/"))
+        assertEquals(listOf(saved.photo + ".jpg"), sent)
+
+        val edit = NotebookIdeaViewModel(notebook, FakeMembers(), "adult1", saved.id, photos = photos)
+        assertEquals(saved.photo, edit.editing().storedPhoto)
+        edit.update { it.copy(photo = PhotoEdit.Removed) }
+        edit.save()
+        edit.uiState.first { it == NotebookIdeaUiState.Done }
+        assertNull(notebook.entries.value.single().photo)
+        assertEquals(listOf(saved.photo + ".jpg", saved.photo + "-thumb.jpg"), removed)
+    }
+
+    @Test
+    fun `without « Plus de photos » an idea has no photo to add`() = runTest {
+        val vm = NotebookIdeaViewModel(FakeNotebook(), FakeMembers(), "adult1", null, startPersonId = "adult2")
+        assertTrue(!vm.editing().showPhoto)
+    }
+
+    @Test
+    fun `the photo of the idea comes before the picture of its link`() {
+        val state = fromMember().copy(
+            form = NotebookIdeaForm(personId = "adult2", title = "Un casque", url = "https://boutique-exemple.fr/casque"),
+            imageUrl = image, showPhoto = true, storedPhoto = "notebooks/adult1/photos/abc",
+        )
+        compose.setContent { FamiliaTheme { NotebookIdeaScreen(state, {}, {}, {}, {}) } }
+        assertEquals(1, count("Photo (facultative)"))
+        assertEquals(1, count("Ta photo remplace l'image du lien."))
+        assertEquals(1, count("Retirer"))
     }
 
     private fun fromMember(surprise: Boolean = false) = NotebookIdeaUiState.Editing(

@@ -61,7 +61,7 @@ fun GiftItemEditRoute(
     )
 }
 
-private fun photoSaver(container: AppContainer?): SinglePhotoSaver? {
+internal fun photoSaver(container: AppContainer?): SinglePhotoSaver? {
     val uploader = container?.photoUploader ?: return null
     val storage = container.photoStorage ?: return null
     return SinglePhotoSaver(uploader, storage)

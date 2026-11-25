@@ -60,6 +60,8 @@ data class NotebookEntry(
     val imageUrl: String? = null,
     /** « Où trouver le cadeau ? » (correctif E11): a shop, a town or a site, 120 characters at most. */
     val whereToFind: String? = null,
+    /** Its own photo (correctif E11), private to its author; base path of [fr.familia.app.core.photo.SinglePhoto]. */
+    val photo: String? = null,
 )
 
 /**
