@@ -11,6 +11,11 @@ import fr.familia.app.core.model.ProposalKind
 import fr.familia.app.core.model.SurpriseProposal
 import fr.familia.app.core.model.Surprise
 import fr.familia.app.core.model.SurpriseOccasion
+import fr.familia.app.core.model.SurpriseMemberRow
+import fr.familia.app.core.model.SurpriseTake
+import fr.familia.app.core.model.TakeKind
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -195,6 +200,154 @@ class FirestoreSurpriseRepository(private val db: FirebaseFirestore) : SurpriseR
             }
         }
         awaitClose { registration.remove() }
+    }
+
+    override suspend fun setRemoved(surpriseId: String, proposal: SurpriseProposal, removed: Boolean) {
+        val doc = proposals(surpriseId).document(proposal.id)
+        // A wish never noted has no proposal yet: written first, as at its first note.
+        if (proposal.kind == ProposalKind.Wish) doc.set(proposalFields(proposal), SetOptions.mergeFields(PROPOSAL_FIELDS)).await()
+        doc.update("removed", removed).await()
+    }
+
+    private fun takes(surpriseId: String) = surprises.document(surpriseId).collection("takes")
+
+    override fun observeTakes(surpriseId: String): Flow<List<SurpriseTake>> = callbackFlow {
+        val registration = takes(surpriseId).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else {
+                trySend(
+                    snapshot?.documents.orEmpty().map { doc ->
+                        SurpriseTake(
+                            proposalId = doc.id,
+                            kind = TakeKind.fromFirestore(doc.getString("kind")),
+                            ownerId = doc.getString("ownerId").orEmpty(),
+                            boughtBy = doc.getString("boughtBy"),
+                            goal = doc.getLong("goal")?.toInt(),
+                            sharesTotal = doc.getLong("sharesTotal")?.toInt() ?: 0,
+                            sharesCount = doc.getLong("sharesCount")?.toInt() ?: 0,
+                        )
+                    },
+                )
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun take(surpriseId: String, proposal: SurpriseProposal, memberId: String, kind: TakeKind, goal: Int?) {
+        val batch = db.batch()
+        if (proposal.kind == ProposalKind.Wish) {
+            batch.set(proposals(surpriseId).document(proposal.id), proposalFields(proposal), SetOptions.mergeFields(PROPOSAL_FIELDS))
+        }
+        batch.set(
+            takes(surpriseId).document(proposal.id),
+            mapOf(
+                "kind" to kind.firestoreValue,
+                "ownerId" to memberId,
+                "boughtBy" to null,
+                "goal" to if (kind == TakeKind.Shared) goal?.coerceIn(1, SurpriseTake.MAX_AMOUNT) else null,
+                "createdAt" to FieldValue.serverTimestamp(),
+                "updatedAt" to FieldValue.serverTimestamp(),
+            ),
+        )
+        batch.commit().await()
+    }
+
+    override suspend fun release(surpriseId: String, proposalId: String) {
+        takes(surpriseId).document(proposalId).delete().await()
+    }
+
+    override fun observeMyShares(surpriseId: String, memberId: String): Flow<Map<String, Int>> =
+        perChild(takes(surpriseId), { it.getString("kind") == TakeKind.Shared.firestoreValue }) { id ->
+            takes(surpriseId).document(id).collection("shares").document(memberId)
+        }
+
+    override fun observeShares(surpriseId: String, proposalId: String): Flow<Map<String, Int>> = callbackFlow {
+        val registration = takes(surpriseId).document(proposalId).collection("shares").addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else {
+                trySend(snapshot?.documents.orEmpty().mapNotNull { doc -> doc.getLong("amount")?.toInt()?.let { doc.id to it } }.toMap())
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setShare(surpriseId: String, proposalId: String, memberId: String, amount: Int?) {
+        val doc = takes(surpriseId).document(proposalId).collection("shares").document(memberId)
+        if (amount == null) {
+            doc.delete().await()
+        } else {
+            doc.set(mapOf("amount" to amount.coerceIn(1, SurpriseTake.MAX_AMOUNT), "updatedAt" to FieldValue.serverTimestamp())).await()
+        }
+    }
+
+    override fun observeMemberRows(surpriseId: String): Flow<List<SurpriseMemberRow>> = callbackFlow {
+        val registration = surprises.document(surpriseId).collection("members").addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else {
+                trySend(
+                    snapshot?.documents.orEmpty().map { doc ->
+                        SurpriseMemberRow(
+                            memberId = doc.id,
+                            validated = doc.getBoolean("validated") == true,
+                            declined = doc.getBoolean("declined") == true,
+                            muted = doc.getBoolean("muted") == true,
+                        )
+                    },
+                )
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setValidated(surpriseId: String, memberId: String, validated: Boolean) {
+        surprises.document(surpriseId).collection("members").document(memberId)
+            .set(mapOf("validated" to validated, "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()
+    }
+
+    override suspend fun decline(surpriseId: String, memberId: String) {
+        surprises.document(surpriseId).collection("members").document(memberId)
+            .set(mapOf("declined" to true, "validated" to false, "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()
+    }
+
+    /**
+     * One number per document of [parent] that passes [keep], read from the child [childOf] gives
+     * (« amount »): my parts, one listener each, as the notes. A refused read leaves it out.
+     */
+    private fun perChild(
+        parent: CollectionReference,
+        keep: (DocumentSnapshot) -> Boolean,
+        childOf: (String) -> com.google.firebase.firestore.DocumentReference,
+    ): Flow<Map<String, Int>> = callbackFlow {
+        val registrations = mutableMapOf<String, ListenerRegistration>()
+        val values = mutableMapOf<String, Int>()
+        val list = parent.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            val ids = snapshot?.documents.orEmpty().filter(keep).map { it.id }.toSet()
+            (registrations.keys - ids).forEach { gone ->
+                registrations.remove(gone)?.remove()
+                values.remove(gone)
+            }
+            (ids - registrations.keys).forEach { id ->
+                registrations[id] = childOf(id).addSnapshotListener { child, childError ->
+                    if (childError == null) {
+                        val amount = child?.getLong("amount")?.toInt()
+                        if (amount != null) values[id] = amount else values.remove(id)
+                        trySend(values.toMap())
+                    }
+                }
+            }
+            trySend(values.toMap())
+        }
+        awaitClose {
+            list.remove()
+            registrations.values.forEach { it.remove() }
+        }
     }
 
     private fun proposalFields(p: SurpriseProposal): Map<String, Any?> = buildMap {

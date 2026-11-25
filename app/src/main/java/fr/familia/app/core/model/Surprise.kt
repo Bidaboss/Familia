@@ -116,3 +116,42 @@ fun ideaProposalId(entryId: String): String = "idea-$entryId"
 
 /** One gift already given to a person, for « Déjà offert à X », kept without limit. */
 data class GiftHistoryItem(val id: String, val title: String, val year: Int, val occasion: SurpriseOccasion)
+
+/** « 🎁 Je le prends » (solo) or « 👪 Cadeau commun » (shared, adults only), one per proposal. */
+enum class TakeKind(val firestoreValue: String) {
+    Solo("solo"),
+    Shared("shared"),
+    ;
+
+    companion object {
+        fun fromFirestore(value: String?): TakeKind = entries.firstOrNull { it.firestoreValue == value } ?: Solo
+    }
+}
+
+/**
+ * Someone took a proposal (surprises/{sid}/takes/{pid}): alone, or as a joint gift of [goal] euros.
+ * [sharesTotal] and [sharesCount] are kept by the server: the members never read the others' parts.
+ */
+data class SurpriseTake(
+    val proposalId: String,
+    val kind: TakeKind,
+    val ownerId: String,
+    val boughtBy: String? = null,
+    val goal: Int? = null,
+    val sharesTotal: Int = 0,
+    val sharesCount: Int = 0,
+) {
+    /** What is still missing of a joint gift, never below 0. */
+    val missing: Int get() = ((goal ?: 0) - sharesTotal).coerceAtLeast(0)
+
+    companion object {
+        /** A part is in whole euros, from 1 to 10 000 (the rules). */
+        const val MAX_AMOUNT = 10_000
+    }
+}
+
+/** My line in a surprise (surprises/{sid}/members/{memberId}). « Je ne participe pas » is final. */
+data class SurpriseMemberRow(val memberId: String, val validated: Boolean = false, val declined: Boolean = false, val muted: Boolean = false)
+
+/** The goal of a joint gift from the price: whole euros, rounded up, 1 at least. */
+fun jointGoal(price: Double?): Int = price?.let { kotlin.math.ceil(it).toInt() }?.coerceIn(1, SurpriseTake.MAX_AMOUNT) ?: 50

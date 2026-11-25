@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.SurpriseRepository
+import fr.familia.app.core.model.SurpriseTake
+import fr.familia.app.core.model.TakeKind
+import fr.familia.app.core.model.wishProposalId
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.Family
@@ -97,6 +101,16 @@ data class ClaimLost(val itemId: String, val reason: Reason) {
     enum class Reason { Taken, Removed, AlreadyBought }
 }
 
+/**
+ * Where a wish stands in the surprises for the person (brief §5, fiche C8), read by the members of
+ * one: free, someone takes it, or a joint gift with what is gathered.
+ */
+sealed interface WishSurpriseState {
+    data object Free : WishSurpriseState
+    data class Taken(val by: String, val mine: Boolean) : WishSurpriseState
+    data class Joint(val by: String, val gathered: Int, val goal: Int) : WishSurpriseState
+}
+
 sealed interface GiftListUiState {
     data object Loading : GiftListUiState
 
@@ -134,6 +148,15 @@ sealed interface GiftListUiState {
         val seesContributors: Boolean = false,
         /** « Cadeaux communs » (récit 73): the wishes of the household shared with the person, opened in their list. */
         val sharedWishes: List<SharedWishRow> = emptyList(),
+        /**
+         * La bascule (plan Cadeaux et Surprise, PR 3): a wish of someone else is read only, given
+         * through a surprise, « Offrir cette envie ». Never on my own wishes nor in « Voir comme ».
+         */
+        val canOffer: Boolean = false,
+        /** The surprise I am in for the person, the one « Offrir cette envie » opens; null to start one. */
+        val surpriseId: String? = null,
+        /** Each wish in the surprises I am in for the person, by item. */
+        val wishStates: Map<String, WishSurpriseState> = emptyMap(),
     ) : GiftListUiState
 
     /** Deleted, or not one this member may see. */
@@ -158,6 +181,13 @@ class GiftListViewModel(
     private val readerId: String = currentMemberId,
     /** The switch « Déjà acheté » (récit 68), read with isOnForFamily. */
     private val alreadyBought: Boolean = false,
+    /** The surprises, for « Offrir cette envie » and the state of each wish in them. */
+    private val surprises: SurpriseRepository? = null,
+    /**
+     * La bascule (plan Cadeaux et Surprise, PR 3): a gift is reserved and shared only in a surprise;
+     * the rules refuse the old reservations, their parts and « Je participe ». The app sets it.
+     */
+    private val surprisesOnly: Boolean = false,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -217,11 +247,52 @@ class GiftListViewModel(
             }
         val parts = contributions(repo, list, beneficiary, me, items)
         val reservations = combine(claims, shares, parts) { c, s, p -> Triple(c, s, p) }
-        val shared = sharedWishes(repo, list, beneficiary, family)
-        return combine(items, reservations, today, failed, shared) { itemList, (claimList, shareMap, partMap), day, didFail, sharedList ->
-            state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, partMap, day, didFail)
-                .copy(sharedWishes = sharedList)
+        val shared = combine(sharedWishes(repo, list, beneficiary, family), surpriseTakes(list, beneficiary, me, kept)) { a, b -> a to b }
+        return combine(items, reservations, today, failed, shared) { itemList, (claimList, shareMap, partMap), day, didFail, (sharedList, offer) ->
+            val base = state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, partMap, day, didFail)
+            val names = family.members.associate { it.id to it.firstName }
+            base.copy(
+                sharedWishes = sharedList,
+                canOffer = offer != null,
+                surpriseId = offer?.first,
+                wishStates = if (offer == null) {
+                    emptyMap()
+                } else {
+                    itemList.associate { item -> item.id to wishState(offer.second[wishProposalId(item.id)], names, me.id) }
+                },
+            )
         }
+    }
+
+    /**
+     * The first surprise I am in for the person, and what is taken in all of them, by proposal; null
+     * where « Offrir cette envie » has no place (my own wishes, another list, « Voir comme »).
+     */
+    private fun surpriseTakes(list: GiftList, beneficiary: Member, me: Member, kept: Boolean): Flow<Pair<String?, Map<String, SurpriseTake>>?> {
+        val repo = surprises
+        if (repo == null || list.kind != GiftListKind.Wishes || beneficiary.id == me.id || kept || readerId != currentMemberId) return flowOf(null)
+        return repo.observeMine(me.id)
+            .map { all -> all.filter { it.beneficiaryId == beneficiary.id }.map { it.id } }
+            .distinctUntilChanged()
+            .flatMapLatest { ids ->
+                if (ids.isEmpty()) {
+                    flowOf(null to emptyMap())
+                } else {
+                    combine(ids.map { id -> repo.observeTakes(id).catch { emit(emptyList()) } }) { all ->
+                        ids.first() to all.toList().flatten().associateBy { it.proposalId }
+                    }
+                }
+            }
+            .catch { e ->
+                if (e is CancellationException) throw e
+                emit(null to emptyMap())
+            }
+    }
+
+    private fun wishState(take: SurpriseTake?, names: Map<String, String>, meId: String): WishSurpriseState = when {
+        take == null -> WishSurpriseState.Free
+        take.kind == TakeKind.Shared -> WishSurpriseState.Joint(names[take.ownerId].orEmpty(), take.sharesTotal, take.goal ?: 0)
+        else -> WishSurpriseState.Taken(names[take.ownerId].orEmpty(), take.ownerId == meId)
     }
 
     /**
@@ -372,11 +443,11 @@ class GiftListViewModel(
             canManage = exists && canManageList(list, me, family),
             canAddItems = !list.revealed && (exists || keepsListsOf(me, beneficiary) || list.kind == GiftListKind.Ideas),
             // Nothing to reserve on a list whose reservations the reader may not see.
-            canReserve = exists && canReserve(list, me) && !kept,
-            canShare = exists && canShare(list, me) && !kept,
+            canReserve = !surprisesOnly && exists && canReserve(list, me) && !kept,
+            canShare = !surprisesOnly && exists && canShare(list, me) && !kept,
             canSendOutside = exists && canShareWishesOutside(list, me, family),
             canMarkReceived = exists && list.kind == GiftListKind.Wishes && !list.revealed && keepsListsOf(me, beneficiary),
-            canContribute = exists && alreadyBought && list.kind == GiftListKind.Wishes && !kept &&
+            canContribute = !surprisesOnly && exists && alreadyBought && list.kind == GiftListKind.Wishes && !kept &&
                 me.profile == MemberProfile.Adult && !keepsListsOf(me, beneficiary),
             seesContributors = seesContributors,
             items = rows,

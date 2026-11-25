@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -66,11 +67,15 @@ import java.text.NumberFormat
 import java.util.Locale
 
 /** The pink of the wishes and its edge (fiches §0). */
-private val WishPink = Color(0xFFFFF0F6)
-private val WishEdge = Color(0xFFF6CADD)
-private val Ink = Color(0xFF1E1B18)
+internal val WishPink = Color(0xFFFFF0F6)
+internal val WishEdge = Color(0xFFF6CADD)
+internal val Ink = Color(0xFF1E1B18)
 private val StarOff = Color(0xFFD9C9A8)
-private val StarOn = Color(0xFFD98A2B)
+internal val StarOn = Color(0xFFD98A2B)
+
+/** The dark brown of the full buttons and of the tab on, the orange of the counts (fiches §0). */
+internal val Brown = Color(0xFF3A2A1A)
+internal val Accent = Color(0xFFE08A3C)
 
 /** What the surprise screen leads to. */
 class SurpriseActions(
@@ -79,16 +84,24 @@ class SurpriseActions(
     val onRate: (ProposalRow, Int) -> Unit = { _, _ -> },
     val onToggleIdea: (MyIdeaRow) -> Unit = {},
     val onAddIdea: () -> Unit = {},
+    val onRemove: (ResultRow, Boolean) -> Unit = { _, _ -> },
+    val onTakeAlone: (ResultRow) -> Unit = {},
+    val onTakeTogether: (ResultRow) -> Unit = {},
+    val onRelease: (ResultRow) -> Unit = {},
+    val onShare: (ResultRow, Int) -> Unit = { _, _ -> },
+    val onValidate: (Boolean) -> Unit = {},
+    val onDecline: () -> Unit = {},
 )
 
 /**
- * A surprise (brief §4, fiche C4): the yellow reminder that the person never sees it, then
- * « Propositions ». The tab « Résultats » comes with the next step. Stateless.
+ * A surprise (brief §4, fiches C4 to C6): the yellow reminder that the person never sees it, then two
+ * tabs, « Propositions » and « Résultats ». Stateless but for the tab shown.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
+fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions, initialTab: SurpriseTab = SurpriseTab.Proposals) {
     val ready = state as? SurpriseUiState.Ready
+    var tab by rememberSaveable { mutableStateOf(initialTab) }
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.themeBackground(),
@@ -106,7 +119,8 @@ fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
             )
         },
         floatingActionButton = {
-            if (ready != null) {
+            // « + Ajouter une idée » belongs to « Propositions » (fiche C4).
+            if (ready != null && tab == SurpriseTab.Proposals && !ready.declined) {
                 ExtendedFloatingActionButton(
                     onClick = actions.onAddIdea,
                     icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
@@ -126,14 +140,53 @@ fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
                     title = stringResource(R.string.surprise_unavailable_title),
                     body = stringResource(R.string.surprise_unavailable_body),
                 )
-                is SurpriseUiState.Ready -> Proposals(state, actions)
+                is SurpriseUiState.Ready -> when (tab) {
+                    SurpriseTab.Proposals -> Proposals(state, actions) { Tabs(state, tab) { tab = it } }
+                    SurpriseTab.Results -> Results(state, actions) { Tabs(state, tab) { tab = it } }
+                }
+            }
+        }
+    }
+}
+
+/** The two tabs of a surprise. */
+enum class SurpriseTab { Proposals, Results }
+
+/**
+ * « Propositions (n) | Résultats (n) », the pill switch of the Accueil (.seg): the tab on is dark,
+ * its count in an orange pill.
+ */
+@Composable
+internal fun Tabs(state: SurpriseUiState.Ready, tab: SurpriseTab, onTab: (SurpriseTab) -> Unit) {
+    Surface(shape = RoundedCornerShape(50), color = Color.White, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(4.dp)) {
+            SurpriseTab.entries.forEach { t ->
+                val on = t == tab
+                val count = if (t == SurpriseTab.Proposals) state.proposalCount else state.takenCount
+                val label = stringResource(if (t == SurpriseTab.Proposals) R.string.surprise_tab_proposals else R.string.surprise_tab_results)
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = if (on) Brown else Color.Transparent,
+                    contentColor = if (on) Color.White else Brown,
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp)
+                        .selectable(selected = on, role = Role.Tab) { onTab(t) },
+                ) {
+                    Row(Modifier.padding(horizontal = 8.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+                        if (count > 0) {
+                            Surface(shape = RoundedCornerShape(50), color = Accent, contentColor = Color.White, modifier = Modifier.padding(start = 8.dp)) {
+                                Text(count.toString(), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions) {
+private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions, tabs: @Composable () -> Unit) {
     val name = state.beneficiary.firstName
     var ideasOpen by rememberSaveable { mutableStateOf(true) }
     var historyOpen by rememberSaveable { mutableStateOf(false) }
@@ -143,6 +196,7 @@ private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item(key = "notice") { SurpriseNotice("🎉 " + stringResource(R.string.surprise_never_sees, name)) }
+        item(key = "tabs") { tabs() }
         if (state.failed) {
             item(key = "failed") {
                 FormHint(stringResource(R.string.surprise_write_failed), isError = true, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
@@ -158,7 +212,7 @@ private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions) {
                 )
             }
         }
-        items(state.wishes, key = { it.proposal.id }) { row -> ProposalTile(row, null, actions.onRate) }
+        items(state.wishes, key = { it.proposal.id }) { row -> ProposalTile(row, null, state.surprise.memberIds.size, actions.onRate) }
 
         item(key = "my-ideas") {
             Foldable(stringResource(R.string.surprise_my_ideas, state.myIdeas.size), ideasOpen) { ideasOpen = !ideasOpen }
@@ -174,7 +228,7 @@ private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions) {
         if (state.othersIdeas.isEmpty()) item(key = "others-none") { Hint(stringResource(R.string.surprise_ideas_of_others_none)) }
         items(state.othersIdeas, key = { it.proposal.id }) { row ->
             val by = if (row.isMine) stringResource(R.string.surprise_my_idea) else stringResource(R.string.surprise_idea_of, row.proposal.authorName)
-            ProposalTile(row, by, actions.onRate)
+            ProposalTile(row, by, state.surprise.memberIds.size, actions.onRate)
         }
 
         if (state.history.isNotEmpty()) {
@@ -187,18 +241,18 @@ private fun Proposals(state: SurpriseUiState.Ready, actions: SurpriseActions) {
 }
 
 @Composable
-private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+internal fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = modifier.semantics { heading() })
 }
 
 @Composable
-private fun Hint(text: String) {
+internal fun Hint(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 /** A section that opens and closes, as « Mes idées (n) » and « Déjà offert à X (n) ». */
 @Composable
-private fun Foldable(text: String, open: Boolean, onToggle: () -> Unit) {
+internal fun Foldable(text: String, open: Boolean, onToggle: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button, onClick = onToggle).padding(top = 8.dp)
             .semantics { heading(); stateDescription = if (open) "ouvert" else "fermé" },
@@ -211,7 +265,7 @@ private fun Foldable(text: String, open: Boolean, onToggle: () -> Unit) {
 
 /** A wish (pink) or an idea (white, « 💡 Idée de Y »), with its stars (fiche C4). */
 @Composable
-private fun ProposalTile(row: ProposalRow, by: String?, onRate: (ProposalRow, Int) -> Unit) {
+private fun ProposalTile(row: ProposalRow, by: String?, members: Int, onRate: (ProposalRow, Int) -> Unit) {
     val wish = row.proposal.kind == ProposalKind.Wish
     Surface(
         color = if (wish) WishPink else Color.White,
@@ -225,14 +279,14 @@ private fun ProposalTile(row: ProposalRow, by: String?, onRate: (ProposalRow, In
             Text(row.proposal.title, style = MaterialTheme.typography.titleMedium)
             row.proposal.price?.let { Text(euros(it), style = MaterialTheme.typography.bodyMedium) }
             Text(stringResource(if (wish) R.string.surprise_rate_wish else R.string.surprise_rate_idea), style = MaterialTheme.typography.bodyMedium)
-            Text(ratingLabel(row), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = StarOn)
+            Text(ratingLabel(row, members), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = StarOn)
             Stars(row, onRate)
         }
     }
 }
 
 @Composable
-private fun ratingLabel(row: ProposalRow): String {
+private fun ratingLabel(row: ProposalRow, members: Int): String {
     val p = row.proposal
     return when {
         p.ratingCount == 0 -> stringResource(R.string.surprise_no_rating)
@@ -241,7 +295,7 @@ private fun ratingLabel(row: ProposalRow): String {
             R.string.surprise_average,
             NumberFormat.getNumberInstance(Locale.FRANCE).apply { maximumFractionDigits = 1 }.format(p.average),
             p.ratingCount,
-            p.ratingCount,
+            members,
         )
     }
 }
@@ -301,6 +355,6 @@ private fun HistoryRow(item: GiftHistoryItem) {
     }
 }
 
-private fun euros(amount: Double): String = NumberFormat.getCurrencyInstance(Locale.FRANCE).apply {
+internal fun euros(amount: Double): String = NumberFormat.getCurrencyInstance(Locale.FRANCE).apply {
     maximumFractionDigits = if (amount % 1.0 == 0.0) 0 else 2
 }.format(amount)

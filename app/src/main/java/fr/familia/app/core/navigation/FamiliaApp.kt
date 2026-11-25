@@ -1755,6 +1755,8 @@ fun FamiliaApp(
                             onEditItem = { itemId -> navController.navigate(GiftItemEditDestination(listId, itemId)) },
                             onBack = { navController.popBackStack() },
                             onOpenList = { other -> navController.navigate(GiftListDestination(other)) },
+                            onOpenSurprise = { id -> navController.navigate(SurpriseDestination(id)) },
+                            onPrepareSurprise = { id -> navController.navigate(SurpriseEditDestination(beneficiaryId = id)) },
                             showClaimOccasion = features.isOn(Feature.WishesReveal),
                             onOpenBeneficiary = if (features.isOn(Feature.MemberCard)) {
                                 { id -> navController.navigate(MemberProfileDestination(id)) }

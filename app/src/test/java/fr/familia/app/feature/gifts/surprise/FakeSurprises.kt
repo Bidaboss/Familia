@@ -5,6 +5,9 @@ import fr.familia.app.core.model.GiftHistoryItem
 import fr.familia.app.core.model.OpenSurprise
 import fr.familia.app.core.model.SurpriseProposal
 import fr.familia.app.core.model.Surprise
+import fr.familia.app.core.model.SurpriseMemberRow
+import fr.familia.app.core.model.SurpriseTake
+import fr.familia.app.core.model.TakeKind
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -70,4 +73,68 @@ class FakeSurprises(initial: List<Surprise> = emptyList(), private val failWith:
     }
 
     override fun observeHistory(beneficiaryId: String): Flow<List<GiftHistoryItem>> = history.map { it[beneficiaryId].orEmpty() }
+
+    override suspend fun setRemoved(surpriseId: String, proposal: SurpriseProposal, removed: Boolean) {
+        failWith?.let { throw it }
+        val list = proposals.value[surpriseId].orEmpty()
+        val stored = list.firstOrNull { it.id == proposal.id } ?: proposal
+        proposals.value = proposals.value + (surpriseId to list.filter { it.id != proposal.id } + stored.copy(removed = removed))
+    }
+
+    val takes = MutableStateFlow<Map<String, List<SurpriseTake>>>(emptyMap())
+    /** surpriseId/proposalId → member → amount. */
+    val shares = MutableStateFlow<Map<String, Map<String, Int>>>(emptyMap())
+    val rows = MutableStateFlow<Map<String, List<SurpriseMemberRow>>>(emptyMap())
+
+    override fun observeTakes(surpriseId: String): Flow<List<SurpriseTake>> = takes.map { it[surpriseId].orEmpty() }
+
+    override suspend fun take(surpriseId: String, proposal: SurpriseProposal, memberId: String, kind: TakeKind, goal: Int?) {
+        failWith?.let { throw it }
+        val list = proposals.value[surpriseId].orEmpty()
+        if (list.none { it.id == proposal.id }) proposals.value = proposals.value + (surpriseId to list + proposal)
+        takes.value = takes.value + (surpriseId to takes.value[surpriseId].orEmpty() + SurpriseTake(proposal.id, kind, memberId, goal = goal))
+    }
+
+    override suspend fun release(surpriseId: String, proposalId: String) {
+        failWith?.let { throw it }
+        takes.value = takes.value + (surpriseId to takes.value[surpriseId].orEmpty().filter { it.proposalId != proposalId })
+        shares.value = shares.value - "$surpriseId/$proposalId"
+    }
+
+    override fun observeMyShares(surpriseId: String, memberId: String): Flow<Map<String, Int>> = shares.map { all ->
+        all.filterKeys { it.startsWith("$surpriseId/") }
+            .mapNotNull { (key, byMember) -> byMember[memberId]?.let { key.removePrefix("$surpriseId/") to it } }.toMap()
+    }
+
+    override fun observeShares(surpriseId: String, proposalId: String): Flow<Map<String, Int>> = shares.map { it["$surpriseId/$proposalId"].orEmpty() }
+
+    override suspend fun setShare(surpriseId: String, proposalId: String, memberId: String, amount: Int?) {
+        failWith?.let { throw it }
+        val key = "$surpriseId/$proposalId"
+        val now = shares.value[key].orEmpty()
+        val next = if (amount == null) now - memberId else now + (memberId to amount)
+        shares.value = shares.value + (key to next)
+        // The server keeps the total on the take.
+        takes.value = takes.value + (surpriseId to takes.value[surpriseId].orEmpty().map {
+            if (it.proposalId == proposalId) it.copy(sharesTotal = next.values.sum(), sharesCount = next.size) else it
+        })
+    }
+
+    override fun observeMemberRows(surpriseId: String): Flow<List<SurpriseMemberRow>> = rows.map { it[surpriseId].orEmpty() }
+
+    override suspend fun setValidated(surpriseId: String, memberId: String, validated: Boolean) {
+        failWith?.let { throw it }
+        updateRow(surpriseId, memberId) { it.copy(validated = validated) }
+    }
+
+    override suspend fun decline(surpriseId: String, memberId: String) {
+        failWith?.let { throw it }
+        updateRow(surpriseId, memberId) { it.copy(declined = true, validated = false) }
+    }
+
+    private fun updateRow(surpriseId: String, memberId: String, change: (SurpriseMemberRow) -> SurpriseMemberRow) {
+        val list = rows.value[surpriseId].orEmpty()
+        val row = change(list.firstOrNull { it.memberId == memberId } ?: SurpriseMemberRow(memberId))
+        rows.value = rows.value + (surpriseId to list.filter { it.memberId != memberId } + row)
+    }
 }
