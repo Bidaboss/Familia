@@ -89,6 +89,9 @@ class WikidataPhotosTest {
         assertTrue(isMontageName("Lyon_collage_2.jpg"))
         assertTrue(isMontageName("Mosaïque de Nice.jpg"))
         assertFalse(isMontageName("Port de nuit.jpg"))
+        assertFalse(isMontageName("Vue de Nice depuis le château.jpg"))
+        assertFalse(isMontageName("View of the harbour.jpg"))
+        assertTrue(isMontageName("Vues de Bastia.jpg"))
         assertFalse(isPhotoFile("Montage Ajaccio.jpg"))
         val claims = """{"claims":{"P18":[
             {"mainsnak":{"datavalue":{"value":"Montage Ajaccio.jpg","type":"string"}}},

@@ -103,7 +103,7 @@ fun isPhotoFile(file: String): Boolean =
 
 /** The words of a file name that say it puts several photos together, in French, English, Italian, Spanish, German. */
 private val MONTAGE_WORDS = Regex(
-    "(montage|collage|mosa[iï]que|mosaic|mosaico|composite|compilation|collag|fotomontage|photomontage|kolaz|vues? de |views? of )",
+    "(montage|collage|mosa[iï]que|mosaic|mosaico|composite|compilation|collag|fotomontage|photomontage|kolaz|vues de |views of )",
     RegexOption.IGNORE_CASE,
 )
 
