@@ -3319,6 +3319,30 @@ service cloud.firestore {
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
     }
 
+    // « Autre photo » (demande de l'admin du 25/11 soir, pour toute la famille): the photo chosen
+    // for the cover of a destination, trips/{tripId}/covers/{stepId}. Read by the followers, chosen
+    // by a participant, signed by them at the time of the server. Only a photo of Wikimedia Commons,
+    // with its credit (author and licence), under an existing destination. Goes with the trip.
+    function isValidTripCover(c) {
+      return c.keys().hasAll(['url', 'credit', 'byId', 'updatedAt'])
+        && c.keys().hasOnly(['url', 'credit', 'byId', 'updatedAt'])
+        && c.url is string && c.url.size() <= 600 && c.url.matches('https://upload[.]wikimedia[.]org/.+')
+        && c.credit is string && c.credit.size() > 0 && c.credit.size() <= 200
+        && c.byId == myMemberId()
+        && c.updatedAt == request.time;
+    }
+
+    match /trips/{tripId}/covers/{stepId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+
+      allow create, update: if isMember()
+        && isParticipantOf(tripId)
+        && isValidTripCover(request.resource.data)
+        && exists(/databases/$(database)/documents/trips/$(tripId)/steps/$(stepId));
+
+      allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
+    }
+
     // « Ma valise » (récit 62, module packingList): trips/{tripId}/bags/{memberId}, one private list
     // per participant, ticked by them or by one of their responsible adults (a child's bag), never
     // read by anyone else. `items` holds { label, done } maps, written whole each time. Deleting the

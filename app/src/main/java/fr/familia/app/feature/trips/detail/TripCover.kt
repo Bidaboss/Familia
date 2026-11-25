@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
@@ -52,6 +53,7 @@ import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.core.place.PlacePhoto
 import fr.familia.app.core.place.PlacePhotos
 import fr.familia.app.core.power.rememberBatterySaving
 import fr.familia.app.feature.trips.PlaceCover
@@ -63,7 +65,7 @@ import fr.familia.app.feature.trips.map.GeoPoint
 import kotlinx.coroutines.delay
 
 /** One image of the cover: a place and its point, when the step has one; [fromStep] false for the title of a trip without a destination. */
-data class CoverPlace(val name: String, val point: GeoPoint?, val fromStep: Boolean = true)
+data class CoverPlace(val name: String, val point: GeoPoint?, val fromStep: Boolean = true, val stepId: String? = null)
 
 /**
  * The places of the cover (règle 10): the destinations only, in the order of the trip, never a transport
@@ -72,7 +74,7 @@ data class CoverPlace(val name: String, val point: GeoPoint?, val fromStep: Bool
  */
 fun coverPlaces(trip: Trip, steps: List<TripStep>): List<CoverPlace> {
     val places = tripTimeline(trip, steps).destinations.map { row ->
-        CoverPlace(placeName(row.step), row.step.takeIf { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) })
+        CoverPlace(placeName(row.step), row.step.takeIf { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) }, stepId = row.step.id)
     }.filter { it.name.isNotEmpty() }.distinctBy { it.name.lowercase() }
     return places.ifEmpty { listOf(CoverPlace(trip.title, null, fromStep = false)) }.take(MAX_COVER_PLACES)
 }
@@ -95,6 +97,12 @@ fun TripCoverCarousel(
     photos: PlacePhotos?,
     modifier: Modifier = Modifier,
     today: java.time.LocalDate = java.time.LocalDate.now(),
+    /** The photos chosen with « Autre photo », by step id, the same for the whole family. */
+    covers: Map<String, PlacePhoto> = emptyMap(),
+    /** « Autre photo » on the place shown; null for those who do not take part in the trip. */
+    onOtherPhoto: ((CoverPlace) -> Unit)? = null,
+    /** True while the other photo is looked for: the button waits. */
+    choosing: Boolean = false,
 ) {
     val places = coverPlaces(trip, steps)
     val pager = rememberPagerState { places.size }
@@ -129,6 +137,7 @@ fun TripCoverCarousel(
                     place.name.takeIf { place.fromStep }, place.point, trip.landscape, photos, Modifier.fillMaxSize(),
                     // Retour du 25/11 soir : the credits are at the bottom of the trip (TripPhotoCredits), not on the photo.
                     showCredit = false,
+                    chosen = place.stepId?.let { covers[it] },
                 )
             }
         }
@@ -178,17 +187,39 @@ fun TripCoverCarousel(
                 }
             }
         }
-        if (places.size > 1) {
-            IconButton(
-                onClick = { paused = !paused },
-                modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(56.dp),
-            ) {
-                Icon(
-                    if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
-                    contentDescription = stringResource(if (paused) R.string.trip_cover_play else R.string.trip_cover_pause),
-                    tint = Color.White,
-                    modifier = Modifier.size(48.dp).clip(CircleShape).background(CoverBlue.copy(alpha = 0.7f)).padding(12.dp),
-                )
+        val shown = places.getOrNull(pager.currentPage)
+        Row(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+            // « Autre photo » (demande de l'admin du 25/11 soir): the next photo around the destination shown, for everyone.
+            if (onOtherPhoto != null && shown?.stepId != null && shown.point != null) {
+                IconButton(
+                    onClick = {
+                        // The carousel stops on the place whose photo changes.
+                        paused = true
+                        onOtherPhoto(shown)
+                    },
+                    enabled = !choosing,
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = stringResource(R.string.trip_cover_other_photo, shown.name),
+                        tint = Color.White.copy(alpha = if (choosing) 0.5f else 1f),
+                        modifier = Modifier.size(48.dp).clip(CircleShape).background(CoverBlue.copy(alpha = 0.7f)).padding(12.dp),
+                    )
+                }
+            }
+            if (places.size > 1) {
+                IconButton(
+                    onClick = { paused = !paused },
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(
+                        if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
+                        contentDescription = stringResource(if (paused) R.string.trip_cover_play else R.string.trip_cover_pause),
+                        tint = Color.White,
+                        modifier = Modifier.size(48.dp).clip(CircleShape).background(CoverBlue.copy(alpha = 0.7f)).padding(12.dp),
+                    )
+                }
             }
         }
     }
@@ -213,15 +244,16 @@ private fun CoverFigure(value: String, label: String) {
  * shows while no photo was found.
  */
 @Composable
-fun TripPhotoCredits(trip: Trip, steps: List<TripStep>, photos: PlacePhotos?, modifier: Modifier = Modifier) {
+fun TripPhotoCredits(trip: Trip, steps: List<TripStep>, photos: PlacePhotos?, modifier: Modifier = Modifier, covers: Map<String, PlacePhoto> = emptyMap()) {
     if (photos == null || steps.isEmpty()) return
     val places = coverPlaces(trip, steps)
     var credits by androidx.compose.runtime.remember { mutableStateOf(emptyList<Pair<String, String>>()) }
-    LaunchedEffect(places, photos) {
+    LaunchedEffect(places, photos, covers) {
         val found = mutableListOf<Pair<String, String>>()
         // The free title of a trip without a destination never goes to Wikipedia, as on the cover.
         for (place in places.filter { it.fromStep }) {
-            val photo = photos.of(place.name, place.point?.lat, place.point?.lng)
+            // « Autre photo »: the photo chosen for the family, else the one found.
+            val photo = place.stepId?.let { covers[it] } ?: photos.of(place.name, place.point?.lat, place.point?.lng)
             if (photo != null && found.none { it.second == photo.credit }) found += place.name to photo.credit
         }
         credits = found

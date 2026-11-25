@@ -1003,6 +1003,17 @@ Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus
 
 Droits : ceux qui suivent le voyage (`readerIds`) lisent, les participants ajoutent, modifient et suppriment, sous une destination qui existe ; l'admin principal peut aussi supprimer. Un nom changé retire l'adresse et le point (c'est un autre lieu). `onStepDeletedPlaces` supprime les lieux d'une destination supprimée ; la suppression du voyage les emporte tous. Tests : `firebase/tests/tripPlaces.test.mjs` et `firebase/functions/test/tripPlaces.test.ts`.
 
+### `trips/{tripId}/covers/{stepId}` (« Autre photo », demande de l'admin du 25/11 soir)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `url` | texte | La photo choisie pour la couverture de la destination `stepId`, toujours sur `https://upload.wikimedia.org/`, 600 caractères au plus |
+| `credit` | texte | Auteur et licence de la photo, 1 à 200 caractères, montré dans « Crédits des photos » |
+| `byId` | texte | Le participant qui l'a choisie (lui-même) |
+| `updatedAt` | horodatage | Heure du serveur |
+
+Droits : ceux qui suivent le voyage lisent ; chaque participant choisit une autre photo pour toute la famille, sous une destination qui existe ; un participant ou l'admin principal supprime. La suppression du voyage les emporte. Sans document, l'appli montre la photo qu'elle trouve. Tests : `firebase/tests/tripCovers.test.mjs`.
+
 ### `members/{memberId}/travelPlaces/{placeId}` (récit 107, destinations ajoutées à la main au carnet de baroudeur)
 
 | Champ | Type | Rôle |

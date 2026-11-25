@@ -133,6 +133,35 @@ fun TripDetailRoute(
     }.collectAsStateWithLifecycle(initialValue = emptyList())
     val voicePlayer = rememberVoicePlayer()
     val scope = rememberCoroutineScope()
+    // « Autre photo » (demande de l'admin du 25/11 soir): the photo chosen for each destination, the same for the whole family.
+    val repo = container?.tripRepository
+    val covers by remember(repo, tripId) { repo?.observeCovers(tripId) ?: kotlinx.coroutines.flow.flowOf(emptyMap()) }
+        .collectAsStateWithLifecycle(emptyMap())
+    var choosing by remember { mutableStateOf(false) }
+    val otherPhoto: (CoverPlace) -> Unit = { place ->
+        val point = place.point
+        val stepId = place.stepId
+        if (repo != null && point != null && stepId != null && !choosing) {
+            choosing = true
+            scope.launch {
+                try {
+                    val current = covers[stepId]?.url ?: container?.placePhotos?.of(place.name, point.lat, point.lng)?.url
+                    val next = sharedCoverChoices.next(point.lat, point.lng, current)
+                    if (next == null) {
+                        Toast.makeText(context, context.getString(R.string.trip_cover_other_photo_none, place.name), Toast.LENGTH_LONG).show()
+                    } else {
+                        repo.chooseCover(tripId, stepId, next, currentMember)
+                    }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Toast.makeText(context, R.string.trip_cover_other_photo_failed, Toast.LENGTH_LONG).show()
+                } finally {
+                    choosing = false
+                }
+            }
+        }
+    }
     var voiceStep by rememberSaveable { mutableStateOf<String?>(null) }
     val quickAdd = stay?.let { today ->
         val id = today.step.id
@@ -235,9 +264,14 @@ fun TripDetailRoute(
         timeline = timeline,
         quickAdd = quickAdd,
         cover = { success ->
-            TripCoverCarousel(success.trip, success.steps, container?.placePhotos, today = success.today)
+            TripCoverCarousel(
+                success.trip, success.steps, container?.placePhotos, today = success.today,
+                covers = covers,
+                onOtherPhoto = otherPhoto.takeIf { success.isParticipant && repo != null },
+                choosing = choosing,
+            )
         },
-        credits = { success -> TripPhotoCredits(success.trip, success.steps, container?.placePhotos) },
+        credits = { success -> TripPhotoCredits(success.trip, success.steps, container?.placePhotos, covers = covers) },
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
     }
@@ -274,6 +308,9 @@ fun TripDetailViewModel.checklistActions(myId: String, packingOn: Boolean): Chec
     }
 
 /** One for the whole app: the drives already asked are kept while it runs. */
+/** The other photos around the destinations, kept for the session (« Autre photo »). */
+private val sharedCoverChoices: fr.familia.app.core.place.CoverChoices by lazy { fr.familia.app.core.place.CoverChoices() }
+
 private val sharedRoadRoutes: fr.familia.app.core.place.RoadRoutes by lazy {
     fr.familia.app.core.place.MapboxRoadRoutes(fr.familia.app.BuildConfig.MAPBOX_PUBLIC_TOKEN)
 }

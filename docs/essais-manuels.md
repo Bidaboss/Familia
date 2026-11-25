@@ -2803,3 +2803,14 @@ Sur un téléphone en Android 10 ou plus :
 2. Si aucune autre photo n'existe, le dessin habituel remplace la photo, sans erreur.
 3. Les destinations qui avaient déjà une vraie photo la gardent.
 4. Dans un voyage avec un trajet en voiture puis une destination, le diaporama de la grande photo ne montre que les destinations : jamais le lieu de départ du trajet. Dans la liste des voyages, la photo du prochain voyage est celle de sa première destination.
+
+## Voyage : « Autre photo » change la photo d'une destination pour toute la famille (demande du 25/11 soir)
+
+**Publier Firebase : oui** (nouvelles règles `trips/{tripId}/covers`), puis « APK de publication ».
+1. Ouvrir un voyage dont on est participant : sur la grande photo, en haut à droite, un rond avec une flèche qui tourne (« Autre photo pour Samoure » avec TalkBack).
+2. Un appui : le défilement s'arrête sur cette destination et, après un court instant, une autre photo prise près d'elle la remplace. Chaque appui donne la suivante, puis on revient à la première.
+3. Sur un autre téléphone de la famille, le même voyage montre la même photo, et la carte du voyage dans « Voyages » aussi (si c'est la première destination).
+4. « Crédits des photos » en bas du voyage donne l'auteur de la nouvelle photo.
+5. Quelqu'un qui suit le voyage sans y participer ne voit pas le bouton.
+6. En mode avion, l'appui affiche « La photo n'a pas pu être changée » ou « Pas d'autre photo près de… », sans plantage ; la photo d'avant reste.
+7. Une destination sans point sur la carte n'a pas le bouton.

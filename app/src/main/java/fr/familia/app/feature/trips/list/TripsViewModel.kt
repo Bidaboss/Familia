@@ -84,8 +84,8 @@ class TripsViewModel(
         } else {
             combine(
                 list.map { trip ->
-                    repo.observeSteps(trip.id)
-                        .map { steps ->
+                    combine(repo.observeSteps(trip.id), repo.observeCovers(trip.id)) { steps, covers -> steps to covers }
+                        .map { (steps, covers) ->
                             // The photo is the one of the first destination, never of a transport nor its departure (retour du 25/11 soir).
                             val destination = fr.familia.app.feature.trips.detail.tripTimeline(trip, steps).destinations
                                 .map { it.step }.firstOrNull { it.hasPosition }
@@ -94,6 +94,8 @@ class TripsViewModel(
                                 point = where?.let { GeoPoint(it.lat!!, it.lng!!) },
                                 name = destination?.let { fr.familia.app.feature.trips.detail.placeName(it) },
                                 km = fr.familia.app.feature.trips.detail.tripFigures(trip, steps, 0)?.distanceKm,
+                                // « Autre photo »: the photo chosen for the first destination, for everyone.
+                                cover = destination?.let { covers[it.id] },
                             )
                         }
                         .catch { e -> if (e is CancellationException) throw e else emit(trip.id to TripWhere(null, null, null)) }
@@ -112,6 +114,7 @@ class TripsViewModel(
                 place = places[trip.id]?.point,
                 placeName = places[trip.id]?.name?.ifEmpty { null },
                 distanceKm = places[trip.id]?.km,
+                cover = places[trip.id]?.cover,
             )
         }
             .groupBy { tripPhase(it.trip, day) }
@@ -126,4 +129,4 @@ class TripsViewModel(
 }
 
 /** What the steps of a trip tell the list: where it goes, its name, how far it goes. */
-private data class TripWhere(val point: GeoPoint?, val name: String?, val km: Int?)
+private data class TripWhere(val point: GeoPoint?, val name: String?, val km: Int?, val cover: fr.familia.app.core.place.PlacePhoto? = null)

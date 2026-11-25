@@ -166,6 +166,36 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         ).await()
     }
 
+    override fun observeCovers(tripId: String): Flow<Map<String, fr.familia.app.core.place.PlacePhoto>> = callbackFlow {
+        val registration = db.collection(TRIPS).document(tripId).collection(COVERS).addSnapshotListener { snapshot, error ->
+            when {
+                // No longer followed, or rules not yet published: the photos found by the app stay.
+                error != null -> {
+                    trySend(emptyMap())
+                    close()
+                }
+                snapshot != null -> trySend(
+                    snapshot.documents.mapNotNull { d ->
+                        val url = d.getString("url") ?: return@mapNotNull null
+                        d.id to fr.familia.app.core.place.PlacePhoto(url, d.getString("credit") ?: fr.familia.app.core.place.DEFAULT_CREDIT)
+                    }.toMap(),
+                )
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun chooseCover(tripId: String, stepId: String, photo: fr.familia.app.core.place.PlacePhoto, me: Member) {
+        db.collection(TRIPS).document(tripId).collection(COVERS).document(stepId).set(
+            mapOf(
+                "url" to photo.url,
+                "credit" to photo.credit.take(200),
+                "byId" to me.id,
+                "updatedAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
+
     override suspend fun alertFamily(tripId: String, me: Member) {
         try {
             db.collection(TRIPS).document(tripId).collection(ALERTS).document(me.id).set(
@@ -313,6 +343,7 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         const val STEPS = "steps"
         const val ITEMS = "items"
         const val ALERTS = "alerts"
+        const val COVERS = "covers"
         private val CURRENCY_CODE = Regex("[A-Z]{3}")
     }
 }

@@ -444,6 +444,9 @@
     <string name="timeline_road">%1$s de route · %2$d km</string>
     <string name="trip_cover_slide">Image %1$d sur %2$d : %3$s</string>
     <string name="trip_cover_pause">Mettre en pause le défilement des images</string>
+    <string name="trip_cover_other_photo">Autre photo pour %1$s</string>
+    <string name="trip_cover_other_photo_none">Pas d\'autre photo près de %1$s</string>
+    <string name="trip_cover_other_photo_failed">La photo n\'a pas pu être changée. Réessaie avec du réseau.</string>
     <string name="trip_cover_play">Reprendre le défilement des images</string>
     <string name="place_article_loading">On cherche des infos sur ce lieu…</string>
     <string name="place_article_more">Lire la suite</string>

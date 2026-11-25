@@ -67,6 +67,15 @@ interface TripRepository {
      */
     suspend fun alertFamily(tripId: String, me: Member)
 
+    /**
+     * « Autre photo » (demande de l'admin du 25/11 soir): the photo chosen for the cover of each
+     * destination, by step id, the same for the whole family, updated live. Empty while none was chosen.
+     */
+    fun observeCovers(tripId: String): Flow<Map<String, fr.familia.app.core.place.PlacePhoto>> = kotlinx.coroutines.flow.flowOf(emptyMap())
+
+    /** [me], who takes part in the trip, chooses [photo] for the cover of the destination [stepId], for everyone. */
+    suspend fun chooseCover(tripId: String, stepId: String, photo: fr.familia.app.core.place.PlacePhoto, me: Member) = Unit
+
     /** The checklist of a trip (récit 13), in [itemOrder], updated live. */
     fun observeItems(tripId: String): Flow<List<TripItem>>
 

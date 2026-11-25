@@ -56,12 +56,15 @@ fun PlaceCover(
     /** Where the credit goes: top right alone, top left under the label of the carousel (its pause button is top right). */
     creditAlignment: Alignment = Alignment.TopEnd,
     creditTop: androidx.compose.ui.unit.Dp = 6.dp,
+    /** The photo chosen with « Autre photo », for the whole family: shown instead of the one found. */
+    chosen: PlacePhoto? = null,
 ) {
-    var layer by remember(place, point) { mutableStateOf<CoverLayer?>(null) }
-    var retried by remember(place, point) { mutableStateOf(false) }
+    var layer by remember(place, point, chosen) { mutableStateOf<CoverLayer?>(chosen?.let { CoverLayer.Photo(it) }) }
+    var retried by remember(place, point, chosen) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
-    LaunchedEffect(place, point, photos) {
+    LaunchedEffect(place, point, photos, chosen) {
+        if (chosen != null) return@LaunchedEffect
         val found = place?.takeIf { it.isNotBlank() }?.let { photos?.of(it, point?.lat, point?.lng) }
         layer = found?.let { CoverLayer.Photo(it) } ?: CoverLayer.Drawn
     }
