@@ -98,8 +98,28 @@ class MembersScreenTest {
     }
 
     @Test
+    fun `Gerer shows for the admin principal only`() {
+        var managed = false
+        compose.setContent {
+            FamiliaTheme {
+                MembersScreen(stateOf("a").copy(isOwner = true), onRetry = {}, onManage = { managed = true }, today = today)
+            }
+        }
+        compose.onNodeWithContentDescription("Gérer la famille").performClick()
+        assertEquals(true, managed)
+    }
+
+    @Test
+    fun `a member who is not the admin principal has no Gerer`() {
+        compose.setContent {
+            FamiliaTheme { MembersScreen(stateOf("b"), onRetry = {}, onManage = {}, today = today) }
+        }
+        assertEquals(0, compose.onAllNodes(androidx.compose.ui.test.hasContentDescription("Gérer la famille")).fetchSemanticsNodes().size)
+    }
+
+    @Test
     @Config(fontScale = 2f)
     fun `at twice the text size, everything is read and tall enough`() = compose.checkAccessibility {
-        MembersScreen(stateOf("a"), onRetry = {}, onOpenProfile = {}, tree = {}, today = today)
+        MembersScreen(stateOf("a").copy(isOwner = true), onRetry = {}, onOpenProfile = {}, tree = {}, onManage = {}, today = today)
     }
 }

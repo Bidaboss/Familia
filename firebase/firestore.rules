@@ -684,18 +684,15 @@ service cloud.firestore {
     // question of the week; récit 6 quinquies: the level, the families, the quiet hours). Nobody
     // else reads or changes them, not even the responsible adults of a child.
     // quietQueue/{memberId}, the notices held for 8 h, has no rule: only the functions use it.
-    // Souvenirs (PRD, récit 34): members/{memberId}/souvenirs/{key}, given by the server only. A
-    // souvenir is private (carte EXPERT-3): its member reads it, and the family reads it once the
-    // member shows it (`shown`), the only field the member changes. souvenirCounters/{memberId}
-    // holds the counted gestures, read by its member only for « Encore 5 coups de main ».
+    // Souvenirs (PRD, récit 34), « Réussites » since récit 114: members/{memberId}/souvenirs/{key},
+    // given by the server only. They are public for the family, with no choice any more (décision
+    // de l'admin du 25/11, annule EXPERT-3): nobody writes them. `shown` stays true for the apps
+    // not yet updated, which still ask for shown == true. souvenirCounters/{memberId} holds the
+    // counted gestures, read by its member only for « Encore 5 coups de main ».
     // souvenirMarks stays closed: only the Cloud Functions use it.
     match /members/{memberId}/souvenirs/{key} {
-      allow read: if isMember() && (memberId == myMemberId() || resource.data.shown == true);
-      allow update: if isMember()
-        && memberId == myMemberId()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shown'])
-        && request.resource.data.shown is bool;
-      allow create, delete: if false;
+      allow read: if isMember();
+      allow create, update, delete: if false;
     }
 
     match /souvenirCounters/{memberId} {

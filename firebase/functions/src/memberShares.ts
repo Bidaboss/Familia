@@ -1,26 +1,26 @@
 // Retirer un membre (récit 114, lot A2; décision de l'admin du 25/11 16 h 28): TOUT ce qu'il a
 // partagé avec la famille part avec lui, sans choix. The exact list:
 //
-//   recipes/{id} he wrote            → with their photos, comments and files (onRecipeDeleted)
-//   recipes/*/comments he wrote
-//   events/*/photos he added         → and their files events/{eventId}/{memberId}/
-//   events/*/comments he wrote
-//   trips/*/photos he added          → and their files trips/{tripId}/{memberId}/
-//   trips/*/words he wrote           (« Le mot de l'étape »), with their comments and mutes
-//   trips/*/words/*/comments he wrote under the words of the others, and his mute there
-//   trips/*/films he made            → their files go with them (onTripFilmDeleted)
-//   goodNews/{id} he posted          → with comments, reactions and files (onGoodNewsDeleted)
-//   goodNews/*/comments he wrote     → the count of the news follows (onGoodNewsCommentRemoved)
-//   goodDeals/{id} he posted         → with its files (onGoodDealDeleted)
-//   whoIsIt/{id} he posted           → with its answer, guesses and files (onWhoIsItDeleted)
+//   recipes/{id} they wrote            → with their photos, comments and files (onRecipeDeleted)
+//   recipes/*/comments they wrote
+//   events/*/photos they added         → and their files events/{eventId}/{memberId}/
+//   events/*/comments they wrote
+//   trips/*/photos they added          → and their files trips/{tripId}/{memberId}/
+//   trips/*/words they wrote           (« Le mot de l'étape »), with their comments and mutes
+//   trips/*/words/*/comments they wrote under the words of the others, and their mute there
+//   trips/*/films they made            → their files go with them (onTripFilmDeleted)
+//   goodNews/{id} they posted          → with comments, reactions and files (onGoodNewsDeleted)
+//   goodNews/*/comments they wrote     → the count of the news follows (onGoodNewsCommentRemoved)
+//   goodDeals/{id} they posted         → with its files (onGoodDealDeleted)
+//   whoIsIt/{id} they posted           → with its answer, guesses and files (onWhoIsItDeleted)
 //   goodNews/{memberId}/, whoIsIt/{memberId}/ in Storage (a file sent without its post)
-//   memberPhotos/{memberId}          (his profile photo)
+//   memberPhotos/{memberId}          (their profile photo)
 //
 // Already removed elsewhere when a member goes: rsvps, bags, trip documents and voice notes
 // (deleteMemberData), wishes and notebook (onMemberDeletedGifts), surprises and their parts
-// (deleteMemberSurprises), birthday cards, moments, souvenirs, answers, votes, tree, his card.
+// (deleteMemberSurprises), birthday cards, moments, souvenirs, answers, votes, tree, their card.
 // Capsules keep their rule (EXPERT-1): they still open, the admin principal decides on the rest.
-// The events, trips, polls and coups de main he created stay: they belong to the family agenda.
+// The events, trips, polls and coups de main they created stay: they belong to the family agenda.
 
 import type { DocumentReference, Firestore } from 'firebase-admin/firestore';
 
@@ -65,7 +65,7 @@ export async function deleteSharedBy(db: Firestore, memberId: string, removeFold
     result.folders++;
   };
 
-  // Top-level things he posted: each takes its own sub-collections and files through its trigger.
+  // Top-level things they posted: each takes its own sub-collections and files through its trigger.
   for (const collection of ['recipes', 'goodNews', 'goodDeals', 'whoIsIt']) {
     await attempt(async () => remove(await authoredIn(db, collection, memberId)));
   }
@@ -74,7 +74,7 @@ export async function deleteSharedBy(db: Firestore, memberId: string, removeFold
   await attempt(() => folder(`goodNews/${memberId}/`));
   await attempt(() => folder(`whoIsIt/${memberId}/`));
 
-  // What he wrote or added under the things of the others.
+  // What they wrote or added under the things of the others.
   for (const parent of ['recipes', 'goodNews']) {
     await attempt(async () => {
       for (const p of (await db.collection(parent).select().get()).docs) {

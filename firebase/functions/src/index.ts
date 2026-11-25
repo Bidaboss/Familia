@@ -50,7 +50,7 @@ import {
 } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
-  countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
+  countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, makeSouvenirsPublicOnce, souvenirMark,
 } from './souvenirs';
 import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
@@ -904,6 +904,12 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
     await migrateRecipesOnce(getFirestore(), new Date());
   } catch (e) {
     console.error('recipeCategories', e);
+  }
+  // Récit 114 (lot A3): the souvenirs given while private become public « Réussites », once.
+  try {
+    await makeSouvenirsPublicOnce(getFirestore(), new Date());
+  } catch (e) {
+    console.error('souvenirsPublic', e);
   }
   // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
   // for the next run and never stops the rest.

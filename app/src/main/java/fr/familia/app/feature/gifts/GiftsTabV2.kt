@@ -1,6 +1,7 @@
 package fr.familia.app.feature.gifts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -284,33 +284,34 @@ private fun BarLine(line: PreparingLine, onOpenList: (String) -> Unit) {
 
 private fun PreparingLine.target(): String = ideasListId(member.id)
 
-/** « Mes envies »: a yellow edge, how many the family sees, « Ajouter une envie » and « Ma fiche ». */
+/**
+ * « Mes envies » (correctif E1): a thin yellow outline, my avatar, « 4 envies · ma fiche ». The
+ * tile opens my list of wishes, never my page; the dark « + Ajouter » opens « Ajouter une envie ».
+ */
 @Composable
 private fun MyWishesCard(state: GiftsUiState.Success, mine: GiftPersonSection, actions: GiftsV2Actions) {
     val listId = mine.wishes?.id ?: wishesListId(mine.member.id)
     val count = mine.wishes?.let { state.wishPreviews[it.id]?.count } ?: 0
-    EdgedCard(Sun) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    GiftCard(
+        Modifier.fillMaxWidth().border(2.dp, Sun, RoundedCornerShape(20.dp)),
+        onClick = { actions.onOpenList(listId) },
+        onClickLabel = stringResource(R.string.gifts_v2_open_my_wishes),
+    ) {
+        Row(Modifier.heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MemberAvatar(mine.member, size = 48.dp)
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.gift_my_wishes), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
                 Text(
                     if (count == 0) stringResource(R.string.gifts_v2_my_wishes_none) else pluralStringResource(R.plurals.gifts_v2_my_wishes_line, count, count),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (LocalPhotoTheme.current != null) GlassInk.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
-        Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = { actions.onAddWish(listId) },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inverseSurface, contentColor = MaterialTheme.colorScheme.inverseOnSurface),
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.gifts_v2_add_wish)) }
-            OutlinedButton(
-                onClick = { actions.onOpenMyPage?.invoke() ?: actions.onOpenList(listId) },
                 modifier = Modifier.heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.gifts_v2_my_page)) }
+            ) { Text(stringResource(R.string.gifts_v2_add_short)) }
         }
     }
 }
