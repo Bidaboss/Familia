@@ -40,6 +40,8 @@ fun AdministrationRoute(
     onOpenCrashes: (() -> Unit)? = null,
     /** « Envoyer une notification » (récit 69). */
     onOpenAnnouncements: (() -> Unit)? = null,
+    /** « Surprises offertes récemment » (brief cadeaux § 9). */
+    onOpenOfferedSurprises: (() -> Unit)? = null,
     /** « Voir où » under a module switch: the screen that shows it, or null. */
     seeWhere: (Feature) -> (() -> Unit)? = { null },
 ) {
@@ -115,6 +117,7 @@ fun AdministrationRoute(
             onOpenAnnouncements = onOpenAnnouncements.takeIf {
                 flags.isOnForFamily(Feature.AdminAnnouncements) && container?.announcementRepository != null
             },
+            onOpenOfferedSurprises = onOpenOfferedSurprises.takeIf { container?.surpriseRepository != null },
             // Shown while « À découvrir » is on (always for the admin principal while in test).
             discoverOrder = Discover.order(discoverKeys),
             discoverInTutorial = Discover.inTutorial(flags::isOn),

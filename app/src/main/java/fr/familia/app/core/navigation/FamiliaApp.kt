@@ -59,6 +59,8 @@ import fr.familia.app.core.crash.sendPendingCrashes
 import fr.familia.app.feature.announcements.AnnouncementDestination
 import fr.familia.app.feature.announcements.AnnouncementRoute
 import fr.familia.app.feature.announcements.AnnouncementsDestination
+import fr.familia.app.feature.gifts.surprise.admin.OfferedSurprisesDestination
+import fr.familia.app.feature.gifts.surprise.admin.OfferedSurprisesRoute
 import fr.familia.app.feature.announcements.AnnouncementsRoute
 import fr.familia.app.feature.crashes.CrashesDestination
 import fr.familia.app.feature.crashes.CrashesRoute
@@ -2026,8 +2028,12 @@ fun FamiliaApp(
                             onOpenFeedback = { navController.navigate(FeedbackListDestination) },
                             onOpenCrashes = { navController.navigate(CrashesDestination) { launchSingleTop = true } },
                             onOpenAnnouncements = { navController.navigate(AnnouncementsDestination) { launchSingleTop = true } },
+                            onOpenOfferedSurprises = { navController.navigate(OfferedSurprisesDestination) { launchSingleTop = true } },
                             seeWhere = { feature -> navController.seeWhere(feature, currentMember.id, nextEventId) },
                         )
+                    }
+                    composable<OfferedSurprisesDestination> {
+                        OfferedSurprisesRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<AnnouncementsDestination> {
                         AnnouncementsRoute(
