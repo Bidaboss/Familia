@@ -178,6 +178,31 @@ class PlanningViewModelTest {
     }
 
     @Test
+    fun `nothing past the last month of the month view is read, neither the event nor its answers`() = runTest {
+        val lastDay = LocalDate.of(2027, 12, 31)
+        assertEquals(lastDay, planningHorizon(today))
+        val events = FakeEvents(
+            listOf(
+                TestFamily.event("last", TestFamily.adult, date = lastDay),
+                TestFamily.event("tooFar", TestFamily.adult, date = lastDay.plusDays(1)),
+            ),
+        )
+        val fake = FakeRsvps()
+        val asked = mutableListOf<List<String>>()
+        val spy = object : RsvpRepository by fake {
+            override fun observeRsvpsOf(eventIds: List<String>): Flow<Map<String, List<Rsvp>>> {
+                asked += eventIds
+                return fake.observeRsvpsOf(eventIds)
+            }
+        }
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today), rsvps = spy)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val days = (vm.uiState.value as PlanningUiState.Success).days
+        assertEquals(listOf("last"), days.flatMap { day -> day.items.map { it.event.id } })
+        assertFalse(asked.flatten().contains("tooFar"))
+    }
+
+    @Test
     fun `the planning still shows when the counters cannot load`() = runTest {
         val events = FakeEvents(listOf(TestFamily.event("meal", TestFamily.adult)))
         val rsvps = FakeRsvps(allFailWith = IllegalStateException("offline"))
