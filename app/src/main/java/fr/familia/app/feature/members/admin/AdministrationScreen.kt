@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.SaveAlt
@@ -140,6 +141,8 @@ fun AdministrationScreen(
     crashCount: Int = 0,
     /** « Envoyer une notification » (récit 69): opens the form; hidden when null (module off). */
     onOpenAnnouncements: (() -> Unit)? = null,
+    /** « Surprises offertes récemment » (brief cadeaux § 9), admin principal only. */
+    onOpenOfferedSurprises: (() -> Unit)? = null,
     /** « Ordre d'À découvrir » (AVIS-19 partie 2): the order in force; hidden when [onSaveDiscoverOrder] is null. */
     discoverOrder: List<DiscoverModule> = DiscoverModule.entries,
     discoverInTutorial: Set<DiscoverModule> = emptySet(),
@@ -182,7 +185,7 @@ fun AdministrationScreen(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
-                        onOpenCrashes, crashCount, onOpenAnnouncements,
+                        onOpenCrashes, crashCount, onOpenAnnouncements, onOpenOfferedSurprises,
                         discoverOrder, discoverInTutorial, onSaveDiscoverOrder, calendarLinks,
                     )
             }
@@ -228,6 +231,7 @@ private fun ReadyContent(
     onOpenCrashes: (() -> Unit)?,
     crashCount: Int,
     onOpenAnnouncements: (() -> Unit)?,
+    onOpenOfferedSurprises: (() -> Unit)?,
     discoverOrder: List<DiscoverModule>,
     discoverInTutorial: Set<DiscoverModule>,
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
@@ -271,6 +275,30 @@ private fun ReadyContent(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+        if (onOpenOfferedSurprises != null) {
+            item(key = "offeredSurprises") {
+                ClayCard(onClick = onOpenOfferedSurprises, contentPadding = PaddingValues(0.dp), modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp)
+                            .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(stringResource(R.string.offered_surprises_title), style = dayHeaderTextStyle())
+                            Text(
+                                stringResource(R.string.offered_surprises_entry_help),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Icon(Icons.Outlined.CardGiftcard, contentDescription = null)
                     }
                 }
             }

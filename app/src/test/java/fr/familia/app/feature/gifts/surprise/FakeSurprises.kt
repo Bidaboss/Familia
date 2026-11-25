@@ -2,7 +2,9 @@ package fr.familia.app.feature.gifts.surprise
 
 import fr.familia.app.core.data.SurpriseRepository
 import fr.familia.app.core.model.GiftHistoryItem
+import fr.familia.app.core.model.OfferedSurprise
 import fr.familia.app.core.model.OpenSurprise
+import fr.familia.app.core.model.sortOffered
 import fr.familia.app.core.model.SurpriseProposal
 import fr.familia.app.core.model.Surprise
 import fr.familia.app.core.model.SurpriseMemberRow
@@ -139,6 +141,17 @@ class FakeSurprises(initial: List<Surprise> = emptyList(), private val failWith:
         offered += surpriseId to memberId
         // Offered, it is gone for everyone: no access to a past surprise (DESIGN-162).
         surprises.value = surprises.value.filter { it.id != surpriseId }
+    }
+
+    val offeredList = MutableStateFlow<List<OfferedSurprise>>(emptyList())
+    val cancelAsked = mutableListOf<String>()
+
+    override fun observeOffered(adminId: String): Flow<List<OfferedSurprise>> = offeredList.map { sortOffered(it) }
+
+    override suspend fun askCancelOffered(surpriseId: String) {
+        failWith?.let { throw it }
+        cancelAsked += surpriseId
+        offeredList.value = offeredList.value.map { if (it.id == surpriseId) it.copy(cancelAsked = true) else it }
     }
 
     private fun updateRow(surpriseId: String, memberId: String, change: (SurpriseMemberRow) -> SurpriseMemberRow) {

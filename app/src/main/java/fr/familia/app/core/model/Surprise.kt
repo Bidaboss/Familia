@@ -1,5 +1,6 @@
 package fr.familia.app.core.model
 
+import java.time.Instant
 import java.time.LocalDate
 
 /** The occasion of a surprise (brief Cadeaux et Surprise, §3): Noël, Anniversaire or Autre. */
@@ -173,3 +174,21 @@ fun surprisesToConfirm(mine: List<Surprise>, today: java.time.LocalDate): Surpri
     val first = due.firstOrNull() ?: return null
     return SurprisesToConfirm(due.size, first.title, first.id)
 }
+
+/**
+ * Administration > « Surprises offertes récemment » (brief § 9): the title, the date and the person,
+ * never what was inside. Written by the server at « C'est offert », kept until the purge.
+ */
+data class OfferedSurprise(
+    val id: String,
+    val title: String,
+    val date: LocalDate?,
+    val beneficiaryName: String,
+    val offeredAt: Instant?,
+    /** « Annuler C'est offert » asked: the server puts it back « À confirmer ». */
+    val cancelAsked: Boolean,
+)
+
+/** The last offered first. */
+fun sortOffered(list: List<OfferedSurprise>): List<OfferedSurprise> =
+    list.sortedWith(compareByDescending<OfferedSurprise> { it.offeredAt }.thenByDescending { it.date })

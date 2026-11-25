@@ -3822,6 +3822,21 @@
     <!-- Annonces de l'admin (récit 69) -->
     <string name="announcements_title">Envoyer une notification</string>
     <string name="announcements_entry_help">Un message de toi à toute la famille ou à quelques foyers.</string>
+    <string name="offered_surprises_title">Surprises offertes récemment</string>
+    <string name="offered_surprises_entry_help">Annule un « C\'est offert » touché trop tôt.</string>
+    <string name="offered_surprises_intro">Seuls le titre, la personne et la date sont montrés, jamais ce qu\'il y avait dedans.</string>
+    <string name="offered_surprises_for">Pour %1$s</string>
+    <string name="offered_surprises_for_on">Pour %1$s · le %2$s</string>
+    <string name="offered_surprises_offered_on">« C\'est offert » le %1$s</string>
+    <string name="offered_surprises_cancel">Annuler « C\'est offert »</string>
+    <string name="offered_surprises_cancel_title">Annuler « C\'est offert » ?</string>
+    <string name="offered_surprises_cancel_body">« %1$s » pour %2$s revient « À confirmer » en haut de Cadeaux, et ses membres sont prévenus.</string>
+    <string name="offered_surprises_cancel_asked">Annulation demandée : la surprise revient « À confirmer ».</string>
+    <string name="offered_surprises_failed">L\'annulation n\'est pas passée. Vérifie ta connexion et réessaie.</string>
+    <string name="offered_surprises_empty_title">Aucune surprise offerte récemment</string>
+    <string name="offered_surprises_empty_body">Une surprise apparaît ici après « C\'est offert », le temps de pouvoir l\'annuler.</string>
+    <string name="offered_surprises_error_title">Liste indisponible</string>
+    <string name="offered_surprises_error_body">Vérifie ta connexion et reviens plus tard.</string>
     <string name="announcements_help">Le message arrive sur les téléphones choisis. On ne peut pas y répondre, et personne ne peut couper ces notifications dans Familia.</string>
     <string name="announcements_field_title">Titre</string>
     <string name="announcements_field_text">Message</string>
