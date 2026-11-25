@@ -45,7 +45,7 @@ data class ThemePhoto(val id: String, val file: String, val author: String) {
     /**
      * The picture itself, 1080 px wide in JPEG: enough for a phone, light on the data plan. Straight
      * from images.unsplash.com, the hotlink Unsplash asks for: the « /download » link of the page is
-     * for browsers only and gave no photo in the app (Kévin, APK 0.2.618).
+     * for browsers only and gave no photo in the app (retour d'essai, APK 0.2.618).
      */
     val url: String get() = "https://images.unsplash.com/$file?w=1080&q=80&fm=jpg&fit=max"
 }
@@ -72,7 +72,7 @@ object ThemePhotos {
 }
 
 /**
- * Puts the 8 photos in the disk cache of Coil once (Kévin, 25/11: « charger les photos une fois pour
+ * Puts the 8 photos in the disk cache of Coil once (retour d'essai du 25/11: « charger les photos une fois pour
  * toutes »): a photo already there is not downloaded again, so a change of theme or a season shows its
  * photo at once, even offline. About 2 Mo in all.
  */
@@ -155,7 +155,7 @@ fun PhotoBackdrop(theme: FamiliaThemeId, scroll: PhotoScroll, modifier: Modifier
 }
 
 /**
- * How much of the Accueil the photo covers (Kévin, 25/11 10 h 42), a choice of each phone: the whole
+ * How much of the Accueil the photo covers (l'admin, 25/11 10 h 42), a choice of each phone: the whole
  * screen (v36, the default) or the top only, the tiles then white cards and the titles dark.
  */
 enum class PhotoExtent(val key: String) {
