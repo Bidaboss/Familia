@@ -155,3 +155,21 @@ data class SurpriseMemberRow(val memberId: String, val validated: Boolean = fals
 
 /** The goal of a joint gift from the price: whole euros, rounded up, 1 at least. */
 fun jointGoal(price: Double?): Int = price?.let { kotlin.math.ceil(it).toInt() }?.coerceIn(1, SurpriseTake.MAX_AMOUNT) ?: 50
+
+/**
+ * From the day itself (Paris), a surprise waits for « C'est offert » (brief §6): its tile turns to
+ * « Surprise à confirmer » and the big orange card shows on top of it.
+ */
+fun Surprise.isToConfirm(today: java.time.LocalDate): Boolean = !today.isBefore(date)
+
+/**
+ * For the Accueil (« À répondre », récit 113 with the fil principal): how many of my surprises wait
+ * for « C'est offert » today, and the first one to open.
+ */
+data class SurprisesToConfirm(val count: Int, val firstTitle: String, val firstId: String)
+
+fun surprisesToConfirm(mine: List<Surprise>, today: java.time.LocalDate): SurprisesToConfirm? {
+    val due = mine.filter { it.isToConfirm(today) }.sortedBy { it.date }
+    val first = due.firstOrNull() ?: return null
+    return SurprisesToConfirm(due.size, first.title, first.id)
+}

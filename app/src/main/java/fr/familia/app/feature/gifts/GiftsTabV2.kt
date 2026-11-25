@@ -221,10 +221,13 @@ private fun SurpriseBar(lines: List<PreparingLine>, canPrepare: Boolean, onPrepa
 /** A dark tile per surprise in preparation (fiche C1): « Surprise en préparation », for whom and when. */
 @Composable
 private fun SurpriseTileCard(tile: SurpriseTile, today: java.time.LocalDate, onOpen: (String) -> Unit) {
+    // From the day itself: « 🎉 Surprise à confirmer », a yellow edge, until « C'est offert » (brief §2).
+    val due = !today.isBefore(tile.date)
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.inverseSurface,
         contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+        border = if (due) androidx.compose.foundation.BorderStroke(3.dp, Sun) else null,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
@@ -232,11 +235,19 @@ private fun SurpriseTileCard(tile: SurpriseTile, today: java.time.LocalDate, onO
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("🎁", style = MaterialTheme.typography.titleLarge)
+            Text(if (due) "🎉" else "🎁", style = MaterialTheme.typography.titleLarge)
             Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.surprise_tile_preparing), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
-                    stringResource(R.string.surprise_tile_for, tile.beneficiaryName, fr.familia.app.core.ui.dayShortLabel(tile.date, today)),
+                    stringResource(if (due) R.string.surprise_tile_to_confirm else R.string.surprise_tile_preparing),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    if (due) {
+                        stringResource(R.string.surprise_tile_day, tile.beneficiaryName)
+                    } else {
+                        stringResource(R.string.surprise_tile_for, tile.beneficiaryName, fr.familia.app.core.ui.dayShortLabel(tile.date, today))
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }

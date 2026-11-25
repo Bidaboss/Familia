@@ -312,6 +312,17 @@ class FirestoreSurpriseRepository(private val db: FirebaseFirestore) : SurpriseR
             .set(mapOf("declined" to true, "validated" to false, "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()
     }
 
+    override suspend fun markOffered(surpriseId: String, memberId: String) {
+        surprises.document(surpriseId).update(
+            mapOf(
+                "status" to "offered",
+                "offeredAt" to FieldValue.serverTimestamp(),
+                "offeredBy" to memberId,
+                "updatedAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
+
     /**
      * One number per document of [parent] that passes [keep], read from the child [childOf] gives
      * (« amount »): my parts, one listener each, as the notes. A refused read leaves it out.
