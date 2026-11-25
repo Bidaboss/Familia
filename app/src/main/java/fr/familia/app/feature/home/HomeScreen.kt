@@ -25,6 +25,7 @@ import fr.familia.app.feature.feed.FeedOpenRequest
 import fr.familia.app.feature.feed.FeedPublishBar
 import fr.familia.app.feature.feed.FeedNavigation
 import fr.familia.app.feature.feed.HomeFeedSwitch
+import fr.familia.app.feature.feed.LocalFeedGlass
 import fr.familia.app.feature.feed.LocalFeedNavigation
 import fr.familia.app.feature.feed.rememberFeedState
 import androidx.compose.runtime.getValue
@@ -266,17 +267,25 @@ fun HomeRoute(
                     } else {
                         null
                     }
-                    val top: (@Composable () -> Unit)? = if (photoTop != null) {
-                        {
+                    if (photo != null && photoTop != null) {
+                        // Fiche A2: « Le fil de la famille » and its « + Publier » pill, then a glass
+                        // card per actualité, on the photo.
+                        val canWrite = canPublish && f.context?.readOnly == false
+                        val top: @Composable () -> Unit = {
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 photoTop()
-                                publish?.invoke()
+                                PhotoSection(
+                                    title = stringResource(R.string.home_photo_feed),
+                                    colors = PhotoColors.of(photo.theme),
+                                    pill = if (canWrite) stringResource(R.string.home_photo_feed_publish) else null,
+                                    onPill = if (canWrite) onPublishGoodNews else null,
+                                )
                             }
                         }
+                        CompositionLocalProvider(LocalFeedGlass provides true) { FeedList(f, top = top) }
                     } else {
-                        publish
+                        FeedList(f, top = publish)
                     }
-                    FeedList(f, top = top)
                 }
             }
         },
