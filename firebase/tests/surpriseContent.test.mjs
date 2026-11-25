@@ -5,7 +5,7 @@
 // kid1 (child with the app).
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, getDocs, collection, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, getDocs, collection, serverTimestamp, setDoc, Timestamp, updateDoc, writeBatch } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -26,8 +26,8 @@ function surprise(overrides = {}) {
 
 function wishProposal(overrides = {}) {
   return {
-    kind: 'wish', wishItemId: 'w1', title: 'Un livre', price: 20, authorId: 'admin1', authorName: 'admin1',
-    removed: false, createdAt: serverTimestamp(), ...overrides,
+    kind: 'wish', wishItemId: 'w1', title: 'Un livre', price: 20, url: null, authorId: 'admin1', authorName: 'admin1',
+    ...overrides,
   };
 }
 
@@ -54,7 +54,7 @@ beforeEach(async () => {
     await setDoc(doc(db, S), surprise());
     await setDoc(doc(db, 'giftLists/wishes-admin1/items/w1'), { title: 'Un livre', price: 20 });
     await setDoc(doc(db, 'notebooks/adult1/entries/e1'), { source: 'idea', title: 'Un pull' });
-    await setDoc(doc(db, `${S}/proposals/wish-w1`), { ...wishProposal(), createdAt: OLD, ratingSum: null, ratingCount: 1 });
+    await setDoc(doc(db, `${S}/proposals/wish-w1`), { ...wishProposal(), ratingSum: null, ratingCount: 1 });
     await setDoc(doc(db, `${S}/takes/wish-w1`), { kind: 'shared', ownerId: 'adult2', boughtBy: null, goal: 60, createdAt: OLD, updatedAt: OLD });
   });
 });
@@ -107,6 +107,21 @@ describe('my line', () => {
 });
 
 describe('proposals', () => {
+  test('a wish comes with its first rating, in one batch with merge; the next ratings write it again', async () => {
+    await store('giftLists/wishes-admin1/items/w5', { title: 'Un jeu', price: 15 });
+    const db = as(env, ADULT);
+    const batch = writeBatch(db);
+    batch.set(doc(db, `${S}/proposals/wish-w5`), wishProposal({ wishItemId: 'w5', title: 'Un jeu', price: 15 }), { merge: true });
+    batch.set(doc(db, `${S}/proposals/wish-w5/ratings/adult1`), { stars: 4, ...stamp() });
+    await assertSucceeds(batch.commit());
+    const kid = as(env, KID);
+    const again = writeBatch(kid);
+    again.set(doc(kid, `${S}/proposals/wish-w5`), wishProposal({ wishItemId: 'w5', title: 'Un jeu', price: 15 }), { merge: true });
+    again.set(doc(kid, `${S}/proposals/wish-w5/ratings/kid1`), { stars: 2, ...stamp() });
+    await assertSucceeds(again.commit());
+    await assertFails(setDoc(doc(db, `${S}/proposals/wish-w5`), { authorId: 'adult1' }, { merge: true }));
+  });
+
   test('a member adds a wish of the person, at its id and with its live title', async () => {
     await store('giftLists/wishes-admin1/items/w2', { title: 'Un vélo', price: 200 });
     const db = as(env, ADULT);

@@ -1927,7 +1927,7 @@ service cloud.firestore {
       }
 
       function isWishProposal(p) {
-        return p.keys().hasOnly(['kind', 'wishItemId', 'title', 'price', 'authorId', 'authorName', 'removed', 'createdAt',
+        return p.keys().hasOnly(['kind', 'wishItemId', 'title', 'price', 'url', 'authorId', 'authorName', 'removed',
             'ratingSum', 'ratingCount'])
           && p.kind == 'wish'
           && proposalId == 'wish-' + p.wishItemId
@@ -1936,7 +1936,8 @@ service cloud.firestore {
           && isPrice(p.price)
           && p.authorId == surpriseOf(surpriseId).beneficiaryId
           && p.authorName is string && p.authorName.size() <= 40
-          && p.removed is bool;
+          && (p.get('url', null) == null || (p.url is string && p.url.size() <= 500))
+          && p.get('removed', false) is bool;
       }
 
       function isIdeaProposal(p) {
@@ -1955,29 +1956,30 @@ service cloud.firestore {
 
       allow read: if readsSurprise(surpriseId);
 
+      // A wish is written with its first rating (set with merge, in the same batch), without a date.
       allow create: if actsInSurprise(surpriseId)
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.removed == false
+        && request.resource.data.get('removed', false) == false
         && !('ratingSum' in request.resource.data) && !('ratingCount' in request.resource.data)
-        && (isWishProposal(request.resource.data) || isIdeaProposal(request.resource.data));
+        && (isWishProposal(request.resource.data)
+            || (isIdeaProposal(request.resource.data) && request.resource.data.createdAt == request.time));
 
       // The ✕ of Résultats: any member takes it out or puts it back, nothing else. A wish follows its
       // live title and price (set merge at the next rating). The author changes their idea.
       allow update: if actsInSurprise(surpriseId)
         && request.resource.data.kind == resource.data.kind
         && request.resource.data.authorId == resource.data.authorId
-        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null)
         && request.resource.data.get('ratingSum', null) == resource.data.get('ratingSum', null)
         && request.resource.data.get('ratingCount', 0) == resource.data.get('ratingCount', 0)
         && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['removed'])
             || (resource.data.kind == 'wish'
-                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'price', 'authorName'])
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'price', 'url', 'authorName'])
                 && isWishProposal(request.resource.data))
             || (resource.data.kind == 'idea'
                 && resource.data.authorId == myMemberId()
                 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'price', 'url'])
                 && isIdeaProposal(request.resource.data)))
-        && request.resource.data.removed is bool;
+        && request.resource.data.get('removed', false) is bool;
 
       // Back to « Privée »: its author takes their idea back while nobody took it.
       allow delete: if actsInSurprise(surpriseId)
@@ -1993,7 +1995,8 @@ service cloud.firestore {
 
       allow create, update: if actsInSurprise(surpriseId)
         && memberId == myMemberId()
-        && exists(/databases/$(database)/documents/surprises/$(surpriseId)/proposals/$(proposalId))
+        // In the same batch as the wish it rates, the first time.
+        && existsAfter(/databases/$(database)/documents/surprises/$(surpriseId)/proposals/$(proposalId))
         && request.resource.data.keys().hasOnly(['stars', 'updatedAt'])
         && request.resource.data.stars is int
         && request.resource.data.stars >= 1 && request.resource.data.stars <= 5
@@ -2013,7 +2016,7 @@ service cloud.firestore {
 
       allow create: if actsInSurprise(surpriseId)
         && exists(/databases/$(database)/documents/surprises/$(surpriseId)/proposals/$(proposalId))
-        && proposal().removed == false
+        && proposal().get('removed', false) == false
         && request.resource.data.keys().hasOnly(['kind', 'ownerId', 'boughtBy', 'goal', 'createdAt', 'updatedAt'])
         && request.resource.data.ownerId == myMemberId()
         && request.resource.data.boughtBy == null
