@@ -194,6 +194,17 @@ describe('takes and parts', () => {
     await assertSucceeds(deleteDoc(doc(as(env, KID), `${S}/takes/idea-e1`)));
   });
 
+  test('a wish never rated is taken in the same batch as its proposal', async () => {
+    await store('giftLists/wishes-admin1/items/w6', { title: 'Un casque' });
+    const db = as(env, ADULT);
+    const batch = writeBatch(db);
+    batch.set(doc(db, `${S}/proposals/wish-w6`), wishProposal({ wishItemId: 'w6', title: 'Un casque', price: null }), { merge: true });
+    batch.set(doc(db, `${S}/takes/wish-w6`), {
+      kind: 'solo', ownerId: 'adult1', boughtBy: null, goal: null, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    });
+    await assertSucceeds(batch.commit());
+  });
+
   test('a proposal taken out by ✕ is not taken', async () => {
     await store(`${S}/proposals/idea-e1`, { ...ideaProposal(ADULT), createdAt: OLD, removed: true });
     await assertFails(setDoc(doc(as(env, ADULT), `${S}/takes/idea-e1`), {

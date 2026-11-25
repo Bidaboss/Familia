@@ -2008,14 +2008,15 @@ service cloud.firestore {
     // …/takes/{pid}: « Je le prends » (solo) or a joint gift (shared, adults only: a child takes alone,
     // PRODUIT-19), one per proposal. sharesTotal and sharesCount are the server's.
     match /surprises/{surpriseId}/takes/{proposalId} {
+      // After the write: a wish never rated is taken in the same batch as its proposal (C1 de #624).
       function proposal() {
-        return get(/databases/$(database)/documents/surprises/$(surpriseId)/proposals/$(proposalId)).data;
+        return getAfter(/databases/$(database)/documents/surprises/$(surpriseId)/proposals/$(proposalId)).data;
       }
 
       allow read: if readsSurprise(surpriseId);
 
       allow create: if actsInSurprise(surpriseId)
-        && exists(/databases/$(database)/documents/surprises/$(surpriseId)/proposals/$(proposalId))
+        && existsAfter(/databases/$(database)/documents/surprises/$(surpriseId)/proposals/$(proposalId))
         && proposal().get('removed', false) == false
         && request.resource.data.keys().hasOnly(['kind', 'ownerId', 'boughtBy', 'goal', 'createdAt', 'updatedAt'])
         && request.resource.data.ownerId == myMemberId()
