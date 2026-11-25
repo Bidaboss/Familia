@@ -87,6 +87,7 @@ class TripViewModelsTest {
         assertTrue(state.isParticipant)
         assertFalse(state.canManage)
         assertEquals(5, state.followers)
+        assertTrue(state.severalHouseholds) // adult1 and adult2 are two households: « Comptes » shows.
         participant.markArrived("s1")
         assertEquals(listOf("s1" to "adult2"), trips.arrivals)
         participant.clearArrival("s1")
