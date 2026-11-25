@@ -213,8 +213,12 @@ fun TripPhotoCredits(trip: Trip, steps: List<TripStep>, photos: PlacePhotos?, mo
     if (photos == null || steps.isEmpty()) return
     val places = coverPlaces(trip, steps)
     val credits by androidx.compose.runtime.produceState(emptyList<Pair<String, String>>(), places, photos) {
-        value = places.mapNotNull { place -> photos.of(place.name, place.point?.lat, place.point?.lng)?.let { place.name to it.credit } }
-            .distinctBy { it.second }
+        val found = mutableListOf<Pair<String, String>>()
+        for (place in places) {
+            val photo = photos.of(place.name, place.point?.lat, place.point?.lng) ?: continue
+            if (found.none { it.second == photo.credit }) found += place.name to photo.credit
+        }
+        value = found
     }
     if (credits.isEmpty()) return
     var open by rememberSaveable { mutableStateOf(false) }
