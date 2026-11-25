@@ -95,7 +95,15 @@ describe('against the emulator', () => {
     const { sent, send } = fakeSender();
     await onGoodNewsCommentCreated(db, send, 'n1', 'c1', comment(), NOON);
     assert.deepEqual(sent.map(([token]) => token), ['phone-camille', 'phone-ines']);
-    assert.equal((await db.doc('goodNews/n1').get()).get('commentCount'), 1);
+    assert.equal((await db.doc('goodNews/n1').get()).get('commentCount'), 2);
+  });
+
+  test('a trigger run twice for the same comment counts it once', async () => {
+    await db.doc('goodNews/n1/comments/c1').set(comment());
+    const { send } = fakeSender();
+    await onGoodNewsCommentCreated(db, send, 'n1', 'c1', comment(), NOON);
+    await onGoodNewsCommentCreated(db, send, 'n1', 'c1', comment(), NOON);
+    assert.equal((await db.doc('goodNews/n1').get()).get('commentCount'), 2);
   });
 
   test('until the fil is switched on, only the admin principal is told', async () => {
@@ -105,8 +113,9 @@ describe('against the emulator', () => {
     assert.deepEqual(sent.map(([token]) => token), ['phone-camille']);
   });
 
-  test('the count goes down, never below 0, and never brings back a removed news', async () => {
+  test('the count goes down, never below 0, even replayed, and never brings back a removed news', async () => {
     await db.doc('goodNews/n1').update({ commentCount: 1 });
+    await db.doc('goodNews/n1/comments/c0').delete();
     await onGoodNewsCommentDeleted(db, 'n1');
     await onGoodNewsCommentDeleted(db, 'n1');
     assert.equal((await db.doc('goodNews/n1').get()).get('commentCount'), 0);
