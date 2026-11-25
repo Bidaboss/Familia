@@ -229,6 +229,7 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.theme.LocalPhotoHaze
 import fr.familia.app.core.theme.LocalPhotoTheme
 import fr.familia.app.core.theme.LocalPhotoExtent
 import fr.familia.app.core.theme.PhotoBackdrop
@@ -819,6 +820,8 @@ fun FamiliaApp(
         LocalSnackbarHost provides snackbar,
         LocalPhotoStorage provides container?.photoStorage,
         LocalPhotoExtent provides photoExtent,
+        // One blur for the screens on the photo (Accueil, Cadeaux): PhotoBackdrop feeds it, photoCard shows it.
+        LocalPhotoHaze provides remember { dev.chrisbanes.haze.HazeState() },
     ) {
         // Pinned: the title bar stays, and takes the surface color once the content scrolls under it
         // (audit DESIGN n°4), so the theme's pattern no longer mixes with the title.

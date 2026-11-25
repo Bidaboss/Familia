@@ -128,6 +128,8 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.storage)
     implementation(libs.coil.compose)
+    // The real blur behind the glass cards of the photo themes, Android 12 and newer (récit 113, A5).
+    implementation(libs.haze)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services)
     implementation(libs.googleid)
