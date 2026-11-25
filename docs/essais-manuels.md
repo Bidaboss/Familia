@@ -2763,3 +2763,12 @@ Sur un téléphone en Android 10 ou plus :
 2. Même chose pour un « Bus ».
 3. Un « Vol » ou un « Train » : toujours « ≈ … km à vol d'oiseau ».
 4. Mode avion : la voiture garde le vol d'oiseau, sans erreur.
+
+## Voyage : le lieu choisi à la création devient la première destination (retours du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. « Nouveau voyage » : choisir un lieu dans « Où allez-vous ? », puis les dates, puis « Enregistrer ».
+2. Le voyage s'ouvre directement ; l'ancien écran « Nouvel élément » (Vol, Train, Bus…) n'apparaît plus.
+3. Sur la frise, le lieu choisi est la première destination, du premier au dernier jour ; ses nuits se règlent avec − et +.
+4. Dans « Voyages », la carte du voyage montre la photo et les kilomètres de ce lieu.
+5. Créer un voyage en tapant juste un nom (« Taper un nom ») : le voyage s'ouvre sans destination, comme avant.
