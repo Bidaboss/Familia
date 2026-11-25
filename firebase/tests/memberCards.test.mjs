@@ -68,3 +68,18 @@ test('an older app still saves the sizes and allergies of the first version', as
   await assertSucceeds(setDoc(me, old));
   await assertFails(setDoc(me, { ...old, top: 'x'.repeat(21) }));
 });
+
+test('« À savoir », the sizes and « En ce moment » of récit 114, all optional and bounded', async () => {
+  const me = doc(as(env, ADULT), 'memberCards/adult1');
+  await assertSucceeds(setDoc(me, card(ADULT, {
+    allergies: 'Arachides', diet: 'Végétarien', avoid: 'Pas de parfum', top: 'M', bottom: '40', ring: '54', now: 'Je prépare un marathon',
+  })));
+  await assertSucceeds(setDoc(me, card(ADULT, { now: 'x'.repeat(80) })));
+  await assertFails(setDoc(me, card(ADULT, { now: 'x'.repeat(81) })));
+  await assertFails(setDoc(me, card(ADULT, { ring: 'x'.repeat(21) })));
+  await assertFails(setDoc(me, card(ADULT, { diet: 'x'.repeat(301) })));
+  await assertFails(setDoc(me, card(ADULT, { avoid: 12 })));
+  await assertFails(setDoc(me, card(ADULT, { now: true })));
+  // For a child, by an adult of the household (D6).
+  await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'memberCards/child1'), card(OTHER_ADULT, { allergies: 'Lactose' })));
+});

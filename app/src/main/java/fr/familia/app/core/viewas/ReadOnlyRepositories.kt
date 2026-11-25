@@ -146,6 +146,7 @@ class ReadOnlyMemberRepository(private val inner: MemberRepository, private val 
     override suspend fun saveMember(member: Member, previousEmail: String?) = guard.refuse()
     override suspend fun removeMember(member: Member, updatedChildren: List<Member>) = guard.refuse()
     override suspend fun savePhone(memberId: String, phone: String?) = guard.refuse()
+    override suspend fun saveNickname(memberId: String, nickname: String?) = guard.refuse()
     override fun newHouseholdId(): String = inner.newHouseholdId()
     override suspend fun saveHousehold(household: Household) = guard.refuse()
     override suspend fun deleteHousehold(householdId: String) = guard.refuse()

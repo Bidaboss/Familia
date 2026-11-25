@@ -3,7 +3,7 @@
 import { after, afterEach, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { Bytes, deleteDoc, doc, getDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
-import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, SECOND_ADMIN, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
+import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
 before(async () => { env = await createEnv(); });
@@ -94,14 +94,14 @@ describe('memberPhotos', () => {
     await assertSucceeds(batch.commit());
   });
 
-  test("a chef removes a parent, updates the child and drops the photo in one batch", async () => {
+  test("the admin principal removes a parent, updates the child and drops the photo in one batch", async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), `members/${CHILD.memberId}`), adultDoc(CHILD, {
         profile: 'childWithApp', parentIds: [ADULT.memberId, OTHER_ADULT.memberId],
       }));
       await setDoc(doc(ctx.firestore(), `memberPhotos/${ADULT.memberId}`), { jpeg: jpeg(), updatedAt: new Date() });
     });
-    const db = as(env, SECOND_ADMIN);
+    const db = as(env, ADMIN);
     const batch = writeBatch(db);
     batch.delete(doc(db, `members/${ADULT.memberId}`));
     batch.delete(doc(db, `memberEmails/${ADULT.email}`));
