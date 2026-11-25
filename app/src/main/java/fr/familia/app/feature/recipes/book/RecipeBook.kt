@@ -43,16 +43,16 @@ fun bookSections(recipes: List<BookRecipe>): List<BookSection> {
 }
 
 /**
- * Carte EXPERT-2 in the book, which leaves the app: the photo of a recipe that comes from a child
- * stays with the adults of that child. A photo taken by a child goes to everyone (« on est en
- * famille », 17/11), and so does the photo of any other recipe (the box « Un enfant est sur une
- * des photos » was taken away the same day). A member who left can no longer be checked: no photo.
+ * Carte EXPERT-2 in the book, which leaves the app: the photo of a recipe written by a child stays
+ * with the adults of that child (its parents and those with a parent's rights). The origin is now a
+ * free text, so the rule follows the author. When in doubt the photo stays out: an author or a
+ * photographer who left the family can no longer be checked. A photo taken by a child of an adult's
+ * recipe goes to everyone (« on est en famille », 17/11).
  */
 fun bookPhotoAllowed(photo: AlbumPhoto, recipe: Recipe, makerId: String, family: Family): Boolean {
     if (family.members.none { it.id == photo.authorId }) return false
-    val origin = recipe.originMemberId ?: return true
-    val from = family.members.firstOrNull { it.id == origin } ?: return false
-    return from.profile == MemberProfile.Adult || photoAllowed(makerId, listOf(from.parentIds))
+    val author = family.members.firstOrNull { it.id == recipe.authorId } ?: return false
+    return author.profile == MemberProfile.Adult || photoAllowed(makerId, listOf(author.parentIds))
 }
 
 /** The first photo of [photos] the maker may put in the book, or null: then the Argile drawing. */
