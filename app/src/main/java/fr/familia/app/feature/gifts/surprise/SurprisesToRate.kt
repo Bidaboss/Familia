@@ -4,6 +4,7 @@ import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.SurpriseRepository
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.SurpriseToRate
+import fr.familia.app.core.model.isToConfirm
 import fr.familia.app.core.model.toRateCount
 import fr.familia.app.core.model.wishesListId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
