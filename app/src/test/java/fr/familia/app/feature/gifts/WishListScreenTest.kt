@@ -2,6 +2,7 @@ package fr.familia.app.feature.gifts
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -19,6 +20,7 @@ import fr.familia.app.feature.gifts.detail.GiftListActions
 import fr.familia.app.feature.gifts.detail.GiftListScreen
 import fr.familia.app.feature.gifts.detail.GiftListUiState
 import fr.familia.app.feature.gifts.detail.ItemRow
+import fr.familia.app.feature.gifts.detail.ItemSheetContent
 import fr.familia.app.feature.gifts.detail.WishSurpriseState
 import fr.familia.app.feature.gifts.detail.freshWishIds
 import fr.familia.app.feature.gifts.detail.ideasFor
@@ -147,6 +149,21 @@ class WishListScreenTest {
         compose.setContent { FamiliaTheme { GiftListScreen(state(isMine = false), GiftListActions(), ideas = null) } }
         assertEquals(0, count("Mes idées"))
         assertEquals(1, count("Un casque"))
+    }
+
+    @Test
+    fun `an adult who looks after the child edits and removes its wish from its sheet, once asked`() {
+        val removed = mutableListOf<String>()
+        val carer = state(isMine = false).let { it.copy(items = it.items.map { row -> row.copy(canEdit = true) }) }
+        compose.setContent {
+            FamiliaTheme { ItemSheetContent(carer.items.last(), carer, GiftListActions(onRemoveWish = { removed += it }), onEdit = {}) }
+        }
+        assertEquals(1, count("Modifier"))
+        compose.onNodeWithText("Retirer").performClick()
+        assertEquals(1, count("Elle disparaît de la liste de Adult1, pour toute la famille."))
+        assertTrue(removed.isEmpty())
+        compose.onAllNodesWithText("Retirer").onLast().performClick()
+        assertEquals(listOf("livre"), removed)
     }
 
     @Test

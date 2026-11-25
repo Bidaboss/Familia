@@ -21,6 +21,7 @@ import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.caresFor
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.defaultWishOccasion
 import fr.familia.app.core.model.wishesListId
@@ -399,7 +400,9 @@ class GiftListViewModel(
                         // Récit 73: whoever shares the wish, or keeps the lists of a child who does.
                         (list.kind == GiftListKind.Wishes && item.coBeneficiaryId?.let { co ->
                             family.members.firstOrNull { it.id == co }?.let { keepsListsOf(me, it) }
-                        } == true)
+                        } == true) ||
+                        // Récit 114: the adults who look after a child edit its wishes, never a surprise idea.
+                        (list.kind == GiftListKind.Wishes && item.visibleToBeneficiary && caresFor(me, beneficiary))
                     ),
                 isSurpriseIdea = !item.visibleToBeneficiary && list.kind != GiftListKind.Surprise && list.kind != GiftListKind.Ideas,
                 claim = claim?.let {
