@@ -652,11 +652,11 @@ private fun MoveRow(row: TimelineRow.Move, onOpen: () -> Unit, modifier: Modifie
     val from = row.from
     val to = row.step
     val road by androidx.compose.runtime.produceState<fr.familia.app.core.place.RoadRoute?>(null, roads, from?.lat, from?.lng, to.lat, to.lng, to.type) {
-        value = if (roads != null && goesByRoad(to.type) && from != null && from.hasPosition && to.hasPosition) {
-            roads.between(from.lat!!, from.lng!!, to.lat!!, to.lng!!)
-        } else {
-            null
+        var found: fr.familia.app.core.place.RoadRoute? = null
+        if (roads != null && goesByRoad(to.type) && from != null && from.hasPosition && to.hasPosition) {
+            found = roads.between(from.lat!!, from.lng!!, to.lat!!, to.lng!!)
         }
+        value = found
     }
     // « 4 h 35 de route · 452 km » once the road is known; until then, or without it, as the crow flies.
     val distance = road?.let { stringResource(R.string.timeline_road, fr.familia.app.core.place.roadTime(it.minutes), it.km) }
