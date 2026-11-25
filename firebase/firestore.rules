@@ -1247,7 +1247,7 @@ service cloud.firestore {
     // old bonnes nouvelles (lot 2) have no thread. A removed thing takes its threads with it
     // (deleteGazetteThreadsOfThing), a removed member their comments and J'aime (deleteSharedBy). Comments: 1 to 500 characters, @mentions, a
     // child with the app too, without approval (PRD 119 a); its author changes the text; its
-    // author, a responsible adult of its author and the admin principal remove it.
+    // author, an adult who looks after its child author (caresFor) and the admin principal remove it.
     function threadKind(threadId) {
       return threadId.split(':')[0];
     }
@@ -1327,7 +1327,7 @@ service cloud.firestore {
         && request.resource.data.editedAt == request.time;
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId()
-            || isParentOf(resource.data.authorId)
+            || caresFor(resource.data.authorId)
             || isOwner());
     }
 
@@ -1335,10 +1335,12 @@ service cloud.firestore {
     //
     // gazettePosts/{postId}: what a member publishes with « ＋ Publier »: a word of up to 1 000
     // characters, up to 6 photos in Storage (gazettePosts/{authorId}/{postId}/, see storage.rules),
-    // or both, and the members named (20 at most). The whole family reads it, a child with the app
+    // the place where the member is (loc, shared 2 h, « Dire où je suis »), and the members named
+    // (20 at most). The whole family reads it, a child with the app
     // publishes without approval (PRD 119 a). Its author changes the text and the members named,
-    // never the photos (editedAt shows « modifié »). Its author, a responsible adult of its author
-    // and the admin principal remove it (récit 121); the server then removes its photos and its
+    // never the photos nor the place (editedAt shows « modifié »). Its author, an adult who looks
+    // after its child author and the admin principal stop the sharing of the place and remove it
+    // (récit 121); the server then removes its photos and its
     // thread (onGazettePostDeleted). Its J'aime and comments live on gazetteThreads/post:{postId}.
     function isGazettePhotoIds(ids) {
       return ids is list && ids.size() <= 6
@@ -1348,13 +1350,39 @@ service cloud.firestore {
 
     function isGazettePost(p) {
       return p.keys().hasAll(['authorId', 'authorName', 'text', 'photoIds', 'mentionIds', 'createdAt'])
-        && p.keys().hasOnly(['authorId', 'authorName', 'text', 'photoIds', 'mentionIds', 'createdAt', 'editedAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'text', 'photoIds', 'mentionIds', 'createdAt', 'editedAt', 'loc', 'locLive'])
         && p.text is string && p.text.size() <= 1000
         && isGazettePhotoIds(p.photoIds)
-        // A word, a photo, or both.
-        && (p.text.trim().size() > 0 || p.photoIds.size() > 0)
+        // A word, a photo, a place, or several.
+        && (p.text.trim().size() > 0 || p.photoIds.size() > 0 || 'loc' in p)
         && isIdList(p.mentionIds, 0, 20)
-        && !(p.authorId in p.mentionIds);
+        && !(p.authorId in p.mentionIds)
+        && (!('loc' in p) || isPostPlaceName(p.loc));
+    }
+
+    // « Dire où je suis » (récit 117): the name of the town, 1 to 80 characters.
+    function isPostPlaceName(loc) {
+      return loc is map && loc.label is string && loc.label.trim().size() > 0 && loc.label.size() <= 80;
+    }
+
+    // The place being shared, at the publication: its name and its point, and locLive true, which
+    // clearEndedPostPlaces looks for to erase the point 2 h later.
+    function isPostPlaceShared(p) {
+      return p.loc.keys().hasOnly(['label', 'lat', 'lng'])
+        && p.loc.lat is number && p.loc.lat >= -90 && p.loc.lat <= 90
+        && p.loc.lng is number && p.loc.lng >= -180 && p.loc.lng <= 180
+        && p.locLive == true;
+    }
+
+    // « Arrêter » (récit 117): the point and locLive go, the name stays (« était à Lyon »). Its
+    // author, an adult who looks after its child author and the admin principal stop it.
+    function isPostPlaceStop() {
+      return 'loc' in resource.data
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['loc', 'locLive'])
+        && request.resource.data.loc.keys().hasOnly(['label'])
+        && request.resource.data.loc.label == resource.data.loc.label
+        && !('locLive' in request.resource.data)
+        && (resource.data.authorId == myMemberId() || caresFor(resource.data.authorId) || isOwner());
     }
 
     match /gazettePosts/{postId} {
@@ -1363,17 +1391,23 @@ service cloud.firestore {
         && postId.matches('^[A-Za-z0-9]{1,40}$')
         && isGazettePost(request.resource.data)
         && !('editedAt' in request.resource.data)
+        // A place is shared from the start, never added later; locLive goes only with a place.
+        && (('loc' in request.resource.data) == ('locLive' in request.resource.data))
+        && (!('loc' in request.resource.data) || isPostPlaceShared(request.resource.data))
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time;
-      allow update: if isMember()
-        && resource.data.authorId == myMemberId()
+      allow update: if isMember() && (isPostPlaceStop() || (
+        resource.data.authorId == myMemberId()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'mentionIds', 'editedAt'])
         && isGazettePost(request.resource.data)
-        && request.resource.data.editedAt == request.time;
+        && request.resource.data.editedAt == request.time));
+      // Récit 121, as for the photos of an album (règle du 25/11): its author, an adult who looks
+      // after its child author (caresFor: a responsible adult or a chef of its household), the
+      // admin principal.
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId()
-            || isParentOf(resource.data.authorId)
+            || caresFor(resource.data.authorId)
             || isOwner());
     }
 

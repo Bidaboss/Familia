@@ -2,6 +2,7 @@ package fr.familia.app.feature.feed.publish
 
 import fr.familia.app.core.model.GazettePost
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.PostPlace
 import fr.familia.app.core.ui.PickGroup
 
 /** What « Publier dans la gazette » holds. [photos] are the content URIs chosen. */
@@ -9,13 +10,15 @@ data class PostForm(
     val text: String = "",
     val photos: List<String> = emptyList(),
     val mentionIds: Set<String> = emptySet(),
+    /** « Dire où je suis » (récit 117): the position of the moment and its town. */
+    val place: PostPlace? = null,
 )
 
 enum class PostFormError { Empty, TextTooLong }
 
-/** A word, a photo, or both (brief §5: « Publier » is on as soon as there is one). Editing keeps the photos. */
-fun PostForm.validate(hasPhotos: Boolean = photos.isNotEmpty()): Set<PostFormError> = buildSet {
-    if (text.isBlank() && !hasPhotos) add(PostFormError.Empty)
+/** A word, a photo or a position (brief §5: « Publier » is on as soon as there is one). Editing keeps the photos and the place. */
+fun PostForm.validate(hasPhotos: Boolean = photos.isNotEmpty(), hasPlace: Boolean = place != null): Set<PostFormError> = buildSet {
+    if (text.isBlank() && !hasPhotos && !hasPlace) add(PostFormError.Empty)
     if (text.length > GazettePost.TEXT_MAX) add(PostFormError.TextTooLong)
 }
 
@@ -24,6 +27,9 @@ fun PostForm.withPhotos(picked: List<String>): PostForm =
     copy(photos = (photos + picked).distinct().take(GazettePost.PHOTOS_MAX))
 
 enum class PostFailure { PhotoUnreadable, Failed }
+
+/** Why « Dire où je suis » found nothing: the permission refused, or no position within 20 s. */
+enum class PlaceProblem { NoPermission, NoPosition }
 
 sealed interface PostEditUiState {
     data object Loading : PostEditUiState
@@ -45,11 +51,17 @@ sealed interface PostEditUiState {
         val progress: Float? = null,
         val offline: Boolean = false,
         val failure: PostFailure? = null,
+        /** The position is being read. */
+        val locating: Boolean = false,
+        val placeProblem: PlaceProblem? = null,
     ) : PostEditUiState {
         val isNew: Boolean get() = existing == null
         val isSaving: Boolean get() = sendingPhoto != null
         val canAddPhotos: Boolean get() = isNew && form.photos.size < GazettePost.PHOTOS_MAX
-        val canPublish: Boolean get() = form.validate(form.photos.isNotEmpty() || existing?.photoIds?.isNotEmpty() == true).isEmpty()
+        val canPublish: Boolean get() = form.validate(
+            hasPhotos = form.photos.isNotEmpty() || existing?.photoIds?.isNotEmpty() == true,
+            hasPlace = form.place != null || existing?.place != null,
+        ).isEmpty()
     }
 
     /** Published (or queued): the screen closes. */

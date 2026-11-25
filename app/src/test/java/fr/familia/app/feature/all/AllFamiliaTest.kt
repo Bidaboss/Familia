@@ -34,17 +34,17 @@ class AllFamiliaTest {
     }
 
     @Test
-    fun `the menu holds 14 modules at most, in the order of the brief, without the gazette (récit 120)`() {
+    fun `the menu holds 13 modules, in the order of the brief, without the gazette nor « Où je suis » (récits 117 et 120)`() {
         assertEquals(
             listOf(
-                "planning", "help", "goodDeals", "lending", "polls", "where",
+                "planning", "help", "goodDeals", "lending", "polls",
                 "gifts", "trips", "recipes", "challenges",
                 "albums", "capsule", "yearInReview", "whoIsIt",
             ),
             ModuleSpec.entries.map { it.key },
         )
         val keys = ModuleSpec.entries.map { it.key }
-        assertTrue(keys.none { it in listOf("feed", "goodNews", "souvenirs") })
+        assertTrue(keys.none { it in listOf("feed", "goodNews", "souvenirs", "where") })
     }
 
     @Test
@@ -52,7 +52,7 @@ class AllFamiliaTest {
         assertEquals(ModuleFamily.Remember, ModuleSpec.WhoIsIt.family)
         assertEquals(ModuleSpec.WhoIsIt, ModuleSpec.entries.last())
         assertEquals(
-            listOf(6, 4, 4),
+            listOf(5, 4, 4),
             ModuleFamily.entries.map { family -> ModuleSpec.entries.count { it.family == family } },
         )
     }

@@ -1,8 +1,13 @@
 package fr.familia.app.feature.feed
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +19,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +35,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -52,15 +60,18 @@ import fr.familia.app.core.data.GazettePostRepository
 import fr.familia.app.core.data.gazetteThreadId
 import fr.familia.app.core.mention.MentionText
 import fr.familia.app.core.model.GazettePost
+import fr.familia.app.core.model.PostPlace
 import fr.familia.app.core.model.canRemoveGazettePost
 import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.formatTime
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.time.Duration
 import java.time.Instant
 
 /*
@@ -101,6 +112,23 @@ class PostFeedCard(val post: GazettePost, private val posts: GazettePostReposito
         val canEdit = !context.readOnly && post.authorId == context.me.id
         val canRemove = !context.readOnly && posts != null && canRemoveGazettePost(post, context.me, context.family)
         var menu by remember(post.id) { mutableStateOf(false) }
+        var removing by remember(post.id) { mutableStateOf(false) }
+        // The scope of the card, not of a dialog: closing the dialog never stops the removal.
+        val scope = rememberCoroutineScope()
+        val toast = LocalContext.current
+        val stopFailed = stringResource(R.string.gazette_post_place_stop_failed)
+        // « Arrêter »: the point goes at once, the town stays (« était à Lyon »).
+        val stopSharing: (String) -> Unit = { label ->
+            scope.launch {
+                try {
+                    withTimeoutOrNull(4_000) { posts?.stopSharing(post.id, label) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    Toast.makeText(toast, stopFailed, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
         FeedCardShell(
             tone = FeedTone.Green,
             onOpen = LocalFeedCardDetail.current,
@@ -110,8 +138,8 @@ class PostFeedCard(val post: GazettePost, private val posts: GazettePostReposito
             if (post.text.isNotBlank()) {
                 MentionText(post.text, post.mentionIds, style = MaterialTheme.typography.bodyLarge, maxLines = if (LocalFeedCardDetail.current == null) Int.MAX_VALUE else 6)
             }
+            post.place?.let { place -> PostPlaceLine(post, place, canStop = canRemove, onStop = { label -> stopSharing(label) }) }
         }
-        var removing by remember(post.id) { mutableStateOf(false) }
         if (menu) {
             PostMenu(
                 mine = post.authorId == context.me.id,
@@ -120,9 +148,6 @@ class PostFeedCard(val post: GazettePost, private val posts: GazettePostReposito
                 onDismiss = { menu = false },
             )
         }
-        // The scope of the card, not of the dialog: closing the dialog never stops the removal.
-        val scope = rememberCoroutineScope()
-        val toast = LocalContext.current
         val failed = stringResource(R.string.gazette_post_remove_failed)
         if (removing && posts != null) {
             RemoveDialog(
@@ -169,6 +194,7 @@ private fun PostHeader(post: GazettePost, context: FeedContext, onMenu: (() -> U
     val author = context.member(post.authorId)
     val name = author?.firstName ?: post.authorName
     val what = when {
+        post.photoIds.isEmpty() && post.text.isBlank() && post.place != null -> stringResource(R.string.gazette_post_published_place)
         post.photoIds.isEmpty() -> stringResource(R.string.gazette_post_published_word)
         else -> pluralStringResource(R.plurals.gazette_post_published_photos, post.photoIds.size, post.photoIds.size)
     }
@@ -199,6 +225,90 @@ private fun PostHeader(post: GazettePost, context: FeedContext, onMenu: (() -> U
                 Text("⋯", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
             }
         }
+    }
+}
+
+/**
+ * « 📍 Annecy · encore 1 h 10   Arrêter » while the position is shared (fiche R2), a touch opening it
+ * on a map; then « Partage terminé · était à Annecy » (fiche R3). The time left moves every minute.
+ */
+@Composable
+private fun PostPlaceLine(post: GazettePost, place: PostPlace, canStop: Boolean, onStop: (String) -> Unit) {
+    val now by produceState(Instant.now(), post.id, post.shareEndsAt) {
+        while (true) {
+            value = Instant.now()
+            delay(30_000)
+        }
+    }
+    val ends = post.shareEndsAt
+    val sharing = ends != null && ends.isAfter(now)
+    val context = LocalContext.current
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val lat = place.lat
+        val lng = place.lng
+        val openLabel = stringResource(R.string.gazette_post_place_open, place.label)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 56.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .then(
+                    if (sharing && lat != null && lng != null) {
+                        Modifier.clickable(onClickLabel = openLabel) { openOnMap(context, lat, lng, place.label) }
+                    } else {
+                        Modifier
+                    },
+                ),
+        ) {
+            Text("📍", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.width(8.dp))
+            Column {
+                if (sharing && ends != null) {
+                    Text(place.label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        stringResource(R.string.gazette_post_place_live, timeLeft(Duration.between(now, ends))),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.gazette_post_place_ended, place.label),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        if (sharing && canStop) {
+            OutlinedButton(onClick = { onStop(place.label) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.gazette_post_place_stop))
+            }
+        }
+    }
+}
+
+/** « 1 h 10 », « 45 min », « 1 min »: what is left of the 2 h. */
+internal fun timeLeft(left: Duration): String {
+    val minutes = ((left.toMillis() + 59_999) / 60_000).coerceAtLeast(1)
+    val hours = minutes / 60
+    val rest = minutes % 60
+    return when {
+        hours == 0L -> "$rest min"
+        rest == 0L -> "$hours h"
+        else -> "$hours h ${rest.toString().padStart(2, '0')}"
+    }
+}
+
+/** The place in the map app of the phone, with its name. */
+private fun openOnMap(context: Context, lat: Double, lng: Double, label: String) {
+    val uri = Uri.parse("geo:$lat,$lng?q=$lat,$lng(${Uri.encode(label)})")
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (_: ActivityNotFoundException) {
+        // No map app: the line still says where.
     }
 }
 

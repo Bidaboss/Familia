@@ -2,6 +2,7 @@
 // publication, by its author, a responsible adult or the admin principal, takes its photos and
 // their thumbnails in Storage, and its thread of J'aime and comments, with it.
 
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import type { Firestore } from 'firebase-admin/firestore';
 import { deleteGazetteThreadsOfThing } from './gazetteThreads';
 
@@ -26,4 +27,29 @@ export async function onGazettePostRemoved(db: Firestore, remove: FileRemover, p
   ]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
   if (failed) throw failed.reason;
+}
+
+/** « Dire où je suis » (récit 117): a position is shared 2 h at most. */
+export const PLACE_SHARE_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * The point of every position whose 2 h are over is erased, its town kept (« était à Lyon »): no
+ * position is kept beyond (brief §5). Run by arrivalReminder every 30 minutes, no task of its own.
+ * Returns how many were erased.
+ */
+export async function clearEndedPostPlaces(db: Firestore, now: Date): Promise<number> {
+  const live = await db.collection('gazettePosts').where('locLive', '==', true).get();
+  let cleared = 0;
+  for (const post of live.docs) {
+    const created = post.get('createdAt');
+    const at = created instanceof Timestamp ? created.toMillis() : 0;
+    if (now.getTime() - at < PLACE_SHARE_MS) continue;
+    const label = post.get('loc.label');
+    await post.ref.update({
+      loc: typeof label === 'string' && label.trim() !== '' ? { label } : FieldValue.delete(),
+      locLive: FieldValue.delete(),
+    });
+    cleared++;
+  }
+  return cleared;
 }

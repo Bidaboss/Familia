@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.core.model.EventComment
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.caresFor
 import fr.familia.app.core.model.isOwner
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
@@ -50,13 +51,14 @@ import fr.familia.app.feature.events.comments.CommentsSection
 private val DetailBlack = Color(0xFF15110E)
 
 /**
- * Who removes a comment of the gazette, as the rules say (gazetteThreads/comments): its author, a
- * responsible adult of its author (a child's comment, brief §5) and the admin principal.
+ * Who removes a comment of the gazette, as the rules say (gazetteThreads/comments): its author, an
+ * adult who looks after its child author ([caresFor]: a responsible adult or a chef de famille of
+ * its household, règle du 25/11 comme pour les photos d'album) and the admin principal.
  */
 fun canRemoveGazetteComment(family: Family, comment: EventComment, me: Member): Boolean {
     if (comment.authorId == me.id || family.isOwner(me)) return true
     val author = family.members.firstOrNull { it.id == comment.authorId } ?: return false
-    return me.id in author.parentIds
+    return caresFor(me, author)
 }
 
 /** Over the gazette, full size: every touch stays on it; back closes it. */

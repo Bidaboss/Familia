@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -87,10 +88,13 @@ fun PostEditScreen(
     onDismissFailure: () -> Unit,
     onCancelSending: () -> Unit,
     onBack: () -> Unit,
+    /** « 📍 Dire où je suis » (récit 117); null: no position on this phone. */
+    onLocate: (() -> Unit)? = null,
+    onRemovePlace: () -> Unit = {},
 ) {
     val editing = state as? PostEditUiState.Editing
     val changed = editing != null && (
-        if (editing.isNew) editing.form.text.isNotBlank() || editing.form.photos.isNotEmpty() else editing.form.text != editing.existing?.text
+        if (editing.isNew) editing.form.text.isNotBlank() || editing.form.photos.isNotEmpty() || editing.form.place != null else editing.form.text != editing.existing?.text
         )
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = changed && editing?.isSaving == false) { confirmLeave = true }
@@ -128,7 +132,7 @@ fun PostEditScreen(
                     title = stringResource(R.string.gazette_post_missing_title),
                     body = stringResource(R.string.gazette_post_missing_body),
                 )
-                is PostEditUiState.Editing -> Form(state, onText, onAddPhotos, onRemovePhoto, onMentions, onCancelSending)
+                is PostEditUiState.Editing -> Form(state, onText, onAddPhotos, onRemovePhoto, onMentions, onCancelSending, onLocate, onRemovePlace)
             }
         }
     }
@@ -168,6 +172,8 @@ private fun Form(
     onRemovePhoto: (String) -> Unit,
     onMentions: (Set<String>) -> Unit,
     onCancelSending: () -> Unit,
+    onLocate: (() -> Unit)?,
+    onRemovePlace: () -> Unit,
 ) {
     val form = state.form
     Column(
@@ -221,6 +227,8 @@ private fun Form(
             }
         }
 
+        PlaceRow(state, onRemovePlace)
+
         if (!state.isSaving) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (state.canAddPhotos) {
@@ -233,6 +241,9 @@ private fun Form(
                         stringResource(R.string.gazette_post_add_photo),
                         onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                     )
+                }
+                if (state.isNew && onLocate != null && form.place == null && !state.locating) {
+                    FormOutlineButton(stringResource(R.string.gazette_post_locate), onClick = onLocate)
                 }
                 if (state.candidates.isNotEmpty()) {
                     // « ＠ Mentionner »: a « @ » at the cursor, and the field proposes the members.
@@ -253,6 +264,41 @@ private fun Form(
             }
         }
         SendingProgress(state, onCancelSending)
+    }
+}
+
+/** « 📍 Annecy · Haute-Savoie — Ta position, partagée 2 h avec la famille   Retirer » (fiche R1). */
+@Composable
+private fun PlaceRow(state: PostEditUiState.Editing, onRemove: () -> Unit) {
+    val place = state.form.place ?: state.existing?.place
+    when {
+        state.locating -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            CircularProgressIndicator(Modifier.size(24.dp))
+            Text(stringResource(R.string.gazette_post_locating), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+        }
+        place != null -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("📍", style = MaterialTheme.typography.headlineSmall)
+            Column(Modifier.weight(1f)) {
+                Text(place.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(if (state.isNew) R.string.gazette_post_place_hint else R.string.gazette_post_place_fixed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (state.isNew && !state.isSaving) {
+                TextButton(onClick = onRemove, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.gazette_post_place_remove)) }
+            }
+        }
+        state.placeProblem != null -> FormHint(
+            stringResource(
+                when (state.placeProblem) {
+                    PlaceProblem.NoPermission -> R.string.gazette_post_place_no_permission
+                    PlaceProblem.NoPosition -> R.string.gazette_post_place_none
+                },
+            ),
+            isError = true,
+        )
     }
 }
 

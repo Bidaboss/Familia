@@ -2378,10 +2378,6 @@ private fun allModules(
     module(features.isOn(Feature.Polls), ModuleSpec.Polls) {
         navController.navigate(PollsDestination) { launchSingleTop = true }
     }
-    // Until « Dire où je suis » of the gazette (récit 117): the screen has no other way in yet.
-    module(features.isOn(Feature.Places) && features.isOn(Feature.Home), ModuleSpec.Where) {
-        navController.navigate(JoinMeDestination) { launchSingleTop = true }
-    }
     module(features.isOn(Feature.Gifts), ModuleSpec.Gifts) {
         navController.leaveAllFamiliaFor(TopLevelDestination.Gifts)
     }

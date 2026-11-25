@@ -6,7 +6,9 @@ import fr.familia.app.core.data.GazettePostRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.GazettePost
 import fr.familia.app.core.model.gazetteMentionCandidates
+import fr.familia.app.core.model.PostPlace
 import fr.familia.app.core.photo.PhotoRefusedException
+import fr.familia.app.core.place.PlaceLocator
 import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.core.ui.pickGroups
 import kotlinx.coroutines.CancellationException
@@ -36,6 +38,7 @@ class PostEditViewModel(
     private val currentMemberId: String,
     private val postId: String?,
     private val isOnline: Flow<Boolean> = flowOf(true),
+    private val locator: PlaceLocator? = null,
 ) : ViewModel() {
 
     private val state = MutableStateFlow<PostEditUiState>(PostEditUiState.Loading)
@@ -82,10 +85,52 @@ class PostEditViewModel(
 
     fun dismissFailure() = edit { it.copy(failure = null) }
 
+    private var locating: Job? = null
+
+    /** « 📍 Dire où je suis » (récit 117): the position of the moment, once, and its town. */
+    fun locate() {
+        val current = state.value as? PostEditUiState.Editing ?: return
+        val place = locator
+        if (!current.isNew || current.isSaving || place == null) return
+        locating?.cancel()
+        state.value = current.copy(locating = true, placeProblem = null)
+        locating = viewModelScope.launch {
+            val point = runCatching { place.currentPosition() }.getOrNull()
+            val found = point?.let { (lat, lng) ->
+                val town = runCatching { place.townOf(lat, lng) }.getOrNull()?.trim()?.take(PostPlace.LABEL_MAX)
+                PostPlace(town?.takeIf { it.isNotEmpty() } ?: placeFallback, lat, lng)
+            }
+            state.update { s ->
+                if (s !is PostEditUiState.Editing) {
+                    s
+                } else if (found == null) {
+                    s.copy(locating = false, placeProblem = PlaceProblem.NoPosition)
+                } else {
+                    s.copy(locating = false, form = s.form.copy(place = found), errors = emptySet())
+                }
+            }
+        }
+    }
+
+    /** The permission was refused: the screen says how to allow it. */
+    fun locationRefused() = edit { it.copy(locating = false, placeProblem = PlaceProblem.NoPermission) }
+
+    /** « Retirer » the position before publishing. */
+    fun removePlace() {
+        locating?.cancel()
+        edit { it.copy(form = it.form.copy(place = null), locating = false, placeProblem = null) }
+    }
+
+    /** The name of a place the phone could not name (the app speaks French only). */
+    private val placeFallback: String = "Ma position"
+
     fun save() {
         val current = state.value as? PostEditUiState.Editing ?: return
         if (current.isSaving) return
-        val errors = current.form.validate(current.form.photos.isNotEmpty() || current.existing?.photoIds?.isNotEmpty() == true)
+        val errors = current.form.validate(
+            hasPhotos = current.form.photos.isNotEmpty() || current.existing?.photoIds?.isNotEmpty() == true,
+            hasPlace = current.form.place != null || current.existing?.place != null,
+        )
         if (errors.isNotEmpty()) {
             state.value = current.copy(errors = errors)
             return
@@ -152,6 +197,7 @@ class PostEditViewModel(
             // A photo not fully sent gets a new id: Storage never replaces a file.
             photoIds = s.form.photos.map { uri -> sentPhotos[uri] ?: repo.newId() },
             mentionIds = mentionsOf(s),
+            place = s.form.place,
         )
         val total = s.form.photos.size
         return try {

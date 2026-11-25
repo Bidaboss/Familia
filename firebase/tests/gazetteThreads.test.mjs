@@ -5,7 +5,7 @@
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
-import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, adultDoc, as, createEnv, seed } from './helpers.mjs';
+import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, SECOND_ADMIN, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
 before(async () => { env = await createEnv(); });
@@ -166,5 +166,13 @@ describe('comments', () => {
     await assertSucceeds(deleteDoc(comment(as(env, ADMIN), 'post:p1', 'c2')));
     await storedComment('post:p1', OTHER_ADULT, 'c3');
     await assertSucceeds(deleteDoc(comment(as(env, OTHER_ADULT), 'post:p1', 'c3')));
+  });
+
+  test('the chef de famille of a child removes its comment too, never one of an adult (règle du 25/11)', async () => {
+    await storedComment('post:p1', KID);
+    await assertFails(deleteDoc(comment(as(env, NEIGHBOUR), 'post:p1')));
+    await assertSucceeds(deleteDoc(comment(as(env, SECOND_ADMIN), 'post:p1')));
+    await storedComment('post:p1', OTHER_ADULT, 'c2');
+    await assertFails(deleteDoc(comment(as(env, SECOND_ADMIN), 'post:p1', 'c2')));
   });
 });
