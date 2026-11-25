@@ -87,7 +87,8 @@ private val ISO_DAY: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 private val FRENCH_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.FRANCE)
 
 /**
- * The prompt to copy (règle 28). It carries only what the AI needs: the destinations and the dates,
+ * The prompt to copy (règle 28; règles de la réponse de l'admin, 25/11 soir : the AI first asks to
+ * confirm, may be challenged, and gives the JSON in a block to copy once validated). It carries only what the AI needs: the destinations and the dates,
  * the number of travellers and the currency. Never a first name, never the title of the trip.
  */
 fun enrichPrompt(trip: Trip, steps: List<TripStep>, target: EnrichTarget): String {
@@ -97,7 +98,9 @@ fun enrichPrompt(trip: Trip, steps: List<TripStep>, target: EnrichTarget): Strin
     val placeFormat = """{"sorte": "hebergement" ou "restaurant" ou "spot", "nom": "…", "adresse": "…", "heure": "HH:MM" ou null, "note": "une phrase", "cout": nombre en $currency ou null}"""
     val rules = """
         |Règles de la réponse :
-        |- Réponds UNIQUEMENT par un objet JSON valide, sans texte avant ni après, sans Markdown.
+        |- Demande confirmation des étapes proposées.
+        |- Je peux te challenger dans tes propositions.
+        |- Lorsque je valide, propose un objet JSON valide, sans texte avant ni après, sans Markdown, dans un bloc prévu à copier par l'utilisateur via un bouton copier.
         |- Aucun lien, aucune adresse web, aucun code.
         |- Des lieux réels et connus ; si tu n'es pas sûr, n'en mets pas.
         |- « note » : 200 caractères au plus, en français.

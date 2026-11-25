@@ -2756,6 +2756,22 @@ Sur un téléphone en Android 10 ou plus :
 6. Modifier un voyage déjà daté dans le passé : ses jours restent touchables à partir de son premier jour.
 7. « Départ » d'une destination dans un voyage : seuls les jours après l'arrivée sont touchables, et toucher le jour de départ ferme l'écran.
 
+## Voyage : crédits des photos repliés en bas du voyage (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Dans « Voyages », la carte du prochain voyage : plus de ligne « Photo : … » sur l'image.
+2. Ouvrir le voyage : plus de crédit sur la grande photo non plus.
+3. Tout en bas du voyage, sous les photos : « Crédits des photos », replié. Le toucher : « Nom du lieu : auteur, licence, Wikimedia Commons » pour chaque photo ; le toucher encore le replie.
+4. Un voyage sans photo trouvée (dessin seul) : pas de rubrique « Crédits des photos ».
+
+## Voyage : le temps de route en voiture et en bus (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Un voyage avec deux destinations et une « Voiture » entre elles : sur la frise, la ligne de la voiture montre d'abord « ≈ … km à vol d'oiseau », puis, une seconde après, « 4 h 35 de route · 452 km » (trajet le plus rapide, autoroutes comprises).
+2. Même chose pour un « Bus ».
+3. Un « Vol » ou un « Train » : toujours « ≈ … km à vol d'oiseau ».
+4. Mode avion : la voiture garde le vol d'oiseau, sans erreur.
+
 ## Voyage : le lieu choisi à la création devient la première destination (retours du 25/11 soir)
 
 **Publier Firebase : non.** Seulement « APK de publication ».
@@ -2764,6 +2780,13 @@ Sur un téléphone en Android 10 ou plus :
 3. Sur la frise, le lieu choisi est la première destination, du premier au dernier jour ; ses nuits se règlent avec − et +.
 4. Dans « Voyages », la carte du voyage montre la photo et les kilomètres de ce lieu.
 5. Créer un voyage en tapant juste un nom (« Taper un nom ») : le voyage s'ouvre sans destination, comme avant.
+
+## Voyage : le texte d'« Enrichir avec une IA » demande d'abord une confirmation (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Dans un voyage, « Enrichir avec une IA », copier le texte : sous « Règles de la réponse », on lit « Demande confirmation des étapes proposées », « Je peux te challenger dans tes propositions » et « Lorsque je valide, propose un objet JSON valide… dans un bloc prévu à copier… ».
+2. Le coller dans une IA : elle propose les étapes et attend la validation ; après « Je valide », elle donne le JSON dans un bloc avec un bouton copier.
+3. Coller ce JSON dans Familia : il est lu comme avant (le bloc de code autour est ignoré).
 
 ## Voyage : une seule photo par destination, jamais un montage (demande du 25/11 soir)
 

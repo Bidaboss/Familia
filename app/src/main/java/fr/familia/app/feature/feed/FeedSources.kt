@@ -41,6 +41,8 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
         capsulesOn, recapOn, yearAgo, reviewYear, giftsOn, dealsOn,
     ) {
         buildList {
+            // Publications (récit 117): no switch, the gazette is the Accueil (règle du 25/11).
+            container?.gazettePostRepository?.let { add(PostFeedSource(it)) }
             // Planning (fil principal): the events put in the Planning, with « J'y vais » and their last comment.
             container?.eventRepository?.let { events ->
                 add(EventFeedSource(events, container.rsvpRepository, container.eventCommentRepository.takeIf { commentsOn }, me.id))

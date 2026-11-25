@@ -87,6 +87,29 @@ describe('goodNews folder (récit 32)', () => {
   });
 });
 
+describe('gazettePosts folder (récits 117 et 119 b)', () => {
+  let post = 0;
+  beforeEach(() => { post += 1; });
+  const photo = (author, name = 'a1.jpg') => `gazettePosts/${author}/p${post}/${name}`;
+
+  test('its author sends the photo and its thumbnail, and the family reads them', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, photo('adult1')), 'x'.repeat(500 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'a1-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), photo('adult1'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), photo('adult1'))));
+  });
+
+  test('never in the folder of someone else, never too big, never replaced', async () => {
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), photo('adult1')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(ADULT), photo('adult1')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(ADULT), photo('adult1', 'a1.png')), 'x', 'raw', { contentType: 'image/png' }));
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), photo('adult1')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(ADULT), photo('adult1')), 'y', 'raw', jpeg));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1'))));
+  });
+});
+
 describe('weeklyQuestions folder (récit 37)', () => {
   let week = 0;
   beforeEach(() => { week += 1; });

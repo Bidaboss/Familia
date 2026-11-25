@@ -13,7 +13,8 @@
 //   goodNews/*/comments they wrote     → the count of the news follows (onGoodNewsCommentRemoved)
 //   goodDeals/{id} they posted         → with its files (onGoodDealDeleted)
 //   whoIsIt/{id} they posted           → with its answer, guesses and files (onWhoIsItDeleted)
-//   goodNews/{memberId}/, whoIsIt/{memberId}/ in Storage (a file sent without its post)
+//   gazettePosts/{id} they published → with its photos and its thread (onGazettePostDeleted)
+//   goodNews/{memberId}/, whoIsIt/{memberId}/, gazettePosts/{memberId}/ in Storage (a file sent without its post)
 //   memberPhotos/{memberId}          (their profile photo)
 //   gazetteThreads/*/comments they wrote → the count and the latest of the card follow (onGazetteCommentRemoved)
 //   gazetteThreads/*.reactions.{memberId} (their J'aime)
@@ -71,12 +72,13 @@ export async function deleteSharedBy(db: Firestore, memberId: string, removeFold
   };
 
   // Top-level things they posted: each takes its own sub-collections and files through its trigger.
-  for (const collection of ['recipes', 'goodNews', 'goodDeals', 'whoIsIt']) {
+  for (const collection of ['recipes', 'goodNews', 'goodDeals', 'whoIsIt', 'gazettePosts']) {
     await attempt(async () => remove(await authoredIn(db, collection, memberId)));
   }
 
   // Their files, even one sent without its post.
   await attempt(() => folder(`goodNews/${memberId}/`));
+  await attempt(() => folder(`gazettePosts/${memberId}/`));
   await attempt(() => folder(`whoIsIt/${memberId}/`));
 
   // What they wrote or added under the things of the others.

@@ -56,6 +56,16 @@ class TripEnrichTest {
     }
 
     @Test
+    fun `the AI asks to confirm before giving the JSON to copy`() {
+        val prompt = enrichPrompt(trip, steps, EnrichTarget.Trip)
+        assertTrue(prompt.contains("- Demande confirmation des étapes proposées."))
+        assertTrue(prompt.contains("- Je peux te challenger dans tes propositions."))
+        assertTrue(prompt.contains("Lorsque je valide, propose un objet JSON valide"))
+        assertTrue(prompt.contains("bouton copier"))
+        assertFalse(prompt.contains("UNIQUEMENT"))
+    }
+
+    @Test
     fun `a good answer, wrapped in a code block, enriches the known destination and adds a new one`() {
         val answer = """
             Voici :

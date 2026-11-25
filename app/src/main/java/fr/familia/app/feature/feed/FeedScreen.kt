@@ -9,6 +9,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -52,6 +59,9 @@ class FeedState(
     /** J'aime and comments under the cards (récit 115); null without Firebase. */
     val social: FeedSocialEnv? = null,
 )
+
+/** The brown of « ＋ Publier » (brief §3: « brun très foncé, texte clair »). */
+private val PublishBrown = Color(0xFF3B2A1E)
 
 /** « Voir plus ancien » goes back 14 days each time, 12 weeks at most. */
 private const val MAX_PAGES = 6
@@ -102,7 +112,13 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
  * says when nothing happened in the window.
  */
 @Composable
-fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable () -> Unit)? = null) {
+fun FeedList(
+    state: FeedState,
+    modifier: Modifier = Modifier,
+    top: (@Composable () -> Unit)? = null,
+    /** « ＋ Publier » floating at the bottom (brief §3); null in « Voir comme ». */
+    onPublish: (() -> Unit)? = null,
+) {
     val cards = state.cards
     val context = state.context
     LaunchedEffect(cards) { state.onSeen() }
@@ -115,10 +131,13 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable 
     // The card opened by its counter of comments (brief §4), over the gazette; kept by its key.
     var detailKey by rememberSaveable { mutableStateOf<String?>(null) }
     val detail = detailKey?.let { key -> cards.firstOrNull { it.key == key } }
+    val listState = rememberLazyListState()
     Box(modifier.fillMaxSize()) {
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp),
+        // Room under the last card for « ＋ Publier ».
+        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = if (onPublish != null) 96.dp else 24.dp),
         // 8 dp between two actualités of a day (PRODUIT-127); the day titles keep their 12 dp.
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -156,6 +175,24 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable 
                 }
             }
         }
+    }
+    if (onPublish != null) {
+        // « ＋ Publier », folded into « + » once the gazette scrolls, unfolded back at the top.
+        val atTop by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 40 } }
+        val label = stringResource(R.string.gazette_publish_fab)
+        ExtendedFloatingActionButton(
+            text = { Text(label, fontWeight = FontWeight.ExtraBold) },
+            icon = { Text("＋", fontWeight = FontWeight.ExtraBold) },
+            expanded = atTop,
+            onClick = onPublish,
+            containerColor = PublishBrown,
+            contentColor = Color(0xFFFFF6EA),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = ClaySpacing.screen, bottom = 16.dp)
+                .heightIn(min = 56.dp)
+                .semantics { contentDescription = label },
+        )
     }
     val social = detail?.social
     if (detail != null && social != null && state.social != null) {

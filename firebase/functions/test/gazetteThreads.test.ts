@@ -88,7 +88,7 @@ describe('a thing removed takes the threads of its cards', () => {
   });
 
   test('an event: its card and its album; a recipe, a coup de main, a bon plan, a film: their card', async () => {
-    for (const id of ['event:e1', 'album:events:e1:2026-07-01', 'event:e2', 'recipe:r1', 'help:h1', 'deal:d1', 'film:t1:f1', 'film:t1:f2']) {
+    for (const id of ['event:e1', 'album:events:e1:2026-07-01', 'event:e2', 'recipe:r1', 'help:h1', 'deal:d1', 'film:t1:f1', 'film:t1:f2', 'post:p1', 'post:p10']) {
       await thread(id).set({ reactions: { camille: '💛' } });
     }
     await deleteGazetteThreadsOfThing(db, { event: 'e1' });
@@ -96,6 +96,7 @@ describe('a thing removed takes the threads of its cards', () => {
     await deleteGazetteThreadsOfThing(db, { help: 'h1' });
     await deleteGazetteThreadsOfThing(db, { deal: 'd1' });
     await deleteGazetteThreadsOfThing(db, { film: 'f1', trip: 't1' });
-    assert.deepEqual(await ids(), ['event:e2', 'film:t1:f2']);
+    await deleteGazetteThreadsOfThing(db, { post: 'p1' });
+    assert.deepEqual(await ids(), ['event:e2', 'film:t1:f2', 'post:p10']);
   });
 });

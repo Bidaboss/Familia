@@ -1,34 +1,21 @@
 package fr.familia.app.feature.feed
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -43,8 +30,6 @@ import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Capsule
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.StorageImage
-import fr.familia.app.core.theme.LocalClayColors
-import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.recap.WeekRecap
 import fr.familia.app.feature.yearago.MemoryAlbum
 import fr.familia.app.feature.yearago.YearAgoMemory
@@ -260,73 +245,5 @@ private fun MemoryLine(label: String, tone: FeedTone, text: String, action: Stri
             modifier = Modifier.weight(1f),
         )
         Button(onClick = onAction, modifier = Modifier.heightIn(min = 56.dp)) { Text(action) }
-    }
-}
-
-/**
- * The bar of publication at the top of the fil (récit 71, SF1): « Une photo, une bonne nouvelle… »,
- * a photo button and « Publier », all three opening the screen that publishes a Bonne nouvelle. At a
- * large font size, the sentence takes its own line above the two buttons.
- */
-@Composable
-fun FeedPublishBar(me: Member, onPublish: () -> Unit, modifier: Modifier = Modifier) {
-    val large = LocalDensity.current.fontScale >= 1.3f
-    val prompt = stringResource(R.string.feed_publish_prompt)
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        // The card color of the theme, like the tiles of the fil (PRODUIT-130).
-        color = LocalClayColors.current.card,
-        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = modifier,
-    ) {
-        val buttons = @Composable {
-            FilledTonalIconButton(
-                onClick = onPublish,
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = FeedTone.Green.labelBackground,
-                    contentColor = FeedTone.Green.label,
-                ),
-                modifier = Modifier.size(56.dp),
-            ) {
-                Icon(
-                    Icons.Outlined.PhotoCamera,
-                    contentDescription = stringResource(R.string.feed_publish_photo),
-                )
-            }
-            Button(
-                onClick = onPublish,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1B1B1B),
-                    contentColor = Color.White,
-                ),
-                modifier = Modifier.heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.feed_publish)) }
-        }
-        val sentence = @Composable { textModifier: Modifier ->
-            Text(
-                prompt,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = textModifier
-                    .heightIn(min = 56.dp)
-                    .clickable(onClickLabel = stringResource(R.string.feed_publish), onClick = onPublish)
-                    .wrapContentHeight(Alignment.CenterVertically),
-            )
-        }
-        if (large) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    MemberAvatar(me, size = 40.dp)
-                    sentence(Modifier.weight(1f))
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons() }
-            }
-        } else {
-            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MemberAvatar(me, size = 40.dp)
-                sentence(Modifier.weight(1f))
-                buttons()
-            }
-        }
     }
 }
