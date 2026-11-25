@@ -56,6 +56,7 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
+import { refreshGazetteThread } from './gazetteThreads';
 import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices } from './prefs';
@@ -697,6 +698,15 @@ export const onGoodNewsCommentWritten = onDocumentCreated('goodNews/{postId}/com
 
 export const onGoodNewsCommentRemoved = onDocumentDeleted('goodNews/{postId}/comments/{commentId}', async (event) => {
   await onGoodNewsCommentDeleted(getFirestore(), event.params.postId);
+});
+
+// La gazette (récits 115, 116): the count and the 2 latest comments of a card, kept on its thread.
+export const onGazetteCommentWritten = onDocumentCreated('gazetteThreads/{threadId}/comments/{commentId}', async (event) => {
+  await refreshGazetteThread(getFirestore(), event.params.threadId);
+});
+
+export const onGazetteCommentRemoved = onDocumentDeleted('gazetteThreads/{threadId}/comments/{commentId}', async (event) => {
+  await refreshGazetteThread(getFirestore(), event.params.threadId);
 });
 
 // Grouped reactions (PRD rév. 174): every 15 minutes, the notices due an hour after a first reaction.

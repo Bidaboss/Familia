@@ -1529,3 +1529,15 @@ Derrière l'interrupteur `myReminders`, éteint par défaut. Interrupteur étein
 - `arrivalReminder` les envoie toutes les 30 minutes sur le canal `reminders`, avec `direct: true` et par `deliver()`. Avec les heures calmes, « 2 jours avant » et « 1 semaine avant » attendent 8 h ; « 1 h avant », « 3 h avant » et « le matin » gardent leur heure. Il n'y a aucune nouvelle tâche planifiée.
 - `remindersSent/{membre_événement_rappel_date+heure}`, fermé à l'appli : chaque rappel part une seule fois. Un changement d'heure en fait un nouveau. Le TTL `expireAt` l'efface deux jours après l'événement.
 - Un événement supprimé emporte ses rappels.
+
+## La gazette : J'aime et commentaires des cartes (PRD, récits 115 et 116)
+
+### `gazetteThreads/{threadId}`
+Une carte de la gazette, par sa clé : la clé de la `FeedCard` où « / » devient « : » (`post:p1`, `help:r1`, `wishes:m3:2026-11-25`, `album:trips:t1:2026-11-20`, `film:t1:f1`). Le document naît au premier J'aime ou au premier commentaire.
+- `reactions` : `{ memberId: '💛' | '🎉' | '👏' | '🔥' }`, chacun écrit ou retire seulement la sienne.
+- `commentCount`, `last` (les 2 derniers commentaires : `id`, `authorId`, `authorName`, `text` coupé à 200 caractères, `createdAt`) : tenus par le serveur seul (`onGazetteCommentWritten`, `onGazetteCommentRemoved`).
+- Lecture : qui voit la carte. Toute la famille, sauf un coup de main (`viewerIds` de la demande, et l'admin principal), les photos et le film d'un voyage (`readerIds` du voyage), et les envies d'un membre, jamais lues par ce membre. Un autre type de carte est refusé.
+- Les événements, les recettes et les mots d'étape gardent leurs propres commentaires : leur fil ne prend que des J'aime.
+
+### `gazetteThreads/{threadId}/comments/{commentId}`
+`text` (1 à 500 caractères), `authorId`, `authorName`, `createdAt`, `mentionIds` (facultatif, 20 au plus), `editedAt` après une modification. Un enfant avec l'appli commente sans validation. Son auteur modifie le texte ; son auteur, un adulte responsable de l'auteur et l'admin principal le retirent.
