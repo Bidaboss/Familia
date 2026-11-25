@@ -3,7 +3,12 @@ package fr.familia.app.feature.members
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,9 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -202,23 +204,41 @@ private fun FamilyCount(groups: List<HouseholdGroup>) {
     )
 }
 
-/** Foyers | Arbre, 56 dp like the other segmented choices of the app. */
+/**
+ * Foyers | Arbre (F1): two halves of 56 dp in a rounded band, the chosen one dark brown with white
+ * text; on a photo, the band is cream glass.
+ */
 @Composable
 private fun FamilyTabs(tab: FamilyTab, onChange: (FamilyTab) -> Unit) {
     val labels = listOf(FamilyTab.Households to R.string.members_tab_households, FamilyTab.Tree to R.string.members_tab_tree)
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
-        labels.forEachIndexed { index, (value, label) ->
-            SegmentedButton(
-                selected = tab == value,
-                onClick = { onChange(value) },
-                shape = SegmentedButtonDefaults.itemShape(index, labels.size),
-                colors = if (LocalPhotoTheme.current != null) {
-                    SegmentedButtonDefaults.colors(inactiveContainerColor = GlassCream, activeContainerColor = GlassActive, activeContentColor = Color.White)
-                } else {
-                    SegmentedButtonDefaults.colors()
-                },
-                modifier = Modifier.heightIn(min = 56.dp),
-            ) { Text(stringResource(label)) }
+    val onPhoto = LocalPhotoTheme.current != null
+    val band = RoundedCornerShape(28.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = ClaySpacing.screen, vertical = 8.dp)
+            .then(if (onPhoto) Modifier.photoCard(28.dp) else Modifier.clip(band).background(MaterialTheme.colorScheme.surfaceVariant))
+            .padding(4.dp)
+            .selectableGroup(),
+    ) {
+        labels.forEach { (value, label) ->
+            val selected = tab == value
+            Box(
+                Modifier
+                    .weight(1f)
+                    .heightIn(min = 56.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(if (selected) TabActive else Color.Transparent)
+                    .selectable(selected = selected, role = Role.Tab, onClick = { onChange(value) }),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    stringResource(label),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (selected) Color.White else if (onPhoto) GlassInk else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                )
+            }
         }
     }
 }
@@ -459,6 +479,5 @@ private fun MembersScreenErrorPreview() {
 /** The ink of the glass cards, as Cadeaux. */
 private val GlassInk = Color(0xFF1E1B18)
 
-/** The segmented tabs on the photo (F1): cream glass, the chosen one dark brown. */
-private val GlassCream = Color(0xD9FFFAF2)
-private val GlassActive = Color(0xFF3A2A1A)
+/** The chosen tab (F1): dark brown. */
+private val TabActive = Color(0xFF3A2A1A)
