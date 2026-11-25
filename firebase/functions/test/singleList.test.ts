@@ -7,7 +7,7 @@ import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { cleanupOldLists, copiedItemId, keptOccasion, migrateToSingleList, singleListTarget, widenedAudience } from '../src/singleList';
-import { copiedItemPhoto } from '../src/itemPhoto';
+import { copiedItemPhoto, droppedNotebookPhoto } from '../src/itemPhoto';
 import { onGiftItemChanged, revealGiftLists } from '../src/gifts';
 import { revealWishesOf } from '../src/wishesReveal';
 import type { Sender } from '../src/store';
@@ -62,6 +62,19 @@ describe('the photo of a copied item (récit 44, rév. 237)', () => {
     assert.equal(copiedItemPhoto('giftLists/noel-ines/shared/ines/p1', 'ideas-ines', false), 'giftLists/ideas-ines/hidden/ines/p1');
     assert.equal(copiedItemPhoto('giftLists/noel-ines/received/x/photo', 'ideas-ines', false), null);
     assert.equal(copiedItemPhoto(null, 'ideas-ines', false), null);
+  });
+});
+
+describe('the photo of an idea of the notebook (correctif E11)', () => {
+  test('a photo taken off or replaced is removed, never one of another folder', () => {
+    const own = 'notebooks/ines/photos/p1';
+    assert.equal(droppedNotebookPhoto('ines', own, null), own);
+    assert.equal(droppedNotebookPhoto('ines', own, undefined), own);
+    assert.equal(droppedNotebookPhoto('ines', own, 'notebooks/ines/photos/p2'), own);
+    assert.equal(droppedNotebookPhoto('ines', own, own), null);
+    assert.equal(droppedNotebookPhoto('ines', null, own), null);
+    assert.equal(droppedNotebookPhoto('ines', 'notebooks/camille/photos/p1', null), null);
+    assert.equal(droppedNotebookPhoto('ines', 'giftLists/wishes-ines/shared/ines/p1', null), null);
   });
 });
 

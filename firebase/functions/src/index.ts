@@ -70,7 +70,7 @@ import { keepReceivedPhoto, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
 import { dropBags, leftTheTrip, sendPackingReminders } from './packing';
-import { deleteItemPhoto } from './itemPhoto';
+import { deleteItemPhoto, droppedNotebookPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 import { deleteStepPlaces } from './tripPlaces';
 import { resetOldReservationsOnce } from './surpriseSwitch';
@@ -452,6 +452,15 @@ export const onGiftShareWritten = onDocumentWritten('giftLists/{listId}/claims/{
   const db = getFirestore();
   await updateSharesTotal(db, event.params.listId, event.params.itemId);
   await syncNotebookEntry(db, event.params.listId, event.params.itemId, event.params.memberId);
+});
+
+// The photo of a private idea (correctif E11) that the idea no longer names, or of a removed idea:
+// « name.jpg » and « name-thumb.jpg » of its owner's private folder only.
+export const onNotebookEntryWritten = onDocumentWritten('notebooks/{memberId}/entries/{entryId}', async (event) => {
+  const before = event.data?.before.data() as { photo?: unknown } | undefined;
+  const after = event.data?.after.data() as { photo?: unknown } | undefined;
+  const photo = droppedNotebookPhoto(event.params.memberId, before?.photo, after?.photo);
+  if (photo) await deleteItemPhoto(photo);
 });
 
 export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{itemId}', async (event) => {
