@@ -80,6 +80,7 @@ export async function closeOpenSurprise(db: Firestore, surpriseId: string): Prom
 /** A surprise removed by its creator leaves nothing behind (members, proposals, ratings, takes, parts). */
 export async function deleteSurpriseContent(db: Firestore, surpriseId: string): Promise<void> {
   await closeOpenSurprise(db, surpriseId);
+  await db.collection('offeredSurprises').doc(surpriseId).delete();
   const surprise = db.collection('surprises').doc(surpriseId);
   const children = await surprise.listCollections();
   await Promise.all(children.map((c) => db.recursiveDelete(c)));
@@ -286,13 +287,29 @@ export async function onSurpriseOffered(db: Firestore, send: Sender, surpriseId:
       }
     }
     await batch.commit();
-    // Every notebook entry of this gift: « Offert ».
-    const holders = ((await holdersRef(db, surpriseId, take.id).get()).get('memberIds') as string[] | undefined) ?? [];
+    // Every notebook entry of this gift: « Offert », its status before kept for an admin cancel.
+    const registry = holdersRef(db, surpriseId, take.id);
+    const holders = ((await registry.get()).get('memberIds') as string[] | undefined) ?? [];
+    const statusBefore: Record<string, string> = {};
     for (const id of holders) {
       const ref = db.collection('notebooks').doc(id).collection('entries').doc(surpriseEntryId(surpriseId, take.id));
-      if ((await ref.get()).exists) await ref.update({ status: 'given', updatedAt: FieldValue.serverTimestamp() });
+      const current = await ref.get();
+      if (!current.exists) continue;
+      statusBefore[id] = String(current.get('status') ?? 'idea');
+      await ref.update({ status: 'given', updatedAt: FieldValue.serverTimestamp() });
     }
+    if (holders.length > 0) await registry.set({ statusBefore }, { merge: true });
   }
+  // Administration > Surprises offertes récemment: the title, the person and the date, nothing inside.
+  const beneficiaryDoc = await db.collection('members').doc(beneficiaryId).get();
+  await db.collection('offeredSurprises').doc(surpriseId).set({
+    title: String(surprise.get('title') ?? ''),
+    date: (surprise.get('date') as string | null) ?? null,
+    beneficiaryId,
+    beneficiaryName: String(beneficiaryDoc.get('firstName') ?? ''),
+    offeredAt: FieldValue.serverTimestamp(),
+    cancelAsked: false,
+  });
   const byId = String(surprise.get('offeredBy') ?? '');
   const [by, beneficiary] = await Promise.all([
     byId ? db.collection('members').doc(byId).get() : Promise.resolve(null),
@@ -305,6 +322,87 @@ export async function onSurpriseOffered(db: Firestore, send: Sender, surpriseId:
     await notify(db, send, recipients, offeredNotice(surpriseId, String(by?.get('firstName') ?? 'Quelqu\'un'), String(beneficiary.get('firstName') ?? '')));
   }
   return offered;
+}
+
+// --- « Annuler C'est offert » (brief § 9): the admin principal alone, within the 30 days ----------------
+//
+// offeredSurprises/{sid} lists the surprises offered recently (title, person, date), never their
+// content, and never to the admin when they are the person. The admin writes cancelAsked; the server
+// puts everything back as it was: the surprise « À confirmer » again, the wishes and ideas in their
+// lists, « Déjà offert à X » without them, the notebooks as before, the members told.
+
+export function cancelNotice(surpriseId: string, title: string): Notice {
+  return {
+    channel: 'gifts',
+    title: `« ${title} » : à confirmer de nouveau`,
+    body: 'L\'administrateur a annulé « C\'est offert ». Confirme-le une fois les cadeaux donnés.',
+    surpriseId,
+    tag: `surprise-${surpriseId}`,
+  };
+}
+
+/** Whether this change of offeredSurprises/{sid} is the admin's ask to cancel, once. */
+export function isCancelAsked(before: Record<string, unknown> | undefined, after: Record<string, unknown> | undefined): boolean {
+  return before?.cancelAsked !== true && after?.cancelAsked === true;
+}
+
+export async function cancelSurpriseOffered(db: Firestore, send: Sender, surpriseId: string): Promise<boolean> {
+  const surpriseRef = db.collection('surprises').doc(surpriseId);
+  const listed = db.collection('offeredSurprises').doc(surpriseId);
+  // Once only: the surprise goes back to « preparing » in a transaction.
+  const mine = await db.runTransaction(async (tx) => {
+    const current = await tx.get(surpriseRef);
+    if (!current.exists || current.get('status') !== 'offered') return false;
+    tx.update(surpriseRef, {
+      status: 'preparing', offeredAt: FieldValue.delete(), offeredBy: FieldValue.delete(),
+      offeredHandledAt: FieldValue.delete(), updatedAt: FieldValue.serverTimestamp(),
+    });
+    return true;
+  });
+  if (!mine) {
+    await listed.delete();
+    return false;
+  }
+  const surprise = await surpriseRef.get();
+  const beneficiaryId = String(surprise.get('beneficiaryId') ?? '');
+  // The wishes and ideas, back where they were (unless put back since).
+  const copies = await surpriseRef.collection('offered').get();
+  for (const c of copies.docs) {
+    const path = c.get('path');
+    const data = c.get('data') as Record<string, unknown> | undefined;
+    if (typeof path === 'string' && data) {
+      const original = db.doc(path);
+      if (!(await original.get()).exists) await original.set(data);
+    }
+    await c.ref.delete();
+  }
+  // « Déjà offert à X » without this surprise.
+  const history = await db.collection('giftHistory').doc(beneficiaryId).collection('items').where('surpriseId', '==', surpriseId).get();
+  for (const h of history.docs) await h.ref.delete();
+  // The notebooks as before « Offert ».
+  const registries = await surpriseRef.collection('notebook').get();
+  for (const r of registries.docs) {
+    const before = (r.get('statusBefore') as Record<string, string> | undefined) ?? {};
+    for (const id of (r.get('memberIds') as string[] | undefined) ?? []) {
+      const ref = db.collection('notebooks').doc(id).collection('entries').doc(surpriseEntryId(surpriseId, r.id));
+      const entry = await ref.get();
+      if (entry.exists && entry.get('status') === 'given') {
+        await ref.update({ status: before[id] ?? 'bought', updatedAt: FieldValue.serverTimestamp() });
+      }
+    }
+    await r.ref.update({ statusBefore: FieldValue.delete() });
+  }
+  // Back on « Pour qui » and on the tile of Cadeaux.
+  await db.collection('openSurprises').doc(surpriseId).set({
+    beneficiaryId, title: String(surprise.get('title') ?? ''), creatorName: String(surprise.get('creatorName') ?? ''),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  await listed.delete();
+  const owner = (await db.doc('config/family').get()).get('ownerMemberId');
+  const others = (await activeMemberIds(db, surpriseId, surprise.get('memberIds'))).filter((id) => id !== owner && id !== beneficiaryId);
+  const recipients = (await giftAudience(db))(others);
+  if (recipients.length > 0) await notify(db, send, recipients, cancelNotice(surpriseId, String(surprise.get('title') ?? '')));
+  return true;
 }
 
 /** The members of a surprise who still take part: not « Je ne participe pas », the beneficiary never. */
@@ -391,6 +489,7 @@ export async function purgeOfferedSurprises(db: Firestore, now: Date, removePhot
       }
     }
     await closeOpenSurprise(db, s.id);
+    await db.collection('offeredSurprises').doc(s.id).delete();
     await db.recursiveDelete(s.ref);
   }
   return due.size;
@@ -402,6 +501,7 @@ export async function deleteMemberSurprises(db: Firestore, memberId: string): Pr
   const forThem = await db.collection('surprises').where('beneficiaryId', '==', memberId).get();
   for (const s of forThem.docs) {
     await closeOpenSurprise(db, s.id);
+    await db.collection('offeredSurprises').doc(s.id).delete();
     await db.recursiveDelete(s.ref);
   }
   await db.recursiveDelete(db.collection('giftHistory').doc(memberId));

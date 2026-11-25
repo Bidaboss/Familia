@@ -72,7 +72,8 @@ import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 import { deleteStepPlaces } from './tripPlaces';
 import {
-  deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isNewlyOffered, onSurpriseOffered,
+  cancelSurpriseOffered, deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isCancelAsked, isNewlyOffered,
+  onSurpriseOffered,
   purgeOfferedSurprises, sendSurpriseReminders, syncSurpriseNotebook, updateRatingAverage, updateTakeTotal,
 } from './surprises';
 
@@ -542,6 +543,12 @@ export const onSurpriseDeleted = onDocumentDeleted('surprises/{sid}', async (eve
 export const onSurpriseUpdated = onDocumentUpdated('surprises/{sid}', async (event) => {
   if (!isNewlyOffered(event.data?.before.data(), event.data?.after.data())) return;
   await onSurpriseOffered(getFirestore(), send, event.params.sid);
+});
+
+// « Annuler C'est offert » (Administration > Surprises offertes récemment, admin principal seul).
+export const onOfferedSurpriseUpdated = onDocumentUpdated('offeredSurprises/{sid}', async (event) => {
+  if (!isCancelAsked(event.data?.before.data(), event.data?.after.data())) return;
+  await cancelSurpriseOffered(getFirestore(), send, event.params.sid);
 });
 
 export const onMemberDeletedSurprises = onDocumentDeleted('members/{memberId}', async (event) => {
