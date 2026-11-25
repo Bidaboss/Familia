@@ -29,16 +29,16 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,7 +76,6 @@ import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
-import fr.familia.app.core.ui.aboveSnackbar
 import java.time.LocalDate
 
 /** The two tabs of Famille (brief Famille-recettes, règle 1). */
@@ -92,7 +92,7 @@ fun MembersScreen(
     state: MembersUiState,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    /** Opens the form; the add button follows the rights in [MembersUiState.Success]. */
+    /** Opens the form of a member, for a row when [onOpenProfile] is null (rights in [MembersUiState.Success]). */
     onEditMember: ((memberId: String?) -> Unit)? = null,
     /** Set: every row opens the member's page, whose Modifier keeps the rights of [onEditMember]. */
     onOpenProfile: ((memberId: String) -> Unit)? = null,
@@ -102,6 +102,8 @@ fun MembersScreen(
     onRenameFailureShown: () -> Unit = {},
     /** The « Arbre » tab (module Arbre on); null leaves the households alone, without tabs. */
     tree: (@Composable () -> Unit)? = null,
+    /** ⚙ Gérer (F5), shown to the admin principal only. */
+    onManage: (() -> Unit)? = null,
     today: LocalDate = familyToday(),
     initialTab: FamilyTab = FamilyTab.Households,
 ) {
@@ -122,7 +124,7 @@ fun MembersScreen(
             },
         )
         is MembersUiState.Success -> Column(modifier.fillMaxSize()) {
-            FamilyCount(state.groups)
+            FamilyCount(state.groups, onManage = onManage?.takeIf { state.isOwner })
             val showTree = tree != null && tab == FamilyTab.Tree
             if (tree != null) {
                 FamilyTabs(tab, onChange = { tab = it })
@@ -130,35 +132,23 @@ fun MembersScreen(
             if (showTree) {
                 Box(Modifier.weight(1f).fillMaxWidth()) { tree?.invoke() }
             } else {
-                Box(Modifier.weight(1f).fillMaxWidth()) {
-                    val canAdd = onEditMember != null && state.canAddMembers
-                    HouseholdList(
-                        state = state,
-                        today = today,
-                        onOpen = { member ->
-                            onOpenProfile?.let { open -> { open(member.id) } }
-                                ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } }
-                        },
-                        onRename = { household ->
-                            if (onRenameHousehold != null && !state.isOwner && household.id in state.renamableHouseholdIds) {
-                                { renaming = household.id }
-                            } else {
-                                null
-                            }
-                        },
-                        // Room at the bottom so the add button never hides the last row.
-                        bottom = if (canAdd) 96.dp else 16.dp,
-                    )
-                    if (canAdd && onEditMember != null) {
-                        ExtendedFloatingActionButton(
-                            onClick = { onEditMember(null) },
-                            // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
-                            icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = stringResource(R.string.members_add)) },
-                            text = { Text(stringResource(R.string.members_add)) },
-                            modifier = Modifier.align(Alignment.BottomEnd).aboveSnackbar().padding(16.dp),
-                        )
-                    }
-                }
+                HouseholdList(
+                    state = state,
+                    today = today,
+                    onOpen = { member ->
+                        onOpenProfile?.let { open -> { open(member.id) } }
+                            ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } }
+                    },
+                    // The admin principal renames any household, a chef de foyer only theirs (l'admin, 25/11).
+                    onRename = { household ->
+                        if (onRenameHousehold != null && household.id in state.renamableHouseholdIds) {
+                            { renaming = household.id }
+                        } else {
+                            null
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
@@ -186,22 +176,41 @@ fun MembersScreen(
     }
 }
 
-/** « 13 personnes · 4 foyers », white with a shadow on the photo. */
+/** « 13 personnes · 4 foyers », white with a shadow on the photo, and ⚙ Gérer for the admin principal. */
 @Composable
-private fun FamilyCount(groups: List<HouseholdGroup>) {
-    if (groups.isEmpty()) return
+private fun FamilyCount(groups: List<HouseholdGroup>, onManage: (() -> Unit)?) {
+    if (groups.isEmpty() && onManage == null) return
     val (people, homes) = familyCounts(groups)
     val onPhoto = LocalPhotoTheme.current != null
-    Text(
-        stringResource(
-            R.string.members_f1_count,
-            pluralStringResource(R.plurals.members_f1_people, people, people),
-            pluralStringResource(R.plurals.members_f1_homes, homes, homes),
-        ),
-        style = if (onPhoto) MaterialTheme.typography.titleMedium.copy(shadow = PhotoSectionShadow) else MaterialTheme.typography.titleMedium,
-        color = if (onPhoto) PhotoSectionText else Color.Unspecified,
-        modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
-    )
+    Row(
+        Modifier.fillMaxWidth().padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(
+                R.string.members_f1_count,
+                pluralStringResource(R.plurals.members_f1_people, people, people),
+                pluralStringResource(R.plurals.members_f1_homes, homes, homes),
+            ),
+            style = if (onPhoto) MaterialTheme.typography.titleMedium.copy(shadow = PhotoSectionShadow) else MaterialTheme.typography.titleMedium,
+            color = if (onPhoto) PhotoSectionText else Color.Unspecified,
+            modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+        )
+        if (onManage != null) {
+            val label = stringResource(R.string.members_manage_label)
+            OutlinedButton(
+                onClick = onManage,
+                modifier = Modifier
+                    .heightIn(min = 56.dp)
+                    .then(if (onPhoto) Modifier.photoCard(28.dp) else Modifier)
+                    .semantics { contentDescription = label },
+            ) {
+                Icon(Icons.Outlined.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.members_manage), color = if (onPhoto) GlassInk else Color.Unspecified)
+            }
+        }
+    }
 }
 
 /**
@@ -249,11 +258,11 @@ private fun HouseholdList(
     today: LocalDate,
     onOpen: (Member) -> (() -> Unit)?,
     onRename: (Household) -> (() -> Unit)?,
-    bottom: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 8.dp, bottom = bottom),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
     ) {
         if (state.groups.isEmpty()) {
             item(key = "empty") {
