@@ -2075,6 +2075,19 @@ service cloud.firestore {
     // surprises/{sid}/notebook and /offered are the server's alone (who holds a notebook entry, the
     // copies of the offered wishes for a cancel): no phone reads or writes them, the default.
 
+    // offeredSurprises/{surpriseId}: Administration > Surprises offertes récemment (brief § 9), written
+    // by the server at « C'est offert ». The admin principal alone reads it, never when they are the
+    // person, and asks once for « Annuler C'est offert »; the server does the rest (surprises.ts).
+    match /offeredSurprises/{surpriseId} {
+      allow read: if isOwner() && resource.data.beneficiaryId != myMemberId();
+      allow update: if isOwner()
+        && resource.data.beneficiaryId != myMemberId()
+        && resource.data.cancelAsked == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelAsked', 'cancelAskedAt'])
+        && request.resource.data.cancelAsked == true
+        && request.resource.data.cancelAskedAt == request.time;
+    }
+
     // giftHistory/{beneficiaryId}/items: « Déjà offert à X », written by the server. The whole family
     // reads it but the person: they never learn what they were given in a surprise.
     match /giftHistory/{beneficiaryId}/items/{itemId} {

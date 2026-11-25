@@ -8,7 +8,7 @@ import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import { sendBirthdayGiftReminders } from '../src/gifts';
 import {
-  daysUntil, deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isNewlyOffered, notebookHolders,
+  cancelSurpriseOffered, daysUntil, deleteMemberSurprises, isCancelAsked, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isNewlyOffered, notebookHolders,
   offeredGift, onSurpriseOffered, purgeOfferedSurprises, reminderKind, sendSurpriseReminders, surpriseEntryId, surpriseReminderNotice,
   syncSurpriseNotebook, updateRatingAverage, updateTakeTotal, validAmount, validStars,
 } from '../src/surprises';
@@ -76,7 +76,7 @@ const people: Record<string, { firstName: string; profile: string; birthDate: st
 
 describe('functions', () => {
   beforeEach(async () => {
-    for (const c of ['surprises', 'openSurprises', 'members', 'notebooks', 'giftHistory', 'giftLists', 'quietQueue']) await db.recursiveDelete(db.collection(c));
+    for (const c of ['surprises', 'openSurprises', 'offeredSurprises', 'config', 'members', 'notebooks', 'giftHistory', 'giftLists', 'quietQueue']) await db.recursiveDelete(db.collection(c));
     const batch = db.batch();
     for (const [id, m] of Object.entries(people)) {
       batch.set(db.doc(`members/${id}`), { ...m, email: null, householdId: 'h1', isAdmin: false, uid: null });
@@ -240,6 +240,54 @@ describe('functions', () => {
     // Jade only: not Inès who confirmed, not Hugo who declined, never Camille.
     assert.deepEqual(sent.map((s) => s.token), ['token-jade']);
     assert.match(sent[0].notice.body, /Inès a confirmé : les cadeaux de Camille sont offerts/);
+  });
+
+  test('« Annuler C\'est offert » by the admin: everything back as it was, once, the members told', async () => {
+    const { sent, send } = fakeSender();
+    await db.doc('config/family').set({ ownerMemberId: 'hugo' });
+    await db.recursiveDelete(db.doc('surprises/s1/takes/p1'));
+    await db.doc('surprises/s1').update({ memberIds: ['ines', 'jade', 'hugo'] });
+    await db.doc('giftLists/wishes-camille/items/i1').set({ title: 'Un livre', url: null, price: 25, photo: 'giftLists/wishes-camille/i1' });
+    await db.doc('notebooks/jade/entries/e1').set({ source: 'idea', title: 'Un pull', personId: 'camille', status: 'idea' });
+    await db.doc('surprises/s1/proposals/wish-i1').set({ kind: 'wish', wishItemId: 'i1', title: 'Un livre', removed: false });
+    await db.doc('surprises/s1/proposals/idea-e1').set({ kind: 'idea', authorId: 'jade', notebookEntryId: 'e1', title: 'Un pull', removed: false });
+    await db.doc('surprises/s1/takes/wish-i1').set({ kind: 'solo', ownerId: 'ines', boughtBy: 'ines', goal: null });
+    await db.doc('surprises/s1/takes/idea-e1').set({ kind: 'solo', ownerId: 'jade', boughtBy: null, goal: null });
+    await syncSurpriseNotebook(db, 's1', 'wish-i1');
+    const ines = db.doc(`notebooks/ines/entries/${surpriseEntryId('s1', 'wish-i1')}`);
+    await ines.update({ status: 'wrapped' });
+    await db.doc('giftHistory/camille/items/old').set({ title: 'Un vieux cadeau', surpriseId: 'other' });
+
+    assert.equal(await cancelSurpriseOffered(db, send, 's1'), false); // Not offered: nothing.
+    await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'ines' });
+    await onSurpriseOffered(db, send, 's1');
+    const listed = await db.doc('offeredSurprises/s1').get();
+    assert.deepEqual([listed.get('title'), listed.get('beneficiaryId'), listed.get('beneficiaryName'), listed.get('cancelAsked')], ['Noël de Camille', 'camille', 'Camille', false]);
+    assert.equal(isCancelAsked({ cancelAsked: false }, { cancelAsked: true }), true);
+    assert.equal(isCancelAsked({ cancelAsked: true }, { cancelAsked: true }), false);
+    sent.length = 0;
+
+    assert.equal(await cancelSurpriseOffered(db, send, 's1'), true);
+    assert.equal(await cancelSurpriseOffered(db, send, 's1'), false); // A retry: nothing twice.
+    const s = await db.doc('surprises/s1').get();
+    assert.equal(s.get('status'), 'preparing');
+    assert.equal(s.get('offeredAt'), undefined);
+    assert.equal(s.get('offeredHandledAt'), undefined);
+    assert.equal((await db.doc('giftLists/wishes-camille/items/i1').get()).get('photo'), 'giftLists/wishes-camille/i1');
+    assert.equal((await db.doc('notebooks/jade/entries/e1').get()).get('title'), 'Un pull');
+    assert.equal((await db.collection('surprises/s1/offered').get()).size, 0);
+    assert.deepEqual((await db.collection('giftHistory/camille/items').get()).docs.map((d) => d.id), ['old']);
+    assert.equal((await ines.get()).get('status'), 'wrapped');
+    assert.equal((await db.doc('openSurprises/s1').get()).get('title'), 'Noël de Camille');
+    assert.equal((await db.doc('offeredSurprises/s1').get()).exists, false);
+    // Inès and Jade; not Hugo, the admin who cancelled, never Camille.
+    assert.deepEqual(sent.map((x) => x.token).sort(), ['token-ines', 'token-jade']);
+    assert.match(sent[0].notice.title, /à confirmer de nouveau/);
+
+    // Offered again later: handled again, from scratch.
+    await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'jade' });
+    assert.equal(await onSurpriseOffered(db, send, 's1'), 2);
+    assert.equal((await db.doc('giftLists/wishes-camille/items/i1').get()).exists, false);
   });
 
   test('the reminders: to who has not validated before the day, to all from the day, muted never, beneficiary never', async () => {

@@ -291,3 +291,30 @@ describe('« C\'est offert »', () => {
     await assertFails(offer(ADULT));
   });
 });
+
+describe('« Annuler C\'est offert »', () => {
+  const listed = (who) => doc(as(env, who), 'offeredSurprises/s1');
+  const ask = (who) => updateDoc(listed(who), { cancelAsked: true, cancelAskedAt: serverTimestamp() });
+
+  beforeEach(async () => {
+    await store('offeredSurprises/s1', { title: 'Les 40 ans', date: '2030-02-03', beneficiaryId: 'adult3', beneficiaryName: 'adult3', offeredAt: OLD, cancelAsked: false });
+  });
+
+  test('the admin principal alone reads and asks, once, nothing else', async () => {
+    await assertFails(getDoc(listed(ADULT)));
+    await assertFails(ask(OTHER_ADULT));
+    await assertSucceeds(getDoc(listed(ADMIN)));
+    await assertFails(updateDoc(listed(ADMIN), { cancelAsked: true, cancelAskedAt: serverTimestamp(), title: 'Autre' }));
+    await assertFails(updateDoc(listed(ADMIN), { cancelAsked: false, cancelAskedAt: serverTimestamp() }));
+    await assertSucceeds(ask(ADMIN));
+    await assertFails(ask(ADMIN));
+    await assertFails(deleteDoc(listed(ADMIN)));
+    await assertFails(setDoc(doc(as(env, ADMIN), 'offeredSurprises/s2'), { title: 'x', beneficiaryId: 'adult1', cancelAsked: false }));
+  });
+
+  test('never a surprise for the admin themselves', async () => {
+    await store('offeredSurprises/s1', { title: 'Les 40 ans', date: '2030-02-03', beneficiaryId: 'admin1', beneficiaryName: 'admin1', offeredAt: OLD, cancelAsked: false });
+    await assertFails(getDoc(listed(ADMIN)));
+    await assertFails(ask(ADMIN));
+  });
+});
