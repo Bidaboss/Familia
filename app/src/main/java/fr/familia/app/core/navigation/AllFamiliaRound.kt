@@ -40,7 +40,7 @@ private val NEWS_YELLOW = Color(0xFFF2C14E)
 private val NEWS_INK = Color(0xFF1B1B1B)
 
 /**
- * « Tout Familia » at the center of the bar (DESIGN-55, variante A, Kévin 20/11): a dark round of
+ * « Tout Familia » at the center of the bar (DESIGN-55, variante A, l'admin 20/11): a dark round of
  * 64 dp with a ring of 5 dp of the bar color and the yellow count of [news]. No label; TalkBack
  * reads « Tout Familia, 3 nouveautés ».
  */

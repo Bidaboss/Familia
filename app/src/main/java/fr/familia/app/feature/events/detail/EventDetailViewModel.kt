@@ -99,7 +99,7 @@ class EventDetailViewModel(
         val me = family.members.firstOrNull { it.id == currentMemberId } ?: return EventDetailUiState.Missing
         val byMember = answers.associateBy { it.memberId }
         // Answers of removed members are not shown: they are cleaned up on the server (lot 8).
-        // By household, mine first (règle de Kévin, 17/11).
+        // By household, mine first (règle de l'admin, 17/11).
         val order = householdOrder(family.households, me.householdId)
         fun members(status: RsvpStatus) = family.members
             .filter { byMember[it.id]?.status == status }

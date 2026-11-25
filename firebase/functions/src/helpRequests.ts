@@ -28,7 +28,7 @@ export interface HelpRequestData {
   unavailableIds?: string[];
   thankedAt: unknown | null;
   note?: string | null;
-  /** The members named « @Prénom » in the note (Kévin, 19/11), all among notifyIds. */
+  /** The members named « @Prénom » in the note (l'admin, 19/11), all among notifyIds. */
   mentionIds?: string[];
 }
 
@@ -194,7 +194,7 @@ export async function onHelpRequestWritten(
 }
 
 /**
- * « @Prénom » in the note (Kévin, 19/11): who is newly named, among those warned, hears « X t'a
+ * « @Prénom » in the note (l'admin, 19/11): who is newly named, among those warned, hears « X t'a
  * nommé dans « … » » directly, first, and is left out of the other messages of this write. Never
  * on a cancelled request.
  */

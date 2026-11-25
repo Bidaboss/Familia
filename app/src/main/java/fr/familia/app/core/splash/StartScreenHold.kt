@@ -12,7 +12,7 @@ const val START_SCREEN_MILLIS = 1_350L
 
 /**
  * Until when the start screen stays, in uptime milliseconds: a whole [START_SCREEN_MILLIS] from
- * when the app is ready to draw. Kévin, 17/11: « même si l'appli démarre plus tard, je veux voir
+ * when the app is ready to draw. L'admin, 17/11: « même si l'appli démarre plus tard, je veux voir
  * l'animation en entier ». So a slow start no longer cuts the tree: it waits the full length from
  * here, cold or warm, even if the tree already grew a little during the start.
  */
@@ -20,7 +20,7 @@ internal fun startScreenUntil(now: Long, length: Long = START_SCREEN_MILLIS): Lo
 
 /**
  * Android 12 and later: keeps the start screen [START_SCREEN_MILLIS] from now, so its tree is
- * never cut, by a quick first frame or by a slow start (retours de Kévin, 17/11). Only on a real opening (no saved state: never after a rotation), and never when the
+ * never cut, by a quick first frame or by a slow start (retours de l'admin, 17/11). Only on a real opening (no saved state: never after a rotation), and never when the
  * animations of the phone are off, where the tree does not grow. To go back: remove the call.
  */
 fun Activity.holdStartScreen(restored: Boolean) {

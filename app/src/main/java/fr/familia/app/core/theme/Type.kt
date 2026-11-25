@@ -72,7 +72,7 @@ internal val AtkinsonHyperlegible = FontFamily(
 )
 
 /**
- * « Police des titres » (DESIGN-45, Kévin 18/11), chosen apart from the theme and kept on the phone
+ * « Police des titres » (DESIGN-45, l'admin 18/11), chosen apart from the theme and kept on the phone
  * under « titleFont »: titles of screens and cards, and the day headers.
  */
 enum class TitleFont(val key: String, @StringRes val labelRes: Int, internal val family: FontFamily, internal val weight: FontWeight? = null) {
@@ -87,7 +87,7 @@ enum class TitleFont(val key: String, @StringRes val labelRes: Int, internal val
 }
 
 /**
- * « Police du texte » (DESIGN-46, Kévin 18/11), kept on the phone under « bodyFont »: Nunito, or
+ * « Police du texte » (DESIGN-46, l'admin 18/11), kept on the phone under « bodyFont »: Nunito, or
  * Atkinson Hyperlegible for the poor eyes (I, l and 1 never look alike). Sizes do not change.
  */
 enum class BodyFont(val key: String, @StringRes val labelRes: Int, internal val family: FontFamily) {

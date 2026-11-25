@@ -131,7 +131,7 @@ class RecipeEditViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     /** Keeps the draft when Android stops the app in the background (relecture #82, C3). */
     private val savedState: SavedStateHandle = SavedStateHandle(),
-    /** The photos of a new recipe go to its album once it is written (retour de Kévin, 17/11). */
+    /** The photos of a new recipe go to its album once it is written (retour de l'admin, 17/11). */
     private val photos: AlbumPhotoRepository? = null,
     private val uploader: PhotoUploader? = null,
 ) : ViewModel() {

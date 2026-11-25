@@ -140,7 +140,7 @@ export const onEventCreated = onDocumentCreatedWithAuthContext('events/{eventId}
   if (!data || writtenBySeries(undefined, event.data?.data())) return;
   const db = getFirestore();
   const now = new Date();
-  // Who is named « @Prénom » in the note (Kévin, 19/11) hears it once, as « t'a nommé ».
+  // Who is named « @Prénom » in the note (l'admin, 19/11) hears it once, as « t'a nommé ».
   const named = await notifyEventMentions(db, send, event.params.eventId, undefined, data, actorUid(event), await loadMembers(db), now);
   await notifyChange(db, send, 'added', event.params.eventId, data, actorUid(event), now, new Set(), undefined, '', (ids) => ids.filter((id) => !named.includes(id)));
 });
@@ -332,7 +332,7 @@ const sendHelp: HelpSender = async (token: string, notice: HelpNotice) => {
 export const onHelpRequestWrite = onDocumentWrittenWithAuthContext('helpRequests/{requestId}', async (event) => {
   const before = event.data?.before.data() as HelpRequestData | undefined;
   const after = event.data?.after.data() as HelpRequestData | undefined;
-  // Deleted: its image goes too (Kévin 16/11, a QR code), even if the notices below fail.
+  // Deleted: its image goes too (l'admin 16/11, a QR code), even if the notices below fail.
   if (before && !after) await getStorage().bucket().deleteFiles({ prefix: `helpRequests/${event.params.requestId}/` });
   await onHelpRequestWritten(getFirestore(), sendHelp, event.params.requestId, before, after, actorUid(event), new Date());
   if (after?.status === 'taken' && before?.status !== 'taken' && after.volunteerId) {
@@ -401,7 +401,7 @@ export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{it
 // than delete a function that left the code.
 export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', async () => {});
 
-// The turns are erased once (Kévin, 20/11), at the first change in Administration > Modules after
+// The turns are erased once (l'admin, 20/11), at the first change in Administration > Modules after
 // the deploy (any switch), or else by the task of 18 h. migrations/turnsErased keeps it to once.
 export const onTurnsErase = onDocumentWritten({ document: 'config/app', timeoutSeconds: 300 }, async () => {
   await eraseTurns(getFirestore(), new Date());

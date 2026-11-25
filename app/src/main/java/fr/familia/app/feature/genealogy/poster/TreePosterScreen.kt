@@ -153,7 +153,7 @@ private fun Choosing(state: TreePosterUiState.Choosing, actions: TreePosterActio
                 multiple = false,
                 onToggle = { actions.onStart(PosterStart.Everyone) },
             )
-            // By household (règle de Kévin, 17/11): one choice, so no box for the household.
+            // By household (règle de l'admin, 17/11): one choice, so no box for the household.
             state.starts.forEach { group ->
                 if (group.name.isNotBlank()) FormLabel(group.name, Modifier.semantics { heading() })
                 PeopleRow(

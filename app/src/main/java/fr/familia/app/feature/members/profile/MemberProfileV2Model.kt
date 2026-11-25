@@ -132,7 +132,7 @@ internal fun ageOn(birthDate: LocalDate, today: LocalDate): Int {
 
 /**
  * « Lui souhaiter » only on the day of the birthday: before it, the cards of vœux are not open yet
- * and the button did nothing (Kévin, 19/11).
+ * and the button did nothing (l'admin, 19/11).
  */
 internal fun birthdayToday(birthDate: LocalDate?, today: LocalDate): Boolean =
     birthDate != null && daysUntilBirthday(birthDate, today) == 0

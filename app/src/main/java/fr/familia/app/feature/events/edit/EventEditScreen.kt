@@ -338,7 +338,7 @@ private fun NoteField(
         return
     }
     FormTile(Icons.AutoMirrored.Outlined.Notes, stringResource(R.string.event_note)) {
-        // « @Prénom » names someone of the family (Kévin, 19/11).
+        // « @Prénom » names someone of the family (l'admin, 19/11).
         MentionTextField(
             text = form.note,
             mentionIds = form.mentionIds,

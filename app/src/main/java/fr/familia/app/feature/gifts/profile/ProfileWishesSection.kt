@@ -108,7 +108,7 @@ fun ProfileWishesContent(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            // « Ajouter une envie » only on the screen of the wishes (retour de Kévin, 18/11).
+            // « Ajouter une envie » only on the screen of the wishes (retour de l'admin, 18/11).
             ClayLink(stringResource(R.string.profile_wishes_open), onClick = onOpen)
         }
     }

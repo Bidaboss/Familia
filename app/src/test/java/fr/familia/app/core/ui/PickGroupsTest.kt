@@ -7,7 +7,7 @@ import fr.familia.app.core.model.MemberProfile
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** Members by household (règle de Kévin, 17/11). */
+/** Members by household (règle de l'admin, 17/11). */
 class PickGroupsTest {
 
     private fun m(id: String, name: String, home: String, profile: MemberProfile = MemberProfile.Adult) =

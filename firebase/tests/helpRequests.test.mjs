@@ -60,7 +60,7 @@ beforeEach(async () => {
   });
 });
 
-describe('« @Prénom » in the note (Kévin, 19/11)', () => {
+describe('« @Prénom » in the note (l’admin, 19/11)', () => {
   test('a request names only people it warns', async () => {
     await assertSucceeds(setDoc(ref(as(env, ADULT)), request(ADULT, ['adult2', 'adult3'], { note: '@Noé', mentionIds: ['adult2'] })));
     await assertFails(setDoc(ref(as(env, ADULT), 'r2'), request(ADULT, ['adult2'], { mentionIds: ['adult3'] })));
@@ -68,7 +68,7 @@ describe('« @Prénom » in the note (Kévin, 19/11)', () => {
   });
 });
 
-describe('« Où » like the events (récit 74, Kévin 20/11)', () => {
+describe('« Où » like the events (récit 74, l’admin 20/11)', () => {
   test('autre, une adresse or chez un foyer, as for an event', async () => {
     const db = as(env, ADULT);
     await assertSucceeds(setDoc(ref(db, 'r1'), request(ADULT, ['adult2'], { place: 'Au parc' })));
@@ -407,7 +407,7 @@ describe('managing a request (récit 17)', () => {
   });
 });
 
-describe('the image of a request (Kévin 16/11)', () => {
+describe('the image of a request (l’admin 16/11)', () => {
   test('the author names an image of their own folder, for this request', async () => {
     const db = as(env, ADULT);
     await assertSucceeds(setDoc(ref(db), request(ADULT, ['adult2'], { photo: 'helpRequests/r1/adult1/p1' })));

@@ -248,7 +248,7 @@ private fun RecipientsSection(state: JoinMeUiState.Editing, onRecipients: (Set<S
                 )
             }
         }
-        // By household, a box per household ticks all of its members (règle de Kévin, 17/11).
+        // By household, a box per household ticks all of its members (règle de l'admin, 17/11).
         HouseholdMemberPicker(
             groups = state.groups.map { PickGroup(it.name, it.members) },
             selected = state.recipientIds,

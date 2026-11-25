@@ -46,7 +46,7 @@ private const val SWAY_MILLIS = 1_600
 private const val ROUND_TO_SUN = 1.33f
 
 /**
- * « La ronde de la famille » while the update downloads (spec DESIGN, choisie par Kévin le 18/11):
+ * « La ronde de la famille » while the update downloads (spec DESIGN, choisie par l'admin le 18/11):
  * the olive tree without fruits in its sun, and the family around it, each member as their photo or
  * their letters, turning slowly clockwise and always upright, while the leaves sway. Decorative:
  * TalkBack reads the percentage instead. Animations off on the phone: the round stays still.

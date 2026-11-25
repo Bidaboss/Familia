@@ -36,7 +36,7 @@ sealed interface HelpRequestDetailUiState {
         val canThank: Boolean,
         /** The whole family reads it (author and people warned): only then may it leave Familia. */
         val seenByWholeFamily: Boolean = false,
-        /** For « Chez un foyer » and its « Itinéraire » (Kévin 20/11). */
+        /** For « Chez un foyer » and its « Itinéraire » (l'admin 20/11). */
         val households: List<Household> = emptyList(),
         val isBusy: Boolean = false,
         val error: HelpActionError? = null,

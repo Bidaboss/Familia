@@ -450,7 +450,7 @@ fun FamiliaApp(
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     // The welcome plays at each opening while « Longue » is chosen in Apparence, the default
-    // (Kévin, 17/11), before the tutorial and before « Quoi de neuf ? »; never in « Voir comme ».
+    // (l'admin, 17/11), before the tutorial and before « Quoi de neuf ? »; never in « Voir comme ».
     val welcome = remember(context) { WelcomePreferences(context.applicationContext) }
     var openingStyle by remember { mutableStateOf(welcome.style) }
     var showWelcome by rememberSaveable { mutableStateOf(welcome.style == OpeningStyle.Long) }
@@ -816,7 +816,7 @@ fun FamiliaApp(
         LocalFeatureFlags provides features,
         // « Économie de batterie » (récit 112, règle 46): one receiver for the whole app.
         LocalBatterySaving provides watchBatterySaving(),
-        // « @Prénom » in the texts and comments (Kévin, 19/11).
+        // « @Prénom » in the texts and comments (l'admin, 19/11).
         LocalMentionFamily provides liveFamily,
         LocalOpenMember provides { id -> navController.navigate(MemberProfileDestination(id)) },
         LocalDiscoverOrder provides remember(appConfig?.discoverOrder) { Discover.order(appConfig?.discoverOrder.orEmpty()) },
@@ -845,7 +845,7 @@ fun FamiliaApp(
                     // « Une photo » chooses its album (DESIGN, 17/11).
                     onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,
                     onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
-                    // « Ajouter une envie » only on the screen of the wishes (retour de Kévin, 18/11).
+                    // « Ajouter une envie » only on the screen of the wishes (retour de l'admin, 18/11).
                     onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
                 ),
                 onDismiss = { addOpen = false },
@@ -1096,7 +1096,7 @@ fun FamiliaApp(
                     }
                     composable<AllFamiliaDestination> {
                         // Se souvenir en un seul lieu (récit 71): only with the fil on; off, nothing moves.
-                        // No green note about the memories that moved (Kévin le 18/11, 23 h 47).
+                        // No green note about the memories that moved (l'admin le 18/11, 23 h 47).
                         val memoriesInFeed = features.isOnForFamily(Feature.NewsFeed)
                         AllFamiliaScreen(
                             modules = allModules(
@@ -2388,7 +2388,7 @@ private fun allModules(
     module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
     }
-    // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (Kévin).
+    // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (l'admin).
     val whoIsItFamily = if (memoriesInFeed) ModuleFamily.Treat else ModuleFamily.Remember
     module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, whoIsItFamily) {
         navController.navigate(WhoIsItDestination) { launchSingleTop = true }

@@ -119,7 +119,7 @@ export function mergeWhatsNew(history, files, versionCode, versionName, correcti
     .sort((a, b) => a.versionCode - b.versionCode || a.id.localeCompare(b.id));
 }
 
-// --- Corrections (Kévin le 20/11) ---------------------------------------------------------------
+// --- Corrections (l'admin le 20/11) ---------------------------------------------------------------
 // Each version also tells what was merged since the one before, from the titles of the pull
 // requests (squash commits « Titre (#123) »), on a card of its own that the app draws apart.
 

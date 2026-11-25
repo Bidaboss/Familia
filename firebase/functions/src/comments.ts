@@ -14,7 +14,7 @@ export interface CommentData {
   text: string;
   authorId: string;
   authorName: string;
-  /** The members named « @Prénom » (Kévin, 19/11). */
+  /** The members named « @Prénom » (l'admin, 19/11). */
   mentionIds?: string[];
 }
 

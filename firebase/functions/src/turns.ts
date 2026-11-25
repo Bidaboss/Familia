@@ -1,4 +1,4 @@
-// « À qui le tour ? » (PRD, récit 58) is removed (Kévin, 20/11): its data is erased once, with his
+// « À qui le tour ? » (PRD, récit 58) is removed (l'admin, 20/11): its data is erased once, with his
 // agreement. migrations/turnsErased marks that it was done, with how many documents went, so a
 // second run does nothing.
 

@@ -8,7 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** « @Prénom » (Kévin, 19/11), with a fictional family. */
+/** « @Prénom » (l'admin, 19/11), with a fictional family. */
 class MentionsTest {
 
     private fun member(id: String, name: String) =

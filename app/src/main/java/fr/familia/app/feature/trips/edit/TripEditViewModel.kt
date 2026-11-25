@@ -40,7 +40,7 @@ sealed interface TripEditUiState {
         val participants: List<MemberChoice>,
         /** The whole family: who follows the trip. */
         val readers: List<MemberChoice>,
-        /** [participants] and [readers] by household, for the pickers (règle de Kévin, 17/11). */
+        /** [participants] and [readers] by household, for the pickers (règle de l'admin, 17/11). */
         val participantGroups: List<PickGroup> = emptyList(),
         val readerGroups: List<PickGroup> = emptyList(),
         val errors: Set<TripFormError>,

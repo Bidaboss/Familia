@@ -36,7 +36,7 @@ data class HomeDay(val date: LocalDate, val items: List<DayItem>) {
 
 /**
  * The 7 days of the frise from [today]: my events, the help I can give or took, and the birthdays.
- * A coup de main cancelled after I took it leaves the frise (retour de Kévin, 19/11).
+ * A coup de main cancelled after I took it leaves the frise (retour de l'admin, 19/11).
  * The birthdays come first in their day (no hour), then by hour, the ones without an hour last.
  */
 internal fun homeDays(

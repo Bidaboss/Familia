@@ -36,7 +36,7 @@ export interface SeriesData {
   householdId: string | null;
   placeKind?: string | null;
   placeHouseholdId?: string | null;
-  /** The members named « @Prénom » in the note (Kévin, 19/11), copied to each day. */
+  /** The members named « @Prénom » in the note (l'admin, 19/11), copied to each day. */
   mentionIds?: string[];
   authorId: string;
   authorName: string;

@@ -21,7 +21,7 @@ sealed interface GoodNewsEditUiState {
         val targets: List<Member>,
         /** Who can be named. */
         val candidates: List<Member>,
-        /** [candidates] by household, for the picker (règle de Kévin, 17/11). */
+        /** [candidates] by household, for the picker (règle de l'admin, 17/11). */
         val mentionGroups: List<PickGroup> = emptyList(),
         val errors: Set<GoodNewsFormError> = emptySet(),
         /** While sending: the photo being sent (1, 2, 3), or 0 once the photos are sent. */

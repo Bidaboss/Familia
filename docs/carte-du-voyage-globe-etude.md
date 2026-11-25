@@ -1,6 +1,6 @@
 # La carte du voyage façon Polarsteps : le globe animé (étude du 22/11/2026)
 
-Étude seulement, aucun code. Kévin a choisi la variante A de la maquette (DESIGN-63, `design/voyages/spec-carte-globe.md`) : on entre sur un globe, la caméra vole d'étape en étape, le trajet se trace, on finit sur la carte à plat avec une feuille par étape, et une liste « Le trajet » pour TalkBack et « réduire les animations ». Sources : pages officielles du SDK Maps pour Android (docs.mapbox.com/android/maps, lues le 22/11/2026). « Non indiqué » veut dire que la page lue ne le dit pas : à mesurer ou vérifier avant de s'engager, rien n'est inventé ici.
+Étude seulement, aucun code. L'admin a choisi la variante A de la maquette (DESIGN-63, `design/voyages/spec-carte-globe.md`) : on entre sur un globe, la caméra vole d'étape en étape, le trajet se trace, on finit sur la carte à plat avec une feuille par étape, et une liste « Le trajet » pour TalkBack et « réduire les animations ». Sources : pages officielles du SDK Maps pour Android (docs.mapbox.com/android/maps, lues le 22/11/2026). « Non indiqué » veut dire que la page lue ne le dit pas : à mesurer ou vérifier avant de s'engager, rien n'est inventé ici.
 
 ## 1. Le SDK Maps pour Android avec le globe
 
@@ -10,7 +10,7 @@
 - **Poids dans l'APK** : non indiqué sur les pages. À mesurer sur un build (bibliothèques natives par architecture). Leviers : ne garder que les architectures utiles (`abiFilters`, tous les téléphones de la famille sont des Android récents), et ne pas ajouter `cronet-embedded` (ça augmente l'APK ; on peut aussi exclure la dépendance à Google Play Services, HTTP/2 au lieu de HTTP/3).
 - **Réseau** : indispensable pour les tuiles. Un cache disque existe (`map_data.db`, sans garantie de durée) et des régions hors ligne se téléchargent à la main (750 paquets de tuiles au plus, aucune interface fournie). Sans réseau, on retombe sur la carte dessinée (§4).
 - **Télémétrie** : la page de Mapbox dit que les SDK collectent « device location and select related data », dépersonnalisées, et que l'appli doit permettre à chacun de la refuser (l'opposition est fournie avec le bouton d'attribution). **Le nom de l'interface Android pour la couper n'est dans aucune page lue.** Avec des enfants dans l'appli, c'est une **condition d'entrée** : pas de code livré tant qu'on n'a pas vérifié, sur le SDK lui-même, que la collecte se coupe par réglage, et qu'elle est coupée par défaut chez nous. Si ce n'est pas possible, on s'en tient à l'image statique (déjà en ligne, sans SDK, sans télémétrie).
-- **Comptage et plafond** : facturation par utilisateurs actifs par mois : 13 chez nous contre 25 000 gratuits, mais une réinstallation compte pour un de plus. Pour le compte « demo access » sans carte, Kévin a lu qu'au plafond toutes les API s'arrêtent sans facturation ; les chiffres ne sont sur aucune page vue (à lire dans la console). Le risque est une carte qui cesse de répondre, pas un coût. D'où le repli du §4.
+- **Comptage et plafond** : facturation par utilisateurs actifs par mois : 13 chez nous contre 25 000 gratuits, mais une réinstallation compte pour un de plus. Pour le compte « demo access » sans carte, l'admin a lu qu'au plafond toutes les API s'arrêtent sans facturation ; les chiffres ne sont sur aucune page vue (à lire dans la console). Le risque est une carte qui cesse de répondre, pas un coût. D'où le repli du §4.
 
 ## 2. Le survol : la caméra, le trait, le coût sur un vieux téléphone
 
@@ -45,10 +45,10 @@ Le choix passe par `mapGround` (déjà en place, étendu à plusieurs niveaux) e
 
 ## Découpage en PR (une à la fois)
 
-1. **« Le trajet » en liste + le choix du mode** : la liste Compose pour TalkBack et « réduire les animations », la détection, l'écran de fin à plat avec la feuille par étape (mot, photos). Sans SDK, livrable seul, utile à tous. Gestes pour Kévin : ouvrir un voyage avec TalkBack ou avec les animations coupées.
+1. **« Le trajet » en liste + le choix du mode** : la liste Compose pour TalkBack et « réduire les animations », la détection, l'écran de fin à plat avec la feuille par étape (mot, photos). Sans SDK, livrable seul, utile à tous. Gestes pour l'admin : ouvrir un voyage avec TalkBack ou avec les animations coupées.
 2. **Le moteur du survol, sans SDK** : suite d'images clés (caméra, durée, trait) calculée à partir des étapes, commandes Précédent / Pause / Suivant / Passer, entièrement testée sur ordinateur.
 3. **Essai du SDK** (porte de sortie) : dépendance, `abiFilters`, télémétrie coupée, un globe fixe derrière un interrupteur de module éteint ; la CI donne la taille de l'APK avant et après, et on lit le nom exact de l'opposition à la télémétrie. Si ce PR est refusé, on s'arrête là.
 4. **Le vol** : la caméra et le trait, brancher le moteur de la PR 2 sur la `MapView`, globe seulement quand le module est allumé.
 5. **Mesure et repli automatique** : images perdues sur les premières secondes, descente d'un cran, mémorisation par téléphone, niveau 3 (diaporama).
 
-Questions restantes pour Kévin : survol à la demande seulement (recommandé) ; basculer seul vers un niveau plus simple si le téléphone est lent (recommandé) ; accepter qu'une partie de l'APK grandisse si la mesure du PR 3 le justifie (le seuil à fixer après mesure).
+Questions restantes pour l'admin : survol à la demande seulement (recommandé) ; basculer seul vers un niveau plus simple si le téléphone est lent (recommandé) ; accepter qu'une partie de l'APK grandisse si la mesure du PR 3 le justifie (le seuil à fixer après mesure).

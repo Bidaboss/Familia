@@ -1,6 +1,6 @@
 # La carte du voyage : fonds de carte gratuits (récit 87, 21/11/2026)
 
-Note de préparation, sans code. Aujourd'hui la carte est dessinée sur le fond du paysage du voyage, avec les points (lat/lng) des étapes. Kévin veut à terme un fond avec les rues. Voici ce qui existe de gratuit, lu sur les pages officielles le 21/11/2026. « Non indiqué » veut dire que la page lue ne le dit pas : à vérifier avant de choisir.
+Note de préparation, sans code. Aujourd'hui la carte est dessinée sur le fond du paysage du voyage, avec les points (lat/lng) des étapes. L'admin veut à terme un fond avec les rues. Voici ce qui existe de gratuit, lu sur les pages officielles le 21/11/2026. « Non indiqué » veut dire que la page lue ne le dit pas : à vérifier avant de choisir.
 
 ## 1. Tuiles officielles d'OpenStreetMap (serveurs de la fondation)
 
@@ -39,7 +39,7 @@ Pages : documentation des téléchargements (docs.protomaps.com/basemaps/downloa
 
 La carte sera un composant dont le fond se remplace (aujourd'hui le paysage, plus tard un fond de rues), avec la projection des points isolée dans une fonction testée. Les étapes gardent leur latitude et leur longitude, ce qui sert à tous les fonds ci-dessus.
 
-## 4. Mapbox (étude du 22/11/2026, Kévin aime Mapbox pour les voyages)
+## 4. Mapbox (étude du 22/11/2026, l'admin aime Mapbox pour les voyages)
 
 Étude seulement, aucun code. Sources officielles lues le 22/11/2026 : docs.mapbox.com/android/maps/guides/ (présentation, installation, tarifs, hors ligne, interactions), mapbox.com/pricing et mapbox.com/legal/tos (« Last updated March 31, 2024 »). « Non indiqué » veut dire que la page lue ne le dit pas : à vérifier dans le compte Mapbox avant de s'engager.
 
@@ -60,7 +60,7 @@ La carte sera un composant dont le fond se remplace (aujourd'hui le paysage, plu
 
 ### Conditions d'utilisation
 
-- Avoir **18 ans** pour ouvrir le compte : Kévin, pas les enfants. Chaque requête porte la clé du compte, qui répond de tout usage.
+- Avoir **18 ans** pour ouvrir le compte : l'admin, pas les enfants. Chaque requête porte la clé du compte, qui répond de tout usage.
 - La licence « production » est conditionnée au paiement quand elle est exigée ; le texte lu ne dit pas clairement si une appli familiale gratuite en relève. Le seuil gratuit est prévu « for most products » : à confirmer par écrit avec le support avant de compter dessus.
 - **Logo et attribution obligatoires** : le mot-symbole Mapbox sur chaque carte, et l'attribution lisible. Elle contient aussi l'opposition à la télémétrie : le contrat oblige à offrir à chaque utilisateur un moyen de la refuser. Pour une appli familiale avec des enfants, la télémétrie (envoi d'usage à Mapbox) est à désactiver par défaut ou à expliquer dans l'écran de confidentialité de Familia.
 - Les nouvelles conditions s'appliquent dès leur publication, et ne pas utiliser la dernière version du SDK « may result in … higher fees ».
@@ -86,11 +86,11 @@ Rien trouvé dans les pages lues : ni description des éléments de carte, ni mo
 - Le fond de la carte est déjà un emplacement remplaçable (récit 87) et la projection des points est isolée dans une fonction testée. Un fond Mapbox serait un second composant `MapboxMap` qui reçoit les mêmes étapes (latitude, longitude) et pose ses repères par-dessus ; la carte dessinée reste le composant par défaut.
 - **Secours sans réseau** : si le jeton manque (build de test, fork), si le téléphone n'a pas de réseau, ou si la carte met trop de temps à charger, on affiche la carte dessinée, sans message d'erreur. Un interrupteur dans Administration > Modules permettrait de couper Mapbox pour toute la famille sans nouvelle APK.
 - Les étapes sans position restent traitées comme aujourd'hui.
-- Plus lourd que nos autres choix : une dépendance native, un compte à responsabilité (celui de Kévin), un logo imposé, de la télémétrie à encadrer.
+- Plus lourd que nos autres choix : une dépendance native, un compte à responsabilité (celui de l'admin), un logo imposé, de la télémétrie à encadrer.
 
 ### Recommandation
 
 - **Mapbox est réalisable et gratuit pour 13 personnes** (0 €, 13 MAU contre 25 000 gratuits). Rien n'empêche de s'y brancher techniquement : minSdk, Compose, jeton public rangé par la CI.
-- Mais trois points à lever **avant** tout code, par Kévin : (1) la carte bancaire et le plafond de dépense à l'inscription, car sans plafond une fuite de jeton se paie ; (2) la mention de la licence « production » pour un usage familial, par écrit auprès du support ; (3) la télémétrie à désactiver ou à déclarer, avec des enfants dans l'appli.
-- **Ordre proposé** : garder la carte dessinée comme base ; si Kévin veut des rues, essayer d'abord Mapbox sur un seul voyage, derrière un interrupteur de module, avec la carte dessinée en secours. Si le point (2) ou le poids de l'APK déçoit, MapLibre avec OpenFreeMap (section 2) donne le même composant sans compte ni jeton, mais sans engagement de durée.
+- Mais trois points à lever **avant** tout code, par l'admin : (1) la carte bancaire et le plafond de dépense à l'inscription, car sans plafond une fuite de jeton se paie ; (2) la mention de la licence « production » pour un usage familial, par écrit auprès du support ; (3) la télémétrie à désactiver ou à déclarer, avec des enfants dans l'appli.
+- **Ordre proposé** : garder la carte dessinée comme base ; si l'admin veut des rues, essayer d'abord Mapbox sur un seul voyage, derrière un interrupteur de module, avec la carte dessinée en secours. Si le point (2) ou le poids de l'APK déçoit, MapLibre avec OpenFreeMap (section 2) donne le même composant sans compte ni jeton, mais sans engagement de durée.
 - Le hors ligne complet reste impossible avec Mapbox (pas de données embarquées) ; seule la voie 3 (PMTiles) le permet sans réserve.

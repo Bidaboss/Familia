@@ -186,7 +186,7 @@ fun HomeRoute(
         }
     }
     val hasChallenge = rememberHasChallenge(container, currentMember)
-    // « Rejoignez-moi » (récit 33): lost with the old Accueil (#397), back at the top (Kévin, 20/11).
+    // « Rejoignez-moi » (récit 33): lost with the old Accueil (#397), back at the top (l'admin, 20/11).
     val joinMe = if (flags.isOn(Feature.Places)) rememberJoinMeHome(container, currentMember)?.takeIf { it.hasShares } else null
     // The coups de main answer right on their card (help-requests thread, #210).
     val help = if (helpOn) rememberHelpRequestTodos(container, currentMember) else null
@@ -215,7 +215,7 @@ fun HomeRoute(
             FeedOpenRequest.consume()
         }
     }
-    // A « rejoins-moi » opens the Accueil on « Aujourd'hui », where its tile is (Kévin, 20/11).
+    // A « rejoins-moi » opens the Accueil on « Aujourd'hui », where its tile is (l'admin, 20/11).
     val todayAsked by TodayOpenRequest.asked.collectAsState()
     LaunchedEffect(todayAsked) {
         if (todayAsked) {
