@@ -6,15 +6,14 @@ import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
-import fr.familia.app.core.model.isOwner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.serialization.Serializable
 import java.text.Normalizer
 
 /*
- * The recipe book (PRD, récit 38): every member reads every recipe and writes their own. The
- * author, or the admin principal, edits and removes it; the rules check the same
+ * The recipe book (PRD, récit 38): every member reads every recipe and writes their own. Only
+ * its author edits and removes it (récit 114); the rules check the same
  * (firestore.rules, « Carnet de recettes »). Hidden behind Feature.Recipes.
  */
 
@@ -29,7 +28,8 @@ data class RecipeDetailDestination(val recipeId: String)
 @Serializable
 data class RecipeEditDestination(val recipeId: String? = null)
 
-fun canManageRecipe(recipe: Recipe, me: Member, family: Family): Boolean = recipe.authorId == me.id || family.isOwner(me)
+/** Only its author changes or removes a recipe; the admin principal has no right on it (récit 114, DESIGN-173). */
+fun canManageRecipe(recipe: Recipe, me: Member): Boolean = recipe.authorId == me.id
 
 /** The photos of the dish: records in recipes/{id}/photos, files in Storage under the same folder. */
 fun recipePhotoFolder(recipeId: String): String = "recipes/$recipeId"
@@ -41,7 +41,7 @@ const val RECIPE_PHOTOS = 3
 fun recipePhotoRights(recipes: RecipeRepository, members: MemberRepository, recipeId: String, currentMemberId: String): Flow<AlbumRights> =
     combine(recipes.observeRecipe(recipeId), members.observeFamily()) { recipe, family ->
         val me = family.members.firstOrNull { it.id == currentMemberId }
-        val manages = recipe != null && me != null && canManageRecipe(recipe, me, family)
+        val manages = recipe != null && me != null && canManageRecipe(recipe, me)
         AlbumRights(me = me.takeIf { recipe != null }, canAdd = manages, canManage = manages)
     }
 

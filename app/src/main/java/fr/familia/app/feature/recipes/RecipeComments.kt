@@ -84,7 +84,7 @@ class RecipeCommentsViewModel(
                     list, recipe, family, (text, mentionIds), (isSending, issue) ->
                 val current = family.members.firstOrNull { it.id == currentMemberId }
                 me = current
-                val manages = recipe != null && current != null && canManageRecipe(recipe, current, family)
+                val manages = recipe != null && current != null && canManageRecipe(recipe, current)
                 RecipeCommentsUiState(
                     comments = list.map { CommentRow(it, manages || it.authorId == currentMemberId) },
                     draft = text,

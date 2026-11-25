@@ -7,6 +7,7 @@ import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.data.recipeOrder
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeCategory
 import fr.familia.app.core.model.RecipeComment
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
@@ -107,13 +108,13 @@ class RecipesTest {
     }
 
     @Test
-    fun `the author or the admin principal manages a recipe, and its removal closes it`() = runTest {
+    fun `only the author manages a recipe, not the admin principal, and its removal closes it`() = runTest {
         val repo = FakeRecipes(listOf(apple))
         fun detail(me: String) = RecipeDetailViewModel(repo, FakeMembers(), me, "r1").also { vm ->
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         }
         assertFalse((detail("adult2").uiState.value as RecipeDetailUiState.Ready).canManage)
-        assertTrue((detail("admin1").uiState.value as RecipeDetailUiState.Ready).canManage)
+        assertFalse((detail("admin1").uiState.value as RecipeDetailUiState.Ready).canManage)
         val mine = detail("adult1")
 
         mine.remove()
@@ -180,9 +181,31 @@ class RecipesTest {
     }
 
     @Test
-    fun `only the author or the admin principal opens the form of a recipe`() = runTest {
+    fun `only the author opens the form of a recipe`() = runTest {
         val vm = RecipeEditViewModel(FakeRecipes(listOf(apple)), FakeMembers(), "adult2", recipeId = "r1")
         assertEquals(RecipeEditUiState.Unavailable, vm.uiState.value)
+        val admin = RecipeEditViewModel(FakeRecipes(listOf(apple)), FakeMembers(), "admin1", recipeId = "r1")
+        assertEquals(RecipeEditUiState.Unavailable, admin.uiState.value)
+    }
+
+    @Test
+    fun `an edit keeps the category of the recipe`() = runTest {
+        val repo = FakeRecipes(listOf(apple.copy(category = RecipeCategory.Dessert)))
+        val vm = RecipeEditViewModel(repo, FakeMembers(), "adult1", recipeId = "r1")
+        vm.update { it.copy(title = "Tarte aux pommes") }
+
+        vm.save()
+
+        assertEquals(RecipeCategory.Dessert, repo.saved.single().first.category)
+    }
+
+    @Test
+    fun `a category is read by its key, and an old or unknown one is Divers`() {
+        assertEquals(RecipeCategory.Accompagnement, RecipeCategory.fromKey("accompagnement"))
+        assertEquals(RecipeCategory.Divers, RecipeCategory.fromKey(null))
+        assertEquals(RecipeCategory.Divers, RecipeCategory.fromKey("Plat"))
+        assertEquals(8, RecipeCategory.entries.map { it.key }.toSet().size)
+        assertEquals(RecipeCategory.Divers, apple.category)
     }
 
     @Test
@@ -199,10 +222,10 @@ class RecipesTest {
     }
 
     @Test
-    fun `the author and the admin principal add the photos of the dish, 3 places each`() = runTest {
+    fun `only the author adds the photos of the dish, 3 places each`() = runTest {
         val repo = FakeRecipes(listOf(apple))
         assertTrue(recipePhotoRights(repo, FakeMembers(), "r1", "adult1").first().canAdd)
-        assertTrue(recipePhotoRights(repo, FakeMembers(), "r1", "admin1").first().canManage)
+        assertFalse(recipePhotoRights(repo, FakeMembers(), "r1", "admin1").first().canManage)
         assertFalse(recipePhotoRights(repo, FakeMembers(), "r1", "adult2").first().canAdd)
         assertEquals(null, recipePhotoRights(repo, FakeMembers(), "gone", "adult1").first().me)
 

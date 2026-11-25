@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeCategory
 import fr.familia.app.core.model.RecipeComment
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +48,7 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             "ingredients" to recipe.ingredients,
             "steps" to recipe.steps,
             "tags" to recipe.tags,
+            "category" to recipe.category.key,
             "authorId" to recipe.authorId,
             "authorName" to recipe.authorName,
             "updatedAt" to FieldValue.serverTimestamp(),
@@ -121,6 +123,7 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             authorName = getString("authorName").orEmpty(),
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
             story = getString("story").orEmpty(),
+            category = RecipeCategory.fromKey(getString("category")),
         )
     }
 

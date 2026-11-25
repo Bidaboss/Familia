@@ -64,6 +64,7 @@ import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } fro
 import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
 import { eraseTurns } from './turns';
 import { shareOldDocuments, unshareDocuments } from './documentsShared';
+import { dropOriginMember, migrateRecipesOnce } from './recipes';
 import { keepReceivedPhoto, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
@@ -844,6 +845,14 @@ export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (ev
   if (failed) throw failed.reason;
 });
 
+// Récit 114 (lot A1): a recipe belongs to its author only. One written by an older app with a
+// person of origin gets that person's first name as its origin text instead.
+export const onRecipeWritten = onDocumentWritten('recipes/{recipeId}', async (event) => {
+  const after = event.data?.after;
+  if (!after?.exists) return;
+  await dropOriginMember(getFirestore(), after.ref, after.data());
+});
+
 /** « Qui est-ce ? » (récit 43): a removed photo takes its answer, its guesses and its files with it. */
 export const onWhoIsItDeleted = onDocumentDeleted('whoIsIt/{postId}', async (event) => {
   const post = getFirestore().collection('whoIsIt').doc(event.params.postId);
@@ -882,6 +891,12 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
     await shareOldDocuments(getFirestore(), new Date());
   } catch (e) {
     console.error('documentsShared', e);
+  }
+  // Récit 114 (lot A1): the old recipes get « divers » and their person of origin as text, once.
+  try {
+    await migrateRecipesOnce(getFirestore(), new Date());
+  } catch (e) {
+    console.error('recipeCategories', e);
   }
   // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
   // for the next run and never stops the rest.
