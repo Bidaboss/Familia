@@ -16,4 +16,12 @@ class PhotoFailureLogTest {
         assertTrue(PhotoFailureLog.isReportable(photoRefusalLine(429, "fr.wikipedia.org")))
         assertTrue(PhotoFailureLog.isReportable("délai dépassé"))
     }
+
+    @Test
+    fun aPhoneWithoutNetworkIsNotReported() {
+        assertFalse(PhotoFailureLog.isReportable("UnknownHostException"))
+        assertFalse(PhotoFailureLog.isReportable("ConnectException"))
+        assertFalse(PhotoFailureLog.isReportable("NoRouteToHostException"))
+        assertTrue(PhotoFailureLog.isReportable("SSLHandshakeException"))
+    }
 }

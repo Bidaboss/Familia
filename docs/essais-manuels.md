@@ -2722,3 +2722,10 @@ Sur un téléphone en Android 10 ou plus :
 2. Revenir sur « Voyages » sans quitter l'appli : la photo revient tout de suite, sans nouvelle attente.
 3. Une destination au milieu de nulle part (plus de 40 km de tout village connu) : le dessin reste, comme avant, et rien dans « Plantages ».
 
+
+## Photos des lieux : plus de « Plantage » sans réseau (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Mettre le téléphone en mode avion, ouvrir « Voyages » puis un voyage : les vignettes montrent le dessin, comme avant.
+2. Relancer l'appli avec le réseau : « Administration > Plantages » ne montre aucune ligne « Photo du lieu : UnknownHostException ».
+3. Un vrai refus du site (429, 403) reste signalé comme avant.
