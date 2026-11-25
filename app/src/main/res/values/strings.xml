@@ -2248,6 +2248,40 @@
     <string name="home_empty_body">Les prochains événements, les anniversaires et ce que tu as à faire s\'afficheront ici.</string>
     <string name="home_todo_title">À faire pour moi</string>
     <string name="home_r1_greeting">Bonjour %1$s</string>
+    <string name="home_photo_greeting">Bonjour %1$s 👋</string>
+    <string name="home_photo_my_day">Ma journée</string>
+    <string name="home_photo_today">Aujourd\'hui</string>
+    <string name="home_photo_planning">Planning ›</string>
+    <string name="home_photo_nothing">Rien de prévu</string>
+    <string name="home_photo_quiet">Une journée tranquille.</string>
+    <plurals name="home_photo_today_count">
+        <item quantity="one">%1$d chose aujourd\'hui</item>
+        <item quantity="other">%1$d choses aujourd\'hui</item>
+    </plurals>
+    <plurals name="home_photo_day_count">
+        <item quantity="one">%1$d chose %2$s</item>
+        <item quantity="other">%1$d choses %2$s</item>
+    </plurals>
+    <string name="home_photo_to_answer">À répondre</string>
+    <string name="home_photo_nothing_to_answer">Rien à répondre pour l\'instant. Profite de ta journée.</string>
+    <plurals name="home_photo_more_answers">
+        <item quantity="one">Et %1$d autre chose à répondre ›</item>
+        <item quantity="other">Et %1$d autres choses à répondre ›</item>
+    </plurals>
+    <string name="home_photo_upcoming">À venir</string>
+    <string name="home_photo_see_all">Tout voir ›</string>
+    <string name="home_photo_upcoming_none">Rien de prévu dans le mois</string>
+    <plurals name="home_photo_in_days">
+        <item quantity="one">dans %1$d jour</item>
+        <item quantity="other">dans %1$d jours</item>
+    </plurals>
+    <string name="home_photo_brief">En bref</string>
+    <string name="home_photo_feed">Le fil de la famille</string>
+    <plurals name="home_photo_feed_news">
+        <item quantity="one">%1$d nouveauté</item>
+        <item quantity="other">%1$d nouveautés</item>
+    </plurals>
+    <string name="home_photo_feed_none">Rien de nouveau depuis ta dernière visite</string>
     <string name="home_r1_todo">À faire</string>
     <string name="home_r1_calm">Rien à faire aujourd\'hui. Profites-en pour le défi !</string>
     <string name="home_r1_day_none">%1$s, rien de prévu</string>

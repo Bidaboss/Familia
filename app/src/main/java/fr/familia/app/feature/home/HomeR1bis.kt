@@ -1,6 +1,9 @@
 package fr.familia.app.feature.home
 
 import fr.familia.app.core.theme.FamiliaClay
+import fr.familia.app.core.theme.PhotoSectionShadow
+import fr.familia.app.core.theme.PhotoSectionText
+import fr.familia.app.core.theme.LocalPhotoTheme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -129,7 +132,16 @@ fun HomeR1bisScreen(
     switcher: (@Composable () -> Unit)? = null,
     /** « Le fil », shown instead of the day while chosen; « Tout Familia » stays under it. */
     feed: (@Composable () -> Unit)? = null,
+    /**
+     * The top of the Accueil on the photo of the theme (récit 113, règles 2, 3 et 13): the greeting,
+     * the free part of the photo and the switch, scrolling with the day; [switcher] is then in it.
+     */
+    top: (@Composable () -> Unit)? = null,
+    /** « Le fil de la famille » in « En bref » on the photo: its news, and the way to open it. */
+    feedUnseen: Int = 0,
+    onOpenFeed: (() -> Unit)? = null,
 ) {
+    val onPhoto = top != null
     val ready = state as? HomeUiState.Ready ?: return
     var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
     val days = ready.days.ifEmpty { homeDays(ready.today) }
@@ -140,10 +152,16 @@ fun HomeR1bisScreen(
     val calm = !hasTodo && nowTravelling == null && challenge != null
     val todo: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (hasTodo) SectionLabel(stringResource(R.string.home_r1_todo))
+            if (hasTodo) SectionLabel(stringResource(R.string.home_r1_todo), color = if (onPhoto) PhotoSectionText else MaterialTheme.colorScheme.onSurfaceVariant)
             ready.todos.forEach { TodoR1Card(it, ready.today, actions, r1) }
             helpTodos?.invoke()
-            if (calm) Text(stringResource(R.string.home_r1_calm), style = MaterialTheme.typography.bodyLarge)
+            if (calm) {
+                Text(
+                    stringResource(R.string.home_r1_calm),
+                    style = if (onPhoto) MaterialTheme.typography.bodyLarge.copy(shadow = PhotoSectionShadow) else MaterialTheme.typography.bodyLarge,
+                    color = if (onPhoto) PhotoSectionText else Color.Unspecified,
+                )
+            }
         }
     }
     val newsAndChallenge: @Composable () -> Unit = {
@@ -179,8 +197,17 @@ fun HomeR1bisScreen(
         }
     }
     val padding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp)
+    val photoTheme = LocalPhotoTheme.current
+    if (top != null && photoTheme != null && feed == null) {
+        PhotoDayList(
+            ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme), actions, r1,
+            PhotoSlots(top, joinMe, firstSteps, helpTodos, nowTravelling, challenge, goodNews?.takeIf { onOpenFeed == null }, buttons),
+            feedUnseen, onOpenFeed,
+        )
+        return
+    }
     Column(Modifier.fillMaxSize()) {
-        if (switcher != null) {
+        if (switcher != null && top == null) {
             Box(Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 12.dp)) { switcher() }
         }
         if (feed != null) {
@@ -190,6 +217,7 @@ fun HomeR1bisScreen(
                 // Expanded (§5): two panes, each scrolling on its own.
                 maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {
                     LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        if (top != null) item(key = "top") { top() }
                         if (joinMe != null) item(key = "joinMe") { joinMe() }
                         item(key = "frise") { frise() }
                         item(key = "day") { detail() }
@@ -204,6 +232,7 @@ fun HomeR1bisScreen(
                 }
                 // Medium (§5): one column, with « À faire » beside the good news, the challenge and the trip.
                 maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (top != null) item(key = "top") { top() }
                     if (joinMe != null) item(key = "joinMe") { joinMe() }
                     item(key = "frise") { frise() }
                     item(key = "day") { detail() }
@@ -220,6 +249,7 @@ fun HomeR1bisScreen(
                     item(key = "buttons") { buttons() }
                 }
                 else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (top != null) item(key = "top") { top() }
                     if (joinMe != null) item(key = "joinMe") { joinMe() }
                     item(key = "frise") { frise() }
                     item(key = "day") { detail() }
@@ -372,7 +402,7 @@ private fun DayDetail(day: HomeDay, today: LocalDate, actions: HomeActions) {
 }
 
 @Composable
-private fun DayLine(item: DayItem, actions: HomeActions) {
+internal fun DayLine(item: DayItem, actions: HomeActions) {
     val open: (() -> Unit)? = when (val target = item.open) {
         is DayOpen.Event -> ({ actions.onOpenEvent(target.id) })
         is DayOpen.Help -> ({ actions.onOpenHelpRequest(target.id) })
