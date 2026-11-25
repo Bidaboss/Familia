@@ -199,7 +199,7 @@ private fun SourceRow(icon: ImageVector, label: String, onClick: () -> Unit) {
 }
 
 /** A new file in the cache folder photos/ of the FileProvider (res/xml/photo_paths.xml). */
-private fun newCameraUri(context: Context): Uri {
+internal fun newCameraUri(context: Context): Uri {
     val dir = File(context.cacheDir, "photos").apply { mkdirs() }
     return FileProvider.getUriForFile(context, "${context.packageName}.photos", File(dir, "taken-${SinglePhoto.newId()}.jpg"))
 }

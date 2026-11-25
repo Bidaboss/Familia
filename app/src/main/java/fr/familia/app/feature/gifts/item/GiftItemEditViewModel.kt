@@ -397,6 +397,18 @@ class GiftItemEditViewModel(
         )
     }
 
+    /**
+     * « Coller » (correctif E6): the link of the clipboard, then what its shop page says fills what
+     * the member has not typed yet, as for a shared link (récit 8 bis).
+     */
+    fun pasteLink(url: String) {
+        update { it.copy(url = url) }
+        val state = _uiState.value as? GiftItemEditUiState.Editing ?: return
+        if (previews == null || normalizeLink(url) == null) return
+        _uiState.value = state.copy(previewLoading = true)
+        viewModelScope.launch { readPreview(url) }
+    }
+
     fun save() {
         val state = _uiState.value as? GiftItemEditUiState.Editing ?: return
         val repo = gifts ?: return

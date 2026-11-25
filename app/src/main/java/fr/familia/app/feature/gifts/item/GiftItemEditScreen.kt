@@ -1,38 +1,32 @@
 package fr.familia.app.feature.gifts.item
 
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material.icons.outlined.Celebration
-import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material3.Switch
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import fr.familia.app.core.theme.themeBackground
-import fr.familia.app.core.ui.form.ChipGroup
-import fr.familia.app.core.ui.form.FormChip
-import fr.familia.app.core.ui.form.FormDeleteButton
-import fr.familia.app.core.ui.form.FormHint
-import fr.familia.app.core.ui.form.FormTile
-import fr.familia.app.core.ui.form.StickyActionBar
-import fr.familia.app.core.ui.form.scrollToFirstError
-import fr.familia.app.feature.gifts.giftAccent
-import fr.familia.app.core.photo.PhotoField
-import androidx.compose.ui.text.style.TextOverflow
+import android.content.ActivityNotFoundException
+import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,51 +34,73 @@ import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.FilterChip
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import fr.familia.app.core.model.GiftOccasion
-import fr.familia.app.feature.gifts.wishOccasionLabel
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import fr.familia.app.R
+import fr.familia.app.core.model.GiftOccasion
+import fr.familia.app.core.photo.PhotoEdit
+import fr.familia.app.core.photo.SinglePhoto
+import fr.familia.app.core.photo.StorageImage
+import fr.familia.app.core.photo.keepPhotoAccess
+import fr.familia.app.core.photo.newCameraUri
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.scrollToFirstError
+import fr.familia.app.feature.gifts.WishLook
+import fr.familia.app.feature.gifts.WishPill
+import fr.familia.app.feature.gifts.detail.linkHost
+import fr.familia.app.feature.gifts.formatEuros
+import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 
-/** Form of a gift item (add, edit, remove). Stateless. */
+/** Form of a gift item (add, edit, remove), after the prototype (correctif E6 à E8, fiche K8). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GiftItemEditScreen(
@@ -95,9 +111,12 @@ fun GiftItemEditScreen(
     onBack: () -> Unit,
     /** Récit 50: my wishes (null) or an idea for that member. */
     onChooseTarget: (String?) -> Unit = {},
+    /** « Coller »: the link of the clipboard, whose image, title and price are then read. */
+    onPasteLink: (String) -> Unit = { url -> onChange { it.copy(url = url) } },
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val hasChanges = (state as? GiftItemEditUiState.Editing)?.hasChanges == true
+    val leave: () -> Unit = { if (hasChanges) confirmLeave = true else onBack() }
     BackHandler(enabled = hasChanges) { confirmLeave = true }
     if (confirmLeave) {
         AlertDialog(
@@ -111,183 +130,167 @@ fun GiftItemEditScreen(
         )
     }
     val editing = state as? GiftItemEditUiState.Editing
-    Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.themeBackground(),
-        // The dark button of the mock-up (lot-2-envie): « Ajouter l'envie », or « Enregistrer ».
-        bottomBar = {
-            editing?.let {
-                StickyActionBar(
-                    text = stringResource(if (it.isNew) R.string.gift_item_add else R.string.member_save),
-                    onClick = onSave,
-                    busy = it.isSaving,
+    val wish = editing?.showOccasion == true
+    val title = stringResource(
+        when {
+            wish && editing?.isNew == false -> R.string.wish_form_edit_title
+            wish -> R.string.wish_form_new_title
+            editing?.isNew == false -> R.string.gift_item_edit_title
+            else -> R.string.gift_item_new_title
+        },
+    )
+    Box(Modifier.fillMaxSize().themeBackground()) {
+        Column(Modifier.fillMaxSize()) {
+            // Back in a white round, the title in the middle (E6), and the « ? » of the screen.
+            Row(
+                Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Round { BackButton(onClick = leave) }
+                Text(
+                    title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp).semantics { heading() },
                 )
+                Round { HelpButton(ScreenHelp.GiftItemEdit) }
             }
-        },
-        topBar = {
-            FamiliaTopBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if ((state as? GiftItemEditUiState.Editing)?.isNew == false) R.string.gift_item_edit_title else R.string.gift_item_new_title,
-                        ),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                when (state) {
+                    GiftItemEditUiState.Loading, GiftItemEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    GiftItemEditUiState.Unavailable -> EmptyState(
+                        icon = Icons.Outlined.CardGiftcard,
+                        title = stringResource(R.string.gift_item_unavailable_title),
+                        body = stringResource(R.string.gift_item_unavailable_body),
                     )
-                },
-                navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
-                actions = { HelpButton(ScreenHelp.GiftItemEdit) },
-            )
-        },
-    ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
-            when (state) {
-                GiftItemEditUiState.Loading, GiftItemEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                GiftItemEditUiState.Unavailable -> EmptyState(
-                    icon = Icons.Outlined.CardGiftcard,
-                    title = stringResource(R.string.gift_item_unavailable_title),
-                    body = stringResource(R.string.gift_item_unavailable_body),
-                )
-                is GiftItemEditUiState.Editing -> FormContent(state, onChange, onDelete, onChooseTarget)
+                    is GiftItemEditUiState.Editing -> FormContent(state, onChange, onDelete, onChooseTarget, onPasteLink, onSave, leave)
+                }
             }
         }
     }
 }
 
-/** The tiles of the form, in their order on the screen. */
-private enum class ItemPart { Wish, Where }
-
-private fun GiftItemFormError.part(): ItemPart = when (this) {
-    GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong, GiftItemFormError.NoteTooLong -> ItemPart.Wish
-    GiftItemFormError.BadLink, GiftItemFormError.BadPrice -> ItemPart.Where
+@Composable
+private fun Round(content: @Composable () -> Unit) {
+    Surface(shape = CircleShape, color = Color.White, contentColor = WishLook.Ink, border = BorderStroke(1.dp, WishLook.Edge)) { content() }
 }
 
-/** The form in tiles, after the mock-up lot-2-envie (refonte globale, lot 2): same fields, same rules. */
+/** The parts of the form, in their order on the screen, for the first error. */
+private enum class ItemPart { Link, Wish }
+
+private fun GiftItemFormError.part(): ItemPart = when (this) {
+    GiftItemFormError.BadLink -> ItemPart.Link
+    GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong, GiftItemFormError.NoteTooLong, GiftItemFormError.BadPrice -> ItemPart.Wish
+}
+
+/**
+ * The form of the prototype (E6 à E8): bold labels over white rounded fields, the link and its
+ * preview first, the photo, the name, the price, « déjà acheté », the occasion, a word for the family,
+ * then the big brown button and « Annuler ». Same fields and rules as before.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FormContent(
     state: GiftItemEditUiState.Editing,
     onChange: ((GiftItemForm) -> GiftItemForm) -> Unit,
     onDelete: () -> Unit,
     onChooseTarget: (String?) -> Unit,
+    onPasteLink: (String) -> Unit,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
 ) {
     val form = state.form
     val errors = state.errors
-    val accent = giftAccent()
+    val wish = state.showOccasion
     val scroll = rememberScrollState()
     val part = scrollToFirstError(scroll, errors, errors.map { it.part() }.minOrNull())
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = 16.dp).padding(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        when {
+            // The surprise idea keeps its sentence: the person will not see it.
+            state.hiddenFromBeneficiary -> InfoBox(stringResource(R.string.gift_item_hidden_hint, state.beneficiaryName))
+            wish && state.forMe -> InfoBox("👪 " + stringResource(R.string.wish_form_family_sees))
+        }
         if (state.targets.isNotEmpty()) {
-            FormTile(Icons.Outlined.Person, stringResource(R.string.gift_item_target_label), accent = accent) {
-                ShareTargetChoice(state.targets, state.targetId, enabled = !state.isSaving, onSelect = onChooseTarget)
-            }
+            Label(stringResource(R.string.gift_item_target_label))
+            ShareTargetChoice(state.targets, state.targetId, enabled = !state.isSaving, onSelect = onChooseTarget)
         }
-        // The surprise idea keeps its sentence: the person will not see it.
-        if (state.hiddenFromBeneficiary) {
-            FormHint(stringResource(R.string.gift_item_hidden_hint, state.beneficiaryName))
-        }
-        FormTile(Icons.Outlined.CardGiftcard, stringResource(R.string.gift_item_tile_wish), part(ItemPart.Wish), accent = accent) {
-            OutlinedTextField(
-                value = form.title,
-                onValueChange = { value -> onChange { it.copy(title = value) } },
-                label = { Text(stringResource(R.string.gift_item_field_title)) },
-                isError = GiftItemFormError.TitleMissing in errors || GiftItemFormError.TitleTooLong in errors,
-                supportingText = errorText(errors, GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong),
-                singleLine = true,
-                shape = FieldShape,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = form.note,
-                onValueChange = { value -> onChange { it.copy(note = value) } },
-                label = { Text(stringResource(R.string.gift_item_field_note)) },
-                placeholder = { Text(stringResource(R.string.gift_item_field_note_hint)) },
-                isError = GiftItemFormError.NoteTooLong in errors,
-                supportingText = errorText(errors, GiftItemFormError.NoteTooLong),
-                minLines = 3,
-                shape = FieldShape,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (state.showPhoto) {
-                // The product, or a screenshot (récit 44).
-                PhotoField(
-                    stored = state.storedPhoto,
-                    edit = form.photo,
-                    onEdit = { photo -> onChange { it.copy(photo = photo) } },
-                    enabled = !state.isSaving,
-                )
-            }
-        }
-        FormTile(Icons.Outlined.Link, stringResource(R.string.gift_item_tile_where), part(ItemPart.Where), accent = accent) {
-            OutlinedTextField(
-                value = form.price,
-                onValueChange = { value -> onChange { it.copy(price = value) } },
-                label = { Text(stringResource(R.string.gift_item_field_price)) },
-                suffix = { Text("€") },
-                isError = GiftItemFormError.BadPrice in errors,
-                supportingText = errorText(errors, GiftItemFormError.BadPrice),
-                singleLine = true,
-                shape = FieldShape,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = form.url,
-                onValueChange = { value -> onChange { it.copy(url = value) } },
-                label = { Text(stringResource(R.string.gift_item_field_link)) },
-                isError = GiftItemFormError.BadLink in errors,
-                supportingText = errorText(errors, GiftItemFormError.BadLink),
-                singleLine = true,
-                shape = FieldShape,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                modifier = Modifier.fillMaxWidth(),
-            )
+        Column(part(ItemPart.Link), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Label(stringResource(R.string.wish_form_link))
+            LinkField(form.url, errors, enabled = !state.isSaving, onValue = { value -> onChange { it.copy(url = value) } }, onPaste = onPasteLink)
             if (state.previewLoading) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     CircularProgressIndicator(Modifier.size(24.dp))
                     Text(stringResource(R.string.gift_item_preview_loading), style = MaterialTheme.typography.bodyLarge)
                 }
             }
-            state.imageUrl?.let { image ->
-                // The picture of the shop page: decorative, the title says what the gift is.
-                AsyncImage(
-                    model = image,
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).clip(MaterialTheme.shapes.medium),
+            if (form.url.isNotBlank() && (state.imageUrl != null || form.title.isNotBlank())) LinkPreview(state)
+        }
+        if (state.showPhoto) {
+            Label(stringResource(R.string.wish_form_photo))
+            WishPhotoField(state, enabled = !state.isSaving) { photo -> onChange { it.copy(photo = photo) } }
+        }
+        Column(part(ItemPart.Wish), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Label(stringResource(if (wish) R.string.wish_form_name else R.string.gift_item_field_title))
+            WhiteField(
+                value = form.title,
+                onValue = { value -> onChange { it.copy(title = value) } },
+                placeholder = stringResource(R.string.wish_form_name_hint),
+                error = errorText(errors, GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong),
+                capitalize = true,
+            )
+            Label(stringResource(R.string.wish_form_price))
+            WhiteField(
+                value = form.price,
+                onValue = { value -> onChange { it.copy(price = value) } },
+                placeholder = "—",
+                error = errorText(errors, GiftItemFormError.BadPrice),
+                keyboard = KeyboardType.Decimal,
+                suffix = "€",
+            )
+        }
+        if (state.showAlreadyBought) {
+            AlreadyBoughtBox(
+                checked = form.alreadyBought || state.alreadyBoughtLocked,
+                locked = state.alreadyBoughtLocked,
+                enabled = !state.isSaving,
+            ) { value -> onChange { it.copy(alreadyBought = value) } }
+            if (form.alreadyBought || state.alreadyBoughtLocked) {
+                val price = parseEuros(form.price)
+                InfoBox(
+                    if (price != null) stringResource(R.string.wish_form_bought_info_price, formatEuros(price)) else stringResource(R.string.wish_form_bought_info),
                 )
             }
         }
         if (state.showOccasion) {
-            FormTile(Icons.Outlined.Celebration, stringResource(R.string.gift_item_occasion_label), accent = accent) {
-                WishOccasionChoice(form.occasion, state.forMe) { value -> onChange { it.copy(occasion = value) } }
-            }
+            Label(stringResource(R.string.wish_form_occasion))
+            WishOccasionChoice(form.occasion, enabled = !state.isSaving) { value -> onChange { it.copy(occasion = value) } }
         }
         if (state.coChoices.isNotEmpty() || state.sharedWith != null) {
-            FormTile(Icons.Outlined.Groups, stringResource(R.string.gift_item_tile_joint), accent = accent) {
-                if (state.coChoices.isNotEmpty()) {
-                    CoBeneficiaryChoice(state.coChoices, form.coBeneficiaryId, enabled = !state.isSaving) { value ->
-                        onChange { it.copy(coBeneficiaryId = value) }
-                    }
-                }
-                state.sharedWith?.let { other ->
-                    Text(stringResource(R.string.gift_item_co_with, other), style = MaterialTheme.typography.bodyLarge)
+            Label(stringResource(R.string.gift_item_tile_joint))
+            if (state.coChoices.isNotEmpty()) {
+                CoBeneficiaryChoice(state.coChoices, form.coBeneficiaryId, enabled = !state.isSaving) { value ->
+                    onChange { it.copy(coBeneficiaryId = value) }
                 }
             }
-        }
-        if (state.showAlreadyBought) {
-            FormTile(Icons.Outlined.Check, stringResource(R.string.gift_item_tile_bought), accent = accent) {
-                AlreadyBoughtBox(
-                    checked = form.alreadyBought || state.alreadyBoughtLocked,
-                    locked = state.alreadyBoughtLocked,
-                    enabled = !state.isSaving,
-                ) { value -> onChange { it.copy(alreadyBought = value) } }
+            state.sharedWith?.let { other ->
+                Text(stringResource(R.string.gift_item_co_with, other), style = MaterialTheme.typography.bodyLarge)
             }
         }
+        Label(stringResource(if (wish) R.string.wish_form_note else R.string.gift_item_field_note))
+        WhiteField(
+            value = form.note,
+            onValue = { value -> onChange { it.copy(note = value) } },
+            placeholder = stringResource(if (wish) R.string.wish_form_note_hint else R.string.gift_item_field_note_hint),
+            error = errorText(errors, GiftItemFormError.NoteTooLong),
+            capitalize = true,
+            singleLine = false,
+        )
         if (state.saveFailed) {
             FormHint(
                 stringResource(R.string.gift_save_failed),
@@ -295,12 +298,252 @@ private fun FormContent(
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
+        Button(
+            onClick = onSave,
+            enabled = !state.isSaving,
+            colors = ButtonDefaults.buttonColors(containerColor = WishLook.Dark, contentColor = Color.White),
+            // Full-width actions of Cadeaux: 48 dp (règle 57 of regles-cadeaux-themes-photo.md, l'admin 25/11).
+            modifier = Modifier.padding(top = 8.dp).fillMaxWidth().heightIn(min = 48.dp),
+        ) {
+            if (state.isSaving) {
+                CircularProgressIndicator(Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+            } else {
+                Text(
+                    stringResource(
+                        when {
+                            !state.isNew -> R.string.member_save
+                            wish && state.forMe && state.targetId == null -> R.string.wish_form_add_mine
+                            else -> R.string.gift_item_add
+                        },
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+        OutlinedButton(
+            onClick = onCancel,
+            enabled = !state.isSaving,
+            border = BorderStroke(2.dp, WishLook.Edge),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White, contentColor = WishLook.Ink),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) { Text(stringResource(R.string.action_cancel), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
         // Whoever shares the wish edits it, but only its keeper removes it (récit 73).
         if (!state.isNew && state.sharedByOther == null) DeleteButton(form.title, !state.isSaving, onDelete)
     }
 }
 
-private val FieldShape = RoundedCornerShape(16.dp)
+@Composable
+private fun Label(text: String) {
+    Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
+}
+
+@Composable
+private fun InfoBox(text: String) {
+    Surface(shape = RoundedCornerShape(20.dp), color = WishLook.InfoBlue, contentColor = WishLook.InfoBlueInk, modifier = Modifier.fillMaxWidth()) {
+        Text(text, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(16.dp))
+    }
+}
+
+/** A white rounded field with a beige edge (E6), 56 dp at least. */
+@Composable
+private fun WhiteField(
+    value: String,
+    onValue: (String) -> Unit,
+    placeholder: String,
+    error: (@Composable () -> Unit)?,
+    keyboard: KeyboardType = KeyboardType.Text,
+    capitalize: Boolean = false,
+    singleLine: Boolean = true,
+    suffix: String? = null,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValue,
+        placeholder = { Text(placeholder) },
+        isError = error != null,
+        supportingText = error,
+        singleLine = singleLine,
+        minLines = if (singleLine) 1 else 2,
+        shape = FieldShape,
+        suffix = suffix?.let { { Text(it) } },
+        trailingIcon = trailing,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = WishLook.Field,
+            unfocusedContainerColor = WishLook.Field,
+            errorContainerColor = WishLook.Field,
+            unfocusedBorderColor = WishLook.Edge,
+            focusedBorderColor = WishLook.Dark,
+            focusedTextColor = WishLook.Ink,
+            unfocusedTextColor = WishLook.Ink,
+            unfocusedPlaceholderColor = WishLook.Muted,
+            focusedPlaceholderColor = WishLook.Muted,
+        ),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboard,
+            capitalization = if (capitalize) KeyboardCapitalization.Sentences else KeyboardCapitalization.None,
+        ),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+    )
+}
+
+/** « Colle un lien ici », with the dark « Coller » that takes the link of the clipboard (E6). */
+@Composable
+private fun LinkField(url: String, errors: Set<GiftItemFormError>, enabled: Boolean, onValue: (String) -> Unit, onPaste: (String) -> Unit) {
+    val clipboard = LocalClipboardManager.current
+    WhiteField(
+        value = url,
+        onValue = onValue,
+        placeholder = stringResource(R.string.wish_form_link_hint),
+        error = errorText(errors, GiftItemFormError.BadLink),
+        keyboard = KeyboardType.Uri,
+        trailing = {
+            Button(
+                onClick = { clipboard.getText()?.text?.trim()?.takeIf { it.isNotEmpty() }?.let(onPaste) },
+                enabled = enabled,
+                colors = ButtonDefaults.buttonColors(containerColor = WishLook.Dark, contentColor = Color.White),
+                modifier = Modifier.padding(end = 6.dp).heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.wish_form_paste), fontWeight = FontWeight.Bold) }
+        },
+    )
+}
+
+/** What the link gives (E7): its picture (or my photo, which comes first), the title, « 49,90 € · boutique.fr ». */
+@Composable
+private fun LinkPreview(state: GiftItemEditUiState.Editing) {
+    val form = state.form
+    val photo = shownPhoto(state)
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Surface(shape = RoundedCornerShape(20.dp), color = WishLook.Field, contentColor = WishLook.Ink, modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Box(
+                    Modifier.size(84.dp).clip(RoundedCornerShape(16.dp)).background(WishLook.pastel(form.title)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when {
+                        photo != null -> PhotoThumb(photo)
+                        state.imageUrl != null -> AsyncImage(
+                            model = state.imageUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        else -> Text("🎁", style = MaterialTheme.typography.headlineMedium)
+                    }
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(form.title.ifBlank { "…" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    val details = listOfNotNull(parseEuros(form.price)?.let { formatEuros(it) }, linkHost(form.url)).joinToString(" · ")
+                    if (details.isNotEmpty()) Text(details, style = MaterialTheme.typography.bodyMedium, color = WishLook.Muted)
+                }
+            }
+        }
+        Text(
+            stringResource(if (photo != null) R.string.wish_form_photo_replaces else R.string.wish_form_from_link),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+private sealed interface Shown {
+    data class Local(val uri: String) : Shown
+    data class Stored(val base: String) : Shown
+}
+
+private fun shownPhoto(state: GiftItemEditUiState.Editing): Shown? = when (val edit = state.form.photo) {
+    is PhotoEdit.Picked -> Shown.Local(edit.source)
+    PhotoEdit.Removed -> null
+    PhotoEdit.Unchanged -> state.storedPhoto?.let { Shown.Stored(it) }
+}
+
+@Composable
+private fun PhotoThumb(photo: Shown) {
+    when (photo) {
+        is Shown.Local -> AsyncImage(model = photo.uri, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        is Shown.Stored -> StorageImage(SinglePhoto.photoPath(photo.base), contentDescription = null, modifier = Modifier.fillMaxSize())
+    }
+}
+
+/**
+ * « Photo (facultative) » (K8): « 📷 Prendre une photo » and « 🖼 Galerie » side by side, dashed; once
+ * chosen, « Ta photo », « Elle remplace l'image du lien » and « Retirer ».
+ */
+@Composable
+private fun WishPhotoField(state: GiftItemEditUiState.Editing, enabled: Boolean, onEdit: (PhotoEdit) -> Unit) {
+    val context = LocalContext.current
+    var cameraFile by rememberSaveable { mutableStateOf<String?>(null) }
+    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { keepPhotoAccess(context, listOf(it)) }
+        uri?.let { onEdit(PhotoEdit.Picked(it.toString())) }
+    }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
+        cameraFile?.takeIf { taken }?.let { onEdit(PhotoEdit.Picked(it)) }
+    }
+    val hasCamera = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) }
+    val photo = shownPhoto(state)
+    if (photo != null) {
+        Surface(shape = RoundedCornerShape(20.dp), color = WishLook.Field, contentColor = WishLook.Ink, modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Box(Modifier.size(84.dp).clip(RoundedCornerShape(16.dp)).background(WishLook.pastel(state.form.title))) { PhotoThumb(photo) }
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.wish_form_your_photo), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    if (state.form.url.isNotBlank()) {
+                        Text(stringResource(R.string.wish_form_your_photo_replaces), style = MaterialTheme.typography.bodyMedium, color = WishLook.Muted)
+                    }
+                }
+                Button(
+                    onClick = { onEdit(if (state.storedPhoto == null) PhotoEdit.Unchanged else PhotoEdit.Removed) },
+                    enabled = enabled,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1E8DA), contentColor = WishLook.Ink),
+                    modifier = Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.wish_form_photo_remove), fontWeight = FontWeight.Bold) }
+            }
+        }
+        return
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (hasCamera) {
+            DashedButton("📷 " + stringResource(R.string.photo_take), enabled, Modifier.weight(1f)) {
+                val uri = newCameraUri(context)
+                cameraFile = uri.toString()
+                try {
+                    camera.launch(uri)
+                } catch (e: ActivityNotFoundException) {
+                    cameraFile = null
+                }
+            }
+        }
+        DashedButton("🖼 " + stringResource(R.string.wish_form_gallery), enabled, Modifier.weight(1f)) {
+            gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+    }
+}
+
+@Composable
+private fun DashedButton(text: String, enabled: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val edge = Color(0xFFCDBA9C)
+    Box(
+        modifier
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .drawBehind {
+                drawRoundRect(
+                    edge,
+                    cornerRadius = CornerRadius(20.dp.toPx()),
+                    style = Stroke(width = 2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))),
+                )
+            }
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 14.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+    }
+}
+
+private val FieldShape = RoundedCornerShape(20.dp)
 
 /**
  * « Je l'ai déjà acheté, une participation me ferait plaisir » (récit 68), as a switch. Once
@@ -308,22 +551,34 @@ private val FieldShape = RoundedCornerShape(16.dp)
  */
 @Composable
 private fun AlreadyBoughtBox(checked: Boolean, locked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .toggleable(value = checked, enabled = enabled && !locked, role = Role.Switch, onValueChange = onChange),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = WishLook.Field,
+            contentColor = WishLook.Ink,
+            border = BorderStroke(2.dp, WishLook.Edge),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(
-                stringResource(R.string.gift_item_already_bought_check),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f),
-            )
-            Switch(checked = checked, onCheckedChange = null, enabled = enabled && !locked)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 64.dp)
+                    .toggleable(value = checked, enabled = enabled && !locked, role = Role.Switch, onValueChange = onChange)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Switch(
+                    checked = checked,
+                    onCheckedChange = null,
+                    enabled = enabled && !locked,
+                    colors = SwitchDefaults.colors(checkedTrackColor = WishLook.Dark),
+                )
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.wish_form_bought), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.wish_form_bought_sub), style = MaterialTheme.typography.bodyMedium, color = WishLook.Muted)
+                }
+            }
         }
         if (locked) FormHint(stringResource(R.string.gift_item_already_bought_locked))
     }
@@ -374,13 +629,21 @@ private fun GiftItemEditScreenPreview() {
     FamiliaTheme { Surface { GiftItemEditScreen(previewGiftItemForm(), {}, {}, {}, {}) } }
 }
 
-/** What a wish is for (récit 9 ter): « Quand tu veux » by default, Christmas or the birthday. */
+/** « Pour quelle occasion ? » (E8): Anniversaire, Noël or Pas précisée, in pills. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun WishOccasionChoice(selected: GiftOccasion?, forMe: Boolean, onSelect: (GiftOccasion?) -> Unit) {
-    ChipGroup {
-        listOf(null, GiftOccasion.Christmas, GiftOccasion.Birthday).forEach { occasion ->
-            FormChip(label = wishOccasionLabel(occasion, forMe), selected = selected == occasion, onClick = { onSelect(occasion) })
+private fun WishOccasionChoice(selected: GiftOccasion?, enabled: Boolean, onSelect: (GiftOccasion?) -> Unit) {
+    FlowRow(
+        modifier = Modifier.selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        listOf(
+            GiftOccasion.Birthday to R.string.wish_occasion_birthday,
+            GiftOccasion.Christmas to R.string.wish_occasion_christmas,
+            null to R.string.wish_occasion_none,
+        ).forEach { (occasion, label) ->
+            WishPill(stringResource(label), selected = selected == occasion, onClick = { onSelect(occasion) }, enabled = enabled)
         }
     }
 }
