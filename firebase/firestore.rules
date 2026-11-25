@@ -1859,7 +1859,9 @@ service cloud.firestore {
         && request.resource.data.offeredBy == myMemberId()
         && request.resource.data.updatedAt == request.time;
 
-      allow delete: if isMember() && resource.data.creatorId == myMemberId();
+      // Offered, it stays: the admin principal's cancel within 30 days needs it (C2 renfort #624).
+      allow delete: if isMember() && resource.data.creatorId == myMemberId()
+        && resource.data.status == 'preparing';
     }
 
     // The day of a surprise at 0 h UTC: « C'est offert » opens 2 hours earlier, at midnight in Paris
@@ -1971,6 +1973,9 @@ service cloud.firestore {
         && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null)
         && request.resource.data.get('ratingSum', null) == resource.data.get('ratingSum', null)
         && request.resource.data.get('ratingCount', 0) == resource.data.get('ratingCount', 0)
+        // Taken, it stays in (C4 renfort #624): the owner releases it first.
+        && (request.resource.data.get('removed', false) == false
+            || !exists(/databases/$(database)/documents/surprises/$(surpriseId)/takes/$(proposalId)))
         && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['removed'])
             || (resource.data.kind == 'wish'
                 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'price', 'url', 'authorName'])
@@ -2027,12 +2032,13 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      // « Acheté par »: a member who takes part says who bought it (themselves or no one); the
-      // owner changes the goal of their joint gift.
+      // « Acheté par »: a member who takes part says they bought it; only that buyer or the owner of
+      // the take clears it (C1 renfort #624). The owner changes the goal of their joint gift.
       allow update: if actsInSurprise(surpriseId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['boughtBy', 'goal', 'updatedAt'])
         && (request.resource.data.boughtBy == resource.data.boughtBy
-            || request.resource.data.boughtBy == null
+            || (request.resource.data.boughtBy == null
+                && (resource.data.boughtBy == myMemberId() || resource.data.ownerId == myMemberId()))
             || request.resource.data.boughtBy == myMemberId())
         && (request.resource.data.goal == resource.data.goal
             || (resource.data.ownerId == myMemberId() && resource.data.kind == 'shared'
@@ -2061,7 +2067,9 @@ service cloud.firestore {
         && request.resource.data.amount >= 1 && request.resource.data.amount <= 10000
         && request.resource.data.updatedAt == request.time;
 
-      allow delete: if readsSurprise(surpriseId) && memberId == myMemberId();
+      // Offered, the parts stay as they were (C4 renfort #624).
+      allow delete: if readsSurprise(surpriseId) && memberId == myMemberId()
+        && surpriseOf(surpriseId).status == 'preparing';
     }
 
     // surprises/{sid}/notebook and /offered are the server's alone (who holds a notebook entry, the
