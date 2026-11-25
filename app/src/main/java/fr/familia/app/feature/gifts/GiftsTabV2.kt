@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -69,14 +70,31 @@ internal class GiftsV2Actions(
     val onOpenMyPage: (() -> Unit)?,
     val onAddWish: (listId: String) -> Unit,
     val onOpenSurprisePicker: (() -> Unit)?,
+    /** The surprises I prepare; null for the bar of before (ideas lists). */
+    val surprises: List<SurpriseTile>? = null,
+    val onOpenSurprise: (String) -> Unit = {},
 )
+
+/** One surprise I prepare, as its tile says it: « Surprise en préparation · Pour X · date ». */
+data class SurpriseTile(val id: String, val beneficiaryName: String, val date: java.time.LocalDate)
 
 internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: GiftsV2Actions, showPreparing: Boolean) {
     val mine = state.sections.firstOrNull { it.isMe }
-    val lines = if (showPreparing && state.surpriseButton) preparingLines(state) else emptyList()
-    val canPrepare = showPreparing && state.surpriseButton && state.canPrepareSurprise && actions.onOpenSurprisePicker != null
-    if (lines.isNotEmpty() || canPrepare) {
-        item(key = "surprise-bar") { SurpriseBar(lines, canPrepare, actions.onOpenSurprisePicker, actions.onOpenList) }
+    val tiles = actions.surprises
+    if (tiles != null) {
+        // The surprises (brief §2): never in « Voir comme ».
+        if (showPreparing) {
+            tiles.forEach { tile -> item(key = "surprise-${tile.id}") { SurpriseTileCard(tile, state.today, actions.onOpenSurprise) } }
+            if (state.canPrepareSurprise && actions.onOpenSurprisePicker != null) {
+                item(key = "surprise-bar") { SurpriseBar(emptyList(), true, actions.onOpenSurprisePicker, actions.onOpenList) }
+            }
+        }
+    } else {
+        val lines = if (showPreparing && state.surpriseButton) preparingLines(state) else emptyList()
+        val canPrepare = showPreparing && state.surpriseButton && state.canPrepareSurprise && actions.onOpenSurprisePicker != null
+        if (lines.isNotEmpty() || canPrepare) {
+            item(key = "surprise-bar") { SurpriseBar(lines, canPrepare, actions.onOpenSurprisePicker, actions.onOpenList) }
+        }
     }
     if (mine != null) item(key = "my-wishes") { MyWishesCard(state, mine, actions) }
     val soon = birthdaysSoon(state)
@@ -155,6 +173,33 @@ private fun SurpriseBar(lines: List<PreparingLine>, canPrepare: Boolean, onPrepa
                 if (open) lines.forEach { line -> BarLine(line, onOpenList) }
             }
             if (canPrepare && onPrepare != null) BarRow(text = stringResource(R.string.gifts_prepare_surprise), onClick = onPrepare)
+        }
+    }
+}
+
+/** A dark tile per surprise in preparation (fiche C1): « Surprise en préparation », for whom and when. */
+@Composable
+private fun SurpriseTileCard(tile: SurpriseTile, today: java.time.LocalDate, onOpen: (String) -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.inverseSurface,
+        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable(role = Role.Button) { onOpen(tile.id) }.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("🎁", style = MaterialTheme.typography.titleLarge)
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.surprise_tile_preparing), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.surprise_tile_for, tile.beneficiaryName, fr.familia.app.core.ui.dayShortLabel(tile.date, today)),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
         }
     }
 }

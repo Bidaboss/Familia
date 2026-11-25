@@ -73,3 +73,46 @@ fun nearestSurpriseOccasion(beneficiary: Member, today: LocalDate): SurpriseOcca
 /** The age [beneficiary] turns on [date], for « Les 40 ans de… »; null without a birth date. */
 fun ageOn(beneficiary: Member, date: LocalDate): Int? =
     beneficiary.birthDate?.let { date.year - it.year }?.takeIf { it >= 1 }
+
+/** A wish of the beneficiary (always in the surprise) or an idea a member added (brief §4). */
+enum class ProposalKind(val firestoreValue: String) {
+    Wish("wish"),
+    Idea("idea"),
+    ;
+
+    companion object {
+        fun fromFirestore(value: String?): ProposalKind = if (value == "idea") Idea else Wish
+    }
+}
+
+/**
+ * One proposal of a surprise, at surprises/{sid}/proposals/{id}: `wish-{itemId}` for a wish of the
+ * beneficiary, `idea-{entryId}` for an idea of the notebook. The sum and the count of the notes are
+ * kept by the server: each note is read only by its author.
+ */
+data class SurpriseProposal(
+    val id: String,
+    val kind: ProposalKind,
+    val title: String,
+    val price: Double?,
+    val url: String?,
+    val authorId: String,
+    val authorName: String,
+    val removed: Boolean = false,
+    val ratingSum: Int = 0,
+    val ratingCount: Int = 0,
+) {
+    /** The average, shown from [MIN_RATINGS] notes only, so nobody guesses who gave which (PRODUIT, 25/11). */
+    val average: Double? get() = if (ratingCount >= MIN_RATINGS) ratingSum.toDouble() / ratingCount else null
+
+    companion object {
+        const val MIN_RATINGS = 3
+    }
+}
+
+fun wishProposalId(itemId: String): String = "wish-$itemId"
+
+fun ideaProposalId(entryId: String): String = "idea-$entryId"
+
+/** One gift already given to a person, for « Déjà offert à X », kept without limit. */
+data class GiftHistoryItem(val id: String, val title: String, val year: Int, val occasion: SurpriseOccasion)

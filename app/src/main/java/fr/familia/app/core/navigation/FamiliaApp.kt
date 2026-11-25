@@ -151,6 +151,7 @@ import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
 import fr.familia.app.feature.gifts.surprise.SurprisePickRoute
 import fr.familia.app.feature.gifts.surprise.SurpriseEditRoute
+import fr.familia.app.feature.gifts.surprise.SurpriseRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -183,7 +184,6 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.photo.LocalPhotoStorage
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberInitials
@@ -1641,6 +1641,7 @@ fun FamiliaApp(
                             onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
+                            onOpenSurprise = { id -> navController.navigate(SurpriseDestination(id)) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
                         )
                     }
@@ -1649,9 +1650,10 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
+                            // « Nouvelle surprise » for this person (brief §3), in place of the picker.
                             onPick = { id ->
                                 navController.popBackStack()
-                                navController.navigate(GiftListDestination(ideasListId(id)))
+                                navController.navigate(SurpriseEditDestination(beneficiaryId = id))
                             },
                         )
                     }
@@ -1662,9 +1664,30 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             beneficiaryId = args.beneficiaryId,
                             surpriseId = args.surpriseId,
-                            // The surprise itself opens here with its tabs (next PR); until then, back to Cadeaux.
-                            onDone = { navController.popBackStack() },
+                            onDone = { id ->
+                                if (id == null) {
+                                    // Deleted: the surprise behind closes too.
+                                    navController.popBackStack<SurpriseDestination>(inclusive = true)
+                                } else if (args.surpriseId == null) {
+                                    // Created or joined: the surprise opens in place of the form.
+                                    navController.popBackStack()
+                                    navController.navigate(SurpriseDestination(id))
+                                } else {
+                                    navController.popBackStack()
+                                }
+                            },
                             onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<SurpriseDestination> { entry ->
+                        val args = entry.toRoute<SurpriseDestination>()
+                        SurpriseRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            surpriseId = args.surpriseId,
+                            onBack = { navController.popBackStack() },
+                            onSettings = { navController.navigate(SurpriseEditDestination(surpriseId = args.surpriseId)) },
+                            onAddIdea = { personId -> navController.navigate(NotebookIdeaDestination(personId = personId)) },
                         )
                     }
                     composable<NotebookDestination> {

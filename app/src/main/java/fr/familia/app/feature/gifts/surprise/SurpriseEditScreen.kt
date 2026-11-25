@@ -221,7 +221,7 @@ private fun FormContent(
             DateField(form.date, dateError(state.errors)) { date -> onChange { it.copy(date = date, dateTouched = true) } }
         }
 
-        Notice(stringResource(R.string.surprise_never_sees, state.beneficiary.firstName))
+        SurpriseNotice(stringResource(R.string.surprise_never_sees, state.beneficiary.firstName))
 
         FormTile(Icons.Outlined.Visibility, stringResource(R.string.surprise_field_members), accent = accent) {
             Members(state, onChange)
@@ -252,7 +252,7 @@ private fun dateError(errors: Set<SurpriseFormError>): String? = when {
 
 /** The yellow message of the fiche C3: the person never sees the surprise. */
 @Composable
-private fun Notice(text: String, modifier: Modifier = Modifier) {
+internal fun SurpriseNotice(text: String, modifier: Modifier = Modifier) {
     Surface(color = NoticeBackground, shape = RoundedCornerShape(14.dp), modifier = modifier.fillMaxWidth()) {
         Text(
             text,
