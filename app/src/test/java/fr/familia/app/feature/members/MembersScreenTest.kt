@@ -2,6 +2,8 @@ package fr.familia.app.feature.members
 
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -69,9 +71,11 @@ class MembersScreenTest {
             FamiliaTheme { MembersScreen(stateOf("a"), onRetry = {}, tree = { Text("le dessin") }, today = today) }
         }
         explained {
-            compose.onNodeWithText("Foyers").assertIsDisplayed()
-            compose.onNodeWithText("Arbre").performClick()
-            compose.onNodeWithText("le dessin").assertIsDisplayed()
+            compose.onNodeWithText("Foyers").assertIsSelected()
+            compose.onNodeWithText("Arbre").assertIsNotSelected().performClick()
+            compose.waitForIdle()
+            compose.onNodeWithText("Arbre").assertIsSelected()
+            compose.onNodeWithText("le dessin").assertExists()
             assertEquals(0, compose.onAllNodes(hasText("Mon foyer")).fetchSemanticsNodes().size)
         }
     }
