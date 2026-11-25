@@ -420,8 +420,24 @@ export function withdrawNotice(surpriseId: string, title: string, name: string):
   return { channel: 'gifts', title: `« ${title} »`, body: `${name} ne participe pas.`, surpriseId, tag: `surprise-${surpriseId}-members` };
 }
 
-export function wishChangedNotice(surpriseId: string, title: string, wishTitle: string): Notice {
-  return { channel: 'gifts', title: `« ${title} »`, body: `Une envie a changé : « ${wishTitle} ».`, surpriseId, tag: `surprise-${surpriseId}-wish` };
+export function wishChangedNotice(surpriseId: string, title: string, wishTitle: string, itemId = ''): Notice {
+  return {
+    channel: 'gifts', title: `« ${title} »`, body: `Une envie a changé : « ${wishTitle} ».`, surpriseId,
+    tag: `surprise-${surpriseId}-wish${itemId ? `-${itemId}` : ''}`,
+  };
+}
+
+/** At most one « envie modifiée » a surprise every 10 minutes: a wish edited in several steps rings once. */
+export const WISH_NOTICE_GAP_MS = 10 * 60 * 1000;
+
+async function wishNoticeDue(db: Firestore, surpriseId: string, now: Date): Promise<boolean> {
+  const ref = db.collection('surprises').doc(surpriseId).collection('server').doc('notices');
+  return db.runTransaction(async (tx) => {
+    const last = (await tx.get(ref)).get('wishAt') as { toMillis(): number } | undefined;
+    if (last && now.getTime() - last.toMillis() < WISH_NOTICE_GAP_MS) return false;
+    tx.set(ref, { wishAt: now }, { merge: true });
+    return true;
+  });
 }
 
 export function dateChangedNotice(surpriseId: string, title: string, date: string): Notice {
@@ -466,7 +482,7 @@ export async function onSurpriseDateChanged(
  */
 export async function onWishChangedForSurprises(
   db: Firestore, send: Sender, listId: string, itemId: string,
-  before: Record<string, unknown> | undefined, after: Record<string, unknown> | undefined,
+  before: Record<string, unknown> | undefined, after: Record<string, unknown> | undefined, now: Date = new Date(),
 ): Promise<number> {
   if (!listId.startsWith('wishes-') || !before || !after) return 0;
   const keys = ['title', 'url', 'price', 'note'];
@@ -482,7 +498,9 @@ export async function onWishChangedForSurprises(
       url: typeof after.url === 'string' ? after.url : null,
     });
     await syncSurpriseNotebook(db, s.id, `wish-${itemId}`);
-    sent += await tellOthers(db, send, s, [], wishChangedNotice(s.id, String(s.get('title') ?? ''), String(after.title ?? '')));
+    // The proposal always follows; the members are told once every 10 minutes (C1 de #639).
+    if (!(await wishNoticeDue(db, s.id, now))) continue;
+    sent += await tellOthers(db, send, s, [], wishChangedNotice(s.id, String(s.get('title') ?? ''), String(after.title ?? ''), itemId));
   }
   return sent;
 }
