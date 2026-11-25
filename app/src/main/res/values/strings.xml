@@ -2004,6 +2004,19 @@
         <item quantity="other">%d recettes</item>
     </plurals>
     <string name="profile_v2_recipes_add_hint">Partage une recette de famille</string>
+    <string name="profile_v2_household">Foyer</string>
+    <plurals name="profile_v2_household_people">
+        <item quantity="one">%d personne</item>
+        <item quantity="many">%d personnes</item>
+        <item quantity="other">%d personnes</item>
+    </plurals>
+    <string name="profile_v2_household_rename_hint">Le nom affiché dans Famille et dans l\'arbre</string>
+    <string name="profile_v2_notes">Mes notes</string>
+    <string name="profile_v2_notes_private">Privé : seul·e toi les vois. %1$s ne les voit jamais.</string>
+    <string name="profile_v2_notes_hint">Ce que tu veux retenir sur %1$s…</string>
+    <string name="profile_v2_notes_label">Mes notes sur %1$s</string>
+    <string name="profile_v2_notes_count">%1$d / %2$d · enregistré tout seul</string>
+    <string name="profile_v2_notes_idea">En faire une idée</string>
     <string name="profile_v2_successes">Ses réussites</string>
     <string name="profile_v2_successes_mine">Mes réussites</string>
     <string name="profile_v2_success_on">le %1$s</string>

@@ -22,6 +22,7 @@ fun NotebookIdeaRoute(
     onDone: () -> Unit,
     startBought: Boolean = false,
     startPersonId: String? = null,
+    startNote: String? = null,
 ) {
     val viewModel: NotebookIdeaViewModel = viewModel(
         factory = viewModelFactory {
@@ -30,6 +31,7 @@ fun NotebookIdeaRoute(
                     container?.notebookRepository, container?.memberRepository, currentMember.id, entryId, startOccasion,
                     startBought = startBought,
                     startPersonId = startPersonId,
+                    startNote = startNote,
                     saved = createSavedStateHandle(),
                 )
             }

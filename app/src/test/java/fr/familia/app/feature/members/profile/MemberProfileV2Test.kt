@@ -4,6 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.GoodNews
@@ -115,13 +120,18 @@ class MemberProfileV2Test {
         souvenirs: List<Souvenir> = emptyList(),
         onPrepareSurprise: (() -> Unit)? = {},
         onAddRecipe: (() -> Unit)? = null,
+        onEditNote: (String) -> Unit = {},
+        onMakeIdea: ((String) -> Unit)? = null,
     ) {
         compose.setContent {
             FamiliaTheme {
                 Column {
                     ContentV2(
                         ready(member, isMe, souvenirs),
-                        ProfileV2Ui(state, onOpenWishes = {}, onPrepareSurprise = onPrepareSurprise, onOpenRecipes = {}, onAddRecipe = onAddRecipe),
+                        ProfileV2Ui(
+                            state, onOpenWishes = {}, onPrepareSurprise = onPrepareSurprise, onOpenRecipes = {}, onAddRecipe = onAddRecipe,
+                            onEditNote = onEditNote, onMakeIdea = onMakeIdea,
+                        ),
                         wishes = null,
                     )
                 }
@@ -256,5 +266,46 @@ class MemberProfileV2Test {
         assertEquals(1, count("Première actualité"))
         assertEquals(1, count("le 2 mai 2026"))
         assertEquals(0, count("Montrer sur ma fiche"))
+    }
+
+    @Test
+    fun `Foyer and Renommer le foyer for who may rename it`() {
+        show(TestFamily.admin, isMe = true, state = v2().copy(canRenameHousehold = true, householdSize = 3))
+        assertEquals(1, count("3 personnes"))
+        assertEquals(1, count("Renommer le foyer"))
+        assertEquals(1, count("Le nom affiché dans Famille et dans l'arbre"))
+    }
+
+    @Test
+    fun `no Foyer for who may not rename it`() {
+        show(TestFamily.adult, isMe = true, state = v2().copy(canRenameHousehold = false, householdSize = 3))
+        assertEquals(0, count("Renommer le foyer"))
+        assertEquals(0, count("3 personnes"))
+    }
+
+    @Test
+    fun `Mes notes on someone else's page, private and saved on their own`() {
+        val made = mutableListOf<String>()
+        show(TestFamily.otherAdult, isMe = false, state = v2().copy(note = "Aime les pulls gris"), onMakeIdea = { made += it })
+        assertEquals(1, count("Privé : seul·e toi les vois. Adult2 ne les voit jamais."))
+        assertEquals(1, count("19 / 500 · enregistré tout seul"))
+        compose.onNodeWithText("En faire une idée").performScrollTo().performClick()
+        assertEquals(listOf("Aime les pulls gris"), made)
+    }
+
+    @Test
+    fun `typing in Mes notes is handed to the model at once`() {
+        val edits = mutableListOf<String>()
+        show(TestFamily.otherAdult, isMe = false, state = v2().copy(note = ""), onEditNote = { edits += it })
+        assertEquals(0, count("En faire une idée"))
+        compose.onNodeWithContentDescription("Mes notes sur Adult2").performScrollTo().performTextInput("Guitare")
+        assertTrue(edits.last().contains("Guitare"))
+    }
+
+    @Test
+    fun `never Mes notes on my own page`() {
+        show(TestFamily.adult, isMe = true, state = v2().copy(note = "Une note"))
+        assertEquals(0, count("Mes notes"))
+        assertEquals(0, described("Mes notes sur"))
     }
 }

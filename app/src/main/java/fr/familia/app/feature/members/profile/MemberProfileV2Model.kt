@@ -7,6 +7,7 @@ import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.MemberCardRepository
+import fr.familia.app.core.data.MemberNoteRepository
 import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RecipeRepository
@@ -26,18 +27,25 @@ import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.canChangePhoto
 import fr.familia.app.core.model.cleaned
 import fr.familia.app.core.model.concerns
+import fr.familia.app.core.model.managesHousehold
 import fr.familia.app.core.model.nextBirthday
 import fr.familia.app.core.model.wishesListId
+import fr.familia.app.feature.members.MembersViewModel
 import fr.familia.app.core.ui.sendWrite
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -83,7 +91,28 @@ data class ProfileV2State(
     val canEditCard: Boolean = false,
     /** The parts the gauge counts: a module that is off never counts against me. */
     val fillable: Set<FillPart> = FillPart.entries.toSet(),
+    /** How many people live in [household], for the « Foyer » tile. */
+    val householdSize: Int = 0,
+    /**
+     * « Foyer » with « Renommer le foyer » (règle 7, brief Famille-recettes): a chef de famille on
+     * their own page, or the admin principal on the page of a chef. Nothing else of the household.
+     */
+    val canRenameHousehold: Boolean = false,
+    /**
+     * « Mes notes » (règle 9): my private note about this member, empty when none. Null on my own
+     * page, in « Voir comme » and while it is loading: the tile is not shown.
+     */
+    val note: String? = null,
 )
+
+/** Le compteur de « Mes notes » s'arrête là (prototype v157), comme la note d'une idée de cadeau. */
+internal const val NOTE_MAX = 500
+
+/** A note is saved once the typing pauses this long, never at each letter. */
+internal const val NOTE_PAUSE = 800L
+
+/** What the page reads besides the family: the card, the wishes, the recipes, my note. */
+private data class Extras(val card: MemberCard?, val wishes: Int, val recipes: Int, val note: String?)
 
 /**
  * What « Ta fiche est remplie à N % » counts (PRODUIT-116), each part worth the same: a photo, my
@@ -172,7 +201,7 @@ internal fun isPhone(text: String): Boolean = Regex("^[+]?[0-9 .()-]{6,24}$").ma
 /** Who may see a phone or an address on a page: never for a child (PRODUIT-98). */
 internal fun hasCoordinates(member: Member): Boolean = member.profile == MemberProfile.Adult
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class MemberProfileV2ViewModel(
     private val members: MemberRepository?,
     genealogy: GenealogyRepository?,
@@ -187,6 +216,8 @@ class MemberProfileV2ViewModel(
     gifts: GiftRepository? = null,
     recipes: RecipeRepository? = null,
     private val photos: MemberPhotoRepository? = null,
+    /** « Mes notes »: null in « Voir comme » (nobody but the author reads a note). */
+    private val notes: MemberNoteRepository? = null,
 ) : ViewModel() {
     private val saving = MutableStateFlow(false)
     private val failed = MutableStateFlow(false)
@@ -216,14 +247,16 @@ class MemberProfileV2ViewModel(
         add(FillPart.Phone)
     }
 
-    /** The card, the number of wishes and of recipes written, read on every page. */
-    private val extras: Flow<Triple<MemberCard?, Int, Int>> = run {
+    /** The card, the number of wishes and of recipes written, read on every page; my note on the others'. */
+    private val extras: Flow<Extras> = run {
         val card = (memberCards?.observeCard(memberId)?.map<MemberCard?, MemberCard?> { it ?: MemberCard(memberId) } ?: flowOf(null))
             .orElse(null).onStart { emit(null) }
         val wishes = (gifts?.observeItems(wishesListId(memberId), hiddenFromMe = true)?.map { it.size } ?: flowOf(0)).orElse(0).onStart { emit(0) }
         val recipe = (recipes?.observeRecipes()?.map { list -> list.count { it.authorId == memberId } } ?: flowOf(0))
             .orElse(0).onStart { emit(0) }
-        combine(card, wishes, recipe) { c, w, r -> Triple(c, w, r) }
+        val note = (notes?.takeIf { readerId != memberId }?.observe(readerId, memberId)?.map<String, String?> { it } ?: flowOf(null))
+            .orElse(null).onStart { emit(null) }
+        combine(card, wishes, recipe, note) { c, w, r, n -> Extras(c, w, r, n) }
     }
 
     private val tree = combine(kin, links, words, extras) { k, l, w, f -> Pair(Triple(k, l, w), f) }
@@ -241,12 +274,17 @@ class MemberProfileV2ViewModel(
             managesHousehold = reader != null && fam.ownerId == reader.id,
             saving = sf.first,
             saveFailed = sf.second,
-            hasTastes = t.second.first?.let { !it.isEmpty } == true,
-            wishCount = t.second.second,
-            recipeCount = t.second.third,
-            card = t.second.first.takeIf { memberCards != null },
+            hasTastes = t.second.card?.let { !it.isEmpty } == true,
+            wishCount = t.second.wishes,
+            recipeCount = t.second.recipes,
+            card = t.second.card.takeIf { memberCards != null },
             canEditCard = reader != null && memberCards != null && fam.canChangePhoto(reader, member),
             fillable = fillable,
+            householdSize = fam.members.count { it.householdId == member.householdId },
+            canRenameHousehold = reader != null && fam.households.any { it.id == member.householdId } &&
+                fam.managesHousehold(reader, member.householdId) &&
+                (reader.id == memberId || (fam.ownerId == reader.id && member.isAdmin)),
+            note = t.second.note,
         )
     }.orElse(null).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -273,6 +311,59 @@ class MemberProfileV2ViewModel(
         val card = typed.copy(memberId = memberId).cleaned() ?: return false
         write { if (sendWrite(WRITE_TIMEOUT) { repo.saveCard(card, readerId) } == null) error("refused") }
         return true
+    }
+
+    /** « Renommer le foyer »: 1 to 40 characters, the rules check who may. */
+    fun renameHousehold(name: String) {
+        val repo = members ?: return
+        val current = state.value ?: return
+        val household = current.household?.takeIf { current.canRenameHousehold } ?: return
+        val trimmed = name.trim().take(MembersViewModel.MAX_HOUSEHOLD_NAME)
+        if (trimmed.isEmpty() || trimmed == household.name) return
+        write { repo.saveHousehold(household.copy(name = trimmed)) }
+    }
+
+    /** What I typed last in « Mes notes », not yet saved; null when nothing waits. */
+    private val noteDraft = MutableStateFlow<String?>(null)
+    private var noteSaved: String? = null
+
+    init {
+        viewModelScope.launch { noteDraft.filterNotNull().debounce(NOTE_PAUSE).collect { saveNote(it) } }
+    }
+
+    /** « enregistré tout seul » (règle 9): saved after a pause, apart from « Modifier ». Empty removes it. */
+    fun editNote(text: String) {
+        if (notes == null || readerId == memberId) return
+        noteDraft.value = text.take(NOTE_MAX)
+    }
+
+    private suspend fun saveNote(text: String) {
+        val repo = notes ?: return
+        if (text == noteSaved) return
+        try {
+            repo.save(readerId, memberId, text)
+            noteSaved = text
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            failed.value = true
+        }
+    }
+
+    /** Leaving the page within the pause still keeps what was typed. */
+    override fun onCleared() {
+        val pending = noteDraft.value ?: return
+        val repo = notes ?: return
+        if (pending == noteSaved) return
+        CoroutineScope(SupervisorJob()).launch {
+            try {
+                repo.save(readerId, memberId, pending)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Nobody is left to tell; the next visit shows the note as it was.
+            }
+        }
     }
 
     /** My photo, from « Changer ma photo » on the avatar of my page (P3). */
