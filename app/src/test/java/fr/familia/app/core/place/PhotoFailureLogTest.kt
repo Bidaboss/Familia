@@ -22,6 +22,8 @@ class PhotoFailureLogTest {
         assertFalse(PhotoFailureLog.isReportable("UnknownHostException"))
         assertFalse(PhotoFailureLog.isReportable("ConnectException"))
         assertFalse(PhotoFailureLog.isReportable("NoRouteToHostException"))
+        assertFalse(PhotoFailureLog.isReportable("image UnknownHostException: Unable to resolve host"))
         assertTrue(PhotoFailureLog.isReportable("SSLHandshakeException"))
+        assertTrue(PhotoFailureLog.isReportable("image HttpException: 403"))
     }
 }

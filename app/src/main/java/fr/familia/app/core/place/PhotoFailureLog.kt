@@ -20,7 +20,12 @@ object PhotoFailureLog {
      * and for a phone without network (retour du 25/11 soir : UnknownHostException, the name of the site
      * could not be looked up), where the drawing is the right thing to show and there is nothing to fix.
      */
-    fun isReportable(line: String): Boolean = !line.startsWith("aucune photo") && line !in NO_NETWORK
+    fun isReportable(line: String): Boolean {
+        if (line.startsWith("aucune photo")) return false
+        // « UnknownHostException » from the search, « image UnknownHostException: Unable to… » from PlaceCover.
+        val error = line.removePrefix("image ").substringBefore(':').trim()
+        return error !in NO_NETWORK
+    }
 
     /** The errors of a phone offline or between two networks: Wi-Fi lost, plane mode, no signal. */
     private val NO_NETWORK = setOf("UnknownHostException", "ConnectException", "NoRouteToHostException")
