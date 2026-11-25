@@ -19,12 +19,16 @@ import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberCard
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
+import fr.familia.app.core.model.canChangePhoto
+import fr.familia.app.core.model.cleaned
 import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.nextBirthday
 import fr.familia.app.core.model.wishesListId
+import fr.familia.app.core.ui.sendWrite
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -67,10 +71,16 @@ data class ProfileV2State(
     val managesHousehold: Boolean,
     val saving: Boolean = false,
     val saveFailed: Boolean = false,
-    /** My own page only (PRODUIT-116), for « Ta fiche est remplie à N % »: what the page cannot read itself. */
+    /** For « Ta fiche est remplie à N % » (PRODUIT-116), on my own page. */
     val hasTastes: Boolean = false,
+    /** « Ses envies (4) »: what the person sees of their list, never a reservation. */
     val wishCount: Int = 0,
-    val hasRecipe: Boolean = false,
+    /** The recipes this member wrote (brief Famille-recettes, règle 19): the gauge counts one as done. */
+    val recipeCount: Int = 0,
+    /** The card of the member (récit 7 bis, récit 114): « En ce moment », « À savoir », the tastes. Null while its module is off. */
+    val card: MemberCard? = null,
+    /** I may change that card: the member, an adult of their household for a child, the admin principal. */
+    val canEditCard: Boolean = false,
     /** The parts the gauge counts: a module that is off never counts against me. */
     val fillable: Set<FillPart> = FillPart.entries.toSet(),
 )
@@ -89,7 +99,7 @@ internal fun fillParts(member: Member, hasPhoto: Boolean, data: ProfileV2State, 
         add(FillPart.Tastes to data.hasTastes)
         add(FillPart.Wishes to (data.wishCount > 0))
         add(FillPart.Family to !data.kinship.isEmpty)
-        add(FillPart.RecipeOrSouvenir to (data.hasRecipe || souvenirShown))
+        add(FillPart.RecipeOrSouvenir to (data.recipeCount > 0 || souvenirShown))
         if (hasCoordinates(member)) add(FillPart.Phone to (member.phone != null))
     }.filter { it.first in data.fillable }
 
@@ -108,19 +118,11 @@ internal fun birthdaySoon(birthDate: LocalDate?, today: LocalDate): Boolean =
 internal const val MOMENTS_MAX = 3
 internal const val PHOTOS_MAX = 6
 
+/** Offline, a write shows at once and leaves with the network: past this, it is taken as sent. */
+private const val WRITE_TIMEOUT = 4_000L
+
 /** How far « Ses moments » looks for an event: half a year, never the whole planning. */
 private const val MOMENTS_DAYS = 180L
-
-/**
- * Cadeaux comes before Goûts et passions in the 30 days before the birthday and from the 1st to the
- * 24th of December (PRODUIT-97); Goûts et passions comes first the rest of the year.
- */
-internal fun giftsFirst(birthDate: LocalDate?, today: LocalDate): Boolean {
-    if (today.monthValue == 12 && today.dayOfMonth <= 24) return true
-    val birth = birthDate ?: return false
-    val days = ChronoUnit.DAYS.between(today, nextBirthday(birth, today))
-    return days in 0..30
-}
 
 /** The age on [today]. */
 internal fun ageOn(birthDate: LocalDate, today: LocalDate): Int {
@@ -129,13 +131,6 @@ internal fun ageOn(birthDate: LocalDate, today: LocalDate): Int {
         (today.monthValue == birthDate.monthValue && today.dayOfMonth >= birthDate.dayOfMonth)
     return if (hadIt) years else years - 1
 }
-
-/**
- * « Lui souhaiter » only on the day of the birthday: before it, the cards of vœux are not open yet
- * and the button did nothing (Kévin, 19/11).
- */
-internal fun birthdayToday(birthDate: LocalDate?, today: LocalDate): Boolean =
-    birthDate != null && daysUntilBirthday(birthDate, today) == 0
 
 /** Days until the next birthday, 0 on the day. */
 internal fun daysUntilBirthday(birthDate: LocalDate, today: LocalDate): Int =
@@ -187,7 +182,7 @@ class MemberProfileV2ViewModel(
     private val readerId: String,
     private val memberId: String,
     private val today: LocalDate,
-    /** Read on my own page only, for the gauge (PRODUIT-116). */
+    /** The card, the wishes and the recipes: their sections and the gauge (PRODUIT-116). */
     memberCards: MemberCardRepository? = null,
     gifts: GiftRepository? = null,
     recipes: RecipeRepository? = null,
@@ -211,7 +206,7 @@ class MemberProfileV2ViewModel(
     }
     private val news = (goodNews?.observeLatest(40) ?: flowOf(emptyList())).orElse(emptyList())
 
-    private val mine = readerId == memberId
+    private val cards = memberCards
     private val fillable: Set<FillPart> = buildSet {
         if (photos != null) add(FillPart.Photo)
         if (memberCards != null) add(FillPart.Tastes)
@@ -221,18 +216,17 @@ class MemberProfileV2ViewModel(
         add(FillPart.Phone)
     }
 
-    /** What the gauge counts that this page does not read otherwise; nothing for someone else's page. */
-    private val filled: Flow<Triple<Boolean, Int, Boolean>> = if (!mine) {
-        flowOf(Triple(false, 0, false))
-    } else {
-        val tastes = (memberCards?.observeCard(memberId)?.map { it?.isEmpty == false } ?: flowOf(false)).orElse(false).onStart { emit(false) }
+    /** The card, the number of wishes and of recipes written, read on every page. */
+    private val extras: Flow<Triple<MemberCard?, Int, Int>> = run {
+        val card = (memberCards?.observeCard(memberId)?.map<MemberCard?, MemberCard?> { it ?: MemberCard(memberId) } ?: flowOf(null))
+            .orElse(null).onStart { emit(null) }
         val wishes = (gifts?.observeItems(wishesListId(memberId), hiddenFromMe = true)?.map { it.size } ?: flowOf(0)).orElse(0).onStart { emit(0) }
-        val recipe = (recipes?.observeRecipes()?.map { list -> list.any { it.originMemberId == memberId || it.authorId == memberId } } ?: flowOf(false))
-            .orElse(false).onStart { emit(false) }
-        combine(tastes, wishes, recipe) { t, w, r -> Triple(t, w, r) }
+        val recipe = (recipes?.observeRecipes()?.map { list -> list.count { it.authorId == memberId } } ?: flowOf(0))
+            .orElse(0).onStart { emit(0) }
+        combine(card, wishes, recipe) { c, w, r -> Triple(c, w, r) }
     }
 
-    private val tree = combine(kin, links, words, filled) { k, l, w, f -> Pair(Triple(k, l, w), f) }
+    private val tree = combine(kin, links, words, extras) { k, l, w, f -> Pair(Triple(k, l, w), f) }
     private val moments = combine(upcoming, answers) { e, a -> e to a }
 
     val state: StateFlow<ProfileV2State?> = combine(family, tree, moments, news, combine(saving, failed) { s, f -> s to f }) { fam, t, m, n, sf ->
@@ -247,9 +241,11 @@ class MemberProfileV2ViewModel(
             managesHousehold = reader != null && fam.ownerId == reader.id,
             saving = sf.first,
             saveFailed = sf.second,
-            hasTastes = t.second.first,
+            hasTastes = t.second.first?.let { !it.isEmpty } == true,
             wishCount = t.second.second,
-            hasRecipe = t.second.third,
+            recipeCount = t.second.third,
+            card = t.second.first.takeIf { memberCards != null },
+            canEditCard = reader != null && memberCards != null && fam.canChangePhoto(reader, member),
             fillable = fillable,
         )
     }.orElse(null).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -268,6 +264,15 @@ class MemberProfileV2ViewModel(
         val household = state.value?.household ?: return
         val value = address.trim().take(200).ifEmpty { null }
         write { repo.saveHousehold(household.copy(address = value)) }
+    }
+
+    /** Saves the card as typed. False when a field is too long: nothing is saved, the form stays open. */
+    fun saveCard(typed: MemberCard): Boolean {
+        val repo = cards ?: return false
+        if (state.value?.canEditCard != true) return false
+        val card = typed.copy(memberId = memberId).cleaned() ?: return false
+        write { if (sendWrite(WRITE_TIMEOUT) { repo.saveCard(card, readerId) } == null) error("refused") }
+        return true
     }
 
     /** My photo, from « Changer ma photo » on the avatar of my page (P3). */

@@ -1,8 +1,8 @@
 package fr.familia.app.feature.members.profile
 
-import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
 import fr.familia.app.core.ui.checkAccessibility
+import fr.familia.app.core.model.MemberCard
 import fr.familia.app.feature.events.TestFamily
 import org.junit.Rule
 import org.junit.Test
@@ -44,10 +44,14 @@ class MemberProfileV2AccessibilityTest {
             state = MemberProfileUiState.Ready(member, "Foyer Un", isMe, canEdit = isMe, souvenirs = emptyList()),
             onBack = {},
             onEdit = {},
-            onSetShown = { _, _ -> },
-            card = { Text("Goûts") },
-            gifts = { Text("Cadeaux") },
-            v2 = ProfileV2Ui(state, onSavePhoto = if (isMe) ({ _ -> }) else null),
+            v2 = ProfileV2Ui(
+                state.copy(card = MemberCard(member.id, now = "Je lis", allergies = "Arachides", tastes = "Le thé"), canEditCard = isMe, recipeCount = 1),
+                onSavePhoto = if (isMe) ({ _ -> }) else null,
+                onOpenWishes = {},
+                onPrepareSurprise = if (isMe) null else ({}),
+                onOpenRecipes = {},
+                onAddRecipe = if (isMe) ({}) else null,
+            ),
         )
     }
 

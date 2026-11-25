@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.time.Instant
 
 sealed interface MemberProfileUiState {
@@ -108,21 +107,4 @@ class MemberProfileViewModel(
         celebrations?.markCelebrated(memberId, keys)
         celebrated.value = celebrated.value + keys
     }
-
-    /** Shows a souvenir on one's own page, or hides it again. */
-    fun setShown(key: String, shown: Boolean) {
-        val repo = souvenirs ?: return
-        if (!isMe) return
-        saveFailed.value = false
-        viewModelScope.launch {
-            try {
-                repo.setShown(memberId, key, shown)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                saveFailed.value = true
-            }
-        }
-    }
 }
-
