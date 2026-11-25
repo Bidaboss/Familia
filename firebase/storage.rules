@@ -47,6 +47,21 @@ service firebase.storage {
 
     // --- Modules add their folder here, before the closing rule --------------------------------
 
+    // La gazette (récits 117 et 119 b): gazettePosts/{authorId}/{postId}/{photoId}.jpg, 500 Ko at
+    // most, and its thumbnail {photoId}-thumb.jpg. Six photos per publication, sent by its author
+    // before the document gazettePosts/{postId}; a photo is never replaced. The Cloud Function
+    // deletes them with the publication, whoever removes it (récit 121).
+    match /gazettePosts/{authorId}/{postId}/{fileName} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && postId.matches('^[A-Za-z0-9]{1,40}$')
+        && ((fileName.matches('^[A-Za-z0-9_]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9_]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember() && authorId == myMemberId();
+    }
+
     // Bonnes nouvelles (PRD, récit 32): goodNews/{authorId}/{postId}/{photoId}.jpg, about 300 KB, and
     // its thumbnail {photoId}-thumb.jpg, about 30 KB. The author sends the photos before writing
     // the document goodNews/{postId}, so the rules only check that the folder is theirs. A photo

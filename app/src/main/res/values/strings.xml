@@ -1489,6 +1489,41 @@
     <string name="feed_detail_weekly">Question de la semaine</string>
     <string name="feed_detail_wishes">Envies</string>
     <string name="feed_detail_deal">Bon plan</string>
+    <string name="feed_detail_post">Publication</string>
+    <!-- Publier dans la gazette (récits 117, 119 et 121). -->
+    <string name="gazette_publish_fab">Publier</string>
+    <string name="gazette_post_title">Publier dans la gazette</string>
+    <string name="gazette_post_edit_title">Modifier le texte</string>
+    <string name="gazette_post_publish">Publier</string>
+    <string name="gazette_post_save">Enregistrer</string>
+    <string name="gazette_post_audience">👪 Toute la famille le verra</string>
+    <string name="gazette_post_hint">Quoi de neuf, %1$s ?</string>
+    <string name="gazette_post_add_photo">📷 Ajouter une photo</string>
+    <string name="gazette_post_mention">＠ Mentionner</string>
+    <string name="gazette_post_photo_count">%1$d sur %2$d photos</string>
+    <string name="gazette_post_photos_fixed">Les photos restent comme elles sont : seul le texte se modifie.</string>
+    <string name="gazette_post_error_empty">Écris un mot ou ajoute une photo.</string>
+    <string name="gazette_post_leave_title">Abandonner cette publication ?</string>
+    <string name="gazette_post_failed_title">Publication impossible</string>
+    <string name="gazette_post_failed">La publication n\'est pas partie. Vérifie le réseau et réessaie.</string>
+    <string name="gazette_post_missing_title">Publication introuvable</string>
+    <string name="gazette_post_missing_body">Elle a été supprimée, ou ce n\'est pas la tienne.</string>
+    <string name="gazette_post_published_word">a publié un mot</string>
+    <plurals name="gazette_post_published_photos">
+        <item quantity="one">a publié une photo</item>
+        <item quantity="other">a publié %1$d photos</item>
+    </plurals>
+    <string name="gazette_post_edited">modifié</string>
+    <string name="gazette_post_pending">en attente de réseau</string>
+    <string name="gazette_post_photo">Photo %1$d sur %2$d</string>
+    <string name="gazette_post_menu_mine">Ma publication</string>
+    <string name="gazette_post_menu_other">Cette publication</string>
+    <string name="gazette_post_menu_edit">✏️ Modifier le texte</string>
+    <string name="gazette_post_menu_remove">🗑 Supprimer</string>
+    <string name="gazette_post_remove_title">Supprimer cette publication ?</string>
+    <string name="gazette_post_remove_body">Ses photos, ses J\'aime et ses commentaires seront supprimés pour toute la famille. Impossible de revenir en arrière.</string>
+    <string name="gazette_post_remove_confirm">Supprimer</string>
+    <string name="gazette_post_remove_failed">La suppression n\'a pas pu se faire. Réessaie.</string>
     <string name="feed_label_wishes">Envies</string>
     <string name="feed_label_deal">Bon plan</string>
     <string name="feed_label_address">Bonne adresse</string>
@@ -2647,7 +2682,6 @@
         <item quantity="one">%1$d nouveauté</item>
         <item quantity="other">%1$d nouveautés</item>
     </plurals>
-    <string name="home_photo_feed_publish">+ Publier</string>
     <string name="home_photo_surprise_day">C\'est le jour J : confirme</string>
     <string name="home_photo_surprise_confirm">Confirmer</string>
     <string name="home_photo_surprise_rate_title">Surprise de %1$s</string>
@@ -4184,9 +4218,6 @@
     <string name="feed_week_again">Revoir la semaine</string>
     <string name="feed_label_year">Notre année</string>
     <string name="feed_year_watch">Regarder</string>
-    <string name="feed_publish_prompt">Une photo, une actualité…</string>
-    <string name="feed_publish">Publier</string>
-    <string name="feed_publish_photo">Publier une photo</string>
     <string name="feed_recipe_origin">La recette de %1$s</string>
     <!-- « Le mot de l'étape » (récit 88) -->
     <string name="word_title">Le mot de l\'étape</string>

@@ -74,6 +74,9 @@ interface AppContainer {
     /** La gazette (récits 115, 116): the J'aime of a card, and the comments of the cards without their own. */
     val gazetteThreadRepository: GazetteThreadRepository? get() = null
     val gazetteCommentRepository: EventCommentRepository? get() = null
+
+    /** Les publications de la gazette (récit 117). */
+    val gazettePostRepository: GazettePostRepository? get() = null
     val helpRequestRepository: HelpRequestRepository?
     val tripRepository: TripRepository?
 
@@ -233,6 +236,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val gazetteCommentRepository: EventCommentRepository? by lazy {
         firestore?.let { FirestoreEventCommentRepository(it, parent = "gazetteThreads", expires = false, mutes = false) }
     }
+    override val gazettePostRepository: GazettePostRepository? by lazy { firestore?.let { FirestoreGazettePostRepository(it) } }
 
     override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it, sendJournal) } }
     override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }

@@ -103,6 +103,8 @@ class FeedNavigation(
     val onOpenGiftList: (String) -> Unit = {},
     /** A bon plan or a bonne adresse of Entraide (récit 116). */
     val onOpenGoodDeal: (String) -> Unit = {},
+    /** « Modifier le texte » of my own publication (récit 117, fiche R4). */
+    val onEditPost: (String) -> Unit = {},
 )
 
 val LocalFeedNavigation = staticCompositionLocalOf { FeedNavigation() }

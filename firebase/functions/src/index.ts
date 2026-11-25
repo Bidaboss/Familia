@@ -58,6 +58,7 @@ import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { deleteGazetteThreadsOfThing, refreshGazetteThread } from './gazetteThreads';
+import { GazettePostData, onGazettePostRemoved } from './gazettePosts';
 import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices } from './prefs';
@@ -708,6 +709,11 @@ export const onGoodNewsDeleted = onDocumentDeleted('goodNews/{postId}', async (e
   if (data) await onGoodNewsRemoved(removeFiles, event.params.postId, data);
   await deleteReactionDigest(getFirestore(), event.params.postId);
   await deleteGoodNewsComments(getFirestore(), event.params.postId);
+});
+
+// La gazette, les publications (récit 121): a removed one takes its photos and its thread with it.
+export const onGazettePostDeleted = onDocumentDeleted('gazettePosts/{postId}', async (event) => {
+  await onGazettePostRemoved(getFirestore(), removeFiles, event.params.postId, event.data?.data() as GazettePostData | undefined);
 });
 
 // Commentaires des bonnes nouvelles (récit 67): the count of the news, and who is told.

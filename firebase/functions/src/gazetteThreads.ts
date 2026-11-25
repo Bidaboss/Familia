@@ -78,14 +78,16 @@ export async function deleteGazetteThreadsFrom(db: Firestore, prefix: string): P
 
 /**
  * The cards that go when their thing goes (relecture du renfort sur #685, C2): a removed event,
- * recipe, coup de main, bon plan, trip or film takes the thread of its card with it, so its
+ * recipe, coup de main, bon plan, trip, film or publication (récit 121) takes the thread of its card with it, so its
  * comments do not stay readable by the family.
  */
 export async function deleteGazetteThreadsOfThing(
   db: Firestore,
-  thing: { event: string } | { recipe: string } | { help: string } | { deal: string } | { trip: string } | { film: string; trip: string },
+  thing: { event: string } | { recipe: string } | { help: string } | { deal: string } | { trip: string } | { film: string; trip: string } | { post: string },
 ): Promise<void> {
-  if ('film' in thing) {
+  if ('post' in thing) {
+    await deleteGazetteThread(db, `post:${thing.post}`);
+  } else if ('film' in thing) {
     await deleteGazetteThread(db, `film:${thing.trip}:${thing.film}`);
   } else if ('trip' in thing) {
     await deleteGazetteThreadsFrom(db, `album:trips:${thing.trip}:`);
