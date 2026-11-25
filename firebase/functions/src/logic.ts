@@ -74,6 +74,8 @@ export interface Notice {
   lendItemId?: string;
   /** Une annonce de l'admin (récit 69): the app opens the whole message. */
   announcementId?: string;
+  /** Cadeaux et Surprise: a reminder or « C'est offert », the app opens the surprise. */
+  surpriseId?: string;
   /** Aimed at the member directly (récit 6 quinquies): never muted, never held for the night. */
   direct?: boolean;
   /** Notices with the same tag replace each other on the phone (the cards of the day). */

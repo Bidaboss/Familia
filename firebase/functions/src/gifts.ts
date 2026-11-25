@@ -171,7 +171,7 @@ export async function giftAudience(db: Firestore): Promise<(ids: string[]) => st
 }
 
 /** PRD, récit 10: at D-21 every adult but the birthday member is reminded; at D-14 again if nothing is reserved. */
-export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now: Date): Promise<number> {
+export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now: Date, alreadyTold: Set<string> = new Set()): Promise<number> {
   const audience = await giftAudience(db);
   const singleList = (await db.doc('config/app').get()).get('features.singleList') === true;
   const today = parisDay(now);
@@ -182,7 +182,7 @@ export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now
       if (second && (await hasReservation(db, member.id))) continue;
       const wishes = await db.doc(`giftLists/wishes-${member.id}`).get();
       const notice = birthdayNotice(member, addDays(today, days), second, wishes.exists ? wishes.id : null, singleList);
-      const recipients = audience(birthdayRecipients(members, member.id));
+      const recipients = audience(birthdayRecipients(members, member.id)).filter((id) => !alreadyTold.has(id));
       if (recipients.length > 0) sent += await notify(db, send, recipients, notice);
     }
   }
@@ -264,8 +264,10 @@ export async function onGiftItemChanged(
   // An old list removed after the 21st (PRODUIT-58): its gifts live on in their copies.
   if (!after && (await cleanedUp(db, listId))) return 0;
   const { claim, ids } = await reservers(db, listId, itemId);
+  // Offered in a surprise (« C'est offert »): it was given, not removed; nobody reads « supprimée ».
+  const offered = !after && Boolean((before as { offeredIn?: unknown }).offeredIn);
   let sent = 0;
-  if (ids.length > 0) {
+  if (ids.length > 0 && !offered) {
     const list = await db.collection('giftLists').doc(listId).get();
     const beneficiaryId = String(list.get('beneficiaryId') ?? '');
     const members = await loadGiftMembers(db);

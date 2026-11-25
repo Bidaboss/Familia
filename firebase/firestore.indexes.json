@@ -15,6 +15,14 @@
         { "fieldPath": "closed", "order": "ASCENDING" },
         { "fieldPath": "closesAt", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "surprises",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "offeredAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

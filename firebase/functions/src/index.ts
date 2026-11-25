@@ -72,7 +72,8 @@ import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 import { deleteStepPlaces } from './tripPlaces';
 import {
-  deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, updateRatingAverage, updateTakeTotal,
+  deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isNewlyOffered, onSurpriseOffered,
+  purgeOfferedSurprises, sendSurpriseReminders, syncSurpriseNotebook, updateRatingAverage, updateTakeTotal,
 } from './surprises';
 
 initializeApp();
@@ -116,6 +117,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
         ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
         ...(notice.announcementId ? { announcementId: notice.announcementId } : {}),
+        ...(notice.surpriseId ? { surpriseId: notice.surpriseId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -453,7 +455,8 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
   const after = event.data?.after.data() as GiftItemData | undefined;
   await onGiftItemChanged(getFirestore(), send, event.params.listId, event.params.itemId, before, after);
   // A photo the item no longer names (récit 44), whoever removed the item: « name.jpg » and « name-thumb.jpg ».
-  const photo = typeof before?.photo === 'string' ? before.photo : null;
+  // Offered in a surprise: the photo is kept for an admin cancel, and goes with the purge.
+  const photo = typeof before?.photo === 'string' && !(before as { offeredIn?: unknown }).offeredIn ? before.photo : null;
   // « Reçue » (rév. 232): the photo is copied to « On m'a offert » first, with « Plus de photos ».
   if (photo && !after) await keepReceivedPhoto(getFirestore(), event.params.listId, event.params.itemId, photo);
   if (photo && photo.startsWith(`giftLists/${event.params.listId}/`) && photo !== after?.photo) {
@@ -515,23 +518,47 @@ export const onSurpriseProposalDeleted = onDocumentDeleted('surprises/{sid}/prop
 });
 
 // A joint gift: the total of its parts, in whole euros.
+// … and each part is taken up in the notebook of its author (récit 9 bis).
 export const onSurpriseShareWritten = onDocumentWritten('surprises/{sid}/takes/{pid}/shares/{memberId}', async (event) => {
   await updateTakeTotal(getFirestore(), event.params.sid, event.params.pid);
+  await syncSurpriseNotebook(getFirestore(), event.params.sid, event.params.pid);
 });
 
-export const onSurpriseTakeDeleted = onDocumentDeleted('surprises/{sid}/takes/{pid}', async (event) => {
-  await deleteTakeShares(getFirestore(), event.params.sid, event.params.pid);
+// « Je le prends » or a joint gift: in the notebook of who took it (récit 9 bis); released, it leaves it.
+export const onSurpriseTakeWritten = onDocumentWritten('surprises/{sid}/takes/{pid}', async (event) => {
+  if (!event.data?.after.exists) await deleteTakeShares(getFirestore(), event.params.sid, event.params.pid);
+  await syncSurpriseNotebook(getFirestore(), event.params.sid, event.params.pid);
 });
+
+// Still exported, because the deployment refuses to delete a function: onSurpriseTakeWritten does it.
+export const onSurpriseTakeDeleted = onDocumentDeleted('surprises/{sid}/takes/{pid}', async () => {});
 
 export const onSurpriseDeleted = onDocumentDeleted('surprises/{sid}', async (event) => {
   await deleteSurpriseContent(getFirestore(), event.params.sid);
 });
 
+// « C'est offert » (brief § 5): « Déjà offert à X », the wishes and ideas leave their lists, the
+// notebooks say « Offert », the other members are told.
+export const onSurpriseUpdated = onDocumentUpdated('surprises/{sid}', async (event) => {
+  if (!isNewlyOffered(event.data?.before.data(), event.data?.after.data())) return;
+  await onSurpriseOffered(getFirestore(), send, event.params.sid);
+});
+
+export const onMemberDeletedSurprises = onDocumentDeleted('members/{memberId}', async (event) => {
+  await deleteMemberSurprises(getFirestore(), event.params.memberId);
+});
+
 // D-21 and D-14 before a birthday (PRD, récit 10).
 export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZone: 'Europe/Paris' }, async () => {
   const now = new Date();
+  // Cadeaux et Surprise: D-14, D-7, D-3, the day before, then every day from the day itself. Who got
+  // one gets no birthday reminder today (one a day at most).
+  let told = new Set<string>();
+  try { told = await sendSurpriseReminders(getFirestore(), send, now); } catch (e) { console.error('surprise reminders', e); }
+  // 30 days after « C'est offert », the surprise goes (décision du 25/11).
+  try { await purgeOfferedSurprises(getFirestore(), now, deleteItemPhoto); } catch (e) { console.error('surprise purge', e); }
   // Each on its own: a failure of the reminders never holds back the wishes, nor the reverse.
-  try { await sendBirthdayGiftReminders(getFirestore(), send, now); } catch (e) { console.error('birthday gift reminders', e); }
+  try { await sendBirthdayGiftReminders(getFirestore(), send, now, told); } catch (e) { console.error('birthday gift reminders', e); }
   // On the day, « C'est l'anniversaire de … » and its Bonne nouvelle (récit 36).
   try { await startBirthdays(getFirestore(), send, now); } catch (e) { console.error('birthday wishes', e); }
 });

@@ -4,11 +4,42 @@ import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { Notice } from '../src/logic';
+import { Sender } from '../src/store';
+import { sendBirthdayGiftReminders } from '../src/gifts';
 import {
-  deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, updateRatingAverage, updateTakeTotal, validAmount, validStars,
+  daysUntil, deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isNewlyOffered, notebookHolders,
+  offeredGift, onSurpriseOffered, purgeOfferedSurprises, reminderKind, sendSurpriseReminders, surpriseEntryId, surpriseReminderNotice,
+  syncSurpriseNotebook, updateRatingAverage, updateTakeTotal, validAmount, validStars,
 } from '../src/surprises';
 
 describe('logic', () => {
+  test('the reminders: D-14, D-7, D-3, the day before, then every day from the day itself', () => {
+    assert.equal(daysUntil('2026-12-25', '2026-12-11'), 14);
+    assert.equal(daysUntil('2026-12-25', '2026-12-27'), -2);
+    assert.equal(daysUntil('2027-03-28', '2027-03-27'), 1); // Summer time starts in between.
+    assert.deepEqual([15, 14, 8, 7, 3, 2, 1, 0, -1, -30].map(reminderKind), [null, 'before', null, 'before', 'before', null, 'before', 'due', 'due', 'due']);
+    assert.match(surpriseReminderNotice('s1', 'Noël de Camille', 1).title, /demain/);
+    assert.match(surpriseReminderNotice('s1', 'Noël de Camille', 0).body, /C'est offert/);
+    assert.equal(surpriseReminderNotice('s1', 'Noël de Camille', 7).surpriseId, 's1');
+  });
+
+  test('who has a gift in their notebook, alone or in a joint gift', () => {
+    assert.deepEqual([...notebookHolders({ kind: 'solo', ownerId: 'ines' }, 30, [])], [['ines', { source: 'claim', price: 30 }]]);
+    assert.deepEqual([...notebookHolders({ kind: 'shared', ownerId: 'ines' }, 30, [{ id: 'jade', amount: 10 }, { id: 'x', amount: 2.5 }])],
+      [['ines', { source: 'share', price: null }], ['jade', { source: 'share', price: 10 }]]);
+    assert.equal(notebookHolders(undefined, 30, []).size, 0);
+  });
+
+  test('« C\'est offert » only once, and only what can be offered', () => {
+    assert.equal(isNewlyOffered({ status: 'preparing' }, { status: 'offered' }), true);
+    assert.equal(isNewlyOffered({ status: 'offered' }, { status: 'offered' }), false);
+    assert.equal(offeredGift('p', { kind: 'wish', removed: true }), null);
+    assert.equal(offeredGift('p', { kind: 'other' }), null);
+    assert.equal(offeredGift('wish-i1', { kind: 'wish', wishItemId: 'i1', title: 'Un livre' })?.wishItemId, 'i1');
+    assert.equal(offeredGift('idea-e1', { kind: 'idea', authorId: 'ines', notebookEntryId: 'e1' })?.notebookEntryId, 'e1');
+  });
+
   test('a rating counts from 1 to 5 whole stars, a part in whole euros above 0', () => {
     assert.deepEqual([0, 1, 3, 5, 6, 2.5, '4', null].map(validStars), [null, 1, 3, 5, null, null, 4, null]);
     assert.deepEqual([0, -5, 10, 12.5, '20', undefined].map(validAmount), [null, null, 10, null, 20, null]);
@@ -27,11 +58,33 @@ const surprise = {
   createdAt: new Date(), updatedAt: new Date(),
 };
 
+function fakeSender() {
+  const sent: { token: string; notice: Notice }[] = [];
+  const send: Sender = async (token, notice) => {
+    sent.push({ token, notice });
+    return 'ok';
+  };
+  return { sent, send };
+}
+
+const people: Record<string, { firstName: string; profile: string; birthDate: string | null; parentIds: string[] }> = {
+  camille: { firstName: 'Camille', profile: 'adult', birthDate: '1990-12-09', parentIds: [] },
+  ines: { firstName: 'Inès', profile: 'adult', birthDate: '1988-05-02', parentIds: [] },
+  jade: { firstName: 'Jade', profile: 'childWithApp', birthDate: '2015-07-03', parentIds: ['ines'] },
+  hugo: { firstName: 'Hugo', profile: 'adult', birthDate: '1985-01-20', parentIds: [] },
+};
+
 describe('functions', () => {
   beforeEach(async () => {
-    await db.recursiveDelete(db.collection('surprises'));
+    for (const c of ['surprises', 'openSurprises', 'members', 'notebooks', 'giftHistory', 'giftLists', 'quietQueue']) await db.recursiveDelete(db.collection(c));
     const batch = db.batch();
+    for (const [id, m] of Object.entries(people)) {
+      batch.set(db.doc(`members/${id}`), { ...m, email: null, householdId: 'h1', isAdmin: false, uid: null });
+      batch.set(db.doc(`members/${id}/devices/token-${id}`), { updatedAt: new Date() });
+    }
+    batch.set(db.doc('config/app'), { features: { gifts: true } });
     batch.set(db.doc('surprises/s1'), surprise);
+    batch.set(db.doc('openSurprises/s1'), { beneficiaryId: 'camille', title: 'Noël de Camille' });
     batch.set(db.doc('surprises/s1/proposals/p1'), { kind: 'wish', title: 'Un livre', removed: false });
     batch.set(db.doc('surprises/s1/takes/p1'), { kind: 'shared', ownerId: 'ines', boughtBy: null, goal: 60 });
     await batch.commit();
@@ -44,18 +97,22 @@ describe('functions', () => {
     await ratings.doc('pirate').set({ stars: 9 });
     await updateRatingAverage(db, 's1', 'p1');
     let p = await db.doc('surprises/s1/proposals/p1').get();
-    assert.equal(p.get('ratingSum'), 9);
+    assert.equal(p.get('ratingSum'), null); // 2 ratings: the sum would tell them.
     assert.equal(p.get('ratingCount'), 2);
+    await ratings.doc('hugo').set({ stars: 3 });
+    await updateRatingAverage(db, 's1', 'p1');
+    p = await db.doc('surprises/s1/proposals/p1').get();
+    assert.equal(p.get('ratingSum'), 12);
+    assert.equal(p.get('ratingCount'), 3);
     await ratings.doc('jade').set({ stars: 2 }); // Changed her mind.
     await updateRatingAverage(db, 's1', 'p1');
     p = await db.doc('surprises/s1/proposals/p1').get();
-    assert.equal(p.get('ratingSum'), 6);
-    assert.equal(p.get('ratingCount'), 2);
+    assert.equal(p.get('ratingSum'), 9);
     await ratings.doc('ines').delete();
     await updateRatingAverage(db, 's1', 'p1');
     p = await db.doc('surprises/s1/proposals/p1').get();
-    assert.equal(p.get('ratingSum'), 2);
-    assert.equal(p.get('ratingCount'), 1);
+    assert.equal(p.get('ratingSum'), null);
+    assert.equal(p.get('ratingCount'), 2);
     await updateRatingAverage(db, 's1', 'missing'); // A removed proposal: nothing to keep.
     assert.equal((await db.doc('surprises/s1/proposals/missing').get()).exists, false);
   });
@@ -119,5 +176,138 @@ describe('functions', () => {
       assert.equal((await db.collection(`surprises/s1/${c}`).get()).size, 0, c);
     }
     assert.equal((await db.collection('surprises/s1/proposals/p2/ratings').get()).size, 0);
+    assert.equal((await db.doc('openSurprises/s1').get()).exists, false);
+  });
+
+  test('a gift taken alone, then shared, then released: the notebooks follow (récit 9 bis)', async () => {
+    await db.doc('giftLists/wishes-camille/items/i1').set({ title: 'Un livre rouge', url: null, price: 25 });
+    await db.doc('surprises/s1/proposals/wish-i1').set({ kind: 'wish', wishItemId: 'i1', title: 'Un livre', removed: false });
+    await db.doc('surprises/s1/takes/wish-i1').set({ kind: 'solo', ownerId: 'ines', boughtBy: null, goal: null });
+    await syncSurpriseNotebook(db, 's1', 'wish-i1');
+    const entry = (who: string) => db.doc(`notebooks/${who}/entries/${surpriseEntryId('s1', 'wish-i1')}`).get();
+    let e = await entry('ines');
+    assert.equal(e.get('source'), 'claim');
+    assert.equal(e.get('title'), 'Un livre rouge'); // The live wish, not the copy.
+    assert.equal(e.get('price'), 25);
+    assert.equal(e.get('personId'), 'camille');
+    assert.equal(e.get('year'), 2026);
+
+    await db.doc('surprises/s1/takes/wish-i1').set({ kind: 'shared', ownerId: 'ines', boughtBy: null, goal: 60 });
+    await db.doc('surprises/s1/takes/wish-i1/shares/jade').set({ amount: 15 });
+    await syncSurpriseNotebook(db, 's1', 'wish-i1');
+    assert.equal((await entry('ines')).get('source'), 'share');
+    assert.equal((await entry('ines')).get('price'), null);
+    assert.equal((await entry('jade')).get('price'), 15);
+
+    await db.doc('surprises/s1/takes/wish-i1/shares/jade').delete();
+    await syncSurpriseNotebook(db, 's1', 'wish-i1');
+    assert.equal((await entry('jade')).exists, false);
+    await db.recursiveDelete(db.doc('surprises/s1/takes/wish-i1'));
+    await syncSurpriseNotebook(db, 's1', 'wish-i1');
+    assert.equal((await entry('ines')).exists, false);
+    assert.equal((await db.doc('surprises/s1/notebook/wish-i1').get()).exists, false);
+  });
+
+  test('« C\'est offert »: history, wish and idea out of their lists, notebooks « Offert », the others told', async () => {
+    const { sent, send } = fakeSender();
+    await db.recursiveDelete(db.doc('surprises/s1/takes/p1'));
+    await db.doc('surprises/s1').update({ memberIds: ['ines', 'jade', 'hugo'] });
+    await db.doc('surprises/s1/members/hugo').set({ declined: true });
+    await db.doc('giftLists/wishes-camille/items/i1').set({ title: 'Un livre', url: null, price: 25, photo: 'giftLists/wishes-camille/i1' });
+    await db.doc('notebooks/jade/entries/e1').set({ source: 'idea', title: 'Un pull', personId: 'camille', status: 'idea' });
+    await db.doc('surprises/s1/proposals/wish-i1').set({ kind: 'wish', wishItemId: 'i1', title: 'Un livre', removed: false });
+    await db.doc('surprises/s1/proposals/idea-e1').set({ kind: 'idea', authorId: 'jade', notebookEntryId: 'e1', title: 'Un pull', removed: false });
+    await db.doc('surprises/s1/proposals/wish-i2').set({ kind: 'wish', wishItemId: 'i2', title: 'Pas pris', removed: false });
+    await db.doc('surprises/s1/takes/wish-i1').set({ kind: 'solo', ownerId: 'ines', boughtBy: 'ines', goal: null });
+    await db.doc('surprises/s1/takes/idea-e1').set({ kind: 'solo', ownerId: 'jade', boughtBy: null, goal: null });
+    await syncSurpriseNotebook(db, 's1', 'wish-i1');
+
+    assert.equal(await onSurpriseOffered(db, send, 's1'), 0); // Not offered yet: nothing.
+    await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'ines' });
+    assert.equal(await onSurpriseOffered(db, send, 's1'), 2);
+    assert.equal(await onSurpriseOffered(db, send, 's1'), 0); // A retry: nothing twice.
+    assert.equal((await db.doc('openSurprises/s1').get()).exists, false);
+
+    const history = await db.collection('giftHistory/camille/items').get();
+    assert.deepEqual(history.docs.map((d) => d.get('title')).sort(), ['Un livre', 'Un pull']);
+    assert.equal(history.docs[0].get('occasion'), 'christmas');
+    assert.equal((await db.doc('giftLists/wishes-camille/items/i1').get()).exists, false);
+    assert.equal((await db.doc('notebooks/jade/entries/e1').get()).exists, false);
+    const copy = await db.doc('surprises/s1/offered/wish-i1').get();
+    assert.equal(copy.get('path'), 'giftLists/wishes-camille/items/i1');
+    assert.equal(copy.get('data').photo, 'giftLists/wishes-camille/i1');
+    assert.equal((await db.doc(`notebooks/ines/entries/${surpriseEntryId('s1', 'wish-i1')}`).get()).get('status'), 'given');
+    // Jade only: not Inès who confirmed, not Hugo who declined, never Camille.
+    assert.deepEqual(sent.map((s) => s.token), ['token-jade']);
+    assert.match(sent[0].notice.body, /Inès a confirmé : les cadeaux de Camille sont offerts/);
+  });
+
+  test('the reminders: to who has not validated before the day, to all from the day, muted never, beneficiary never', async () => {
+    const { sent, send } = fakeSender();
+    await db.doc('surprises/s1').update({ memberIds: ['ines', 'jade', 'hugo', 'camille'] });
+    await db.doc('surprises/s1/members/ines').set({ validated: true });
+    await db.doc('surprises/s1/members/hugo').set({ muted: true });
+    let told = await sendSurpriseReminders(db, send, new Date('2026-12-10T09:00:00Z')); // D-15.
+    assert.equal(sent.length, 0);
+    told = await sendSurpriseReminders(db, send, new Date('2026-12-18T09:00:00Z')); // D-7.
+    assert.deepEqual(sent.map((s) => s.token), ['token-jade']);
+    assert.deepEqual([...told], ['jade']);
+    sent.length = 0;
+    await sendSurpriseReminders(db, send, new Date('2026-12-26T09:00:00Z')); // The day after: still to confirm.
+    assert.deepEqual(sent.map((s) => s.token).sort(), ['token-ines', 'token-jade']);
+    sent.length = 0;
+    await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date(), offeredBy: 'ines' });
+    await sendSurpriseReminders(db, send, new Date('2026-12-27T09:00:00Z'));
+    assert.equal(sent.length, 0);
+  });
+
+  test('one notification a day: a surprise reminder holds back the birthday one', async () => {
+    const { sent, send } = fakeSender();
+    // Camille's birthday on 9 December: D-14 on 25 November, nothing reserved in the old lists.
+    await db.doc('surprises/s1').update({ date: '2026-12-09', occasion: 'birthday' });
+    const told = await sendSurpriseReminders(db, send, new Date('2026-11-25T09:00:00Z'));
+    assert.deepEqual([...told].sort(), ['ines', 'jade']);
+    sent.length = 0;
+    await sendBirthdayGiftReminders(db, send, new Date('2026-11-25T09:00:00Z'), told);
+    // Hugo, not in the surprise, still gets the birthday reminder; Inès does not get a second one.
+    assert.deepEqual(sent.map((s) => s.token), ['token-hugo']);
+  });
+
+  test('the purge: 30 days after « C\'est offert », the history stays', async () => {
+    await db.doc('surprises/s1').update({ status: 'offered', offeredAt: new Date('2026-12-25T12:00:00Z'), offeredBy: 'ines' });
+    await db.doc('surprises/s1/offered/wish-i1').set({ path: 'giftLists/wishes-camille/items/i1', data: { photo: 'giftLists/wishes-camille/i1' } });
+    await db.doc('giftHistory/camille/items/s1_wish-i1').set({ title: 'Un livre' });
+    const removed: string[] = [];
+    const remove = async (path: string) => { removed.push(path); };
+    assert.equal(await purgeOfferedSurprises(db, new Date('2027-01-20T12:00:00Z'), remove), 0);
+    assert.equal(await purgeOfferedSurprises(db, new Date('2027-01-25T13:00:00Z'), remove), 1);
+    assert.equal((await db.doc('surprises/s1').get()).exists, false);
+    assert.equal((await db.doc('openSurprises/s1').get()).exists, false);
+    assert.equal((await db.doc('surprises/s1/proposals/p1').get()).exists, false);
+    assert.deepEqual(removed, ['giftLists/wishes-camille/i1']);
+    assert.equal((await db.doc('giftHistory/camille/items/s1_wish-i1').get()).exists, true);
+  });
+
+  test('a removed member: the surprises for them go, they leave the others with their rating and part', async () => {
+    await db.doc('surprises/s2').set({ ...surprise, beneficiaryId: 'ines', memberIds: ['camille'] });
+    await db.doc('giftHistory/ines/items/x').set({ title: 'Un vieux cadeau' });
+    await db.doc('surprises/s1/members/jade').set({ validated: true });
+    await db.doc('surprises/s1/proposals/p1/ratings/jade').set({ stars: 5 });
+    await db.doc('surprises/s1/proposals/p1/ratings/ines').set({ stars: 3 });
+    await db.doc('surprises/s1/takes/p1/shares/jade').set({ amount: 10 });
+    await db.doc('surprises/s1/takes/p1/shares/camille').set({ amount: 20 });
+    await db.doc('surprises/s1/takes/p2').set({ kind: 'solo', ownerId: 'jade', boughtBy: null, goal: null });
+    await deleteMemberSurprises(db, 'jade');
+    const s1 = await db.doc('surprises/s1').get();
+    assert.deepEqual(s1.get('memberIds'), ['ines']);
+    assert.equal((await db.doc('surprises/s1/members/jade').get()).exists, false);
+    assert.equal((await db.doc('surprises/s1/proposals/p1').get()).get('ratingCount'), 1);
+    assert.equal((await db.doc('surprises/s1/takes/p1').get()).get('sharesTotal'), 20);
+    assert.equal((await db.doc('surprises/s1/takes/p2').get()).exists, false);
+    await db.doc('openSurprises/s2').set({ beneficiaryId: 'ines' });
+    await deleteMemberSurprises(db, 'ines');
+    assert.equal((await db.doc('surprises/s2').get()).exists, false);
+    assert.equal((await db.doc('openSurprises/s2').get()).exists, false);
+    assert.equal((await db.collection('giftHistory/ines/items').get()).size, 0);
   });
 });
