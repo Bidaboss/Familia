@@ -5,7 +5,7 @@ import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
 import {
-  countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, SOUVENIRS, souvenirMark,
+  countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, makeSouvenirsPublicOnce, SOUVENIRS, SOUVENIRS_PUBLIC, souvenirMark,
 } from '../src/souvenirs';
 import { Sender } from '../src/store';
 
@@ -52,15 +52,28 @@ describe('against the emulator', () => {
     await batch.commit();
   });
 
-  test('a souvenir is given once, private, and its member is told once', async () => {
+  test('a souvenir is given once, public (récit 114), and its member is told once', async () => {
     const { sent, send } = fakeSender();
     assert.equal(await giveSouvenir(db, send, 'camille', 'firstGoodNews', now), true);
     assert.equal(await giveSouvenir(db, send, 'camille', 'firstGoodNews', now), false);
     const s = await db.doc('members/camille/souvenirs/firstGoodNews').get();
-    assert.equal(s.get('shown'), false);
+    assert.equal(s.get('shown'), true);
     assert.deepEqual(sent.map((x) => x.token), ['token-camille']);
     assert.equal(sent[0].notice.channel, 'souvenirs');
     assert.equal(sent[0].notice.souvenirKey, 'firstGoodNews');
+  });
+
+  test('once: the souvenirs given while private become public, and never again after', async () => {
+    await db.recursiveDelete(db.collection('migrations'));
+    await db.doc('members/camille/souvenirs/firstGoodNews').set({ key: 'firstGoodNews', earnedAt: now, shown: false });
+    await db.doc('members/camille/souvenirs/oneYear').set({ key: 'oneYear', earnedAt: now, shown: true });
+    await db.doc('members/ines/souvenirs/firstArrival').set({ key: 'firstArrival', earnedAt: now, shown: false });
+    assert.equal(await makeSouvenirsPublicOnce(db, now), 2);
+    assert.equal((await db.doc('members/camille/souvenirs/firstGoodNews').get()).get('shown'), true);
+    assert.equal((await db.doc('members/ines/souvenirs/firstArrival').get()).get('shown'), true);
+    await db.doc('members/ines/souvenirs/helpGiven5').set({ key: 'helpGiven5', earnedAt: now, shown: false });
+    assert.equal(await makeSouvenirsPublicOnce(db, now), null);
+    assert.equal((await db.doc(SOUVENIRS_PUBLIC).get()).get('count'), 2);
   });
 
   test('nobody is told when the module is off, the member turned it off or has no app, but the souvenir is kept', async () => {

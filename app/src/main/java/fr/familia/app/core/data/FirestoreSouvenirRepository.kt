@@ -8,7 +8,6 @@ import fr.familia.app.core.model.SouvenirCounters
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
 
 /** members/{memberId}/souvenirs and souvenirCounters/{memberId}. See docs/data-model.md. */
 class FirestoreSouvenirRepository(private val db: FirebaseFirestore) : SouvenirRepository {
@@ -17,8 +16,8 @@ class FirestoreSouvenirRepository(private val db: FirebaseFirestore) : SouvenirR
 
     override fun observeMine(memberId: String): Flow<List<Souvenir>> = observe(souvenirs(memberId))
 
-    // The query must say shown == true: the rules let the family read only those.
-    override fun observeShown(memberId: String): Flow<List<Souvenir>> = observe(souvenirs(memberId).whereEqualTo("shown", true))
+    // Récit 114: the « Réussites » are public, the family reads them all.
+    override fun observeShown(memberId: String): Flow<List<Souvenir>> = observe(souvenirs(memberId))
 
     private fun observe(query: Query): Flow<List<Souvenir>> = callbackFlow {
         val registration = query.addSnapshotListener { snapshot, error ->
@@ -40,9 +39,8 @@ class FirestoreSouvenirRepository(private val db: FirebaseFirestore) : SouvenirR
         awaitClose { registration.remove() }
     }
 
-    override suspend fun setShown(memberId: String, key: String, shown: Boolean) {
-        souvenirs(memberId).document(key).update("shown", shown).await()
-    }
+    // Récit 114: nobody chooses any more, the rules refuse the change. The switch leaves the profile with lot E.
+    override suspend fun setShown(memberId: String, key: String, shown: Boolean) = Unit
 
     private fun DocumentSnapshot.toSouvenir(): Souvenir? {
         val key = getString("key") ?: id

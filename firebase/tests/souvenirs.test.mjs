@@ -23,21 +23,19 @@ beforeEach(async () => {
 });
 
 describe('souvenirs', () => {
-  test('a souvenir is private: its member reads it, the family only once it is shown', async () => {
+  test('a souvenir (« Réussite ») is public: the whole family reads it, shown or not (récit 114)', async () => {
     await assertSucceeds(getDoc(souvenir(as(env, ADULT), ADULT, 'firstGoodNews')));
-    await assertFails(getDoc(souvenir(as(env, OTHER_ADULT), ADULT, 'firstGoodNews')));
+    await assertSucceeds(getDoc(souvenir(as(env, OTHER_ADULT), ADULT, 'firstGoodNews')));
     await assertSucceeds(getDoc(souvenir(as(env, OTHER_ADULT), ADULT, 'oneYear')));
     await assertFails(getDoc(souvenir(as(env, STRANGER), ADULT, 'oneYear')));
-    const shown = query(collection(as(env, OTHER_ADULT), `members/${ADULT.memberId}/souvenirs`), where('shown', '==', true));
-    await assertSucceeds(getDocs(shown));
-    await assertFails(getDocs(collection(as(env, OTHER_ADULT), `members/${ADULT.memberId}/souvenirs`)));
+    await assertSucceeds(getDocs(collection(as(env, OTHER_ADULT), `members/${ADULT.memberId}/souvenirs`)));
+    // An app not yet updated still asks for shown == true.
+    await assertSucceeds(getDocs(query(collection(as(env, OTHER_ADULT), `members/${ADULT.memberId}/souvenirs`), where('shown', '==', true))));
   });
 
-  test('its member shows or hides it, and changes nothing else', async () => {
-    const mine = souvenir(as(env, ADULT), ADULT, 'firstGoodNews');
-    await assertSucceeds(updateDoc(mine, { shown: true }));
-    await assertSucceeds(updateDoc(mine, { shown: false }));
-    await assertFails(updateDoc(mine, { shown: 'oui' }));
+  test('nobody hides it any more, not even its member', async () => {
+    const mine = souvenir(as(env, ADULT), ADULT, 'oneYear');
+    await assertFails(updateDoc(mine, { shown: false }));
     await assertFails(updateDoc(mine, { earnedAt: new Date() }));
     await assertFails(updateDoc(souvenir(as(env, OTHER_ADULT), ADULT, 'oneYear'), { shown: false }));
   });
