@@ -47,7 +47,7 @@ class LinkSheetTest {
     )
 
     @Test
-    fun `a child's sheet: who they are, their parent with Retirer, then the actions in order`() {
+    fun `a child's sheet shows who they are, their parent with Retirer, then the actions in order`() {
         var removed: KinLink? = null
         var opened = false
         compose.setContent {
@@ -99,7 +99,7 @@ class LinkSheetTest {
     }
 
     @Test
-    fun `a relative without an account: Modifier sa fiche and Retirer de l'arbre`() {
+    fun `a relative without an account gets Modifier sa fiche and Retirer de l'arbre`() {
         var edited = false
         var removed = false
         compose.setContent {
