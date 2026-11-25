@@ -243,7 +243,7 @@
     <string name="feature_help_gift_budget">Dans le carnet de Cadeaux, ton budget pour une occasion et ce qu\'il te reste. Privé, adultes seulement.</string>
     <string name="feature_help_help_requests">L\'onglet Entraide : on demande un coup de main à la famille, chacun répond « J\'y vais » ou « Non ».</string>
     <string name="feature_help_trips">Le carnet de voyage, dans Tout Familia : les étapes, qui part, et les photos du voyage.</string>
-    <string name="feature_help_good_news">Les actualités : une phrase et des photos pour toute la famille, sur l\'Accueil et dans leur fil.</string>
+    <string name="feature_help_good_news">Les actualités : une phrase et des photos pour toute la famille, sur l\'Accueil et dans la gazette.</string>
     <string name="feature_help_themes">Les thèmes de couleurs : touche ta photo en haut, puis Apparence, pour choisir Olivier, Lavande, Nuit… et la police des titres et du texte.</string>
     <string name="feature_help_usage">Compte le temps passé dans l\'appli, visible dans Administration. Préviens la famille avant de l\'allumer.</string>
     <string name="feature_help_weekly_question">Chaque lundi, une question pour toute la famille sur l\'Accueil : on répond, puis on lit les autres.</string>
@@ -287,7 +287,7 @@
     <string name="feature_help_first_steps">Sur l\'Accueil, une carte propose à chacun 3 gestes pendant 14 jours : sa photo, ses goûts, une réaction.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
     <string name="feature_help_already_bought">Sur une envie déjà achetée, la famille ne la prend plus : chacun participe, avec une jauge du montant reçu.</string>
-    <string name="feature_help_news_feed">En haut de l\'Accueil, « Aujourd\'hui » ou « Le fil » : ce qui s\'est passé dans la famille, jour par jour.</string>
+    <string name="feature_help_news_feed">En haut de l\'Accueil, « Aujourd\'hui » ou « La gazette » : ce qui s\'est passé dans la famille, jour par jour.</string>
     <string name="feature_help_admin_announcements">Dans Administration, « Envoyer une notification » : tu écris un message à toute la famille ou à quelques foyers. On ne peut pas y répondre.</string>
     <string name="feature_help_challenge_details">Toucher le défi explique ce qui compte et ce qu\'on gagne ; le foyer qui le lance peut ajouter un mot. Éteint, tu gardes l\'écran actuel.</string>
     <string name="feature_help_opening_animation">À chaque ouverture, les fruits de l\'arbre deviennent la famille. Dans Apparence, chacun choisit l\'animation longue, courte ou aucune.</string>
@@ -1446,7 +1446,7 @@
         <item quantity="other">%d réactions</item>
     </plurals>
     <string name="goodnews_load_more">Voir les plus anciennes</string>
-    <string name="goodnews_empty_title">Le fil attend sa première actualité</string>
+    <string name="goodnews_empty_title">La gazette attend sa première actualité</string>
     <string name="goodnews_empty_body">Une réussite, une photo du jour, un petit bonheur : toute la famille sera contente de la voir.</string>
     <string name="goodnews_empty_action">Partager la première</string>
     <string name="empty_share_good_news">Partager une actualité en attendant</string>
@@ -1708,9 +1708,9 @@
     <string name="albums_subtitle">Toutes les photos de la famille, rangées toutes seules.</string>
     <string name="albums_slideshow">Diaporama de %1$s</string>
     <string name="albums_tile_detail">%1$s · %2$s</string>
-    <string name="albums_feed_title">Photos du fil</string>
-    <string name="albums_feed_pill">Du fil</string>
-    <string name="albums_feed_screen_title">Photos du fil, %1$s %2$d</string>
+    <string name="albums_feed_title">Photos de la gazette</string>
+    <string name="albums_feed_pill">De la gazette</string>
+    <string name="albums_feed_screen_title">Photos de la gazette, %1$s %2$d</string>
     <string name="albums_feed_empty">Pas encore de photo ce mois-ci</string>
     <string name="albums_feed_open">ouvrir l\'actualité</string>
     <string name="albums_feed_photo">Photo de %1$s</string>
@@ -2375,7 +2375,7 @@
     <string name="trip_edit_title">Modifier le voyage</string>
     <string name="trip_field_title">Nom du voyage</string>
     <string name="trip_tile_trip">Le voyage</string>
-    <string name="trip_title_hint">Il deviendra le nom du voyage pour toute la famille : en haut du voyage, dans la liste et dans le fil. Tu pourras le changer plus tard.</string>
+    <string name="trip_title_hint">Il deviendra le nom du voyage pour toute la famille : en haut du voyage, dans la liste et dans la gazette. Tu pourras le changer plus tard.</string>
     <string name="trip_form_no_night">Aller-retour dans la journée</string>
     <string name="trip_past_days_title">Combien de jours ?</string>
     <string name="trip_past_days_less">Un jour de moins</string>
@@ -2587,7 +2587,7 @@
         <item quantity="other">dans %1$d jours</item>
     </plurals>
     <string name="home_photo_brief">En bref</string>
-    <string name="home_photo_feed">Le fil de la famille</string>
+    <string name="home_photo_feed">La gazette de la famille</string>
     <plurals name="home_photo_feed_news">
         <item quantity="one">%1$d nouveauté</item>
         <item quantity="other">%1$d nouveautés</item>
@@ -2649,7 +2649,7 @@
     <string name="all_year_in_review">Notre année</string>
     <string name="all_challenges">Défis</string>
     <string name="all_albums">Albums</string>
-    <string name="all_feed">Le fil</string>
+    <string name="all_feed">La gazette</string>
     <string name="home_r1_add">Ajouter</string>
     <string name="home_r1_add_where">Dire où je suis</string>
     <string name="home_r1_add_event">Un événement</string>
@@ -3800,7 +3800,7 @@
     <string name="gift_contributors_title">Qui participe</string>
     <string name="gift_contributors_none">Personne n\'a encore participé.</string>
     <string name="feature_admin_announcements">Annonces de l\'admin</string>
-    <string name="feature_news_feed">Fil d\'actualité</string>
+    <string name="feature_news_feed">La gazette</string>
     <string name="feature_evening_digest">Résumé du soir des notifications</string>
     <string name="feature_help_evening_digest">Résumé du soir : les petites nouvelles arrivent groupées à 19 h.</string>
     <string name="notifications_evening_title">Résumé du soir</string>
@@ -4071,10 +4071,10 @@
 
     <!-- Fil d'actualité (récit 67) -->
     <string name="feed_tab_today">Aujourd\'hui</string>
-    <string name="feed_tab_feed">Le fil</string>
-    <string name="feed_switch_feed_title">Le fil de la famille</string>
+    <string name="feed_tab_feed">La gazette</string>
+    <string name="feed_switch_feed_title">La gazette de la famille</string>
     <string name="feed_switch_back">Revenir à Aujourd\'hui</string>
-    <string name="feed_switch_open">Voir le fil</string>
+    <string name="feed_switch_open">Voir la gazette</string>
     <plurals name="feed_tab_new">
         <item quantity="one">%1$d nouveauté</item>
         <item quantity="other">%1$d nouveautés</item>
