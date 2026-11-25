@@ -2814,3 +2814,9 @@ Sur un téléphone en Android 10 ou plus :
 5. Quelqu'un qui suit le voyage sans y participer ne voit pas le bouton.
 6. En mode avion, l'appui affiche « La photo n'a pas pu être changée » ou « Pas d'autre photo près de… », sans plantage ; la photo d'avant reste.
 7. Une destination sans point sur la carte n'a pas le bouton.
+
+## Voyage : les photos en hauteur reviennent (retour du 25/11, « les photos ne chargent plus »)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Ouvrir un voyage dont la grande photo montrait le dessin depuis la version précédente (par exemple une destination au bord de mer) : une photo revient, même si elle est plus haute que large (un phare, une église).
+2. Un montage de plusieurs photos reste écarté.

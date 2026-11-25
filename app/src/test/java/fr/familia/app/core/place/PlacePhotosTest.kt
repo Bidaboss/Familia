@@ -53,10 +53,10 @@ class PlacePhotosTest {
     fun aMontageOrATallImageIsSkippedForTheNextOne() {
         val montage = """{"type":"standard","thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Montage_Samoure.jpg/320px-Montage_Samoure.jpg"},"originalimage":{"source":"https://upload.wikimedia.org/wikipedia/commons/a/ab/Montage_Samoure.jpg"}}"""
         assertNull(parseSummaryImage(montage))
-        val tall = """{"type":"standard","thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Samoure.jpg/320px-Samoure.jpg","width":320,"height":640}}"""
+        val tall = """{"type":"standard","thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Samoure.jpg/320px-Samoure.jpg","width":320,"height":800}}"""
         assertNull(parseSummaryImage(tall))
         val pages = """{"query":{"pages":[
-            {"index":1,"thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Samoure.jpg/320px-Samoure.jpg","width":320,"height":640}},
+            {"index":1,"thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Samoure.jpg/320px-Samoure.jpg","width":320,"height":800}},
             {"index":2,"thumbnail":{"source":"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Plage.jpg/320px-Plage.jpg","width":320,"height":213}}
         ]}}"""
         assertEquals("Plage.jpg", parseNearbyImage(pages)!!.file)
