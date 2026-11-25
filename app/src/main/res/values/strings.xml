@@ -256,7 +256,7 @@
     <string name="feature_help_polls">Dans Tout Familia, Sondages : trouver une date qui va à tous, ou poser une question à choix.</string>
     <string name="feature_help_recipes">Le carnet de recettes, dans Tout Familia : chacun ajoute les siennes, avec des photos.</string>
     <string name="feature_help_capsules">La capsule temporelle, dans Tout Familia : un message ou des photos qui ne s\'ouvrent qu\'à une date choisie.</string>
-    <string name="feature_help_genealogy">L\'arbre généalogique, dans Tout Familia : on peut y ajouter des parents ou grands-parents sans compte.</string>
+    <string name="feature_help_genealogy">L\'arbre généalogique, dans Famille &gt; Arbre : on peut y ajouter des parents ou grands-parents sans compte.</string>
     <string name="feature_help_bring">Sur la fiche d\'un événement, « Qui apporte quoi » : chacun dit ce qu\'il apporte.</string>
     <string name="feature_help_places">Un lieu avec itinéraire sur les événements, et « Dire où je suis » dans « + » pour envoyer où tu es.</string>
     <string name="feature_help_share">« Partager » envoie un événement ou une actualité par WhatsApp ou SMS, avec un lien vers l\'appli.</string>
@@ -530,9 +530,9 @@
     <string name="genealogy_my_word">Pour toi : %1$s</string>
     <string name="genealogy_kin_living">Proche sans compte dans Familia</string>
     <string name="genealogy_kin_remembered">En souvenir</string>
-    <string name="genealogy_parents">Parents</string>
+    <string name="genealogy_parents">Ses parents</string>
     <string name="genealogy_partners">Conjoint ou conjointe</string>
-    <string name="genealogy_children">Enfants</string>
+    <string name="genealogy_children">Ses enfants</string>
     <string name="genealogy_open_profile">Voir sa page</string>
     <string name="genealogy_close">Fermer</string>
     <string name="genealogy_failed_change_title">Le changement n\'est pas passé</string>
@@ -547,7 +547,7 @@
     <string name="genealogy_pick_no_account">sans compte</string>
     <string name="tree_of_life_tab_tree">Arbre</string>
     <string name="tree_of_life_tab_list">Liste</string>
-    <string name="tree_of_life_hint">Glisse du doigt pour voir toute la famille. Touche quelqu\'un pour voir sa fiche.</string>
+    <string name="tree_of_life_hint">Glisse du doigt pour voir toute la famille. Touche quelqu\'un pour voir ses liens.</string>
     <string name="tree_of_life_add_kin">Ajouter un proche</string>
     <string name="tree_of_life_roots">Nos racines</string>
     <string name="tree_of_life_couple">%1$s et %2$s</string>
@@ -885,7 +885,7 @@
     <string name="help_screen_family_title">La famille</string>
     <string name="help_screen_administration_title">L\'administration</string>
     <string name="help_screen_administration_body">Un chef de famille renomme son foyer et gère ses événements. Seul l\'admin principal ajoute, modifie ou retire un membre.\n\nLe crayon renomme un foyer ; un foyer sans membre peut être supprimé.\n\nChoisis le défi de la famille dans la liste. Le défi d\'un mois ne change plus dès que sa jauge a avancé. Chaque foyer lance le défi d\'un mois, à tour de rôle. Il est prévenu 7 jours avant et peut passer son tour. Monte ou descends un foyer, puis enregistre.</string>
-    <string name="help_screen_family_body">Les membres, rangés par foyer. Les recettes, l\'arbre, la capsule et « Qui est-ce ? » sont dans « Tout Familia », sur l\'Accueil. Tes réglages (notifications, apparence, mises à jour, aide) sont derrière ta photo, en haut à droite. Seul l\'admin principal ajoute, modifie ou retire un membre. Un chef de famille renomme son foyer.</string>
+    <string name="help_screen_family_body">Les membres, rangés par foyer, et l\'arbre de la famille dans l\'onglet « Arbre ». Les recettes, la capsule et « Qui est-ce ? » sont dans « Tout Familia », sur l\'Accueil. Tes réglages (notifications, apparence, mises à jour, aide) sont derrière ta photo, en haut à droite. Seul l\'admin principal ajoute un membre, dans « Gérer ». Les chefs de famille modifient ceux de leur foyer.</string>
     <string name="help_screen_gifts_title">Cadeaux</string>
     <string name="help_screen_gifts_body">En haut, les prochains anniversaires. Plus bas, les listes de chacun : « Mes envies », que chacun remplit toute l\'année, et les listes d\'occasion, comme Noël. Touche une liste pour l\'ouvrir, ou « Nouvelle liste » pour en créer une.</string>
     <string name="help_screen_gift_list_title">Une liste</string>
@@ -2183,7 +2183,7 @@
     <string name="help_screen_recipes_title">Le carnet de recettes</string>
     <string name="help_screen_recipes_body">Les recettes de la famille, rangées par catégorie (entrées, plats, desserts…). Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
     <string name="help_screen_genealogy_title">L\'arbre généalogique</string>
-    <string name="help_screen_genealogy_body">L\'arbre montre qui est qui dans la famille : les plus anciens en haut, puis chaque génération en dessous. Un trait relie un parent à son enfant, un trait épais relie deux conjoints. Pince l\'écran ou utilise les boutons pour zoomer, « Recentrer » remet l\'arbre à sa place, et touche une personne pour ouvrir sa fiche. L\'arbre peut aussi montrer des proches sans compte, comme des arrière-grands-parents. Sur la fiche d\'une personne, tu peux choisir ton propre mot pour elle (« Mamie », « bonus-maman »…) : toi seul le vois. L\'admin principal complète tout l\'arbre, et un chef de famille les liens et les proches de son foyer.</string>
+    <string name="help_screen_genealogy_body">L\'arbre, dans Famille &gt; Arbre, montre qui est qui : les plus anciens au tronc, puis une ligne par génération. Glisse du doigt pour te déplacer. Touche une personne pour voir ses liens (ses parents, son conjoint, ses enfants) et choisir ton propre mot pour elle (« Mamie », « bonus-maman »…) : toi seul le vois. « Ajouter un proche » ajoute quelqu\'un sans compte, comme un arrière-grand-parent. L\'admin principal complète tout l\'arbre, et un chef de famille les liens et les proches de son foyer.</string>
     <string name="help_screen_capsules_title">Les capsules temporelles</string>
     <string name="help_screen_capsules_body">Une capsule, c\'est un message pour plus tard : un texte et jusqu\'à 3 photos, pour les personnes de ton choix, qui s\'ouvre le jour que tu choisis, entre un mois et cinq ans plus tard. Jusqu\'à ce jour-là, toi seul peux la lire : les destinataires ne savent même pas qu\'elle existe, et l\'administrateur non plus. Le jour venu, ils reçoivent une notification et la trouvent ici. Tu peux supprimer une de tes capsules tant qu\'elle n\'est pas ouverte, mais jamais la modifier. Une fois ouverte, elle devient un souvenir de ceux qui l\'ont reçue.</string>
     <string name="month_empty">Pas encore de photo ce mois-ci. Celles des voyages et des événements viendront se ranger ici.</string>
@@ -2641,7 +2641,6 @@
     <string name="all_gifts">Cadeaux</string>
     <string name="all_trips">Voyages</string>
     <string name="all_recipes">Recettes</string>
-    <string name="all_tree">Arbre</string>
     <string name="all_capsule">Capsule</string>
     <string name="all_who_is_it">Qui est-ce ?</string>
     <string name="all_souvenirs">Souvenirs</string>

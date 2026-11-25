@@ -1,18 +1,17 @@
 package fr.familia.app.feature.genealogy
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,7 +31,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -56,6 +54,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
@@ -71,6 +70,7 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.EmptyState
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.KinAvatar
 import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.LocalMemberPhotos
@@ -78,6 +78,8 @@ import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.feature.members.profileLine
+import java.time.LocalDate
 
 private const val MIN_ZOOM = 0.5f
 private const val MAX_ZOOM = 2.5f
@@ -238,7 +240,7 @@ private fun ReadyTree(
             TreeViewSwitch(view, onChange = { view = it }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
         }
         if (treeOfLife && view == TreeView.Tree) {
-            TreeOfLifeView(state, onOpen = { open = it }, onAddKin = editing?.let { { editKin = NEW_KIN } })
+            TreeOfLifeView(state, onOpen = { open = it }, onAddKin = editing?.let { { editKin = NEW_KIN } }, onMakePoster = onMakePoster)
         } else {
             if (onMakePoster != null) {
                 ClayLink(stringResource(R.string.tree_poster_open), onClick = onMakePoster, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
@@ -313,6 +315,7 @@ private fun ReadyTree(
                 canEditLink = state::canEditLink,
                 onEditKin = editing?.takeIf { person is TreePerson.OfKin && state.canEditPerson(person.id) }?.let { { editKin = person.id } },
                 onRemoveKin = editing?.takeIf { person is TreePerson.OfKin && state.canEditPerson(person.id) }?.let { { removeKin = person.id } },
+                profileEditable = person.id == state.me || editing != null && state.canEditPerson(person.id),
             )
         }
     }
@@ -472,7 +475,12 @@ internal fun lifeLine(person: TreePerson): String? {
     }
 }
 
-/** The card of one person: who they are, their word, and who they are joined to. */
+/**
+ * The sheet of links of one person (brief Famille-recettes F3): who they are, their parents, partner
+ * and children, each with « Retirer » where I may change it, then « Choisir ton mot », « Ajouter un
+ * lien », « Modifier sa fiche » (« Voir sa page » for who cannot change it), « Retirer de l'arbre » for
+ * a relative without an account, and « Fermer ».
+ */
 @Composable
 internal fun PersonCard(
     person: TreePerson,
@@ -486,12 +494,11 @@ internal fun PersonCard(
     canEditLink: (KinLink) -> Boolean = { false },
     onEditKin: (() -> Unit)? = null,
     onRemoveKin: (() -> Unit)? = null,
+    profileEditable: Boolean = false,
+    today: LocalDate = LocalDate.now(),
 ) {
-    val names = { ids: List<String> ->
-        ids.mapNotNull { tree.people[it] }.sortedBy { it.firstName.lowercase() }.joinToString(", ") { p ->
-            words[p.id]?.let { "${p.firstName} ($it)" } ?: p.firstName
-        }
-    }
+    // Removing a link changes the tree for the whole family: asked once more.
+    var confirm by remember { mutableStateOf<KinLink?>(null) }
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -500,60 +507,36 @@ internal fun PersonCard(
             Avatar(person)
             Column {
                 Text(fullName(person), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+                val line = when (person) {
+                    is TreePerson.OfMember -> profileLine(person.member, today)
+                    is TreePerson.OfKin -> stringResource(if (person.kin.living) R.string.genealogy_kin_living else R.string.genealogy_kin_remembered)
+                }
+                Text(line, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 words[person.id]?.let { Text(stringResource(R.string.genealogy_my_word, it), style = MaterialTheme.typography.bodyMedium) }
             }
         }
         (person as? TreePerson.OfKin)?.kin?.let { kin ->
-            Text(
-                stringResource(if (kin.living) R.string.genealogy_kin_living else R.string.genealogy_kin_remembered),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             lifeLine(person)?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
             kin.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         }
-        if (onRemoveLink == null) {
-            Relatives(R.string.genealogy_parents, names(tree.parentsOf(person.id)))
-            Relatives(R.string.genealogy_partners, names(tree.partnersOf(person.id)))
-            Relatives(R.string.genealogy_children, names(tree.childrenOf(person.id)))
-        } else {
-            // Each link on its own line, with « Retirer » where I may change it.
-            val mine = tree.links.filter { it.aId == person.id || it.bId == person.id }
-            // Removing a link changes the tree for the whole family: asked once more.
-            var confirm by remember { mutableStateOf<KinLink?>(null) }
-            mine.forEach { link ->
-                val otherId = if (link.aId == person.id) link.bId else link.aId
-                val other = tree.people[otherId] ?: return@forEach
-                val role = when {
-                    link.kind == KinLinkKind.Partner -> R.string.genealogy_role_partner
-                    link.bId == person.id -> R.string.genealogy_role_parent
-                    else -> R.string.genealogy_role_child
-                }
-                val label = stringResource(role, other.firstName)
-                val removeLabel = stringResource(R.string.genealogy_link_remove_described, label)
-                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    if (canEditLink(link)) {
-                        TextButton(
-                            onClick = { confirm = link },
-                            modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = removeLabel },
-                        ) {
-                            Text(stringResource(R.string.genealogy_link_remove))
-                        }
-                    }
-                }
-            }
-            confirm?.let { link ->
-                val otherId = if (link.aId == person.id) link.bId else link.aId
-                RemoveLinkDialog(
-                    firstName = person.firstName,
-                    otherName = tree.people[otherId]?.firstName.orEmpty(),
-                    onConfirm = {
-                        confirm = null
-                        onRemoveLink(link)
-                    },
-                    onDismiss = { confirm = null },
+        val mine = tree.links.filter { it.aId == person.id || it.bId == person.id }
+        val sections = listOf(
+            R.string.genealogy_parents to mine.filter { it.kind == KinLinkKind.Parent && it.bId == person.id },
+            R.string.genealogy_partners to mine.filter { it.kind == KinLinkKind.Partner },
+            R.string.genealogy_children to mine.filter { it.kind == KinLinkKind.Parent && it.aId == person.id },
+        )
+        sections.forEach { (title, links) ->
+            if (links.isEmpty()) return@forEach
+            Column {
+                Text(
+                    stringResource(title).uppercase(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.semantics { heading() },
                 )
+                links.mapNotNull { link -> tree.people[if (link.aId == person.id) link.bId else link.aId]?.let { link to it } }
+                    .sortedBy { (_, other) -> other.firstName.lowercase() }
+                    .forEach { (link, other) -> LinkRow(person, link, other, words, onRemoveLink?.takeIf { canEditLink(link) }?.let { { confirm = link } }) }
             }
         }
         if (onWord != null) {
@@ -566,9 +549,10 @@ internal fun PersonCard(
                 Text(stringResource(R.string.genealogy_link_add))
             }
         }
-        if (onEditKin != null) {
-            OutlinedButton(onClick = onEditKin, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.genealogy_kin_edit))
+        val onProfile = onEditKin ?: onOpenProfile
+        if (onProfile != null) {
+            OutlinedButton(onClick = onProfile, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(if (onEditKin != null || profileEditable) R.string.genealogy_kin_edit else R.string.genealogy_open_profile))
             }
         }
         if (onRemoveKin != null) {
@@ -576,23 +560,48 @@ internal fun PersonCard(
                 Text(stringResource(R.string.genealogy_kin_remove), color = MaterialTheme.colorScheme.error)
             }
         }
-        if (onOpenProfile != null) {
-            OutlinedButton(onClick = onOpenProfile, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.genealogy_open_profile))
-            }
-        }
-        TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.genealogy_close))
         }
     }
+    confirm?.let { link ->
+        val otherId = if (link.aId == person.id) link.bId else link.aId
+        RemoveLinkDialog(
+            firstName = person.firstName,
+            otherName = tree.people[otherId]?.firstName.orEmpty(),
+            onConfirm = {
+                confirm = null
+                onRemoveLink?.invoke(link)
+            },
+            onDismiss = { confirm = null },
+        )
+    }
 }
 
+/** One parent, partner or child on the sheet, and « Retirer » when [onRemove]. */
 @Composable
-private fun Relatives(@StringRes label: Int, names: String) {
-    if (names.isEmpty()) return
-    Column {
-        Text(stringResource(label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-        Text(names, style = MaterialTheme.typography.bodyLarge)
+private fun LinkRow(person: TreePerson, link: KinLink, other: TreePerson, words: Map<String, String>, onRemove: (() -> Unit)?) {
+    val role = when {
+        link.kind == KinLinkKind.Partner -> R.string.genealogy_role_partner
+        link.bId == person.id -> R.string.genealogy_role_parent
+        else -> R.string.genealogy_role_child
+    }
+    val removeLabel = stringResource(R.string.genealogy_link_remove_described, stringResource(role, other.firstName))
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            words[other.id]?.let { "${other.firstName} ($it)" } ?: other.firstName,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f),
+        )
+        if (onRemove != null) {
+            TextButton(onClick = onRemove, modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = removeLabel }) {
+                Text(
+                    stringResource(R.string.genealogy_link_remove),
+                    color = MaterialTheme.colorScheme.error,
+                    textDecoration = TextDecoration.Underline,
+                )
+            }
+        }
     }
 }
 

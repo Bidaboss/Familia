@@ -406,6 +406,12 @@ private fun rowLine(member: Member, isOwner: Boolean, today: LocalDate): String 
         return if (days == 0) stringResource(R.string.members_f1_birthday_today) else pluralStringResource(R.plurals.members_f1_birthday, days, days)
     }
     if (isOwner) return stringResource(R.string.members_f1_owner)
+    return profileLine(member, today)
+}
+
+/** « Adulte · chef de foyer », « Enfant · 11 ans »: also under the name, on the sheet of the tree. */
+@Composable
+internal fun profileLine(member: Member, today: LocalDate): String {
     val profile = stringResource(
         when (member.profile) {
             MemberProfile.Adult -> R.string.profile_adult
