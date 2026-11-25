@@ -23,10 +23,23 @@ fun Family.canAddMembers(me: Member): Boolean = isOwner(me)
 fun Family.canEditMember(me: Member, member: Member): Boolean = isOwner(me)
 
 /**
+ * True when [me] looks after the child [member] (récit 114, Kévin 25/11 19 h 52): one of its
+ * responsible adults, or a chef de famille of its household, with or without the app. They write
+ * its surnom, card, photo and wishes, never its profile, household or parents, and never anything
+ * of another adult. Same as caresFor in the rules.
+ */
+fun caresFor(me: Member, member: Member): Boolean =
+    member.id != me.id &&
+        member.profile != MemberProfile.Adult &&
+        me.profile == MemberProfile.Adult &&
+        (me.id in member.parentIds || (me.isAdmin && me.householdId == member.householdId))
+
+/**
  * True when [me] may change the photo of [member] (PRD, récit 3 bis): their own, a child of their
- * household for an adult, or anyone for the admin principal. Chefs have no extra right here.
+ * household for an adult, a child they look after ([caresFor]), or anyone for the admin principal.
  */
 fun Family.canChangePhoto(me: Member, member: Member): Boolean =
     me.id == member.id ||
         isOwner(me) ||
-        (member.profile != MemberProfile.Adult && me.profile == MemberProfile.Adult && me.householdId == member.householdId)
+        (member.profile != MemberProfile.Adult && me.profile == MemberProfile.Adult && me.householdId == member.householdId) ||
+        caresFor(me, member)
