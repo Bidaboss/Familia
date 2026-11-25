@@ -492,7 +492,7 @@ export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', asyn
 
 // La bascule vers les surprises (plan Cadeaux et Surprise, PR 3): the beneficiary never sees what
 // they get any more, so nothing is revealed. The morning task only wipes the old reservations,
-// once (décision de Kévin du 25/11), then does nothing. revealGiftLists and revealWishes stay for
+// once (décision de l'admin du 25/11), then does nothing. revealGiftLists and revealWishes stay for
 // their tests, unused.
 export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris' }, async () => {
   try {

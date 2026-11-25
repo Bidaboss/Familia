@@ -1,4 +1,4 @@
-// La bascule vers les surprises (plan Cadeaux et Surprise, PR 3; décision de Kévin du 25/11 13 h 27).
+// La bascule vers les surprises (plan Cadeaux et Surprise, PR 3; décision de l'admin du 25/11).
 //
 // From now on a gift is reserved and shared only inside a surprise. The old system goes:
 // - no more reveal the morning after (revealGifts does nothing but this reset);
