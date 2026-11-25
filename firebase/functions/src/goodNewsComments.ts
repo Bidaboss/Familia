@@ -6,7 +6,7 @@
 // fil d'actualité is switched on for the family (config/app.features.newsFeed), only the admin
 // principal is told. The news keeps its count of comments (commentCount) for the cards of the fil.
 
-import { FieldValue, type Firestore } from 'firebase-admin/firestore';
+import type { Firestore } from 'firebase-admin/firestore';
 import { GoodNewsNotice, GoodNewsSender, preview } from './goodNews';
 import { mentionTitle, namedIn } from './mentions';
 import { deliver, noticeTime } from './prefs';
@@ -84,7 +84,7 @@ export async function onGoodNewsCommentCreated(
   const newsRef = db.collection('goodNews').doc(postId);
   const news = await newsRef.get();
   if (!news.exists) return 0;
-  await bumpCount(db, postId, 1);
+  await recount(db, postId);
   const earlier = await newsRef.collection('comments').select('authorId').get();
   const earlierIds = earlier.docs.filter((d) => d.id !== commentId).map((d) => d.get('authorId')).filter((id): id is string => typeof id === 'string');
   const muted = new Set((await newsRef.collection('commentMutes').select().get()).docs.map((d) => d.id));
@@ -101,7 +101,7 @@ export async function onGoodNewsCommentCreated(
 
 /** A removed comment: the count goes down, unless the news itself is gone. */
 export async function onGoodNewsCommentDeleted(db: Firestore, postId: string): Promise<void> {
-  await bumpCount(db, postId, -1);
+  await recount(db, postId);
 }
 
 /** A removed good news: its comments and its « Ne plus être prévenu » go with it. */
@@ -111,14 +111,17 @@ export async function deleteGoodNewsComments(db: Firestore, postId: string): Pro
   await db.recursiveDelete(news.collection('commentMutes'));
 }
 
-/** Never below 0, and never writes a news that no longer exists. */
-async function bumpCount(db: Firestore, postId: string, by: number): Promise<void> {
+/**
+ * The count is the number of comments under the news, counted again each time: a trigger that runs
+ * twice for the same comment (Cloud Functions may replay an event) leaves it right, where adding 1
+ * would count the comment twice. Never writes a news that no longer exists.
+ */
+async function recount(db: Firestore, postId: string): Promise<void> {
   const ref = db.collection('goodNews').doc(postId);
   await db.runTransaction(async (tx) => {
     const news = await tx.get(ref);
     if (!news.exists) return;
-    const count = news.get('commentCount');
-    const now = typeof count === 'number' ? count : 0;
-    tx.update(ref, { commentCount: by < 0 && now + by < 0 ? 0 : FieldValue.increment(by) });
+    const count = (await tx.get(ref.collection('comments').count())).data().count;
+    if (news.get('commentCount') !== count) tx.update(ref, { commentCount: count });
   });
 }
