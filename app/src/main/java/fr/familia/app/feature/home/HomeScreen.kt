@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import fr.familia.app.core.model.isToConfirm
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -274,13 +275,14 @@ fun HomeRoute(
             } else {
                 combine(
                     due.map { surprise ->
-                        repository.observeMemberRows(surprise.id).map { rows ->
-                            surprise.id.takeIf { rows.any { it.memberId == currentMember.id && it.declined } }
-                        }
+                        repository.observeMemberRows(surprise.id)
+                            .map { rows -> surprise.id.takeIf { rows.any { it.memberId == currentMember.id && it.declined } } }
+                            // A refused read of one surprise (left, rules being published) leaves it shown.
+                            .catch { emit(null) }
                     },
                 ) { left -> mine.filter { it.id !in left.filterNotNull() } }
             }
-        } ?: flowOf(emptyList())
+        }?.catch { emit(emptyList()) } ?: flowOf(emptyList())
     }
     val mySurprises by mySurprisesFlow.collectAsState(initial = emptyList())
     HomeR1bisScreen(
