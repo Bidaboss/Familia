@@ -535,6 +535,10 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
                     Text(stringResource(R.string.event_detail_edit))
                 }
             }
+            // Récit 114: the adults who look after a child remove its wishes too, asked first.
+            if (row.canEdit && state.list.kind == GiftListKind.Wishes && !state.isMine && item.visibleToBeneficiary) {
+                RemoveChildWish(item.title, state.beneficiary.firstName) { actions.onRemoveWish(item.id) }
+            }
             val markReceived = actions.onMarkWishReceived
             if (markReceived != null && state.canMarkReceived && item.visibleToBeneficiary) {
                 OutlinedButton(onClick = { markReceived(item) }, modifier = Modifier.heightIn(min = 56.dp)) {
@@ -890,4 +894,30 @@ private fun GiftListScreenMinePreview() {
 private fun GiftItemSheetPreview() {
     val state = previewGiftList()
     FamiliaTheme { Surface { ItemSheetContent(state.items[1], state, GiftListActions(), onEdit = {}) } }
+}
+
+/** « Retirer » on a wish of a child I look after (récit 114): asked first, it leaves their list for all. */
+@Composable
+private fun RemoveChildWish(title: String, childName: String, onRemove: () -> Unit) {
+    var confirm by rememberSaveable { mutableStateOf(false) }
+    OutlinedButton(onClick = { confirm = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+        Text(stringResource(R.string.wish_detail_remove_confirm), color = MaterialTheme.colorScheme.error)
+    }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(R.string.wish_detail_remove_title, title)) },
+            text = { Text(stringResource(R.string.wish_remove_child_body, childName)) },
+            confirmButton = {
+                TextButton(onClick = { confirm = false; onRemove() }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.wish_detail_remove_confirm), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.wish_detail_keep), fontWeight = FontWeight.Bold)
+                }
+            },
+        )
+    }
 }

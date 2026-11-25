@@ -4358,6 +4358,7 @@
     <string name="wish_detail_remove">Retirer de mes envies</string>
     <string name="wish_detail_remove_title">Retirer « %1$s » ?</string>
     <string name="wish_detail_remove_body">Elle disparaît de ta liste, pour toute la famille.</string>
+    <string name="wish_remove_child_body">Elle disparaît de la liste de %1$s, pour toute la famille.</string>
     <string name="wish_detail_remove_confirm">Retirer</string>
     <string name="wish_detail_keep">Garder</string>
     <string name="wish_form_where">Où trouver le cadeau ?</string>
