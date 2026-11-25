@@ -458,7 +458,7 @@ private fun ChoicesSection(
 
 /**
  * « Qui répond ? », folded on its summary (« Toute la famille ») with « Changer », which opens the
- * shortcuts and the households (each household ticks all its members, règle de Kévin, 17/11).
+ * shortcuts and the households (each household ticks all its members, règle de l'admin, 17/11).
  */
 @Composable
 private fun AskedSection(state: PollEditUiState.Editing, onAsked: (Set<String>) -> Unit, onShortcut: (AskShortcut) -> Unit) {

@@ -155,7 +155,7 @@ fun RecipeCommentsSection(
     onType: (String, List<String>) -> Unit,
     onSend: () -> Unit,
     onRemove: (CommentRow) -> Unit,
-    /** Whom « @ » suggests (Kévin, 19/11). */
+    /** Whom « @ » suggests (l'admin, 19/11). */
     groups: List<PickGroup> = emptyList(),
 ) {
     var removing by rememberSaveable { mutableStateOf<String?>(null) }

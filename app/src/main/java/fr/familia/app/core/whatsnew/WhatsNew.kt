@@ -14,7 +14,7 @@ import fr.familia.app.core.model.MemberProfile
  * waits while the module is off for the family. [open] names the screen of « Essayer »
  * ([WhatsNewTarget]); unknown or missing, the card has no button. A child reads [childTitle] and
  * [childBody] when there are some, and never sees an [adultsOnly] card. A [fixes] card is written by
- * the workflow itself from what was merged since the last version (Kévin le 20/11): drawn apart
+ * the workflow itself from what was merged since the last version (l'admin le 20/11): drawn apart
  * from the new features, one line per correction, always after them.
  */
 data class WhatsNewCard(

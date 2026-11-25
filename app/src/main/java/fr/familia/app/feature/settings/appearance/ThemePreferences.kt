@@ -31,7 +31,7 @@ class ThemePreferences(context: Context) {
         get() = prefs.getBoolean(HIGH_CONTRAST_KEY, prefs.getString(THEME_KEY, null) == OLD_HIGH_CONTRAST)
         set(value) = prefs.edit { putBoolean(HIGH_CONTRAST_KEY, value) }
 
-    /** « Étendue de la photo » (Kévin, 25/11): the whole screen by default, or the top only. */
+    /** « Étendue de la photo » (l'admin, 25/11): the whole screen by default, or the top only. */
     var photoExtent: PhotoExtent
         get() = PhotoExtent.fromKey(prefs.getString(PHOTO_EXTENT_KEY, null))
         set(value) = prefs.edit { putString(PHOTO_EXTENT_KEY, value.key) }

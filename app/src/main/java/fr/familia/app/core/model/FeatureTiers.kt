@@ -1,7 +1,7 @@
 package fr.familia.app.core.model
 
 /**
- * How Administration > Modules sorts the switches (BUG-2, Kévin le 18/11) : the modules au choix
+ * How Administration > Modules sorts the switches (BUG-2, l'admin le 18/11) : the modules au choix
  * first, then the new versions to adopt, and the base, always on, folded at the bottom. Only the
  * screen changes: every switch still works and the server reads them as before.
  */

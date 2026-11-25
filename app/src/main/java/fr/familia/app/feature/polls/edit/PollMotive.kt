@@ -4,7 +4,7 @@ import fr.familia.app.core.model.Poll
 import java.time.LocalDate
 
 /**
- * What a poll asked from an event is about (retour de Kévin, 18/11): it only fills the question
+ * What a poll asked from an event is about (retour de l'admin, 18/11): it only fills the question
  * and the type, and is never stored. A poll asked from Sondages or the Accueil has none.
  */
 enum class PollMotive(val kind: Poll.Kind) {

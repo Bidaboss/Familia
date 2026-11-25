@@ -203,7 +203,7 @@ private fun Form(
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         FormTile(Icons.Outlined.EditNote, stringResource(R.string.goodnews_text_field), tileTop(GoodNewsTile.Text), accent = accent) {
-            // « @Prénom » in the text names a member (Kévin, 19/11). Members named before, by the old
+            // « @Prénom » in the text names a member (l'admin, 19/11). Members named before, by the old
             // checkboxes, are kept as they were.
             val named = state.candidates.filter { it.id in form.mentionIds }
             val legacy = remember(state.existing?.id) { form.mentionIds - mentionedIds(form.text, named) }

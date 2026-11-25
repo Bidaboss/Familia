@@ -145,7 +145,7 @@ private fun fanBrush(fan: Pair<Color, FloatArray>): Brush = Brush.radialGradient
 )
 
 /**
- * A member drawn in the tree (règle de Kévin, 18/11): their profile photo, round, in a white ring
+ * A member drawn in the tree (règle de l'admin, 18/11): their profile photo, round, in a white ring
  * and an outline of their [color]; without a photo, their [initials] in white on their color.
  */
 internal fun DrawScope.drawMedallion(

@@ -71,7 +71,7 @@ fun WelcomeHost(
         choice = if (family == null || config == null) WelcomeChoice.Skip else chooseWelcome(family, config, me, waitMillis)
     }
     when (val shown = choice) {
-        // A touch goes straight on even while the family is still read (Kévin, 18/11).
+        // A touch goes straight on even while the family is still read (l'admin, 18/11).
         WelcomeChoice.Waiting -> Box(
             Modifier
                 .fillMaxSize()

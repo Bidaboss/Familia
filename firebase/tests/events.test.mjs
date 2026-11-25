@@ -71,7 +71,7 @@ describe('reading', () => {
   });
 });
 
-describe('« @Prénom » in the note (Kévin, 19/11)', () => {
+describe('« @Prénom » in the note (l’admin, 19/11)', () => {
   test('an event names up to 20 members, each once, and its author changes them', async () => {
     const db = as(env, ADULT);
     await assertSucceeds(setDoc(doc(db, 'events/m1'), event(ADULT, { note: '@Noé le pain', mentionIds: [OTHER_ADULT.memberId] })));

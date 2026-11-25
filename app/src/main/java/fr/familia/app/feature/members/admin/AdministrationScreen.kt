@@ -241,7 +241,7 @@ private fun ReadyContent(
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
-    // Retour de Kévin, 17/11 : « l'onglet administration est trop grand ». Everything is grouped
+    // Retour de l'admin, 17/11 : « l'onglet administration est trop grand ». Everything is grouped
     // under a few headers, all closed at first: one touch opens a group.
     var open by rememberSaveable { mutableStateOf(listOf<String>()) }
     fun toggle(key: String) {
@@ -435,7 +435,7 @@ private fun ReadyContent(
         }
         if (onSetFeature != null) {
             adminGroup("features", R.string.administration_features_title, R.string.administration_features_help, open, ::toggle) {
-                // BUG-2 (Kévin le 18/11): the modules au choix, then the new versions, the base folded at the bottom.
+                // BUG-2 (l'admin le 18/11): the modules au choix, then the new versions, the base folded at the bottom.
                 val byTier = Feature.entries.groupBy { it.tier }
                 Column { SectionTitle(R.string.administration_features_choice) }
                 byTier[FeatureTier.Choice].orEmpty().forEach { feature ->
@@ -447,7 +447,7 @@ private fun ReadyContent(
                 byTier[FeatureTier.NewVersion].orEmpty().forEach { feature ->
                     FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
                 }
-                // « La base » has no switch any more (Kévin le 18/11, 20 h 39): always on, only named here.
+                // « La base » has no switch any more (l'admin le 18/11, 20 h 39): always on, only named here.
                 Column {
                     SectionTitle(R.string.administration_features_base)
                     Text(
@@ -510,7 +510,7 @@ private fun ReadyContent(
                 if (consumption != null) {
                     Column { ConsumptionSection(consumption) }
                 }
-                // Kévin le 18/11 : le budget Firebase en un geste, depuis Administration.
+                // L'admin le 18/11 : le budget Firebase en un geste, depuis Administration.
                 Column {
                     val uri = LocalUriHandler.current
                     Row(

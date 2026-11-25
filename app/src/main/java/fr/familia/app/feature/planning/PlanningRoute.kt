@@ -39,7 +39,7 @@ fun PlanningRoute(
                     container?.memberRepository,
                     currentMember.id,
                     rsvps = container?.rsvpRepository,
-                    // Always the whole family: no filter by household in the Planning (Kévin le 18/11, 22 h 39).
+                    // Always the whole family: no filter by household in the Planning (l'admin le 18/11, 22 h 39).
                     initialScope = PlanningScope.Family,
                     trips = if (tripsOn) container?.tripRepository else null,
                 ) }

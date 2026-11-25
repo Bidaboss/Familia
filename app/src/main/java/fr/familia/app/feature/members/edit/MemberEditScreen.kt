@@ -269,7 +269,7 @@ private fun MemberFormContent(
         if (form.needsParents) {
             FormTile(icon = Icons.Outlined.FamilyRestroom, title = stringResource(R.string.member_parents), modifier = part(MemberPart.Parents)) {
                 FormHint(stringResource(R.string.member_parents_help))
-                // By household, the child's first; a household ticks its adults (règle de Kévin, 17/11).
+                // By household, the child's first; a household ticks its adults (règle de l'admin, 17/11).
                 HouseholdMemberPicker(
                     groups = pickGroups(state.adults, state.households, form.householdId),
                     selected = form.parentIds,

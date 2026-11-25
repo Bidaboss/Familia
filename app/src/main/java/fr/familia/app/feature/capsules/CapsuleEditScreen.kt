@@ -185,7 +185,7 @@ private fun Form(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions)
         FormTile(Icons.Outlined.Groups, stringResource(R.string.capsule_edit_who), Modifier.top(CapsuleTile.Who)) {
             val toggle: (String) -> Unit = { id -> if (enabled) actions.onToggleRecipient(id) }
             if (state.groups.isNotEmpty()) {
-                // By household (règle de Kévin, 17/11): the household box ticks all of it.
+                // By household (règle de l'admin, 17/11): the household box ticks all of it.
                 Faces(state.groups, form.recipientIds, enabled, actions.onRecipients)
             } else {
                 PeopleRow(

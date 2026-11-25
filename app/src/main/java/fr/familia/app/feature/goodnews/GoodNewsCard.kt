@@ -108,7 +108,7 @@ fun GoodNewsCard(
                 }
             }
         }
-        // « @Prénom » in bold, a touch opens the member (Kévin, 19/11).
+        // « @Prénom » in bold, a touch opens the member (l'admin, 19/11).
         val named = mentionMembers(item.news.mentionIds)
         MentionText(
             item.news.text,

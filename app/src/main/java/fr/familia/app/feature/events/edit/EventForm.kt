@@ -21,7 +21,7 @@ data class EventForm(
     val time: LocalTime? = null,
     val place: String = "",
     val note: String = "",
-    /** The members named « @Prénom » in [note] (Kévin, 19/11). */
+    /** The members named « @Prénom » in [note] (l'admin, 19/11). */
     val mentionIds: List<String> = emptyList(),
     val target: EventTarget? = null,
     /** The cover (récit 44): sent by the ViewModel before the event, not kept in the draft. */

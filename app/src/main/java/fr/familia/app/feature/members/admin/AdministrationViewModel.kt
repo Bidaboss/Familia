@@ -87,7 +87,7 @@ class AdministrationViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     init {
-        // « La base » has no switch any more (Kévin le 18/11, 20 h 39). The server still reads
+        // « La base » has no switch any more (l'admin le 18/11, 20 h 39). The server still reads
         // config/app for some of them (comments, bring, vœux…): the admin principal's first visit
         // writes them on, once. Refused (Voir comme, rules not yet published): tried again next time.
         appConfig?.let { repo ->

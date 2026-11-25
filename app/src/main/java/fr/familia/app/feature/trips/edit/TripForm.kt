@@ -23,7 +23,7 @@ data class TripForm(
         copy(participantIds = participantIds + ids, readerIds = readerIds + ids)
 
     /**
-     * The participants picked by household (règle de Kévin, 17/11): a newcomer also follows the trip,
+     * The participants picked by household (règle de l'admin, 17/11): a newcomer also follows the trip,
      * like [withParticipant]; someone unticked keeps following it.
      */
     fun withParticipantSet(ids: Set<String>): TripForm = copy(participantIds = ids, readerIds = readerIds + (ids - participantIds))

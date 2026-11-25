@@ -51,7 +51,7 @@ jobs:
           APK_RE='^(app/(src/(main|release|debug)/|build\.gradle|proguard|[^/]+\.(json|pro|kts?)$)|gradle/|build\.gradle|settings\.gradle|gradle\.properties|gradlew)'
           FIREBASE_RE='^firebase/(\.firebaserc|firebase\.json|firestore\.rules|firestore\.indexes\.json|storage\.rules|functions/(src/|package(-lock)?\.json|tsconfig\.json)|hosting/)'
 
-          # Last commit already published by a workflow, whoever started it (Kévin or this one).
+          # Last commit already published by a workflow, whoever started it (l'admin or this one).
           last_published() {
             gh run list --workflow "$1" --branch main --status success --limit 1 \
               --json headSha --jq '.[0].headSha // empty'

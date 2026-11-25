@@ -440,7 +440,7 @@ describe('feedback folder (récit 6 sexies)', () => {
   });
 });
 
-describe('image of a coup de main (Kévin 16/11)', () => {
+describe('image of a coup de main (l’admin 16/11)', () => {
   // Each test has a request of its own by adult1, seen by adult2 only, naming the image h1 of adult1.
   let n = 0;
   const image = (author, name) => `helpRequests/h${n}/${author}/${name}`;

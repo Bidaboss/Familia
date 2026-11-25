@@ -249,7 +249,7 @@ enum class TopLevelDestination(
     Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
     Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
     HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
-    /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (Kévin 22/11). */
+    /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (l'admin 22/11). */
     Trips(TripsDestination, R.string.nav_trips, Icons.Outlined.CardTravel, Icons.Outlined.CardTravel, Feature.Trips),
     Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
     ;

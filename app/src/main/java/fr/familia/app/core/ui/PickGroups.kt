@@ -6,7 +6,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.householdGroups
 
 /**
- * [members] by household for [HouseholdMemberPicker] (règle de Kévin, 17/11), in the order of
+ * [members] by household for [HouseholdMemberPicker] (règle de l'admin, 17/11), in the order of
  * [householdGroups]: households by name, adults then children by first name, members whose household
  * is gone last, in a group named [othersName]. [firstHouseholdId] (mine, usually) comes first.
  */

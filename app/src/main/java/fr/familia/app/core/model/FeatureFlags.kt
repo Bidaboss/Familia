@@ -181,7 +181,7 @@ data class FeatureFlags(val switchedOn: Map<String, Boolean> = emptyMap(), val i
 
     /**
      * Switched on for the whole family (what Administration shows). « La base » is always on and has
-     * no switch any more (Kévin le 18/11, 20 h 39).
+     * no switch any more (l'admin le 18/11, 20 h 39).
      */
     fun isOnForFamily(feature: Feature): Boolean =
         feature.tier == FeatureTier.Base || (switchedOn[feature.key] ?: feature.onByDefault)
