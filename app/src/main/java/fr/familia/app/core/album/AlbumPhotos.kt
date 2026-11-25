@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -21,9 +22,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -177,8 +184,8 @@ fun AddPhotosButton(placesLeft: Int, onAdd: (List<String>) -> Unit, max: Int = A
 }
 
 /**
- * The photos full size, one per page, starting at [startId]. Its author, or a member who manages
- * the album, removes it after a confirmation.
+ * The photos full size, one per page, starting at [startId]. Who may remove the photo shown
+ * ([AlbumPhotosUiState.canRemove]) finds « Supprimer » in its menu « ⋯ », after a confirmation.
  */
 @Composable
 fun PhotoViewer(state: AlbumPhotosUiState, startId: String, onRemove: (AlbumPhoto) -> Unit, onClose: () -> Unit) {
@@ -189,6 +196,7 @@ fun PhotoViewer(state: AlbumPhotosUiState, startId: String, onRemove: (AlbumPhot
     if (start < 0) return
     val pager = rememberPagerState(initialPage = start) { photos.size }
     var confirmRemove by rememberSaveable { mutableStateOf(false) }
+    var menuOpen by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize()) {
             Column {
@@ -204,9 +212,24 @@ fun PhotoViewer(state: AlbumPhotosUiState, startId: String, onRemove: (AlbumPhot
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f),
                     )
+                    // Récit 121: in a menu « ⋯ », for its author, a responsible adult of the child
+                    // who added it or the admin principal; never on the photo of another adult.
                     if (current != null && state.canRemove(current)) {
-                        TextButton(onClick = { confirmRemove = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-                            Text(stringResource(R.string.album_photo_remove))
+                        Box {
+                            IconButton(onClick = { menuOpen = true }, modifier = Modifier.size(56.dp)) {
+                                Icon(Icons.Outlined.MoreHoriz, contentDescription = stringResource(R.string.album_photo_more))
+                            }
+                            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.album_photo_remove)) },
+                                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                                    onClick = {
+                                        menuOpen = false
+                                        confirmRemove = true
+                                    },
+                                    modifier = Modifier.heightIn(min = 56.dp),
+                                )
+                            }
                         }
                     }
                 }

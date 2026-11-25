@@ -593,18 +593,16 @@ service cloud.firestore {
     }
 
     // events/{eventId}/photos/{photoId}. Everyone who sees the event sees its album; a member who
-    // said « je viens » adds photos of their own from the day of the event. The author removes
-    // them, as do the author of the event and the admin principal. Deleting the event deletes them.
+    // said « je viens » adds photos of their own from the day of the event. Who removes a photo
+    // (récit 121, isAlbumPhotoRemover): its author, a responsible adult of the child who added it,
+    // the admin principal. Deleting the event deletes them.
     match /events/{eventId}/photos/{photoId} {
       allow read: if isMember();
       allow create: if isMember()
         && albumIsOpen(eventId)
         && saidComing(eventId)
         && isValidAlbumPhoto(request.resource.data, photoId, []);
-      allow delete: if isMember()
-        && (resource.data.authorId == myMemberId()
-            || isOwner()
-            || get(/databases/$(database)/documents/events/$(eventId)).data.authorId == myMemberId());
+      allow delete: if isAlbumPhotoRemover(resource.data);
     }
 
     // events/{eventId}/comments/{commentId} (PRD, récit 28). Whoever sees the event (every member)
@@ -3322,14 +3320,23 @@ service cloud.firestore {
             && exists(/databases/$(database)/documents/trips/$(tripId)/steps/$(p.stepId))));
     }
 
-    // trips/{tripId}/photos/{photoId}. The followers see the photos; each participant adds their own,
-    // and removes them. The creator of the trip, or the admin principal, can remove any photo. A
-    // photo is never edited. Deleting the trip deletes the photos and their files on the server.
+    // Supprimer une photo d'album (récit 121, l'admin, 25/11): its author, a responsible adult of the
+    // child who added it (caresFor: one of its parentIds or a chef de famille of its household), or
+    // the admin principal; never the photo of another adult, even for the author of the event or
+    // the creator of the trip. The server then removes its two files, its place in a word of a step
+    // and the card of its day in the gazette once empty (onEventPhotoDeleted, onTripPhotoDeleted).
+    function isAlbumPhotoRemover(photo) {
+      return isMember()
+        && (photo.authorId == myMemberId() || isOwner() || caresFor(photo.authorId));
+    }
+
+    // trips/{tripId}/photos/{photoId}. The followers see the photos; each participant adds their own.
+    // Who removes one: isAlbumPhotoRemover (récit 121). A photo is never edited. Deleting the trip
+    // deletes the photos and their files on the server.
     match /trips/{tripId}/photos/{photoId} {
       allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
       allow create: if isMember() && isParticipantOf(tripId) && isValidTripPhoto(request.resource.data, photoId, tripId);
-      allow delete: if isMember()
-        && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
+      allow delete: if isAlbumPhotoRemover(resource.data);
     }
 
     // Notes vocales (récit 104, règle 35): trips/{tripId}/voiceNotes/{noteId}, recorded during the

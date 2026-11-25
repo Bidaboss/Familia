@@ -5,7 +5,9 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.caresFor
 import fr.familia.app.core.photo.PhotoRefusedException
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
@@ -22,11 +24,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * What the module of the album lets the current member do: a participant of the trip, or later
- * a member who said « je viens », adds photos; the creator or the admin principal removes any.
- * [me] is null when the member is unknown, or the album is gone.
+ * What the module of the album lets the current member do: a participant of the trip, or a
+ * member who said « je viens », adds photos; [canManage] removes any (the admin principal, or who
+ * manages a recipe). [caredForIds] are the children whose photos [me] removes too, as one of their
+ * responsible adults or a chef de famille of their household (récit 121, [caresFor]); never the
+ * photo of another adult. [me] is null when the member is unknown, or the album is gone.
  */
-data class AlbumRights(val me: Member?, val canAdd: Boolean, val canManage: Boolean)
+data class AlbumRights(
+    val me: Member?,
+    val canAdd: Boolean,
+    val canManage: Boolean,
+    val caredForIds: Set<String> = emptySet(),
+)
+
+/** The children of [family] whose album photos [me] removes (récit 121), as the rules check. */
+fun albumCaredForIds(family: Family, me: Member): Set<String> =
+    family.members.filter { caresFor(me, it) }.mapTo(mutableSetOf()) { it.id }
 
 /** What went wrong with the last photos, said under the photos until the next try. */
 enum class PhotoProblem {
@@ -51,6 +64,8 @@ data class AlbumPhotosUiState(
     val canAdd: Boolean = false,
     /** Removes any photo of the album. */
     val canManage: Boolean = false,
+    /** The children whose photos this member removes too (récit 121). */
+    val caredForIds: Set<String> = emptySet(),
     /** Photos of this phone still being sent. */
     val sending: Int = 0,
     val problem: PhotoProblem? = null,
@@ -67,7 +82,9 @@ data class AlbumPhotosUiState(
     val placesLeft: Int
         get() = (maxPerMember - photos.count { it.authorId == currentMemberId } - sending).coerceAtLeast(0)
 
-    fun canRemove(photo: AlbumPhoto): Boolean = photo.authorId == currentMemberId || canManage
+    /** Its author, a responsible adult of the child who added it, or who manages the album (récit 121). */
+    fun canRemove(photo: AlbumPhoto): Boolean =
+        photo.authorId == currentMemberId || canManage || photo.authorId in caredForIds
 }
 
 /**
@@ -130,7 +147,17 @@ class AlbumPhotosViewModel(
                 if (r.me == null) {
                     empty
                 } else {
-                    AlbumPhotosUiState(list, currentMemberId, r.canAdd, r.canManage, progress.slots.size, progress.problem, maxPerMember, progress.done)
+                    AlbumPhotosUiState(
+                        photos = list,
+                        currentMemberId = currentMemberId,
+                        canAdd = r.canAdd,
+                        canManage = r.canManage,
+                        caredForIds = r.caredForIds,
+                        sending = progress.slots.size,
+                        problem = progress.problem,
+                        maxPerMember = maxPerMember,
+                        sent = progress.done,
+                    )
                 }
             }
                 // The screen of the module says when it cannot be read; here, simply no photos.
@@ -205,14 +232,20 @@ class AlbumPhotosViewModel(
         }
     }
 
-    /** Removes a photo: its two files first, then its record, so nobody sees a broken photo. */
+    /**
+     * Removes a photo: its two files first, then its record, so nobody sees a broken photo. A
+     * responsible adult removing the photo of a child removes the record only: Storage cannot check
+     * who looks after a child, so the server removes the files after the record (récit 121,
+     * onEventPhotoDeleted and onTripPhotoDeleted, which run for every photo of those albums).
+     */
     fun removePhoto(photo: AlbumPhoto) {
         val repo = photos ?: return
-        if (!uiState.value.canRemove(photo)) return
+        val state = uiState.value
+        if (!state.canRemove(photo)) return
         sends.setProblem(folder, null)
         viewModelScope.launch {
             try {
-                storage?.let { files ->
+                storage?.takeIf { photo.authorId == currentMemberId || state.canManage }?.let { files ->
                     for (path in listOf(photo.photoPath, photo.thumbnailPath)) {
                         // Already gone (a send cut in the middle): nothing to remove.
                         runCatching { files.delete(path) }.onFailure { if (it is CancellationException) throw it }

@@ -6,7 +6,7 @@ import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
   collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, serverTimestamp, setDoc, Timestamp, updateDoc, where,
 } from 'firebase/firestore';
-import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
+import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, SECOND_ADMIN, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
 before(async () => { env = await createEnv(); });
@@ -524,15 +524,31 @@ describe('trip photos (récit 15)', () => {
     await assertFails(setDoc(doc(as(env, KID), 'trips/t1/photos/kid1_1'), photo(KID, 1)));
   });
 
-  test('the author or the creator of the trip removes a photo, nobody else', async () => {
+  test('the author or the admin principal removes a photo, never another adult (récit 121)', async () => {
     await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1));
     await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_2'), photo(NEIGHBOUR, 2));
     await setDoc(doc(as(env, ADULT), 'trips/t1/photos/adult1_1'), photo(ADULT, 1));
     await assertFails(deleteDoc(doc(as(env, KID), 'trips/t1/photos/adult3_1')));
     await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult1_1')));
+    // The creator of the trip no longer removes the photo of another adult.
+    await assertFails(deleteDoc(doc(as(env, ADULT), 'trips/t1/photos/adult3_2')));
     await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1')));
-    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t1/photos/adult3_2')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/photos/adult3_2')));
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/photos/adult1_1')));
+  });
+
+  test('the responsible adults of a child remove its photos, nobody else (récit 121)', async () => {
+    // adult3 created this trip; kid1, a child of adult1 in h1, takes part.
+    await storedTrip('t2', NEIGHBOUR, { participantIds: ['adult3', 'kid1'] });
+    for (const slot of [1, 2, 3]) {
+      await setDoc(doc(as(env, KID), `trips/t2/photos/kid1_${slot}`), photo(KID, slot));
+    }
+    await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'trips/t2/photos/kid1_1')));
+    // The creator of the trip is neither its parent nor its chef de famille.
+    await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t2/photos/kid1_1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t2/photos/kid1_1')));
+    await assertSucceeds(deleteDoc(doc(as(env, SECOND_ADMIN), 'trips/t2/photos/kid1_2')));
+    await assertSucceeds(deleteDoc(doc(as(env, KID), 'trips/t2/photos/kid1_3')));
   });
 });
 

@@ -247,10 +247,10 @@ class AlbumPhotosViewModelTest {
     }
 
     @Test
-    fun `the creator of the trip removes a photo, its files first`() = runTest {
+    fun `the author removes their photo, its files first, then its record`() = runTest {
         val photos = FakeAlbum(listOf(photo("adult2", 1), photo("adult2", 2)))
         val storage = FakeStorage()
-        val vm = album("adult1", photos, storage = storage)
+        val vm = album("adult2", photos, storage = storage)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
 
         vm.removePhoto(photo("adult2", 1))
@@ -258,6 +258,51 @@ class AlbumPhotosViewModelTest {
         assertEquals(listOf("trips/t1/adult2/1.jpg", "trips/t1/adult2/1-thumb.jpg"), storage.deleted)
         assertEquals(listOf("adult2_1"), photos.deleted)
         assertEquals(listOf("adult2_2"), vm.uiState.value.photos.map { it.id })
+    }
+
+    @Test
+    fun `the creator of the trip no longer removes the photo of another adult (récit 121)`() = runTest {
+        val photos = FakeAlbum(listOf(photo("adult2", 1)))
+        val storage = FakeStorage()
+        val vm = album("adult1", photos, storage = storage)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        assertFalse(vm.uiState.value.canRemove(vm.uiState.value.photos[0]))
+        vm.removePhoto(photo("adult2", 1))
+        assertTrue(photos.deleted.isEmpty())
+        assertTrue(storage.deleted.isEmpty())
+    }
+
+    @Test
+    fun `a responsible adult removes the photo of their child, the server its files (récit 121)`() = runTest {
+        val photos = FakeAlbum(listOf(photo("kid1", 1), photo("kid1", 2)))
+        val storage = FakeStorage()
+        val vm = album("adult1", photos, storage = storage)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        assertTrue(vm.uiState.value.canRemove(vm.uiState.value.photos[0]))
+        vm.removePhoto(photo("kid1", 1))
+
+        assertEquals(listOf("kid1_1"), photos.deleted)
+        // Storage cannot check who looks after a child: onTripPhotoDeleted removes the files.
+        assertTrue(storage.deleted.isEmpty())
+        // Another adult of the family does not.
+        val other = album("adult2", FakeAlbum(listOf(photo("kid1", 2))))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
+        assertFalse(other.uiState.value.canRemove(other.uiState.value.photos[0]))
+    }
+
+    @Test
+    fun `the admin principal removes any photo, its files first`() = runTest {
+        val photos = FakeAlbum(listOf(photo("adult2", 1)))
+        val storage = FakeStorage()
+        val vm = album("admin1", photos, storage = storage)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        assertTrue(vm.uiState.value.canRemove(vm.uiState.value.photos[0]))
+        vm.removePhoto(photo("adult2", 1))
+        assertEquals(listOf("trips/t1/adult2/1.jpg", "trips/t1/adult2/1-thumb.jpg"), storage.deleted)
+        assertEquals(listOf("adult2_1"), photos.deleted)
     }
 
     @Test
