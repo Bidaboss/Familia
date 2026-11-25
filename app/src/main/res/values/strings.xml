@@ -2370,7 +2370,7 @@
     <!-- Thèmes au choix (DESIGN-7) -->
     <string name="appearance_title">Apparence</string>
     <string name="appearance_theme_title">Thème</string>
-    <string name="appearance_theme_help">Choisis l\'allure de l\'appli sur ce téléphone. Les textes et les boutons restent à la même place.</string>
+    <string name="appearance_theme_help">Une photo et ses deux couleurs, sur ce téléphone. « Selon la saison » change de photo à chaque saison.</string>
     <string name="app_icon_title">Icône de l\'appli</string>
     <string name="app_icon_help">Choisis l\'arbre qui ouvre Familia sur ce téléphone.</string>
     <string name="app_icon_olivier">Olivier</string>
@@ -2388,12 +2388,18 @@
     <string name="welcome_animation_hello">Bonjour %1$s, tu es chez toi.</string>
     <string name="welcome_animation_skip">Passer</string>
     <string name="theme_classic">Argile</string>
-    <string name="theme_olive">Olivier</string>
-    <string name="theme_spain">Espagne</string>
-    <string name="theme_winter">Hiver</string>
+    <string name="theme_season">Selon la saison</string>
+    <string name="theme_season_now">En ce moment : %1$s</string>
+    <string name="theme_clouds">Mer de nuages</string>
+    <string name="theme_alps">Alpes</string>
+    <string name="theme_sunset">Coucher de soleil</string>
+    <string name="theme_christmas">Noël</string>
+    <string name="theme_autumn">Automne</string>
+    <string name="theme_lake">Lac de montagne</string>
     <string name="theme_lavender">Lavande</string>
-    <string name="theme_night">Nuit</string>
+    <string name="theme_coast">Côte sauvage</string>
     <string name="theme_contrast">Contraste fort</string>
+    <string name="theme_contrast_help">Fond uni, sans photo, textes plus marqués. Pour mieux lire.</string>
     <string name="appearance_title_font_title">Police des titres</string>
     <string name="appearance_title_font_help">Pour les titres des écrans, des cartes et des jours, sur ce téléphone.</string>
     <string name="appearance_title_font_round">Ronde</string>

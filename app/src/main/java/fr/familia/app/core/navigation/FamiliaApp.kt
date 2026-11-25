@@ -429,6 +429,7 @@ fun FamiliaApp(
     val homePrefs = remember(context) { HomePreferences(context.applicationContext) }
     val themePrefs = remember(context) { ThemePreferences(context.applicationContext) }
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
+    var highContrast by remember { mutableStateOf(themePrefs.highContrast) }
     var chosenTitleFont by remember { mutableStateOf(themePrefs.titleFont) }
     var chosenBodyFont by remember { mutableStateOf(themePrefs.bodyFont) }
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
@@ -768,9 +769,20 @@ fun FamiliaApp(
     }
 
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
+    // « Selon la saison » is read again each day the app comes back (récit 113, règle 16).
     val themesOn = features.isOn(Feature.Themes)
+    var today by remember { mutableStateOf(LocalDate.now()) }
+    LifecycleStartEffect(Unit) {
+        today = LocalDate.now()
+        onStopOrDispose { }
+    }
+    val shownTheme = when {
+        !themesOn -> FamiliaThemeId.Classic
+        highContrast -> FamiliaThemeId.HighContrast
+        else -> chosenTheme.on(today)
+    }
     FamiliaTheme(
-        theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic,
+        theme = shownTheme,
         seeds = true,
         titleFont = if (themesOn) chosenTitleFont else TitleFont.Round,
         bodyFont = if (themesOn) chosenBodyFont else BodyFont.Normal,
@@ -1983,6 +1995,12 @@ fun FamiliaApp(
                             onChoose = { theme ->
                                 chosenTheme = theme
                                 themePrefs.theme = theme
+                            },
+                            today = today,
+                            highContrast = highContrast,
+                            onHighContrast = { on ->
+                                highContrast = on
+                                themePrefs.highContrast = on
                             },
                             titleFont = chosenTitleFont,
                             onChooseTitleFont = { font ->

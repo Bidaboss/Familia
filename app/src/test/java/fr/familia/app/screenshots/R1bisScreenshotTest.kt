@@ -85,19 +85,19 @@ class R1bisScreenshotTest {
     fun homeClassic() = capture("r1bis_accueil_classique", content = home)
 
     @Test
-    fun homeOlive() = capture("r1bis_accueil_olivier", theme = FamiliaThemeId.Olive, content = home)
+    fun homeLake() = capture("r1bis_accueil_lac", theme = FamiliaThemeId.Lake, content = home)
 
     @Test
-    fun homeNight() = capture("r1bis_accueil_nuit", theme = FamiliaThemeId.Night, content = home)
+    fun homeSunset() = capture("r1bis_accueil_coucher", theme = FamiliaThemeId.Sunset, content = home)
 
-    /** Olivier and Nuit at 130 %, with the two other fonts (DESIGN-43, 45 and 46). */
-    @Test
-    @Config(fontScale = 1.3f)
-    fun homeOliveFontScale130() = capture("r1bis_accueil_olivier_130", theme = FamiliaThemeId.Olive, titleFont = TitleFont.Elegant, bodyFont = BodyFont.Legible, content = home)
-
+    /** Lac de montagne and Coucher de soleil at 130 %, with the two other fonts (récit 113, DESIGN-45 and 46). */
     @Test
     @Config(fontScale = 1.3f)
-    fun homeNightFontScale130() = capture("r1bis_accueil_nuit_130", theme = FamiliaThemeId.Night, titleFont = TitleFont.Sober, bodyFont = BodyFont.Legible, content = home)
+    fun homeLakeFontScale130() = capture("r1bis_accueil_lac_130", theme = FamiliaThemeId.Lake, titleFont = TitleFont.Elegant, bodyFont = BodyFont.Legible, content = home)
+
+    @Test
+    @Config(fontScale = 1.3f)
+    fun homeSunsetFontScale130() = capture("r1bis_accueil_coucher_130", theme = FamiliaThemeId.Sunset, titleFont = TitleFont.Sober, bodyFont = BodyFont.Legible, content = home)
 
     @Test
     @Config(fontScale = 2f)

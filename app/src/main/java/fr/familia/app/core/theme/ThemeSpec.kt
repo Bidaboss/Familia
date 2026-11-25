@@ -12,11 +12,12 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 
 /*
- * The 7 themes to choose from (DESIGN-43, Kévin 18/11): a theme only changes the mood. It sets the
- * background and its discreet pattern, the dark buttons, the pill of the active tab, the lines and
- * the outlines. It never changes the fonts (chosen apart: TitleFont, BodyFont), the white cards, the
- * colors of the types and of the members, the corners nor the targets: until the 21st every theme
- * keeps the look of Argile (28 dp, relief). Argile, the default, follows the phone's dark mode.
+ * The photo themes (récit 113, règles 14 à 18, 25/11): a theme is a photo and two colors, an
+ * accent and a dark one. They replace the 7 color themes of DESIGN-43. A theme never changes the
+ * fonts (chosen apart: TitleFont, BodyFont), the white cards, the colors of the types and of the
+ * members, the corners nor the targets. « Selon la saison » is the default (ThemeChoice). « Contraste
+ * fort » is apart, an accessibility setting: plain, without photo. Argile stays the look of the app
+ * while the Thèmes module is off, and the only one that follows the phone's dark mode.
  */
 
 /** How a card stands out: the Argile relief, a hard offset shadow, a soft or glowing one, or none. */
@@ -40,13 +41,10 @@ data class ClayBorder(val width: Dp, val color: Color, val dashed: Boolean = fal
 
 /** The background pattern of a theme, drawn under the content (ThemePatterns.kt). */
 enum class ThemePattern {
-    None, Snow, Leaves,
+    None,
 
     /** « Pépins » of Argile in the R1 bis presentation: three small round seeds on a 64 dp grid. */
     Seeds,
-
-    /** The same seeds in red and yellow (Espagne), in lilac (Lavande), and barely there (Nuit). */
-    SeedsSpain, SeedsLilac, SeedsNight,
 }
 
 /** Everything a theme sets besides the colors: cards, fonts and background. */
@@ -92,25 +90,72 @@ class FamiliaThemeSpec(
 )
 
 /**
- * The 7 themes, in the order of the Apparence screen. [key] is what the phone keeps: Olivier keeps
- * the key of the Jardin it replaces. Classic is Argile.
+ * The looks of the app. [key] is what the phone keeps. Classic is Argile, while the Thèmes module is
+ * off; then the 8 photo themes (A5, DESIGN-159 B: the Unsplash ones at launch), each with its [accent]
+ * (« J'y vais », the avatar, the counters) and its [dark] (the switch, the chosen day, the central
+ * button); and « Contraste fort », chosen apart (règle 18).
  */
-enum class FamiliaThemeId(val key: String, @StringRes val labelRes: Int) {
+enum class FamiliaThemeId(val key: String, @StringRes val labelRes: Int, val accent: Long? = null, val dark: Long? = null) {
     Classic("classic", R.string.theme_classic),
-    Olive("garden", R.string.theme_olive),
-    Spain("spain", R.string.theme_spain),
-    Winter("winter", R.string.theme_winter),
-    Lavender("lavender", R.string.theme_lavender),
-    Night("night", R.string.theme_night),
+    Clouds("u_nuages", R.string.theme_clouds, 0xFF6E8FB5, 0xFF2B3A4E),
+    Alps("u_alpes", R.string.theme_alps, 0xFF4F8A6B, 0xFF24392F),
+    Sunset("u_plage", R.string.theme_sunset, 0xFFE8875A, 0xFF4E2E3A),
+    Christmas("u_noel", R.string.theme_christmas, 0xFFC0503F, 0xFF1E2D4A),
+    Autumn("u_automne", R.string.theme_autumn, 0xFFD98A2B, 0xFF3A2A1A),
+    Lake("u_lac", R.string.theme_lake, 0xFF2F9AA8, 0xFF1C3940),
+    Lavender("u_lavande", R.string.theme_lavender, 0xFF8A6BC0, 0xFF33284A),
+    Coast("u_cote", R.string.theme_coast, 0xFF3C8FB8, 0xFF1D3848),
     HighContrast("contrast", R.string.theme_contrast),
     ;
 
-    companion object {
-        /** The themes removed on 18/11 go to the closest one: Arcade and Cosmos to Nuit, the others to Argile. */
-        private val REMOVED = mapOf("arcade" to Night, "cosmos" to Night, "retro" to Classic, "travel" to Classic)
+    /** True for the 8 themes with a photo. */
+    val isPhoto: Boolean get() = accent != null
 
-        fun fromKey(key: String?): FamiliaThemeId = entries.firstOrNull { it.key == key } ?: REMOVED[key] ?: Classic
+    companion object {
+        /** The photo themes, in the order of Réglages > Thème. */
+        val photos: List<FamiliaThemeId> = entries.filter { it.isPhoto }
     }
+}
+
+/** The cream under the photo and on the screens without one (A5). */
+private const val PHOTO_CREAM = 0xFFFFFAF2
+
+/** [t] of the way from [from] to [to], both opaque ARGB. */
+private fun mix(from: Long, to: Long, t: Float): Long {
+    fun channel(shift: Int): Long {
+        val a = (from shr shift) and 0xFF
+        val b = (to shr shift) and 0xFF
+        return (a + ((b - a) * t)).toLong().coerceIn(0, 255) shl shift
+    }
+    return 0xFF000000 or channel(16) or channel(8) or channel(0)
+}
+
+/**
+ * A photo theme on the screens: cream background, white cards, the dark color for the buttons, the
+ * day headers and the titles, the accent lightly on the pills and the tints. The accent itself, too
+ * light for a white text, is kept for the home (LocalPhotoTheme).
+ */
+private fun photoSpec(id: FamiliaThemeId): FamiliaThemeSpec {
+    val accent = id.accent ?: error("$id has no photo")
+    val dark = id.dark ?: error("$id has no photo")
+    val pill = mix(PHOTO_CREAM, accent, 0.3f)
+    return themed(
+        Palette(
+            bg = PHOTO_CREAM,
+            card = 0xFFFFFFFF,
+            pill = pill,
+            tintB = mix(PHOTO_CREAM, accent, 0.16f),
+            tintC = mix(PHOTO_CREAM, dark, 0.08f),
+            primary = dark,
+            onPrimary = 0xFFFFFFFF,
+            accent = dark,
+            text = 0xFF231A16,
+            sec = 0xFF3F342C,
+            title = dark,
+        ),
+        mood(ThemePattern.None, pill),
+        shadow = Color((0x24L shl 24) or (dark and 0xFFFFFF)),
+    )
 }
 
 private fun scheme(p: Palette): ColorScheme {
@@ -178,41 +223,15 @@ private fun themed(p: Palette, style: ClayStyle, shadow: Color = Color.Transpare
  */
 private fun mood(pattern: ThemePattern, tabPill: Long) = ClayStyle(pattern = pattern, tabPill = Color(tabPill))
 
-/** The spec of each theme. Only Argile follows the dark mode; Nuit is the dark Argile, always. */
+/** The spec of each look. Only Argile follows the dark mode. */
 fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
     FamiliaThemeId.Classic -> ClassicSpec
-    FamiliaThemeId.Olive -> themed(
-        Palette(0xFFF0F3E8, 0xFFFFFFFF, 0xFFC9DBA8, 0xFFE3EED8, 0xFFF6E7D0, 0xFF2F3B22, 0xFFFFFFFF, 0xFF3F6B2E, 0xFF1E2B1F, 0xFF4A5A4B, 0xFF2F3B22),
-        mood(ThemePattern.Leaves, 0xFFC9DBA8),
-        shadow = Color(0x242F3B22),
-    )
-    FamiliaThemeId.Spain -> themed(
-        // The colors of the flag (DESIGN, 16/11), softened on 18/11: no band, no Abril Fatface.
-        Palette(0xFFFFF8E6, 0xFFFFFFFF, 0xFFF1BF00, 0xFFFDEDB3, 0xFFF8D9D6, 0xFFAA151B, 0xFFFFFFFF, 0xFF8A1015, 0xFF2A1A12, 0xFF5C3A2E, 0xFFAA151B),
-        mood(ThemePattern.SeedsSpain, 0xFFF1BF00),
-        shadow = Color(0x24AA151B),
-    )
-    FamiliaThemeId.Winter -> themed(
-        Palette(0xFFEAF2F8, 0xFFFFFFFF, 0xFFF6DADA, 0xFFDDEBF5, 0xFFF6DADA, 0xFF13293D, 0xFFFFFFFF, 0xFF1E5B7A, 0xFF13293D, 0xFF3E566B, 0xFFB3262E),
-        mood(ThemePattern.Snow, 0xFFF6DADA),
-        shadow = Color(0x1F13293D),
-    )
-    FamiliaThemeId.Lavender -> themed(
-        Palette(0xFFF5F2FB, 0xFFFFFFFF, 0xFFD9CCF7, 0xFFE6E0F7, 0xFFFFF1C9, 0xFF2B2350, 0xFFFFFFFF, 0xFF5B4A9E, 0xFF1F1A33, 0xFF4E4766, 0xFF2B2350),
-        mood(ThemePattern.SeedsLilac, 0xFFD9CCF7),
-        shadow = Color(0x242B2350),
-    )
-    FamiliaThemeId.Night -> FamiliaThemeSpec(
-        // The dark Argile, always; its dark button is light, with dark text (DESIGN, 18/11).
-        light = DarkColors.copy(primary = Color(0xFFEBDCD3), onPrimary = Color(0xFF1E1511)),
-        lightClay = DarkClayColors,
-        style = ClayStyle(pattern = ThemePattern.SeedsNight),
-    )
     FamiliaThemeId.HighContrast -> themed(
         Palette(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE08A, 0xFFE6F0FF, 0xFFFFF0D6, 0xFF000000, 0xFFFFFFFF, 0xFF003C8F, 0xFF000000, 0xFF1A1A1A, 0xFF000000),
         ClayStyle(border = ClayBorder(2.dp, Color(0xFF1A1A1A)), shadow = ClayShadow.None, tabPill = Color(0xFFFFE08A)),
         strongTints = true,
     )
+    else -> photoSpec(id)
 }
 
 /** The Argile theme of the app until now, in light and dark mode: nothing changes for it. */

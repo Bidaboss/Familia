@@ -146,19 +146,19 @@ Repli si ça bloque :
 8. Une carte sans rien à dire ne s'affiche pas. Sans aucune carte, **attendu :** « Rien de prévu pour l'instant » avec « Voir le planning ».
 9. Éteins « Accueil ». **Attendu :** l'onglet reste jusqu'à la prochaine ouverture de l'appli, puis l'appli s'ouvre à nouveau sur le Planning.
 
-## Thèmes au choix (DESIGN-7, revus le 18/11 : DESIGN-43, 45 et 46)
+## Thèmes au choix (récit 113, thèmes photo du 25/11 ; polices DESIGN-45 et 46)
 
 1. Dans Administration > Modules, allume « Thèmes au choix ». Dans l'onglet Famille, **attendu :** une ligne « Apparence » apparaît sous les réglages.
-2. Ouvre « Apparence ». **Attendu :** 7 thèmes dans cet ordre : Argile, Olivier, Espagne, Hiver, Lavande, Nuit, Contraste fort, chacun montré dans ses couleurs. Plus d'Arcade, de Cosmos, de Rétro 70, de Carnet de voyage ni de Jardin.
-3. Touche « Olivier ». **Attendu :** l'appli change tout de suite : fond vert très pâle avec de petites feuilles, pastille de l'onglet actif vert tendre. Les cartes restent blanches, avec les coins et le relief d'Argile, et les boutons pleins prennent le vert foncé du thème.
-4. Fais de même avec Espagne (pépins rouges et jaunes, sans bande en haut), Hiver (flocons), Lavande (pépins lilas) et Nuit (fond brun très sombre, cartes brunes). **Attendu :** les couleurs des types (vert, pêche, lilas) et celles des membres ne changent jamais.
-5. Ferme complètement l'appli et rouvre-la. **Attendu :** le thème choisi est gardé. Sur un autre téléphone, le thème reste Argile.
-6. Un téléphone qui était sur un thème retiré, après la mise à jour. **Attendu :** pas de plantage ; Arcade ou Cosmos deviennent Nuit, Jardin devient Olivier, Rétro 70 ou Carnet de voyage deviennent Argile.
-7. Passe le téléphone en mode sombre. **Attendu :** Argile devient sombre comme avant. Nuit reste sombre, les autres thèmes restent clairs.
+2. Ouvre « Apparence ». **Attendu :** « Selon la saison » d'abord, coché, avec « En ce moment : » et le thème de la saison (Automne fin novembre), puis Mer de nuages, Alpes, Coucher de soleil, Noël, Automne, Lac de montagne, Lavande, Côte sauvage, chacun avec ses deux pastilles de couleur. Plus d'Argile, Olivier, Espagne, Hiver ni Nuit.
+3. Touche « Lac de montagne ». **Attendu :** l'appli change tout de suite : fond crème, boutons pleins, titres et en-têtes de jour dans le bleu-vert foncé du thème, pastille de l'onglet actif bleu-vert pâle. Les cartes restent blanches, avec les coins et le relief d'Argile. Les couleurs des types et des membres ne changent jamais. (La photo de fond viendra avec la nouvelle page d'accueil.)
+4. Sous les thèmes, allume « Contraste fort ». **Attendu :** fond blanc uni, bords noirs aux cartes, quel que soit le thème choisi. Éteins-le : le thème choisi revient.
+5. Ferme complètement l'appli et rouvre-la. **Attendu :** le thème et « Contraste fort » sont gardés. Sur un autre téléphone, c'est « Selon la saison ».
+6. Un téléphone qui était sur un ancien thème de couleur, après la mise à jour. **Attendu :** pas de plantage ; il passe en « Selon la saison ». S'il était sur « Contraste fort », il le garde, allumé à part.
+7. Passe le téléphone en mode sombre. **Attendu :** les thèmes photo ne changent pas (DESIGN-160).
 8. Sous les thèmes, « Police des titres » : Ronde, Élégante, Sobre, chaque nom écrit dans sa police. Touche « Élégante ». **Attendu :** les titres des écrans, des cartes et des jours changent tout de suite ; le reste du texte ne bouge pas.
 9. « Police du texte » : Normale, Très lisible. Touche « Très lisible ». **Attendu :** tout le texte courant (phrases, boutons, champs, onglets) passe dans une police aux lettres bien distinctes (I, l et 1 ; O et 0), à la même taille. Les titres gardent leur police.
 10. Ferme et rouvre l'appli. **Attendu :** les deux polices choisies sont gardées.
-11. En police à 130 %, puis à 200 %, avec Olivier, Élégante et Très lisible, puis avec Nuit. **Attendu :** les titres passent à la ligne, mais rien n'est coupé.
+11. En police à 130 %, puis à 200 %, avec Lac de montagne, Élégante et Très lisible, puis avec Coucher de soleil. **Attendu :** les titres passent à la ligne, mais rien n'est coupé.
 12. Éteins le module. **Attendu :** l'appli revient à Argile avec ses polices d'origine (Ronde et Normale), et la ligne « Apparence » disparaît. Les choix restent gardés pour quand le module sera rallumé.
 
 ### Icône de l'appli
