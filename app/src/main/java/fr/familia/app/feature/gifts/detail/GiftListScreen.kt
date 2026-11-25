@@ -14,6 +14,8 @@ import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -136,6 +138,8 @@ data class GiftListActions(
     val onWithdrawContribution: (itemId: String) -> Unit = {},
     /** « Cadeaux communs » (récit 73): opens the list where the shared wish lives. */
     val onOpenList: (listId: String) -> Unit = {},
+    /** « Offrir cette envie » (brief §5): opens the surprise for the person, or starts one. */
+    val onOfferWish: () -> Unit = {},
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -352,6 +356,7 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
             item.url?.let { url -> ItemLink(url, prominent = false) }
             claim?.let { ClaimStatus(it, item, tint) }
             row.contributions?.let { AlreadyBoughtStatus(it, item, tint) }
+            state.wishStates[item.id]?.let { WishInSurprise(it) }
             if (state.canReserve && claim == null && row.contributions == null && !row.sharedWithMe) {
                 // Tonal: the screen keeps a single filled action, « Ajouter ».
                 FilledTonalButton(onClick = onTake, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
@@ -359,6 +364,31 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
                 }
             }
         }
+    }
+}
+
+/** « Libre », « X s'en occupe » or « Cadeau commun · n € sur m € », for the members of a surprise. */
+@Composable
+private fun WishInSurprise(state: WishSurpriseState, block: Boolean = false) {
+    val text = when (state) {
+        WishSurpriseState.Free -> stringResource(R.string.gift_surprise_free)
+        is WishSurpriseState.Taken -> if (state.mine) stringResource(R.string.surprise_taken_by_me) else stringResource(R.string.surprise_taken_by, state.by)
+        is WishSurpriseState.Joint -> stringResource(R.string.gift_surprise_joint, state.gathered, state.goal)
+    }
+    if (block) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                Text(stringResource(R.string.gift_surprise_state_title), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            }
+        }
+    } else {
+        Text("🎁 $text", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -461,6 +491,13 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         row.claim?.let { ClaimStatus(it, item, ClayTint.Plain) }
         row.contributions?.let { AlreadyBoughtStatus(it, item, ClayTint.Plain, detailed = true, seesContributors = state.seesContributors) }
+        // La bascule (brief §5, fiche C8): read only, its state in the surprises, « Offrir cette envie ».
+        state.wishStates[item.id]?.let { WishInSurprise(it, block = true) }
+        if (state.canOffer && item.visibleToBeneficiary) {
+            Button(onClick = actions.onOfferWish, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text("🎁 " + stringResource(R.string.gift_offer_wish))
+            }
+        }
         actions.onSetClaimOccasion?.let { set -> row.claim?.let { claim -> ClaimOccasion(claim) { set(item.id, it) } } }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),

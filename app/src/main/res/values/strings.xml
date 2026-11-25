@@ -1020,6 +1020,10 @@
     <string name="surprise_decline_body">C\'est définitif : tu ne pourras plus noter, prendre un cadeau ni mettre une part. Ce que tu as pris sera libéré. Seul le créateur de la surprise peut te réinviter.</string>
     <string name="surprise_decline_confirm">Je ne participe pas</string>
     <string name="surprise_declined_notice">Tu ne participes pas à cette surprise. Seul son créateur peut te réinviter.</string>
+    <string name="gift_offer_wish">Offrir cette envie</string>
+    <string name="gift_surprise_state_title">Dans la surprise (vu seulement de ceux qui la préparent)</string>
+    <string name="gift_surprise_free">Libre</string>
+    <string name="gift_surprise_joint">Cadeau commun · %1$d € sur %2$d €</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
     <string name="gift_my_wishes">Mes envies</string>
     <string name="gift_wishes_of">Envies de %1$s</string>

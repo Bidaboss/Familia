@@ -31,6 +31,10 @@ fun GiftListRoute(
     showClaimOccasion: Boolean = false,
     /** The beneficiary's page, for their sizes and tastes (récit 7 bis). */
     onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
+    /** « Offrir cette envie »: the surprise I am in for the person. */
+    onOpenSurprise: (surpriseId: String) -> Unit = {},
+    /** « Offrir cette envie » without a surprise yet: start one for the person (or join theirs). */
+    onPrepareSurprise: (beneficiaryId: String) -> Unit = {},
 ) {
     // « Voir comme »: the admin principal still reads with their own account.
     val readerId = LocalViewAs.current.readerId ?: currentMember.id
@@ -43,6 +47,8 @@ fun GiftListRoute(
                     container?.giftRepository, container?.memberRepository, currentMember.id, listId,
                     readerId = readerId,
                     alreadyBought = alreadyBought,
+                    surprises = container?.surpriseRepository,
+                    surprisesOnly = true,
                 )
             }
         },
@@ -71,6 +77,10 @@ fun GiftListRoute(
             onWithdrawContribution = viewModel::withdrawContribution,
             onOpenList = onOpenList,
             onOpenBeneficiary = onOpenBeneficiary,
+            onOfferWish = {
+                val success = state as? GiftListUiState.Success
+                if (success != null) success.surpriseId?.let(onOpenSurprise) ?: onPrepareSurprise(success.beneficiary.id)
+            },
             onMarkWishReceived = if (showClaimOccasion && readerId == currentMember.id) viewModel::askWishReceived else null,
             onShareOutside = shown?.takeIf { shareOn && it.canSendOutside }?.let { success ->
                 { share(context, wishesShare(context, success.list.id, success.beneficiary.firstName)) }
