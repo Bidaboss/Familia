@@ -26,3 +26,5 @@
 # keep each one whole, so R8 neither renames nor merges them (24/11: a ViewFailed came as Timeout).
 -keep class fr.familia.app.feature.trips.map.MapUnavailable { *; }
 -keep class fr.familia.app.feature.trips.map.MapUnavailable$* { *; }
+# Same for the photo reasons: a readable name instead of an obfuscated one in « Plantages ».
+-keep class fr.familia.app.core.place.PhotoUnavailable { *; }
