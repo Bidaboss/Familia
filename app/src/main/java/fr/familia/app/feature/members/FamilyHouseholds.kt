@@ -9,7 +9,7 @@ import java.time.Period
 import java.time.temporal.ChronoUnit
 
 /*
- * The Famille tab, « Foyers » (brief Famille-recettes F1, Kévin le 25/11): a classic list, one block
+ * The Famille tab, « Foyers » (brief Famille-recettes F1, l'admin le 25/11): a classic list, one block
  * per household, all unfolded, « Mon foyer » first. Pure, so the tests check it without Compose.
  */
 

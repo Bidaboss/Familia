@@ -82,7 +82,7 @@ import java.time.LocalDate
 enum class FamilyTab { Households, Tree }
 
 /**
- * Famille (brief Famille-recettes F1, Kévin le 25/11): « 13 personnes · 4 foyers », the tabs
+ * Famille (brief Famille-recettes F1, l'admin le 25/11): « 13 personnes · 4 foyers », the tabs
  * Foyers | Arbre, then one block per household, all unfolded, « Mon foyer » first. Each adult but
  * oneself gets Appeler and Message; a touch on a row opens the person's page. Stateless but for the
  * tab and the open dialog.
