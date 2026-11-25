@@ -65,6 +65,7 @@ import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
 import { eraseTurns } from './turns';
 import { shareOldDocuments, unshareDocuments } from './documentsShared';
 import { dropOriginMember, migrateRecipesOnce } from './recipes';
+import { deleteSharedBy } from './memberShares';
 import { keepReceivedPhoto, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
@@ -821,6 +822,12 @@ export const onCapsuleLeftoversUpdated = onDocumentUpdated('capsuleLeftovers/{me
 // La fiche membre (récit 7 bis) leaves with its member.
 export const onMemberDeletedCard = onDocumentDeleted('members/{memberId}', async (event) => {
   await getFirestore().collection('memberCards').doc(event.params.memberId).delete();
+});
+
+// Récit 114 (lot A2): everything they shared goes with them, recipes, photos and comments (list in
+// memberShares.ts). Capsules keep their rule.
+export const onMemberDeletedShares = onDocumentDeleted({ document: 'members/{memberId}', timeoutSeconds: 300 }, async (event) => {
+  await deleteSharedBy(getFirestore(), event.params.memberId, (prefix) => getStorage().bucket().deleteFiles({ prefix }));
 });
 
 // Arbre généalogique (récit 40): someone who leaves the tree takes their links with them.
