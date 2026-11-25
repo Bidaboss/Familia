@@ -19,7 +19,7 @@ describe('the switch to surprises', () => {
     const batch = db.batch();
     batch.set(db.doc('giftLists/wishes-camille'), { kind: 'wishes', beneficiaryId: 'camille' });
     batch.set(db.doc('giftLists/wishes-camille/items/i1'), { title: 'Un livre' });
-    batch.set(db.doc('giftLists/wishes-camille/items/i2'), { title: 'Un pull', alreadyBought: true });
+    batch.set(db.doc('giftLists/wishes-camille/items/i2'), { title: 'Un pull', alreadyBought: true, contributedTotal: 10 });
     batch.set(db.doc('giftLists/wishes-camille/claims/i1'), { type: 'shared', holderId: 'ines' });
     batch.set(db.doc('giftLists/wishes-camille/claims/i1/shares/jade'), { amount: 5 });
     batch.set(db.doc('giftLists/wishes-camille/items/i2/contributions/ines'), { amount: 10 });
@@ -38,6 +38,9 @@ describe('the switch to surprises', () => {
     assert.equal((await db.collection('giftLists/wishes-camille/items/i2/contributions').get()).size, 0);
     assert.equal((await db.collection('giftLists/wishes-camille/items/i2/contributors').get()).size, 0);
     assert.equal((await db.collection('giftLists/wishes-camille/items').get()).size, 2);
+    const i2 = await db.doc('giftLists/wishes-camille/items/i2').get();
+    assert.equal(i2.get('contributedTotal'), undefined);
+    assert.equal(i2.get('alreadyBought'), true);
     assert.equal((await db.doc('giftLists/wishes-camille/received/old').get()).exists, true);
     assert.equal((await db.doc(RESET_DOC).get()).get('status'), 'done');
   });
@@ -47,6 +50,13 @@ describe('the switch to surprises', () => {
     await db.doc('giftLists/wishes-ines/claims/i3').set({ type: 'solo', holderId: 'camille' });
     assert.equal(await resetOldReservationsOnce(db), null);
     assert.equal((await db.doc('giftLists/wishes-ines/claims/i3').get()).exists, true);
+  });
+
+  test('a run cut by its time limit: started again after an hour, not before', async () => {
+    await db.doc(RESET_DOC).set({ status: 'running', startedAt: new Date(Date.now() - 10 * 60 * 1000) });
+    assert.equal(await resetOldReservationsOnce(db), null);
+    await db.doc(RESET_DOC).set({ status: 'running', startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000) });
+    assert.deepEqual(await resetOldReservationsOnce(db), { lists: 1, claims: 1, contributions: 1 });
   });
 
   test('two runs at once: one wipes, the other does nothing', async () => {

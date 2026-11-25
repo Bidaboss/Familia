@@ -494,7 +494,7 @@ export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', asyn
 // they get any more, so nothing is revealed. The morning task only wipes the old reservations,
 // once (décision de l'admin du 25/11), then does nothing. revealGiftLists and revealWishes stay for
 // their tests, unused.
-export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris' }, async () => {
+export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris', timeoutSeconds: 540 }, async () => {
   try {
     await resetOldReservationsOnce(getFirestore());
   } catch (e) {

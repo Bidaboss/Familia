@@ -15,6 +15,8 @@ import { FieldValue } from 'firebase-admin/firestore';
 /** Written once the reset is done: it never runs twice. */
 export const RESET_DOC = 'migrations/surpriseReset';
 
+const STALE_MS = 60 * 60 * 1000;
+
 export interface ResetResult {
   lists: number;
   claims: number;
@@ -26,7 +28,10 @@ export async function resetOldReservationsOnce(db: Firestore): Promise<ResetResu
   // Claimed first, in a transaction: two runs at once (a retry) never both wipe.
   const mine = await db.runTransaction(async (tx) => {
     const done = await tx.get(marker);
-    if (done.exists) return false;
+    // A run cut by its time limit stays « running »: after an hour, the next morning starts again (C2 de #630).
+    const startedAt = done.get('startedAt') as { toMillis(): number } | undefined;
+    const stale = done.get('status') === 'running' && startedAt !== undefined && Date.now() - startedAt.toMillis() > STALE_MS;
+    if (done.exists && !stale) return false;
     tx.set(marker, { status: 'running', startedAt: FieldValue.serverTimestamp() });
     return true;
   });
@@ -54,11 +59,14 @@ async function wipe(db: Firestore): Promise<ResetResult> {
       const [contributions, contributors] = await Promise.all([
         item.ref.collection('contributions').get(), item.ref.collection('contributors').get(),
       ]);
-      if (contributions.empty && contributors.empty) continue;
+      const total = item.get('contributedTotal');
+      if (contributions.empty && contributors.empty && total === undefined) continue;
       touched = true;
       result.contributions += contributions.size;
       await db.recursiveDelete(item.ref.collection('contributions'));
       await db.recursiveDelete(item.ref.collection('contributors'));
+      // No total without its parts: « Déjà acheté » can be unticked again (B1 de #630).
+      if (total !== undefined) await item.ref.update({ contributedTotal: FieldValue.delete() });
     }
     if (touched) result.lists += 1;
   }
