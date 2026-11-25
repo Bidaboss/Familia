@@ -40,8 +40,10 @@ fun PhotoBanner(scroll: PhotoScroll, modifier: Modifier = Modifier) {
         Box(
             Modifier.fillMaxSize().background(
                 Brush.verticalGradient(
-                    0f to Color(0x59140C05),
-                    0.4f to Color(0x1A140C05),
+                    // 45 % at the top (note C of #621): the white title stays readable on a light photo
+                    // (Mer de nuages, Alpes enneigées).
+                    0f to Color(0x73140C05),
+                    0.4f to Color(0x26140C05),
                     0.6f to background.copy(alpha = 0f),
                     1f to background,
                 ),

@@ -31,6 +31,13 @@ import fr.familia.app.feature.feed.rememberFeedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import fr.familia.app.core.model.isToConfirm
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -100,9 +107,14 @@ class HomeActions(
     /** « Tous les sondages » and « Nouveau sondage » of the block Sondages (BUG-1). */
     val onOpenPolls: () -> Unit = {},
     val onNewPoll: () -> Unit = {},
+    /** A surprise of mine on its day, « C'est offert ? » (récit 113 with Cadeaux): set while surprises are on. */
+    val onOpenSurprise: ((String) -> Unit)? = null,
+    /** The Cadeaux tab, for several surprises to confirm at once. */
+    val onOpenGifts: () -> Unit = {},
 )
 
 /** Connects the Accueil tab to its ViewModel; each module feeds its card only while it shows. */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun HomeRoute(
     container: AppContainer?,
@@ -250,8 +262,32 @@ fun HomeRoute(
         }
     }
     Box(if (photo != null) Modifier.nestedScroll(photo.scroll.connection) else Modifier) {
+    // My surprises, for « À répondre » on the photo: the one of the day waits for « C'est offert ».
+    // « Je ne participe pas » is final: a surprise I left never asks me to confirm it (only the ones of
+    // the day are checked, one small listener each).
+    val mySurprisesFlow = remember(container, currentMember.id, actions.onOpenSurprise != null) {
+        val repository = container?.surpriseRepository?.takeIf { actions.onOpenSurprise != null }
+        repository?.observeMine(currentMember.id)?.flatMapLatest { mine ->
+            val today = java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris"))
+            val due = mine.filter { it.isToConfirm(today) }
+            if (due.isEmpty()) {
+                flowOf(mine)
+            } else {
+                combine(
+                    due.map { surprise ->
+                        repository.observeMemberRows(surprise.id)
+                            .map { rows -> surprise.id.takeIf { rows.any { it.memberId == currentMember.id && it.declined } } }
+                            // A refused read of one surprise (left, rules being published) leaves it shown.
+                            .catch { emit(null) }
+                    },
+                ) { left -> mine.filter { it.id !in left.filterNotNull() } }
+            }
+        }?.catch { emit(emptyList()) } ?: flowOf(emptyList())
+    }
+    val mySurprises by mySurprisesFlow.collectAsState(initial = emptyList())
     HomeR1bisScreen(
         top = photoTop,
+        mySurprises = mySurprises,
         feedUnseen = feed?.unseen ?: 0,
         onOpenFeed = if (photo != null && feed != null) ({
             onFeed = true

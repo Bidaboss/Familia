@@ -140,6 +140,8 @@ fun HomeR1bisScreen(
     /** « Le fil de la famille » in « En bref » on the photo: its news, and the way to open it. */
     feedUnseen: Int = 0,
     onOpenFeed: (() -> Unit)? = null,
+    /** My surprises: the one of the day shows first in « À répondre » on the photo. */
+    mySurprises: List<fr.familia.app.core.model.Surprise> = emptyList(),
 ) {
     val onPhoto = top != null
     val ready = state as? HomeUiState.Ready ?: return
@@ -201,7 +203,7 @@ fun HomeR1bisScreen(
     if (top != null && photoTheme != null && feed == null) {
         PhotoDayList(
             ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme), actions, r1,
-            PhotoSlots(top, joinMe, firstSteps, helpTodos, nowTravelling, challenge, goodNews?.takeIf { onOpenFeed == null }, buttons),
+            PhotoSlots(top, joinMe, firstSteps, helpTodos, nowTravelling, challenge, goodNews?.takeIf { onOpenFeed == null }, buttons, mySurprises),
             feedUnseen, onOpenFeed,
         )
         return

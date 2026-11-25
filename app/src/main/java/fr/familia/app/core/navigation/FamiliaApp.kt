@@ -233,6 +233,7 @@ import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.theme.LocalPhotoHaze
 import fr.familia.app.core.theme.LocalPhotoTheme
+import fr.familia.app.core.theme.onPhotoBanner
 import fr.familia.app.core.theme.LocalPhotoExtent
 import fr.familia.app.core.theme.PhotoBackdrop
 import fr.familia.app.core.theme.PhotoScroll
@@ -914,7 +915,9 @@ fun FamiliaApp(
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
-                        onPhoto = (onMembers || giftsPhoto != null) && LocalPhotoTheme.current != null,
+                        // Famille: white while the title lies on the dark top of its banner, the same limit as
+                        // Tout Familia (onPhotoBanner); TabTopBar also turns it dark once the content is under it.
+                        onPhoto = ((onMembers && onPhotoBanner(bannerScroll)) || giftsPhoto != null) && LocalPhotoTheme.current != null,
                         onOpenTrips = onTrips,
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
@@ -1038,6 +1041,8 @@ fun FamiliaApp(
                                     null
                                 },
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                                onOpenSurprise = if (features.isOnForFamily(Feature.SurpriseButton)) ({ id -> navController.navigate(SurpriseDestination(id)) }) else null,
+                                onOpenGifts = { navController.navigateToTab(TopLevelDestination.Gifts) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                                 onOpenPacking = { id -> navController.navigate(TripPackingDestination(id)) },
                                 onOpenWord = { tripId, stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
