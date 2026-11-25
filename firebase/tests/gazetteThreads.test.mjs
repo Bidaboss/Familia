@@ -39,6 +39,7 @@ beforeEach(async () => {
     await setDoc(doc(db, `members/${KID.memberId}`), adultDoc(KID, { profile: 'childWithApp', parentIds: ['adult1'] }));
     await setDoc(doc(db, 'trips/t1'), { readerIds: ['adult1', 'adult2'], participantIds: ['adult1'] });
     await setDoc(doc(db, 'helpRequests/r1'), { viewerIds: ['adult1', 'adult2'], authorId: 'adult1' });
+    await setDoc(doc(db, 'gazettePosts/p1'), { authorId: 'adult2', authorName: 'adult2', text: 'Coucou', photoIds: [], mentionIds: [], createdAt: Timestamp.fromMillis(0) });
   });
 });
 
@@ -75,6 +76,14 @@ describe('who reads a thread: who sees its card', () => {
     await assertSucceeds(getDoc(thread(as(env, ADULT), 'wishes:adult2:2026-11-25')));
     await assertFails(getDoc(thread(as(env, OTHER_ADULT), 'wishes:adult2:2026-11-25')));
     await assertFails(getDocs(collection(as(env, OTHER_ADULT), 'gazetteThreads/wishes:adult2:2026-11-25/comments')));
+  });
+
+  test('a publication: only while it exists (récit 121)', async () => {
+    await stored('post:gone', { reactions: {} });
+    await assertFails(getDoc(thread(as(env, ADULT), 'post:gone')));
+    await assertFails(setDoc(thread(as(env, ADULT), 'post:gone2'), { reactions: { adult1: '💛' } }));
+    await assertFails(setDoc(comment(as(env, ADULT), 'post:gone2'), newComment(ADULT)));
+    await assertFails(getDoc(thread(as(env, ADULT), 'post:')));
   });
 
   test('an unknown kind is refused', async () => {

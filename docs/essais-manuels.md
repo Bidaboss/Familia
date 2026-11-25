@@ -2756,6 +2756,14 @@ Sur un téléphone en Android 10 ou plus :
 6. Modifier un voyage déjà daté dans le passé : ses jours restent touchables à partir de son premier jour.
 7. « Départ » d'une destination dans un voyage : seuls les jours après l'arrivée sont touchables, et toucher le jour de départ ferme l'écran.
 
+## Voyage : crédits des photos repliés en bas du voyage (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Dans « Voyages », la carte du prochain voyage : plus de ligne « Photo : … » sur l'image.
+2. Ouvrir le voyage : plus de crédit sur la grande photo non plus.
+3. Tout en bas du voyage, sous les photos : « Crédits des photos », replié. Le toucher : « Nom du lieu : auteur, licence, Wikimedia Commons » pour chaque photo ; le toucher encore le replie.
+4. Un voyage sans photo trouvée (dessin seul) : pas de rubrique « Crédits des photos ».
+
 ## Voyage : le temps de route en voiture et en bus (retour du 25/11 soir)
 
 **Publier Firebase : non.** Seulement « APK de publication ».
@@ -2780,3 +2788,10 @@ Sur un téléphone en Android 10 ou plus :
 2. « Modifier » le voyage : la feuille monte un instant en haut puis redescend au milieu (plus en bas).
 3. « Voyages » et la page d'un voyage s'ouvrent toujours au milieu, comme avant.
 4. Tirer la feuille en bas ou en haut marche comme avant ; le clavier la monte toujours en haut.
+
+## Voyage : le texte d'« Enrichir avec une IA » demande d'abord une confirmation (retour du 25/11 soir)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Dans un voyage, « Enrichir avec une IA », copier le texte : sous « Règles de la réponse », on lit « Demande confirmation des étapes proposées », « Je peux te challenger dans tes propositions » et « Lorsque je valide, propose un objet JSON valide… dans un bloc prévu à copier… ».
+2. Le coller dans une IA : elle propose les étapes et attend la validation ; après « Je valide », elle donne le JSON dans un bloc avec un bouton copier.
+3. Coller ce JSON dans Familia : il est lu comme avant (le bloc de code autour est ignoré).

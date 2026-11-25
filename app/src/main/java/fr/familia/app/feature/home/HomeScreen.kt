@@ -22,7 +22,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import fr.familia.app.feature.feed.FeedList
 import fr.familia.app.feature.feed.FeedOpenRequest
-import fr.familia.app.feature.feed.FeedPublishBar
 import fr.familia.app.feature.feed.FeedNavigation
 import fr.familia.app.feature.feed.LocalFeedGlass
 import fr.familia.app.feature.feed.LocalFeedNavigation
@@ -124,6 +123,9 @@ fun HomeRoute(
     onOpenGoodNewsFeed: () -> Unit = {},
     onOpenGoodNews: (String) -> Unit = {},
     onPublishGoodNews: () -> Unit = {},
+    /** « Publier dans la gazette » (récit 117). */
+    onPublishPost: () -> Unit = {},
+    onEditPost: (String) -> Unit = {},
     onOpenWeeklyQuestion: () -> Unit = {},
     onOpenMonth: (YearMonth) -> Unit = {},
     onJoinMe: () -> Unit = {},
@@ -238,9 +240,9 @@ fun HomeRoute(
             onOpenYear = onOpenYear,
             onOpenGiftList = actions.onOpenList,
             onOpenGoodDeal = actions.onOpenGoodDeal,
+            onEditPost = onEditPost,
         )
     }
-    val canPublish = flags.isOn(Feature.GoodNews)
     // On the photo (règles 2 et 13), without the gazette: the greeting and the free top of the photo,
     // scrolling with the day.
     val photoTop: (@Composable () -> Unit)? = photo?.let { p ->
@@ -304,35 +306,23 @@ fun HomeRoute(
         feed = feed.let { f ->
             { summary ->
                 CompositionLocalProvider(LocalFeedNavigation provides feedNavigation) {
-                    // Publish from the fil itself (maquette SF1); never in presentation or « Voir comme ».
-                    val publish: (@Composable () -> Unit)? = if (canPublish && f.context?.readOnly == false) {
-                        { FeedPublishBar(currentMember, onPublishGoodNews) }
-                    } else {
-                        null
-                    }
+                    // « ＋ Publier » floats over the gazette (brief §3, récit 117); never in « Voir comme ».
+                    val publish: (() -> Unit)? = if (f.context?.readOnly == false) onPublishPost else null
                     if (photo != null) {
                         // The folded header (brief §3, fiche Y1): « Bonjour » and the line of « Ma
-                        // journée », then the gazette and its « + Publier » pill, a glass card each.
-                        val canWrite = canPublish && f.context?.readOnly == false
+                        // journée », then the title of the gazette, a glass card each.
                         val top: @Composable () -> Unit = {
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 photo.header(summary)
                                 PhotoSection(
                                     title = stringResource(R.string.home_photo_feed),
                                     colors = PhotoColors.of(photo.theme),
-                                    pill = if (canWrite) stringResource(R.string.home_photo_feed_publish) else null,
-                                    onPill = if (canWrite) onPublishGoodNews else null,
                                 )
                             }
                         }
-                        CompositionLocalProvider(LocalFeedGlass provides true) { FeedList(f, top = top) }
+                        CompositionLocalProvider(LocalFeedGlass provides true) { FeedList(f, top = top, onPublish = publish) }
                     } else {
-                        FeedList(f, top = {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                summary()
-                                publish?.invoke()
-                            }
-                        })
+                        FeedList(f, top = { summary() }, onPublish = publish)
                     }
                 }
             }

@@ -68,6 +68,10 @@ data class GoodNewsDetailDestination(val postId: String)
 @Serializable
 data class GoodNewsEditDestination(val postId: String? = null, val forChallenge: Boolean = false)
 
+/** « Publier dans la gazette » (récit 117), or « Modifier le texte » of one's own publication when [postId] is set. */
+@Serializable
+data class GazettePostDestination(val postId: String? = null)
+
 /** The question of the week (récit 37): this week's, or an older one when [questionId] is set. */
 @Serializable
 data class WeeklyQuestionDestination(val questionId: String? = null)
