@@ -160,6 +160,13 @@ La photo vient d'Unsplash la première fois (il faut Internet), puis elle reste 
 8. Passe le téléphone en mode sombre. **Attendu :** même rendu qu'en clair (DESIGN-160).
 9. Active Contraste fort ou repasse le module Thèmes à éteint. **Attendu :** l'accueil d'avant, sans photo.
 
+## Bandeau photo de Famille et Tout Familia (récit 113, règle 20)
+
+1. Avec un thème photo, ouvre l'onglet Famille. **Attendu :** la photo du thème en bandeau en haut (environ 230 dp), le titre « Famille » en blanc dessus, puis la liste dans une carte blanche aux coins hauts arrondis qui chevauche le bas de la photo.
+2. Fais défiler la liste. **Attendu :** le bandeau remonte avec le contenu, et le titre redevient foncé quand la barre de titre se colore.
+3. Ouvre Tout Familia (le rond du milieu). **Attendu :** le même bandeau derrière « Tout Familia », titre blanc, qui remonte quand on fait défiler les modules.
+4. Avec Contraste fort, ou le module Thèmes éteint : ni bandeau ni carte blanche, l'écran d'avant.
+
 ## Réglages > Thème : galerie, étendue de la photo, crédits (récit 113, PR 3)
 
 1. Touche ton avatar puis Apparence. **Attendu :** « Étendue de la photo » (Tout l'écran choisi), puis une galerie de 3 colonnes, « Selon la saison » d'abord, puis les 8 thèmes ; la vignette choisie a un liseré de sa couleur et une coche ronde ; sous chaque vignette, son nom et une pastille de couleur.

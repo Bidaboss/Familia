@@ -233,6 +233,8 @@ import fr.familia.app.core.theme.LocalPhotoTheme
 import fr.familia.app.core.theme.LocalPhotoExtent
 import fr.familia.app.core.theme.PhotoBackdrop
 import fr.familia.app.core.theme.PhotoScroll
+import fr.familia.app.core.theme.PhotoBanner
+import fr.familia.app.core.theme.PhotoTitleShadow
 import fr.familia.app.feature.home.PhotoHome
 import fr.familia.app.feature.home.PhotoHomeHeader
 import fr.familia.app.core.theme.TitleFont
@@ -869,11 +871,18 @@ fun FamiliaApp(
         // draws its own header in place of the title bar (règles 2, 3, 9 à 11).
         val photoTheme = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Home) && features.isOn(Feature.Home) }
         val photoScroll = remember { PhotoScroll() }
-        Box(Modifier.fillMaxSize()) {
+        // Règle 20 (DESIGN-157 A): Famille shows the same photo in a banner at its top.
+        val onMembers = currentDestination.isOn(TopLevelDestination.Members)
+        val bannerScroll = remember { PhotoScroll() }
+        LaunchedEffect(onMembers) { bannerScroll.reset() }
+        Box(if (photoTheme != null) Modifier.fillMaxSize() else Modifier.fillMaxSize().themeBackground()) {
         if (photoTheme != null) PhotoBackdrop(photoTheme, photoScroll)
+        if (onMembers) PhotoBanner(bannerScroll)
         Scaffold(
             // The theme's background and its pattern show behind the tabs, the photo behind the Accueil.
-            modifier = (if (photoTheme != null) Modifier else Modifier.themeBackground()).nestedScroll(topBarScroll.nestedScrollConnection),
+            modifier = Modifier
+                .nestedScroll(topBarScroll.nestedScrollConnection)
+                .then(if (onMembers) Modifier.nestedScroll(bannerScroll.connection) else Modifier),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
@@ -892,6 +901,7 @@ fun FamiliaApp(
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
+                        onPhoto = onMembers && LocalPhotoTheme.current != null,
                         onOpenTrips = onTrips,
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
@@ -2142,7 +2152,10 @@ private fun TabTopBar(
     onAdd: (() -> Unit)? = null,
     /** The round « Retour » of a tab opened as a page: the Planning (récit 82). */
     onBack: (() -> Unit)? = null,
+    /** The tab lies on the banner of its photo (règle 20): its title is white until the content scrolls under it. */
+    onPhoto: Boolean = false,
 ) {
+    val overPhoto = onPhoto && (scrollBehavior?.state?.overlappedFraction ?: 0f) == 0f
     TopAppBar(
         scrollBehavior = scrollBehavior,
         navigationIcon = {
@@ -2157,7 +2170,7 @@ private fun TabTopBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
+            titleContentColor = if (overPhoto) Color.White else FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
         ),
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
         title = {
@@ -2171,7 +2184,11 @@ private fun TabTopBar(
                 }
                 Text(
                     greeting ?: stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
-                    style = base.copy(fontSize = base.fontSize * TAB_TITLE_SCALE, lineHeight = base.lineHeight * TAB_TITLE_SCALE),
+                    style = base.copy(
+                        fontSize = base.fontSize * TAB_TITLE_SCALE,
+                        lineHeight = base.lineHeight * TAB_TITLE_SCALE,
+                        shadow = if (overPhoto) PhotoTitleShadow else null,
+                    ),
                 )
             }
         },
