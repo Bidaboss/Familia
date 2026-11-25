@@ -204,11 +204,10 @@ class FirestoreSurpriseRepository(private val db: FirebaseFirestore) : SurpriseR
 
     override suspend fun setRemoved(surpriseId: String, proposal: SurpriseProposal, removed: Boolean) {
         val doc = proposals(surpriseId).document(proposal.id)
-        val batch = db.batch()
-        // A wish never noted has no proposal yet: written first, as at its first note, in the same batch.
-        if (proposal.kind == ProposalKind.Wish) batch.set(doc, proposalFields(proposal), SetOptions.mergeFields(PROPOSAL_FIELDS))
-        batch.update(doc, "removed", removed)
-        batch.commit().await()
+        // A wish never noted has no proposal yet: written first, as at its first note. Two writes, not a
+        // batch: the create rule wants removed false, and a batch is checked against its final state.
+        if (proposal.kind == ProposalKind.Wish) doc.set(proposalFields(proposal), SetOptions.mergeFields(PROPOSAL_FIELDS)).await()
+        doc.update("removed", removed).await()
     }
 
     private fun takes(surpriseId: String) = surprises.document(surpriseId).collection("takes")
