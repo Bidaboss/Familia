@@ -212,13 +212,14 @@ private fun CoverFigure(value: String, label: String) {
 fun TripPhotoCredits(trip: Trip, steps: List<TripStep>, photos: PlacePhotos?, modifier: Modifier = Modifier) {
     if (photos == null || steps.isEmpty()) return
     val places = coverPlaces(trip, steps)
-    val credits by androidx.compose.runtime.produceState(emptyList<Pair<String, String>>(), places, photos) {
+    var credits by androidx.compose.runtime.remember { mutableStateOf(emptyList<Pair<String, String>>()) }
+    LaunchedEffect(places, photos) {
         val found = mutableListOf<Pair<String, String>>()
         for (place in places) {
-            val photo = photos.of(place.name, place.point?.lat, place.point?.lng) ?: continue
-            if (found.none { it.second == photo.credit }) found += place.name to photo.credit
+            val photo = photos.of(place.name, place.point?.lat, place.point?.lng)
+            if (photo != null && found.none { it.second == photo.credit }) found += place.name to photo.credit
         }
-        value = found
+        credits = found
     }
     if (credits.isEmpty()) return
     var open by rememberSaveable { mutableStateOf(false) }
