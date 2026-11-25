@@ -10,15 +10,6 @@
       "open": "recipes"
     },
     {
-      "id": "affiche-de-l-arbre",
-      "title": "L'arbre en affiche",
-      "body": "Dans l'arbre généalogique, touche « Faire l'affiche de l'arbre » : prénoms et photos en PDF, à imprimer et à accrocher.",
-      "childTitle": "L'arbre en grand",
-      "childBody": "Dans l'arbre, touche « Faire l'affiche de l'arbre » et imprime-la pour ta chambre.",
-      "feature": "treePoster",
-      "open": "genealogy"
-    },
-    {
       "id": "envie-depuis-le-partage",
       "title": "Une envie en un geste",
       "body": "Tu vois un cadeau sur un site ? Touche Partager, puis « Ajouter à mes envies », et il arrive dans ta liste.",

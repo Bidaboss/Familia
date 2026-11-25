@@ -320,7 +320,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
             images.memoryCache?.clear()
             @OptIn(ExperimentalCoilApi::class)
             images.diskCache?.clear()
-            // The last PDF shared (recipe book, tree poster, photo book…) and the photos of a book.
+            // The last PDF shared (recipe book, photo book…) and the photos of a book.
             File(appContext.cacheDir, "shares").deleteRecursively()
             File(appContext.cacheDir, "photo-book").deleteRecursively()
             // The documents of the member before: at the next start of the app (note C de #306).

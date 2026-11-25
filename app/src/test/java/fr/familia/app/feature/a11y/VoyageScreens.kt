@@ -40,11 +40,6 @@ import fr.familia.app.feature.feed.WordFeedCard
 import fr.familia.app.core.model.TripWord
 import fr.familia.app.feature.genealogy.GenealogyScreen
 import fr.familia.app.feature.genealogy.GenealogyUiState
-import fr.familia.app.feature.genealogy.poster.PosterChoice
-import fr.familia.app.feature.genealogy.poster.PosterChoiceGroup
-import fr.familia.app.feature.genealogy.poster.TreePosterActions
-import fr.familia.app.feature.genealogy.poster.TreePosterScreen
-import fr.familia.app.feature.genealogy.poster.TreePosterUiState
 import fr.familia.app.feature.month.MonthSlideshowScreen
 import fr.familia.app.feature.month.previewMonthSlideshow
 import fr.familia.app.feature.recipes.FakeRecipes
@@ -360,21 +355,6 @@ internal object VoyageScreens {
                 listOf(KinLink.parent("a", "b"), KinLink.parent("b", "c"), KinLink.parent("c", "d")),
             )
             GenealogyScreen(GenealogyUiState.Ready(tree, emptyMap(), "d"), onBack = {}, treeOfLife = true)
-        },
-        screen("the poster of the tree") {
-            val tree = GenealogyTree(
-                listOf(
-                    member("p1", "Camille", LocalDate.of(1980, 5, 2)),
-                    member("p2", "Noé", LocalDate.of(2016, 12, 20), listOf("p1"), MemberProfile.ChildWithoutApp),
-                ),
-                emptyList(),
-                listOf(KinLink.parent("p1", "p2")),
-            )
-            TreePosterScreen(
-                TreePosterUiState.Choosing(tree, listOf(PosterChoiceGroup("Les Martin", listOf(PosterChoice("p1", "Camille")))), "L'arbre de la famille", 2026),
-                TreePosterActions({}, {}, {}, {}, {}),
-                onBack = {},
-            )
         },
         screen("the fil, photos and a recipe") {
             val camille = member("camille", "Camille")

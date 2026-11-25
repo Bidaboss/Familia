@@ -119,7 +119,6 @@ enum class Feature(
     /** « Se répète » : un événement qui revient chaque semaine, chaque mois… (PRD, récit 54). */
     RecurringEvents("recurringEvents", R.string.feature_recurring_events),
     /** L'affiche de l'arbre : un PDF paysage A4 ou A3 de l'arbre généalogique (PRD rév. 243, récit 53). */
-    TreePoster("treePoster", R.string.feature_tree_poster),
 
     /** L'arbre de vie (spec DESIGN du 18/11): the tree drawn as a tree, the rows kept in « Liste ». */
     ArbreDeVie("arbreDeVie", R.string.feature_arbre_de_vie),

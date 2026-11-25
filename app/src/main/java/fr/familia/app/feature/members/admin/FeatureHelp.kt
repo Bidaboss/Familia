@@ -55,7 +55,6 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.Lending to R.string.feature_help_lending,
     Feature.Carpool to R.string.feature_help_carpool,
     Feature.RecurringEvents to R.string.feature_help_recurring_events,
-    Feature.TreePoster to R.string.feature_help_tree_poster,
     Feature.ArbreDeVie to R.string.feature_help_arbre_de_vie,
     Feature.PhotoBook to R.string.feature_help_photo_book,
     Feature.YearInReview to R.string.feature_help_year_in_review,

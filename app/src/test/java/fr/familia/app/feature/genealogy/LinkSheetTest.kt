@@ -1,18 +1,23 @@
 package fr.familia.app.feature.genealogy
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.unit.dp
 import fr.familia.app.core.model.GenealogyTree
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
@@ -138,20 +143,20 @@ class LinkSheetTest {
     }
 
     @Test
-    fun `the tree offers « Ajouter un proche » to who may edit, and the poster`() {
+    fun `the tree offers « Ajouter un proche » to who may edit, and no poster any more`() {
         var added = false
-        var poster = false
         compose.setContent {
             FamiliaTheme {
-                TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "camille", isOwner = true), onOpen = {}, onAddKin = { added = true }, onMakePoster = { poster = true })
+                TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "camille", isOwner = true), onOpen = {}, onAddKin = { added = true })
             }
         }
-        // Over the drawing: reached by their action, the button by the text it holds.
+        // Over the drawing: reached by its action, by the text it holds.
         fun press(text: String) = compose.onNode(hasClickAction() and (hasText(text) or hasAnyDescendant(hasText(text))), useUnmergedTree = true)
             .performSemanticsAction(SemanticsActions.OnClick)
         press("Ajouter un proche")
-        press("Faire l'affiche de l'arbre")
-        assertTrue(added && poster)
+        assertTrue(added)
+        // The poster of the tree is gone (récit 53 removed).
+        compose.onAllNodesWithText("Faire l'affiche de l'arbre", useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test
@@ -160,5 +165,20 @@ class LinkSheetTest {
             FamiliaTheme { TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "lou"), onOpen = {}, onAddKin = null) }
         }
         compose.onAllNodesWithText("Ajouter un proche", useUnmergedTree = true).assertCountEquals(0)
+    }
+
+    @Test
+    fun `a tree taller than the screen opens on its top, the youngest in view`() {
+        val people = (1..6).map { m("g$it") }
+        val tall = GenealogyTree(people, emptyList(), (1..5).map { KinLink.parent("g$it", "g${it + 1}") })
+        compose.setContent {
+            FamiliaTheme {
+                Box(Modifier.size(360.dp, 300.dp)) {
+                    TreeOfLifeView(GenealogyUiState.Ready(tall, emptyMap(), "g1"), onOpen = {}, onAddKin = null)
+                }
+            }
+        }
+        // The top of the drawing: the youngest generation, the leaves above the trunk.
+        compose.onNodeWithContentDescription("G6").assertIsDisplayed()
     }
 }

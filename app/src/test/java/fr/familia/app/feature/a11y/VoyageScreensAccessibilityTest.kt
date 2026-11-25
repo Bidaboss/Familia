@@ -117,8 +117,6 @@ class VoyageScreensAccessibilityTest {
     @Test
     fun `the fil, photos and a recipe`() = compose.checkAccessibility(VoyageScreens.screen("the fil, photos and a recipe"))
 
-    @Test
-    fun `the poster of the tree`() = compose.checkAccessibility(VoyageScreens.screen("the poster of the tree"))
 
     @Test
     fun `Qui est-ce ?, the list`() = compose.checkAccessibility(VoyageScreens.screen("Qui est-ce ?, the list"))
