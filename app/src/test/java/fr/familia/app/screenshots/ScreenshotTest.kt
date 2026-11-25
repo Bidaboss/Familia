@@ -182,13 +182,13 @@ class ScreenshotTest {
 
     @Test
     fun membersLight() = capture("famille_clair") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, onOpenWishes = {}) }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, today = PREVIEW_TODAY) }
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, onOpenWishes = {}) }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, today = PREVIEW_TODAY) }
     }
 
     @Test
@@ -221,9 +221,10 @@ class ScreenshotTest {
         CompositionLocalProvider(LocalMemberPhotos provides mapOf("a" to previewPicture())) {
             Surface {
                 MembersScreen(
-                    MembersUiState.Success(previewGroups(), "a", photoEditableMemberIds = setOf("a", "c")),
+                    MembersUiState.Success(previewGroups(), "a"),
                     onRetry = {},
-                    onSavePhoto = { _, _ -> },
+                    tree = {},
+                    today = PREVIEW_TODAY,
                 )
             }
         }
@@ -247,7 +248,7 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun membersFontScale200() = capture("famille_police_200") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, onOpenWishes = {}) }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, today = PREVIEW_TODAY) }
     }
 
     @Test
@@ -428,6 +429,7 @@ class ScreenshotTest {
                 ),
                 onRetry = {},
                 onEditMember = {},
+                today = PREVIEW_TODAY,
             )
         }
     }
@@ -446,6 +448,7 @@ class ScreenshotTest {
                 ),
                 onRetry = {},
                 onEditMember = {},
+                today = PREVIEW_TODAY,
             )
         }
     }
@@ -813,3 +816,6 @@ class ScreenshotTest {
         }
     }
 }
+
+/** A fixed day for the Famille captures: the birthdays « dans n jours » never move. */
+private val PREVIEW_TODAY: java.time.LocalDate = java.time.LocalDate.of(2026, 11, 25)

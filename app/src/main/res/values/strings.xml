@@ -145,7 +145,6 @@
     <string name="members_error_title">La famille ne s\'affiche pas</string>
     <string name="members_error_body">L\'appli n\'a pas pu lire la liste de la famille. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="members_add">Ajouter un membre</string>
-    <string name="members_edit_action">modifier</string>
     <string name="action_back">Retour</string>
     <string name="action_retry">Réessayer</string>
     <string name="action_cancel">Annuler</string>
@@ -167,16 +166,6 @@
     <string name="member_remove_owner_only">Seul l\'admin principal peut retirer %1$s.</string>
     <string name="administration_title">Administration</string>
     <string name="members_treasures">Nos trésors</string>
-    <string name="members_other_households">Les autres foyers</string>
-    <string name="members_me_birthday">Anniversaire le %1$s</string>
-    <string name="members_me_open">Voir et modifier ma fiche</string>
-    <string name="members_household_unfolded">déplié</string>
-    <plurals name="members_household_folded">
-        <item quantity="one">replié, %d membre</item>
-        <item quantity="other">replié, %d membres</item>
-    </plurals>
-    <string name="members_household_unfold">déplier</string>
-    <string name="members_household_fold">replier</string>
     <string name="members_treasure_recipes">Recettes</string>
     <string name="members_treasure_recipes_open">ouvrir les recettes</string>
     <string name="members_treasure_tree">Arbre</string>
@@ -734,12 +723,37 @@
     <string name="loading_offline">Pas de réseau pour l\'instant. L\'écran se remplira tout seul dès son retour.</string>
     <string name="pending_network">En attente du réseau</string>
     <string name="members_me">%1$s (toi)</string>
+    <!-- Famille, onglet Foyers (brief Famille-recettes F1, 25/11) -->
+    <string name="members_f1_count">%1$s · %2$s</string>
+    <plurals name="members_f1_people">
+        <item quantity="one">%d personne</item>
+        <item quantity="many">%d de personnes</item>
+        <item quantity="other">%d personnes</item>
+    </plurals>
+    <plurals name="members_f1_homes">
+        <item quantity="one">%d foyer</item>
+        <item quantity="many">%d de foyers</item>
+        <item quantity="other">%d foyers</item>
+    </plurals>
+    <string name="members_tab_households">Foyers</string>
+    <string name="members_tab_tree">Arbre</string>
+    <string name="members_my_household">Mon foyer</string>
+    <string name="members_f1_owner">Administrateur principal</string>
+    <string name="members_f1_child">Enfant</string>
+    <string name="members_f1_child_without_app">Enfant sans l\'appli</string>
+    <string name="members_f1_chef">chef de foyer</string>
+    <string name="members_f1_with">%1$s · %2$s</string>
+    <string name="members_f1_birthday_today">🎂 Aujourd\'hui</string>
+    <plurals name="members_f1_birthday">
+        <item quantity="one">🎂 Demain</item>
+        <item quantity="many">🎂 Dans %d jours</item>
+        <item quantity="other">🎂 Dans %d jours</item>
+    </plurals>
+    <string name="members_open_profile">voir sa fiche</string>
+    <string name="members_message_name">Écrire un message à %1$s</string>
     <string name="profile_adult">Adulte</string>
     <string name="profile_child_with_app">Enfant, avec l\'appli</string>
     <string name="profile_child_without_app">Enfant, sans l\'appli</string>
-    <string name="profile_with_owner">%1$s · admin principal</string>
-    <string name="profile_with_admin">%1$s · chef de famille</string>
-    <string name="profile_without_email">%1$s · adresse Google à ajouter</string>
     <string name="app_version">Version %1$s</string>
 
     <string name="sign_in_intro">Les nouvelles, le planning et les cadeaux de la famille, au même endroit.</string>
@@ -1061,7 +1075,6 @@
     <string name="gift_list_missing_body">Elle a été supprimée, ou tu ne fais pas partie des personnes qui la voient.</string>
     <string name="gift_list_unavailable_body">Seuls la personne qui a créé la liste, et pour ses propres listes le bénéficiaire, peuvent la modifier.</string>
     <string name="gift_list_empty">Aucun article pour l\'instant. Touche « Ajouter » pour proposer une idée.</string>
-    <string name="members_wishes_button">Envies</string>
     <string name="gift_wishes_empty_other">%1$s n\'a encore rien noté. Reviens plus tard, ou demande-lui ce qui lui ferait plaisir.</string>
     <string name="gift_list_empty_mine">Aucun article pour l\'instant. Touche « Ajouter » pour dire ce qui te ferait plaisir.</string>
     <string name="gift_list_hidden_mine">Les réservations te restent cachées.</string>
@@ -1220,8 +1233,6 @@
     <string name="error_gift_bad_price">Indique un montant, par exemple 25 ou 19,90.</string>
     <string name="error_gift_note_too_long">500 caractères au plus.</string>
     <!-- Photo de profil (PRD, récit 3 bis) -->
-    <string name="photo_change_action">changer la photo</string>
-    <string name="photo_view_action">voir la photo en grand</string>
     <string name="photo_viewer_close">Fermer</string>
     <string name="photo_viewer_change">Changer la photo</string>
     <string name="photo_of">Photo de %1$s</string>
@@ -1235,13 +1246,11 @@
     <string name="photo_crop_confirm">Valider</string>
     <string name="photo_unreadable_title">Cette photo ne s\'ouvre pas</string>
     <string name="photo_unreadable_body">Choisis-en une autre, ou prends une nouvelle photo.</string>
-    <string name="photo_failed_title">La photo n\'a pas changé</string>
     <string name="photo_add">Ajouter une photo</string>
     <string name="photo_remove_confirm_title">Retirer la photo ?</string>
     <string name="photo_remove_confirm_body">La photo disparaîtra quand tu enregistreras.</string>
     <string name="photo_remove_confirm">Retirer</string>
     <string name="photo_chosen">Photo choisie</string>
-    <string name="photo_failed_body">La photo n\'a pas été enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
@@ -1749,7 +1758,7 @@
     <string name="month_birthday_day">Le %1$d</string>
     <string name="month_birthday_first">Le 1er</string>
     <!-- Carnet de recettes (récit 38) -->
-    <string name="recipes_title">Carnet de recettes</string>
+    <string name="recipes_family_title">Recettes de la famille</string>
     <string name="recipe_picker_title">Choisir une recette</string>
     <string name="recipe_picker_search">Chercher par titre</string>
     <string name="recipe_picker_pick">Choisir cette recette</string>
@@ -1786,6 +1795,60 @@
     <string name="recipe_comment_remove">Retirer</string>
     <string name="recipe_comment_remove_title">Retirer ce commentaire ?</string>
     <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Vérifie ta connexion, puis réessaie.</string>
+    <string name="recipe_category_aperitif">Apéritif</string>
+    <string name="recipe_category_entree">Entrée</string>
+    <string name="recipe_category_plat">Plat</string>
+    <string name="recipe_category_accompagnement">Accompagnement</string>
+    <string name="recipe_category_dessert">Dessert</string>
+    <string name="recipe_category_boisson">Boisson</string>
+    <string name="recipe_category_sauce">Sauce</string>
+    <string name="recipe_category_divers">Divers</string>
+    <plurals name="recipe_group_aperitif">
+        <item quantity="one">Apéritifs (%1$d)</item>
+        <item quantity="many">Apéritifs (%1$d)</item>
+        <item quantity="other">Apéritifs (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_entree">
+        <item quantity="one">Entrées (%1$d)</item>
+        <item quantity="many">Entrées (%1$d)</item>
+        <item quantity="other">Entrées (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_plat">
+        <item quantity="one">Plats (%1$d)</item>
+        <item quantity="many">Plats (%1$d)</item>
+        <item quantity="other">Plats (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_accompagnement">
+        <item quantity="one">Accompagnements (%1$d)</item>
+        <item quantity="many">Accompagnements (%1$d)</item>
+        <item quantity="other">Accompagnements (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_dessert">
+        <item quantity="one">Desserts (%1$d)</item>
+        <item quantity="many">Desserts (%1$d)</item>
+        <item quantity="other">Desserts (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_boisson">
+        <item quantity="one">Boissons (%1$d)</item>
+        <item quantity="many">Boissons (%1$d)</item>
+        <item quantity="other">Boissons (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_sauce">
+        <item quantity="one">Sauces (%1$d)</item>
+        <item quantity="many">Sauces (%1$d)</item>
+        <item quantity="other">Sauces (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_divers">
+        <item quantity="one">Divers (%1$d)</item>
+        <item quantity="many">Divers (%1$d)</item>
+        <item quantity="other">Divers (%1$d)</item>
+    </plurals>
+    <string name="recipes_search_member">Recette ou ingrédient</string>
+    <string name="recipes_member_empty_title">%1$s n\'a pas encore noté de recette</string>
+    <string name="recipes_member_empty_body">Ses recettes apparaîtront ici dès qu\'elle ou il en notera une.</string>
+    <string name="recipes_mine_empty_title">Tu n\'as pas encore noté de recette</string>
+    <string name="recipes_mine_empty_body">Le gâteau dont tout le monde parle, la sauce de toujours… Touche « Nouvelle recette » pour la garder et la partager.</string>
+    <string name="recipe_book_open_body">Un petit livre à imprimer, avec les recettes de ton choix</string>
     <string name="recipes_from_title">Recettes de %1$s</string>
     <!-- Récit 66 : la fiche de membre organisée. -->
     <string name="profile_v2_photo_open">Voir la photo de %1$s en grand</string>
@@ -1997,7 +2060,7 @@
     <string name="error_recipe_steps_missing">Écris au moins une étape.</string>
     <string name="error_recipe_too_long">Ce texte est trop long. Raccourcis-le un peu.</string>
     <string name="help_screen_recipes_title">Le carnet de recettes</string>
-    <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
+    <string name="help_screen_recipes_body">Les recettes de la famille, rangées par catégorie (entrées, plats, desserts…). Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
     <string name="help_screen_genealogy_title">L\'arbre généalogique</string>
     <string name="help_screen_genealogy_body">L\'arbre montre qui est qui dans la famille : les plus anciens en haut, puis chaque génération en dessous. Un trait relie un parent à son enfant, un trait épais relie deux conjoints. Pince l\'écran ou utilise les boutons pour zoomer, « Recentrer » remet l\'arbre à sa place, et touche une personne pour ouvrir sa fiche. L\'arbre peut aussi montrer des proches sans compte, comme des arrière-grands-parents. Sur la fiche d\'une personne, tu peux choisir ton propre mot pour elle (« Mamie », « bonus-maman »…) : toi seul le vois. L\'admin principal complète tout l\'arbre, et un chef de famille les liens et les proches de son foyer.</string>
     <string name="help_screen_capsules_title">Les capsules temporelles</string>
@@ -2445,17 +2508,6 @@
         <item quantity="many">%d de nouveautés</item>
         <item quantity="other">%d nouveautés</item>
     </plurals>
-    <plurals name="members_r1_count">
-        <item quantity="one">Nous %1$d, en %2$s</item>
-        <item quantity="many">Nous %1$d, en %2$s</item>
-        <item quantity="other">Nous %1$d, en %2$s</item>
-    </plurals>
-    <plurals name="members_r1_homes">
-        <item quantity="one">%d foyer</item>
-        <item quantity="many">%d de foyers</item>
-        <item quantity="other">%d foyers</item>
-    </plurals>
-    <string name="members_r1_treasures">Nos trésors</string>
     <string name="all_search">Chercher un module</string>
     <string name="all_none">Aucun module ne porte ce nom.</string>
     <string name="all_family_organise">S\'organiser</string>

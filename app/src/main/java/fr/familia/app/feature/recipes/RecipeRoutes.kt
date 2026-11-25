@@ -26,20 +26,23 @@ import fr.familia.app.core.viewas.LocalViewAs
 @Composable
 fun RecipesRoute(
     container: AppContainer?,
-    originMemberId: String?,
+    memberId: String?,
+    currentMemberId: String,
     onOpen: (String) -> Unit,
     onAdd: () -> Unit,
     onBack: () -> Unit,
     onMakeBook: () -> Unit = {},
 ) {
     val viewModel: RecipesViewModel = viewModel(
-        key = "recipes-$originMemberId",
-        factory = viewModelFactory { initializer { RecipesViewModel(container?.recipeRepository, container?.memberRepository, originMemberId) } },
+        key = "recipes-$memberId",
+        factory = viewModelFactory {
+            initializer { RecipesViewModel(container?.recipeRepository, container?.memberRepository, memberId, currentMemberId) }
+        },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    // The whole book, so not on the list of one member's recipes.
+    // Also on a member's list, as in the prototype (R3): the book always offers the whole carnet.
     // Not in « Voir comme »: the book would leave with the photo rights of the member looked at.
-    val bookOn = LocalFeatureFlags.current.isOn(Feature.RecipeBook) && originMemberId == null && LocalViewAs.current.viewed == null
+    val bookOn = LocalFeatureFlags.current.isOn(Feature.RecipeBook) && LocalViewAs.current.viewed == null
     RecipesScreen(state, viewModel::search, onOpen, onAdd, onBack, onMakeBook = if (bookOn) onMakeBook else null)
 }
 
