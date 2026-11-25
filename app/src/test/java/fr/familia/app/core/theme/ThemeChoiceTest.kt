@@ -81,9 +81,11 @@ class ThemeChoiceTest {
         FamiliaThemeId.photos.forEach { theme ->
             val credit = ThemePhotos.credit(theme)
             assertTrue(theme.key, credit != null && credit.author.isNotBlank() && credit.page.startsWith("https://unsplash.com/photos/"))
-            assertEquals("${credit!!.page}/download?force=true&w=1080", ThemePhotos.url(theme))
+            assertEquals("https://images.unsplash.com/${credit!!.file}?w=1080&q=80&fm=jpg&fit=max", ThemePhotos.url(theme))
+            assertTrue(credit.file.matches(Regex("photo-\\d+-[0-9a-f]+")))
         }
         assertEquals(8, FamiliaThemeId.photos.map { ThemePhotos.credit(it)!!.id }.distinct().size)
+        assertEquals(8, ThemePhotos.urls.distinct().size)
         assertTrue(FamiliaThemeId.entries.filterNot { it.isPhoto }.none { ThemePhotos.url(it) != null })
     }
 }

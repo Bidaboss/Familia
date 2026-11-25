@@ -33,34 +33,54 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
 /**
- * A photo of Unsplash (règle 19): its id and who took it. Shown from Unsplash itself, never copied
- * into the app or the public repository (DESIGN-159 B); Coil keeps it in its disk cache, so it is
- * downloaded once per phone and still shows offline.
+ * A photo of Unsplash (règle 19): its id, the name of its file on the images server of Unsplash, and
+ * who took it. Shown from Unsplash itself, never copied into the app or the public repository
+ * (DESIGN-159 B); Coil keeps it in its disk cache, so it is downloaded once per phone and still shows
+ * offline ([prefetchThemePhotos] fetches them all at the start).
  */
-data class ThemePhoto(val id: String, val author: String) {
+data class ThemePhoto(val id: String, val file: String, val author: String) {
     /** The page of the photo, for « Crédits des photos ». */
     val page: String get() = "https://unsplash.com/photos/$id"
 
-    /** The picture itself, 1080 px wide: enough for a phone, light on the data plan. */
-    val url: String get() = "$page/download?force=true&w=1080"
+    /**
+     * The picture itself, 1080 px wide in JPEG: enough for a phone, light on the data plan. Straight
+     * from images.unsplash.com, the hotlink Unsplash asks for: the « /download » link of the page is
+     * for browsers only and gave no photo in the app (Kévin, APK 0.2.618).
+     */
+    val url: String get() = "https://images.unsplash.com/$file?w=1080&q=80&fm=jpg&fit=max"
 }
 
 /** The photo of each theme: the one table of the photos (règle 17: data, added without touching the screens). */
 object ThemePhotos {
     private val photos: Map<FamiliaThemeId, ThemePhoto> = mapOf(
-        FamiliaThemeId.Clouds to ThemePhoto("KOJ3CIrt1j8", "Fabrizio Conti"),
-        FamiliaThemeId.Alps to ThemePhoto("qAD0TbXt5Ys", "Daniel J. Schwarz"),
-        FamiliaThemeId.Sunset to ThemePhoto("uQDRDqpYJHI", "Cristofer Maximilian"),
-        FamiliaThemeId.Christmas to ThemePhoto("1PWlPce_ng4", "Vitalijs Barilo"),
-        FamiliaThemeId.Autumn to ThemePhoto("kP-LMhUp4Sw", "Nenad Radojčić"),
-        FamiliaThemeId.Lake to ThemePhoto("lpjb_UMOyx8", "Daniel Roe"),
-        FamiliaThemeId.Lavender to ThemePhoto("2aGaN2oDPQI", "Thomas Despeyroux"),
-        FamiliaThemeId.Coast to ThemePhoto("yfQRbv7oYCg", "José Duarte"),
+        FamiliaThemeId.Clouds to ThemePhoto("KOJ3CIrt1j8", "photo-1516366353199-ed694fec414f", "Fabrizio Conti"),
+        FamiliaThemeId.Alps to ThemePhoto("qAD0TbXt5Ys", "photo-1783586856710-18073cc55d4d", "Daniel J. Schwarz"),
+        FamiliaThemeId.Sunset to ThemePhoto("uQDRDqpYJHI", "photo-1559494007-9f5847c49d94", "Cristofer Maximilian"),
+        FamiliaThemeId.Christmas to ThemePhoto("1PWlPce_ng4", "photo-1768209911442-770f3df80dc2", "Vitalijs Barilo"),
+        FamiliaThemeId.Autumn to ThemePhoto("kP-LMhUp4Sw", "photo-1759675001595-7b1e5ff997f0", "Nenad Radojčić"),
+        FamiliaThemeId.Lake to ThemePhoto("lpjb_UMOyx8", "photo-1439853949127-fa647821eba0", "Daniel Roe"),
+        FamiliaThemeId.Lavender to ThemePhoto("2aGaN2oDPQI", "photo-1593715857983-5531aa640471", "Thomas Despeyroux"),
+        FamiliaThemeId.Coast to ThemePhoto("yfQRbv7oYCg", "photo-1500828131278-8de6878641b8", "José Duarte"),
     )
 
     fun url(theme: FamiliaThemeId): String? = photos[theme]?.url
 
     fun credit(theme: FamiliaThemeId): ThemePhoto? = photos[theme]
+
+    /** Every photo, for [prefetchThemePhotos]. */
+    val urls: List<String> get() = photos.values.map { it.url }
+}
+
+/**
+ * Puts the 8 photos in the disk cache of Coil once (Kévin, 25/11: « charger les photos une fois pour
+ * toutes »): a photo already there is not downloaded again, so a change of theme or a season shows its
+ * photo at once, even offline. About 2 Mo in all.
+ */
+fun prefetchThemePhotos(context: android.content.Context) {
+    val loader = coil.Coil.imageLoader(context)
+    ThemePhotos.urls.forEach { url ->
+        loader.enqueue(coil.request.ImageRequest.Builder(context).data(url).memoryCachePolicy(coil.request.CachePolicy.DISABLED).build())
+    }
 }
 
 /** The photo of [theme], cropped to fill, over the gradient of its two colors until it is loaded. */

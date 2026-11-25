@@ -25,6 +25,8 @@ class FamiliaApplication : Application(), ImageLoaderFactory {
         container = FirebaseAppContainer(this)
         networkMonitor = NetworkMonitor(this)
         NotificationChannels.create(this)
+        // The photos of the themes, once into the disk cache: no wait, and no photo missing offline.
+        fr.familia.app.core.theme.prefetchThemePhotos(this)
     }
 
     /**
