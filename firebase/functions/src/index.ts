@@ -545,7 +545,8 @@ export const onSurpriseUpdated = onDocumentUpdated('surprises/{sid}', async (eve
 });
 
 // « Annuler C'est offert » (Administration > Surprises offertes récemment, admin principal seul).
-export const onOfferedSurpriseUpdated = onDocumentUpdated('offeredSurprises/{sid}', async (event) => {
+// retry: an error runs it again, which finishes the steps where they stopped (C1 de #632).
+export const onOfferedSurpriseUpdated = onDocumentUpdated({ document: 'offeredSurprises/{sid}', retry: true }, async (event) => {
   if (!isCancelAsked(event.data?.before.data(), event.data?.after.data())) return;
   await cancelSurpriseOffered(getFirestore(), send, event.params.sid);
 });
