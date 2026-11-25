@@ -871,10 +871,11 @@ fun FamiliaApp(
         // draws its own header in place of the title bar (règles 2, 3, 9 à 11).
         val photoTheme = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Home) && features.isOn(Feature.Home) }
         val photoScroll = remember { PhotoScroll() }
-        // Règle 20 (DESIGN-157 A): Famille shows the same photo in a banner at its top.
-        val onMembers = currentDestination.isOn(TopLevelDestination.Members)
+        // Règle 20 (DESIGN-157 A): Famille and Cadeaux show the same photo in a banner at their top.
+        val bannerTab = listOf(TopLevelDestination.Members, TopLevelDestination.Gifts).firstOrNull { currentDestination.isOn(it) }
+        val onMembers = bannerTab != null
         val bannerScroll = remember { PhotoScroll() }
-        LaunchedEffect(onMembers) { bannerScroll.reset() }
+        LaunchedEffect(bannerTab) { bannerScroll.reset() }
         Box(if (photoTheme != null) Modifier.fillMaxSize() else Modifier.fillMaxSize().themeBackground()) {
         if (photoTheme != null) PhotoBackdrop(photoTheme, photoScroll)
         if (onMembers) PhotoBanner(bannerScroll)
