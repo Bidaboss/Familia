@@ -1509,7 +1509,8 @@ fun FamiliaApp(
                     composable<RecipesDestination> { entry ->
                         RecipesRoute(
                             container = container,
-                            originMemberId = entry.toRoute<RecipesDestination>().originMemberId,
+                            memberId = entry.toRoute<RecipesDestination>().memberId,
+                            currentMemberId = currentMember.id,
                             onOpen = { id -> navController.navigate(RecipeDetailDestination(id)) },
                             onAdd = { navController.navigate(RecipeEditDestination()) },
                             onBack = { navController.popBackStack() },

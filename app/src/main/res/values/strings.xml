@@ -1749,7 +1749,7 @@
     <string name="month_birthday_day">Le %1$d</string>
     <string name="month_birthday_first">Le 1er</string>
     <!-- Carnet de recettes (récit 38) -->
-    <string name="recipes_title">Carnet de recettes</string>
+    <string name="recipes_family_title">Recettes de la famille</string>
     <string name="recipe_picker_title">Choisir une recette</string>
     <string name="recipe_picker_search">Chercher par titre</string>
     <string name="recipe_picker_pick">Choisir cette recette</string>
@@ -1786,6 +1786,60 @@
     <string name="recipe_comment_remove">Retirer</string>
     <string name="recipe_comment_remove_title">Retirer ce commentaire ?</string>
     <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Vérifie ta connexion, puis réessaie.</string>
+    <string name="recipe_category_aperitif">Apéritif</string>
+    <string name="recipe_category_entree">Entrée</string>
+    <string name="recipe_category_plat">Plat</string>
+    <string name="recipe_category_accompagnement">Accompagnement</string>
+    <string name="recipe_category_dessert">Dessert</string>
+    <string name="recipe_category_boisson">Boisson</string>
+    <string name="recipe_category_sauce">Sauce</string>
+    <string name="recipe_category_divers">Divers</string>
+    <plurals name="recipe_group_aperitif">
+        <item quantity="one">Apéritifs (%1$d)</item>
+        <item quantity="many">Apéritifs (%1$d)</item>
+        <item quantity="other">Apéritifs (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_entree">
+        <item quantity="one">Entrées (%1$d)</item>
+        <item quantity="many">Entrées (%1$d)</item>
+        <item quantity="other">Entrées (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_plat">
+        <item quantity="one">Plats (%1$d)</item>
+        <item quantity="many">Plats (%1$d)</item>
+        <item quantity="other">Plats (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_accompagnement">
+        <item quantity="one">Accompagnements (%1$d)</item>
+        <item quantity="many">Accompagnements (%1$d)</item>
+        <item quantity="other">Accompagnements (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_dessert">
+        <item quantity="one">Desserts (%1$d)</item>
+        <item quantity="many">Desserts (%1$d)</item>
+        <item quantity="other">Desserts (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_boisson">
+        <item quantity="one">Boissons (%1$d)</item>
+        <item quantity="many">Boissons (%1$d)</item>
+        <item quantity="other">Boissons (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_sauce">
+        <item quantity="one">Sauces (%1$d)</item>
+        <item quantity="many">Sauces (%1$d)</item>
+        <item quantity="other">Sauces (%1$d)</item>
+    </plurals>
+    <plurals name="recipe_group_divers">
+        <item quantity="one">Divers (%1$d)</item>
+        <item quantity="many">Divers (%1$d)</item>
+        <item quantity="other">Divers (%1$d)</item>
+    </plurals>
+    <string name="recipes_search_member">Recette ou ingrédient</string>
+    <string name="recipes_member_empty_title">%1$s n\'a pas encore noté de recette</string>
+    <string name="recipes_member_empty_body">Ses recettes apparaîtront ici dès qu\'elle ou il en notera une.</string>
+    <string name="recipes_mine_empty_title">Tu n\'as pas encore noté de recette</string>
+    <string name="recipes_mine_empty_body">Le gâteau dont tout le monde parle, la sauce de toujours… Touche « Nouvelle recette » pour la garder et la partager.</string>
+    <string name="recipe_book_open_body">Un petit livre à imprimer, avec les recettes de ton choix</string>
     <string name="recipes_from_title">Recettes de %1$s</string>
     <!-- Récit 66 : la fiche de membre organisée. -->
     <string name="profile_v2_photo_open">Voir la photo de %1$s en grand</string>
@@ -1997,7 +2051,7 @@
     <string name="error_recipe_steps_missing">Écris au moins une étape.</string>
     <string name="error_recipe_too_long">Ce texte est trop long. Raccourcis-le un peu.</string>
     <string name="help_screen_recipes_title">Le carnet de recettes</string>
-    <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
+    <string name="help_screen_recipes_body">Les recettes de la famille, rangées par catégorie (entrées, plats, desserts…). Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
     <string name="help_screen_genealogy_title">L\'arbre généalogique</string>
     <string name="help_screen_genealogy_body">L\'arbre montre qui est qui dans la famille : les plus anciens en haut, puis chaque génération en dessous. Un trait relie un parent à son enfant, un trait épais relie deux conjoints. Pince l\'écran ou utilise les boutons pour zoomer, « Recentrer » remet l\'arbre à sa place, et touche une personne pour ouvrir sa fiche. L\'arbre peut aussi montrer des proches sans compte, comme des arrière-grands-parents. Sur la fiche d\'une personne, tu peux choisir ton propre mot pour elle (« Mamie », « bonus-maman »…) : toi seul le vois. L\'admin principal complète tout l\'arbre, et un chef de famille les liens et les proches de son foyer.</string>
     <string name="help_screen_capsules_title">Les capsules temporelles</string>
