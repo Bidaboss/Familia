@@ -251,6 +251,11 @@ fun HomeRoute(
     Box(if (photo != null) Modifier.nestedScroll(photo.scroll.connection) else Modifier) {
     HomeR1bisScreen(
         top = photoTop,
+        feedUnseen = feed?.unseen ?: 0,
+        onOpenFeed = if (photo != null && feed != null) ({
+            onFeed = true
+            photo.scroll.reset()
+        }) else null,
         switcher = feed?.let { f -> { HomeFeedSwitch(onFeed, f.unseen, onChoose = { onFeed = it }) } },
         feed = feed?.takeIf { onFeed }?.let { f ->
             {

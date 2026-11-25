@@ -2,6 +2,7 @@ package fr.familia.app.feature.home
 
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.PhotoTitleShadow
+import fr.familia.app.core.theme.LocalPhotoTheme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -135,6 +136,9 @@ fun HomeR1bisScreen(
      * the free part of the photo and the switch, scrolling with the day; [switcher] is then in it.
      */
     top: (@Composable () -> Unit)? = null,
+    /** « Le fil de la famille » in « En bref » on the photo: its news, and the way to open it. */
+    feedUnseen: Int = 0,
+    onOpenFeed: (() -> Unit)? = null,
 ) {
     val onPhoto = top != null
     val ready = state as? HomeUiState.Ready ?: return
@@ -192,6 +196,15 @@ fun HomeR1bisScreen(
         }
     }
     val padding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp)
+    val photoTheme = LocalPhotoTheme.current
+    if (top != null && photoTheme != null && feed == null) {
+        PhotoDayList(
+            ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme), actions, r1,
+            PhotoSlots(top, joinMe, firstSteps, helpTodos, nowTravelling, challenge, goodNews?.takeIf { onOpenFeed == null }, buttons),
+            feedUnseen, onOpenFeed,
+        )
+        return
+    }
     Column(Modifier.fillMaxSize()) {
         if (switcher != null && top == null) {
             Box(Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 12.dp)) { switcher() }
@@ -388,7 +401,7 @@ private fun DayDetail(day: HomeDay, today: LocalDate, actions: HomeActions) {
 }
 
 @Composable
-private fun DayLine(item: DayItem, actions: HomeActions) {
+internal fun DayLine(item: DayItem, actions: HomeActions) {
     val open: (() -> Unit)? = when (val target = item.open) {
         is DayOpen.Event -> ({ actions.onOpenEvent(target.id) })
         is DayOpen.Help -> ({ actions.onOpenHelpRequest(target.id) })

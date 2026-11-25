@@ -78,6 +78,8 @@ sealed interface HomeUiState {
         val voted: List<HomeVoted> = emptyList(),
         val pollsOn: Boolean = false,
         val canAskPoll: Boolean = false,
+        /** « À venir » on the photo (récit 113, règle 7): my events after today, 30 days at most, by date. */
+        val upcoming: List<Event> = emptyList(),
     ) : HomeUiState {
         val showsPolls: Boolean get() = pollsOn && (pollsToVote.isNotEmpty() || voted.isNotEmpty())
         val isEmpty: Boolean get() = todos.isEmpty() && !showsPolls && week.isEmpty() && birthdays.isEmpty() && trips.isEmpty()
@@ -87,6 +89,7 @@ sealed interface HomeUiState {
 /** How far ahead each card looks. */
 internal object HomeWindow {
     const val TODO_DAYS = 30L
+    const val UPCOMING_DAYS = 30L
     const val TODO_SHOWN = 5
     const val VOTED_SHOWN = 2
     const val TO_VOTE_SHOWN = 3
@@ -157,6 +160,14 @@ internal fun pollsVoted(me: Member, polls: List<Poll>, votes: Map<String, List<P
             HomeVoted(poll, lead, count, over = !poll.isOpen(now))
         }
 
+/** The events that concern me from tomorrow to [HomeWindow.UPCOMING_DAYS] days ahead, by date then hour. */
+internal fun upcoming(me: Member, family: Family, events: List<Event>, today: LocalDate): List<Event> {
+    val last = today.plusDays(HomeWindow.UPCOMING_DAYS)
+    return events
+        .filter { it.date > today && it.date <= last && concerns(it.target, me, family) }
+        .sortedWith(compareBy<Event> { it.date }.thenBy(nullsLast()) { it.time })
+}
+
 /** The events of the next 7 days that concern me, by date. */
 internal fun week(me: Member, family: Family, events: List<Event>, today: LocalDate): List<Event> {
     val last = today.plusDays(HomeWindow.WEEK_DAYS - 1)
@@ -208,5 +219,6 @@ internal fun homeState(
         voted = voted,
         pollsOn = pollsOn,
         canAskPoll = canAskPoll(me),
+        upcoming = upcoming(me, family, events, today),
     )
 }
