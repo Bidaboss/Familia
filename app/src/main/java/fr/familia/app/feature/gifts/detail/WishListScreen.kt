@@ -245,7 +245,8 @@ private fun LazyListScope.wishesTab(
             Button(
                 onClick = actions.onAddItem,
                 colors = ButtonDefaults.buttonColors(containerColor = surpriseDark(), contentColor = Color.White),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                // Full-width action of Cadeaux: 48 dp (règle 57 of regles-cadeaux-themes-photo.md, l'admin 25/11).
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text("+ " + stringResource(R.string.gift_add_wish), fontWeight = FontWeight.Bold) }
         }
     }

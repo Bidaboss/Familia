@@ -302,7 +302,8 @@ private fun FormContent(
             onClick = onSave,
             enabled = !state.isSaving,
             colors = ButtonDefaults.buttonColors(containerColor = WishLook.Dark, contentColor = Color.White),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 8.dp),
+            // Full-width actions of Cadeaux: 48 dp (règle 57 of regles-cadeaux-themes-photo.md, l'admin 25/11).
+            modifier = Modifier.padding(top = 8.dp).fillMaxWidth().heightIn(min = 48.dp),
         ) {
             if (state.isSaving) {
                 CircularProgressIndicator(Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
@@ -325,7 +326,7 @@ private fun FormContent(
             enabled = !state.isSaving,
             border = BorderStroke(2.dp, WishLook.Edge),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White, contentColor = WishLook.Ink),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
         ) { Text(stringResource(R.string.action_cancel), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
         // Whoever shares the wish edits it, but only its keeper removes it (récit 73).
         if (!state.isNew && state.sharedByOther == null) DeleteButton(form.title, !state.isSaving, onDelete)

@@ -147,13 +147,14 @@ internal fun MyWishDetail(
             Button(
                 onClick = onEdit,
                 colors = ButtonDefaults.buttonColors(containerColor = WishLook.Dark, contentColor = Color.White),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                // Full-width actions of Cadeaux: 48 dp (règle 57 of regles-cadeaux-themes-photo.md, l'admin 25/11).
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text("✏️ " + stringResource(R.string.wish_detail_edit), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
             OutlinedButton(
                 onClick = { confirmRemove = true },
                 border = BorderStroke(2.dp, WishLook.Edge),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = WishLook.Remove),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.wish_detail_remove), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
         }
     }
