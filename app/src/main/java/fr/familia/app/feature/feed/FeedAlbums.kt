@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -138,6 +139,9 @@ class AlbumFeedCard(
     val photos: List<AlbumPhoto>,
 ) : FeedCard {
     override val key: String = "album:${album.folder}:$day"
+
+    /** J'aime and comments on its thread (récit 115). */
+    override val social: FeedSocial = FeedSocial(gazetteThreadId(key))
     override val at: Instant = photos.first().createdAt ?: Instant.EPOCH
     override val authorId: String = photos.first().authorId
 

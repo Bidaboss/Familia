@@ -42,6 +42,9 @@ interface FeedCard {
      */
     val pinRank: Int? get() = null
 
+    /** Its J'aime and comments (récit 115); null: the card has none (a souvenir, an old good news). */
+    val social: FeedSocial? get() = null
+
     @Composable
     fun Content(context: FeedContext)
 }

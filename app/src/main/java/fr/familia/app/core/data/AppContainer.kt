@@ -70,6 +70,10 @@ interface AppContainer {
 
     /** The comments of a good news (récit 67), with the same calls as those of an event. */
     val goodNewsCommentRepository: EventCommentRepository? get() = null
+
+    /** La gazette (récits 115, 116): the J'aime of a card, and the comments of the cards without their own. */
+    val gazetteThreadRepository: GazetteThreadRepository? get() = null
+    val gazetteCommentRepository: EventCommentRepository? get() = null
     val helpRequestRepository: HelpRequestRepository?
     val tripRepository: TripRepository?
 
@@ -224,6 +228,10 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }
     override val goodNewsCommentRepository: EventCommentRepository? by lazy {
         firestore?.let { FirestoreEventCommentRepository(it, parent = "goodNews", expires = false) }
+    }
+    override val gazetteThreadRepository: GazetteThreadRepository? by lazy { firestore?.let { FirestoreGazetteThreadRepository(it) } }
+    override val gazetteCommentRepository: EventCommentRepository? by lazy {
+        firestore?.let { FirestoreEventCommentRepository(it, parent = "gazetteThreads", expires = false) }
     }
 
     override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it, sendJournal) } }

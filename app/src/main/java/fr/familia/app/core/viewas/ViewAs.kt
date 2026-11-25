@@ -64,6 +64,8 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val packingRepository: PackingRepository? = null
     override val eventCommentRepository = base.eventCommentRepository?.let { ReadOnlyEventCommentRepository(it, guard) }
     override val goodNewsCommentRepository = base.goodNewsCommentRepository?.let { ReadOnlyEventCommentRepository(it, guard) }
+    override val gazetteThreadRepository = base.gazetteThreadRepository?.let { ReadOnlyGazetteThreadRepository(it, guard) }
+    override val gazetteCommentRepository = base.gazetteCommentRepository?.let { ReadOnlyEventCommentRepository(it, guard) }
     override val helpRequestRepository = base.helpRequestRepository?.let { ReadOnlyHelpRequestRepository(it, guard) }
     override val tripRepository = base.tripRepository?.let { ReadOnlyTripRepository(it, guard) }
     override val tripWordRepository = base.tripWordRepository?.let { ReadOnlyTripWordRepository(it, guard) }

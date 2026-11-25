@@ -96,11 +96,20 @@ fun FeedCardShell(
         ) {
             header?.invoke()
             content()
+            FeedCardSocial(onOpen)
         }
     }
 }
 
 private val TILE_CORNER = 22.dp
+
+/** The bar of J'aime and comments, when the gazette gave one to the card being drawn (récit 115). */
+@Composable
+private fun FeedCardSocial(onOpen: (() -> Unit)?) {
+    val social = LocalFeedCardSocial.current ?: return
+    val env = LocalFeedSocialEnv.current ?: return
+    FeedSocialBar(social, env, onOpen)
+}
 
 /**
  * Whether the fil lies on the photo of the Accueil (récit 113, fiche A2): its cards are then of glass,
@@ -141,6 +150,7 @@ private fun GlassCard(
             ) {
                 header?.invoke()
                 content()
+                FeedCardSocial(onOpen)
             }
         }
     }

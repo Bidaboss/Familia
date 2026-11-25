@@ -79,7 +79,7 @@ fun myDaySummary(
 
 /**
  * « ☀️ 2 événements · 3 à répondre › » (or « Rien de prévu »), under « Bonjour » (fiche S1, Y1): a
- * button that opens « Ma journée », 48 dp high. On the photo it is white with a shadow.
+ * button that opens « Ma journée », 56 dp high. On the photo it is white with a shadow.
  */
 @Composable
 fun MyDaySummaryLine(summary: MyDaySummary, onPhoto: Boolean, onOpen: () -> Unit, modifier: Modifier = Modifier) {
@@ -104,7 +104,7 @@ fun MyDaySummaryLine(summary: MyDaySummary, onPhoto: Boolean, onOpen: () -> Unit
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .heightIn(min = 48.dp)
+            .heightIn(min = 56.dp)
             .clip(MaterialTheme.shapes.small)
             .clickable(onClick = onOpen)
             .clearAndSetSemantics {

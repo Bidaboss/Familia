@@ -200,15 +200,14 @@ fun HomeRoute(
     } else {
         state
     }
-    // Le fil d'actualité (récit 67): off, the Accueil does not change, even for the admin principal.
-    val feedOn = flags.isOnForFamily(Feature.NewsFeed)
-    val feed = if (feedOn) rememberFeedState(container, currentMember) else null
+    // La gazette is for everyone, with no switch (l'admin, 25/11): the old newsFeed switch goes in lot 2.
+    val feed = rememberFeedState(container, currentMember)
     // La gazette is the Accueil (récit 115): the app always opens on it, « Ma journée » never opens alone.
     var myDayOpen by rememberSaveable { mutableStateOf(false) }
     // « La gazette » of Tout Familia brings the gazette back (récit 71).
     val feedAsked by FeedOpenRequest.asked.collectAsState()
-    LaunchedEffect(feedAsked, feed != null) {
-        if (feedAsked && feed != null) {
+    LaunchedEffect(feedAsked) {
+        if (feedAsked) {
             myDayOpen = false
             FeedOpenRequest.consume()
         }
@@ -217,7 +216,7 @@ fun HomeRoute(
     val todayAsked by TodayOpenRequest.asked.collectAsState()
     LaunchedEffect(todayAsked) {
         if (todayAsked) {
-            myDayOpen = feed != null
+            myDayOpen = true
             TodayOpenRequest.consume()
         }
     }
@@ -295,10 +294,10 @@ fun HomeRoute(
         top = photoTop,
         mySurprises = mySurprises,
         surprisesToRate = surprisesToRate,
-        myDayOpen = myDayOpen && feed != null,
+        myDayOpen = myDayOpen,
         onMyDay = { myDayOpen = it },
         helpCount = help?.todos?.size ?: 0,
-        feed = feed?.let { f ->
+        feed = feed.let { f ->
             { summary ->
                 CompositionLocalProvider(LocalFeedNavigation provides feedNavigation) {
                     // Publish from the fil itself (maquette SF1); never in presentation or « Voir comme ».
