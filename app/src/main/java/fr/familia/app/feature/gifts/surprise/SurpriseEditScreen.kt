@@ -279,7 +279,7 @@ private fun AlreadyThere(beneficiary: Member, title: String, open: OpenSurprise?
                 style = MaterialTheme.typography.bodyMedium,
                 color = NoticeText,
             )
-            Button(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(action) }
+            Button(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) { Text(action) }
         }
     }
 }
@@ -293,11 +293,11 @@ private fun Members(state: SurpriseEditUiState.Editing, onChange: ((SurpriseForm
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
                 onClick = { onChange { it.copy(memberIds = state.candidates.map { m -> m.id }.toSet()) } },
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.surprise_members_all)) }
             OutlinedButton(
                 onClick = { onChange { it.copy(memberIds = locked) } },
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.surprise_members_none)) }
         }
         HouseholdMemberPicker(
