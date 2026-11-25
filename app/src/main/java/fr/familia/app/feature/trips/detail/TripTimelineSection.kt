@@ -216,7 +216,7 @@ fun TripTimelineSection(trip: Trip, steps: List<TripStep>, actions: TimelineActi
         }
         val spots = remember(trip, line) { insertSpots(trip, line.rows) }
         val hasDestination = line.destinations.isNotEmpty()
-        // E-57: one row of 56 dp per « + », the transport after it on the same row (no transport on a row of its own).
+        // E-57: one row of 56 dp per « + »; retour du 25/11 soir: a transport has its « + » on the row above it, not beside it.
         if (line.rows.firstOrNull() !is TimelineRow.Move) spots.firstOrNull()?.let { InsertPoint(it, actions, hasDestination) }
         line.rows.forEachIndexed { index, row ->
             when (row) {
@@ -586,12 +586,19 @@ internal fun DestinationProgramme(places: List<TripPlace>, actions: TimelineActi
 internal fun insertAfter(rows: List<TimelineRow>, index: Int): Boolean =
     rows.getOrNull(index) !is TimelineRow.Move && rows.getOrNull(index + 1) !is TimelineRow.Move
 
-/** E-57: the « + » and, on the same row of 56 dp, the transport that follows it. */
+/**
+ * The « + » before a transport, then the transport. Retour du 25/11 soir: on the same row, one could
+ * not tell whether the « + » added above or below the transport; it now stands on its own row, between
+ * the block before and the transport, like every other « + » of the timeline.
+ */
 @Composable
 private fun PlusAndMove(spot: InsertSpot?, row: TimelineRow.Move, actions: TimelineActions, hasDestination: Boolean) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (spot != null && actions.onInsertStep != null) InsertPoint(spot, actions, hasDestination) else Spacer(Modifier.width(ROUND_SIZE))
-        MoveRow(row, onOpen = { actions.onOpen(row.step.id) }, Modifier.weight(1f))
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (spot != null && actions.onInsertStep != null) InsertPoint(spot, actions, hasDestination)
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(Modifier.width(ROUND_SIZE))
+            MoveRow(row, onOpen = { actions.onOpen(row.step.id) }, Modifier.weight(1f))
+        }
     }
 }
 
