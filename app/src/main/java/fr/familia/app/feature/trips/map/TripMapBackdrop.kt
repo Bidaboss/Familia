@@ -97,10 +97,10 @@ fun TripMapBackdrop(
     trip: Trip?,
     steps: List<TripStep>,
     focusId: String?,
-    /** « Modifier » of a trip (règle 4): the sheet high then low, the map out to the globe and back. */
+    /** « Modifier » of a trip (règle 4): the sheet high then in the middle, the map out to the globe and back. */
     arrival: Boolean = false,
-    /** The height the sheet opens at: 0 low, 1 the middle (« Nouvel élément », fiche F2 §4), 2 the whole screen. */
-    startLevel: Int = 0,
+    /** The height the sheet opens at: 0 low, 1 the middle, 2 the whole screen. Retour du 25/11 soir: every sheet of three heights opens in the middle. */
+    startLevel: Int = 1,
     content: @Composable (inSheet: Boolean) -> Unit,
 ) {
     val context = LocalContext.current
@@ -125,10 +125,10 @@ fun TripMapBackdrop(
     LaunchedEffect(playArrival) {
         if (!playArrival || arrivalDone) return@LaunchedEffect
         arrivalDone = true
-        level = 1
+        level = 2
         delay(EditArrival.SHEET_HIGH_MS)
-        // The person already moved the sheet: it stays where they put it.
-        if (level == 1) level = 0
+        // The person already moved the sheet: it stays where they put it. Down to the middle (retour du 25/11 soir).
+        if (level == 2) level = 1
     }
     var selected by rememberSaveable(focusId) { mutableStateOf<Int?>(null) }
     LaunchedEffect(placed, focusId) { if (selected == null) selected = focusIndex(placed, focusId) }
