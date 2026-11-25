@@ -2018,6 +2018,17 @@
     <string name="profile_edit_leave_body">Tes changements seront perdus.</string>
     <string name="profile_edit_leave_stay">Rester</string>
     <string name="profile_edit_leave_go">Quitter</string>
+    <string name="profile_edit_profile">Profil</string>
+    <string name="profile_edit_household_parents">Foyer et parents</string>
+    <string name="profile_edit_color">Couleur</string>
+    <string name="profile_edit_remove_section">Retirer de Familia</string>
+    <string name="profile_edit_remove_self">Tu es l\'administrateur principal : tu ne peux pas être retiré.</string>
+    <string name="profile_edit_remove_button">Retirer %1$s de Familia</string>
+    <string name="profile_edit_remove_title">Retirer %1$s ?</string>
+    <string name="profile_edit_remove_body">Sa fiche et tout ce qu\'il a partagé (recettes, photos, commentaires) disparaissent de Familia. Cela ne peut pas se défaire.</string>
+    <string name="profile_removed">%1$s est retiré de Familia, avec tout ce qu\'il a partagé (recettes, photos, commentaires).</string>
+    <string name="profile_edit_phone_theirs">C\'est %1$s qui donne son numéro, depuis sa fiche.</string>
+    <string name="profile_admin_keeps">C\'est l\'administrateur qui tient la fiche à jour.</string>
     <string name="profile_v2_household">Foyer</string>
     <plurals name="profile_v2_household_people">
         <item quantity="one">%d personne</item>

@@ -2,6 +2,7 @@ package fr.familia.app.feature.members.profile
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,12 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberCard
+import fr.familia.app.feature.members.edit.BirthDateField
+import fr.familia.app.feature.members.edit.ColorChoices
+import fr.familia.app.feature.members.edit.FormError
+import fr.familia.app.feature.members.edit.errorText
+import java.time.LocalDate
+import java.time.ZoneId
 
 /*
  * « Modifier » in place on my own page (règle 3, F10): the same tiles, the same sizes, only the
@@ -27,23 +34,63 @@ import fr.familia.app.core.model.MemberCard
  * shown, locked, with why.
  */
 
-/** « Identité »: my first name and birth date locked, my surnom, and « En ce moment » with the card. */
+/**
+ * « Identité »: the first name and birth date (locked but for the admin principal), the surnom, the
+ * color (the admin's), and « En ce moment » with the card.
+ */
 @Composable
-internal fun IdentityEdit(member: Member, draft: FicheDraft, hasCard: Boolean, onDraft: (FicheDraft) -> Unit) {
+internal fun IdentityEdit(member: Member, edit: FicheEdit, hasCard: Boolean, onDraft: (FicheDraft) -> Unit) {
+    val draft = edit.draft
+    val form = draft.form
+    val errors = edit.admin?.errors.orEmpty()
     val unknown = stringResource(R.string.profile_v2_unknown)
     FicheSection(stringResource(R.string.profile_edit_identity)) {
-        FicheLockedRow("🙂", stringResource(R.string.member_first_name), member.firstName, stringResource(R.string.profile_edit_lock_name))
+        if (form != null) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                FicheEmoji("🙂")
+                OutlinedTextField(
+                    value = form.firstName,
+                    onValueChange = { onDraft(draft.copy(form = form.copy(firstName = it))) },
+                    label = { Text(stringResource(R.string.member_first_name)) },
+                    isError = FormError.FirstNameMissing in errors || FormError.FirstNameTooLong in errors,
+                    supportingText = errorText(errors, FormError.FirstNameMissing, FormError.FirstNameTooLong),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        } else {
+            FicheLockedRow("🙂", stringResource(R.string.member_first_name), member.firstName, stringResource(R.string.profile_edit_lock_name))
+        }
         FicheDivider()
         FicheEditRow("💬", R.string.profile_edit_nickname, draft.nickname, Member.NICKNAME_MAX, hint = stringResource(R.string.profile_edit_nickname_hint)) {
             onDraft(draft.copy(nickname = it))
         }
         FicheDivider()
-        FicheLockedRow(
-            "🎂",
-            stringResource(R.string.profile_edit_birth),
-            member.birthDate?.let { fr.familia.app.core.ui.frenchDate(it, "d MMMM yyyy") } ?: unknown,
-            stringResource(R.string.profile_edit_lock_birth),
-        )
+        if (form != null) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                BirthDateField(form.birthDate, FormError.BirthDateInFuture in errors, LocalDate.now(ZoneId.of("Europe/Paris"))) { date ->
+                    onDraft(draft.copy(form = form.copy(birthDate = date)))
+                }
+            }
+            FicheDivider()
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.profile_edit_color), style = MaterialTheme.typography.titleMedium)
+                ColorChoices(form.colorIndex) { index -> onDraft(draft.copy(form = form.copy(colorIndex = index))) }
+                Text(stringResource(R.string.member_color_hint), style = MaterialTheme.typography.bodyMedium, color = ficheInkSoft())
+            }
+        } else {
+            FicheLockedRow(
+                "🎂",
+                stringResource(R.string.profile_edit_birth),
+                member.birthDate?.let { fr.familia.app.core.ui.frenchDate(it, "d MMMM yyyy") } ?: unknown,
+                stringResource(R.string.profile_edit_lock_birth),
+            )
+        }
         if (hasCard) {
             FicheDivider()
             FicheEditRow("💭", R.string.profile_v2_now, draft.card.now, MemberCard.NOW_MAX, hint = stringResource(R.string.profile_edit_now_hint)) {
@@ -55,7 +102,7 @@ internal fun IdentityEdit(member: Member, draft: FicheDraft, hasCard: Boolean, o
 
 /** « À savoir »: allergies, diet and what not to offer me, seen by the whole family. */
 @Composable
-internal fun KnowEdit(draft: FicheDraft, onDraft: (FicheDraft) -> Unit) {
+internal fun KnowEdit(draft: FicheDraft, isMe: Boolean, onDraft: (FicheDraft) -> Unit) {
     val card = draft.card
     fun set(c: MemberCard) = onDraft(draft.copy(card = c))
     FicheSection(stringResource(R.string.profile_v2_know)) {
@@ -63,17 +110,17 @@ internal fun KnowEdit(draft: FicheDraft, onDraft: (FicheDraft) -> Unit) {
         FicheDivider()
         FicheEditRow("🥗", R.string.profile_v2_diet, card.diet, MemberCard.TEXT_MAX) { set(card.copy(diet = it)) }
         FicheDivider()
-        FicheEditRow("🚫", R.string.profile_v2_avoid_mine, card.avoid, MemberCard.TEXT_MAX) { set(card.copy(avoid = it)) }
+        FicheEditRow("🚫", if (isMe) R.string.profile_v2_avoid_mine else R.string.profile_v2_avoid, card.avoid, MemberCard.TEXT_MAX) { set(card.copy(avoid = it)) }
         FicheSmall(stringResource(R.string.profile_v2_know_seen))
     }
 }
 
 /** « Mes goûts et passions »: the sizes, then the tastes and the passions. A child's ring size only once written. */
 @Composable
-internal fun TastesEdit(draft: FicheDraft, kid: Boolean, onDraft: (FicheDraft) -> Unit) {
+internal fun TastesEdit(draft: FicheDraft, kid: Boolean, isMe: Boolean, onDraft: (FicheDraft) -> Unit) {
     val card = draft.card
     fun set(c: MemberCard) = onDraft(draft.copy(card = c))
-    FicheSection(stringResource(R.string.member_card_section_mine)) {
+    FicheSection(stringResource(if (isMe) R.string.member_card_section_mine else R.string.member_card_section)) {
         FicheEditRow("👟", R.string.member_card_shoes, card.shoes, MemberCard.SIZE_MAX, singleLine = true) { set(card.copy(shoes = it)) }
         FicheDivider()
         FicheEditRow("👕", R.string.profile_v2_size_top, card.top, MemberCard.SIZE_MAX, singleLine = true) { set(card.copy(top = it)) }
@@ -90,12 +137,18 @@ internal fun TastesEdit(draft: FicheDraft, kid: Boolean, onDraft: (FicheDraft) -
     }
 }
 
-/** « Mes coordonnées »: my phone open; the address of the household shown, locked (the admin's). */
+/**
+ * « Coordonnées »: my phone open (another's phone is theirs, récit 66); the address of the household
+ * open for the admin principal, shown locked for anyone else.
+ */
 @Composable
-internal fun CoordinatesEdit(address: String?, edit: FicheEdit, onDraft: (FicheDraft) -> Unit) {
+internal fun CoordinatesEdit(member: Member, isMe: Boolean, address: String?, edit: FicheEdit, onDraft: (FicheDraft) -> Unit) {
     val draft = edit.draft
-    FicheSection(stringResource(R.string.profile_v2_coordinates_mine)) {
-        FicheEditRow(
+    val admin = draft.form != null
+    FicheSection(stringResource(if (isMe) R.string.profile_v2_coordinates_mine else R.string.profile_v2_coordinates)) {
+        if (!isMe) {
+            FicheLockedRow("📞", stringResource(R.string.profile_v2_phone), member.phone ?: stringResource(R.string.profile_v2_unknown), stringResource(R.string.profile_edit_phone_theirs, member.firstName))
+        } else FicheEditRow(
             "📞",
             R.string.profile_v2_phone_title,
             draft.phone,
@@ -106,7 +159,11 @@ internal fun CoordinatesEdit(address: String?, edit: FicheEdit, onDraft: (FicheD
             error = if (edit.phoneValid) null else stringResource(R.string.profile_edit_phone_invalid),
         ) { onDraft(draft.copy(phone = it)) }
         FicheDivider()
-        FicheLockedRow("🏠", stringResource(R.string.profile_v2_address_of), address ?: stringResource(R.string.profile_v2_unknown), stringResource(R.string.profile_edit_lock_address))
+        if (admin) {
+            FicheEditRow("🏠", R.string.profile_v2_address_of, draft.address, max = 200) { onDraft(draft.copy(address = it)) }
+        } else {
+            FicheLockedRow("🏠", stringResource(R.string.profile_v2_address_of), address ?: stringResource(R.string.profile_v2_unknown), stringResource(R.string.profile_edit_lock_address))
+        }
         FicheSmall(stringResource(R.string.profile_v2_coordinates_help))
     }
 }

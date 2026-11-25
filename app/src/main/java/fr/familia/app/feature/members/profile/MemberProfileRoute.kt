@@ -1,6 +1,10 @@
 package fr.familia.app.feature.members.profile
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -25,7 +29,10 @@ fun MemberProfileRoute(
     currentMember: Member,
     memberId: String,
     onBack: () -> Unit,
-    onEdit: () -> Unit,
+    /** Opened from « Modifier sa fiche » (Gérer, the tree): the page starts in « Modifier ». */
+    startEditing: Boolean = false,
+    /** The admin removed this member from their page: it closes, with « X est retiré de Familia… ». */
+    onRemoved: (firstName: String) -> Unit = {},
     /** « Voir ses recettes » (récit 38), when the recipe book is on. */
     onOpenRecipes: (() -> Unit)? = null,
     /** « Ajouter une recette » on my own page (DESIGN-172), when the recipe book is on. */
@@ -78,14 +85,24 @@ fun MemberProfileRoute(
     )
     val v2State by v2Model.state.collectAsStateWithLifecycle()
     val edit by v2Model.edit.collectAsStateWithLifecycle()
+    val removed by v2Model.removed.collectAsStateWithLifecycle()
     val viewingAs = LocalViewAs.current.viewed != null
-    // My own page opens « Modifier » in place (règle 3, F10); another's still goes to the form, for the admin.
-    val mine = memberId == currentMember.id && !viewingAs
-    val shown = (state as? MemberProfileUiState.Ready)?.let { if (mine) it.copy(canEdit = true) else it } ?: state
+    // « Modifier » in place (règle 3): on my own page (F10), and on every page for the admin principal (F9).
+    val ready = state as? MemberProfileUiState.Ready
+    val mayEdit = !viewingAs && ready != null && (memberId == currentMember.id || ready.canEdit)
+    val shown = ready?.copy(canEdit = mayEdit) ?: state
+    var started by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(mayEdit, v2State != null) {
+        if (startEditing && !started && mayEdit && v2State != null) {
+            started = true
+            v2Model.startEdit()
+        }
+    }
+    LaunchedEffect(removed) { removed?.let(onRemoved) }
     MemberProfileScreen(
         state = shown,
         onBack = onBack,
-        onEdit = if (mine) v2Model::startEdit else onEdit,
+        onEdit = v2Model::startEdit,
         onDismissBravo = viewModel::dismissBravo,
         wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
         v2 = ProfileV2Ui(
@@ -103,11 +120,13 @@ fun MemberProfileRoute(
             onRenameHousehold = v2Model::renameHousehold,
             onEditNote = v2Model::editNote,
             onMakeIdea = if (giftsOn && !viewingAs) ({ note -> giftActions.onMakeIdea(memberId, note) }) else null,
-            edit = edit?.takeIf { mine },
-            onStartEdit = if (mine) v2Model::startEdit else null,
+            edit = edit?.takeIf { mayEdit },
+            onStartEdit = if (mayEdit) v2Model::startEdit else null,
             onDraft = v2Model::updateDraft,
             onCancelEdit = v2Model::cancelEdit,
             onSaveEdit = v2Model::saveEdit,
+            onAddHousehold = v2Model::addHousehold,
+            onRemove = v2Model::removeMember,
         ),
     )
 }

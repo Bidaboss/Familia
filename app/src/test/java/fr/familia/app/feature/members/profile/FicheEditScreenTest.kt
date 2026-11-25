@@ -126,4 +126,25 @@ class FicheEditScreenTest {
         assertEquals(0, count("Quitter sans enregistrer ?"))
         assertEquals(1, cancels.size)
     }
+
+    @Test
+    fun `the admin sees Profil, Foyer et parents and Retirer on a child's page`() {
+        val kid = TestFamily.kid.copy(birthDate = LocalDate.of(2015, 7, 1))
+        val form = fr.familia.app.feature.members.edit.MemberForm.from(kid)
+        val admin = FicheAdmin(TestFamily.family.households, listOf(TestFamily.adult, TestFamily.admin), emptySet(), isSelf = false, soleParentOf = emptyList())
+        show(FicheEdit(FicheDraft("", "", MemberCard(kid.id), form = form), changed = false, phoneValid = true, admin = admin), member = kid)
+        assertEquals(1, count("Profil"))
+        assertEquals(1, count("Foyer et parents"))
+        assertEquals(1, count("Retirer Kid1 de Familia"))
+        assertEquals(0, count("Seul l'administrateur peut changer le prénom."))
+    }
+
+    @Test
+    fun `on their own page the admin is never removed`() {
+        val form = fr.familia.app.feature.members.edit.MemberForm.from(TestFamily.admin)
+        val admin = FicheAdmin(TestFamily.family.households, listOf(TestFamily.adult), emptySet(), isSelf = true, soleParentOf = emptyList())
+        show(FicheEdit(FicheDraft("", "", MemberCard("admin1"), form = form), changed = false, phoneValid = true, admin = admin), member = TestFamily.admin)
+        assertEquals(1, count("Tu es l'administrateur principal : tu ne peux pas être retiré."))
+        assertEquals(0, count("Retirer Admin1"))
+    }
 }
