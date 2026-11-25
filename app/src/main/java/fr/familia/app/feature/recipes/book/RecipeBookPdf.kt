@@ -10,6 +10,7 @@ import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import fr.familia.app.core.model.RecipeCategory
 import fr.familia.app.core.print.PRINT_CLAY
 import fr.familia.app.core.print.PRINT_CLAY_DEEP
 import fr.familia.app.core.print.PRINT_INK
@@ -23,14 +24,15 @@ import java.io.FileOutputStream
 
 /*
  * The PDF of the recipe book (récit 47), made on the phone with android.graphics.pdf.PdfDocument:
- * A5 pages (148 × 210 mm, 420 × 595 points), a cover, the contents by part, then one recipe per page.
+ * A5 pages (148 × 210 mm, 420 × 595 points), a cover, the contents by category, then one recipe per page.
  * A long recipe goes on to the next page rather than being cut. Nothing leaves the phone here.
  */
 
 /** The words of the book, read from the resources by the route. */
 data class BookLabels(
     val contents: String,
-    val otherRecipes: String,
+    /** The name of a chapter: « Entrées », « Desserts »… */
+    val category: (RecipeCategory) -> String,
     val ingredients: String,
     val steps: String,
     val from: (String) -> String,
@@ -143,7 +145,7 @@ private class Pages(private val content: BookContent, private val labels: BookLa
         var next = 2 + pagesOfContents
         var index = 0
         content.sections.forEach { section ->
-            rows += ContentsRow.Part(section.name ?: labels.otherRecipes)
+            rows += ContentsRow.Part(labels.category(section.category))
             section.recipes.forEach { item ->
                 rows += ContentsRow.Entry(item.recipe.title, next)
                 next += counts[index++]
@@ -153,7 +155,7 @@ private class Pages(private val content: BookContent, private val labels: BookLa
     }
 
     private fun rowsWithoutPages(): List<ContentsRow> = content.sections.flatMap { section ->
-        listOf<ContentsRow>(ContentsRow.Part(section.name.orEmpty())) + section.recipes.map { ContentsRow.Entry(it.recipe.title, 0) }
+        listOf<ContentsRow>(ContentsRow.Part(labels.category(section.category))) + section.recipes.map { ContentsRow.Entry(it.recipe.title, 0) }
     }
 
     /** The first page starts under the title « Sommaire », the next ones at the top. */

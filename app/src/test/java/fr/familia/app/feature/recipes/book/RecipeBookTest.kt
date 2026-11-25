@@ -2,6 +2,7 @@ package fr.familia.app.feature.recipes.book
 
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeCategory
 import fr.familia.app.feature.events.TestFamily
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,17 +20,17 @@ class RecipeBookTest {
     private fun item(recipe: Recipe) = BookRecipe(recipe, null, null)
 
     @Test
-    fun `the contents go by first tag, by name, recipes by title, and those without a tag last`() {
+    fun `the book has one chapter per category, in the order of the carnet, recipes by title, empty ones left out`() {
         val sections = bookSections(
             listOf(
-                item(recipe("1", "Tarte", listOf("dessert"))),
+                item(recipe("1", "Tarte", listOf("dessert")).copy(category = RecipeCategory.Dessert)),
                 item(recipe("2", "Crêpes")),
-                item(recipe("3", "Clafoutis", listOf("Dessert", "été"))),
-                item(recipe("4", "Soupe", listOf("hiver"))),
+                item(recipe("3", "Clafoutis", listOf("été")).copy(category = RecipeCategory.Dessert)),
+                item(recipe("4", "Soupe", listOf("hiver")).copy(category = RecipeCategory.Entree)),
             ),
         )
-        assertEquals(listOf("Dessert", "Hiver", null), sections.map { it.name })
-        assertEquals(listOf("Clafoutis", "Tarte"), sections.first().recipes.map { it.recipe.title })
+        assertEquals(listOf(RecipeCategory.Entree, RecipeCategory.Dessert, RecipeCategory.Divers), sections.map { it.category })
+        assertEquals(listOf("Clafoutis", "Tarte"), sections[1].recipes.map { it.recipe.title })
         assertEquals(listOf("Crêpes"), sections.last().recipes.map { it.recipe.title })
     }
 

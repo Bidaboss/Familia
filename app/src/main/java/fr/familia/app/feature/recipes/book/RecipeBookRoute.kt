@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.feature.recipes.look
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Member
@@ -68,7 +69,8 @@ private suspend fun printBook(context: Context, content: BookContent, container:
     val res = context.resources
     val labels = BookLabels(
         contents = context.getString(R.string.recipe_book_contents),
-        otherRecipes = context.getString(R.string.recipe_book_other),
+        // The chapter keeps its plural even with one recipe (« Entrées »): the « (n) » of the list is not in the book.
+        category = { context.getString(it.look.chapterRes) },
         ingredients = context.getString(R.string.recipe_ingredients),
         steps = context.getString(R.string.recipe_steps),
         from = { context.getString(R.string.recipe_from, it) },
