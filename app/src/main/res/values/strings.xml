@@ -2681,12 +2681,9 @@
     <string name="all_recipes">Recettes</string>
     <string name="all_capsule">Capsule</string>
     <string name="all_who_is_it">Qui est-ce ?</string>
-    <string name="all_souvenirs">Souvenirs</string>
-    <string name="all_good_news">Actualités</string>
     <string name="all_year_in_review">Notre année</string>
     <string name="all_challenges">Défis</string>
     <string name="all_albums">Albums</string>
-    <string name="all_feed">La gazette</string>
     <string name="home_r1_add">Ajouter</string>
     <string name="home_r1_add_where">Dire où je suis</string>
     <string name="home_r1_add_event">Un événement</string>

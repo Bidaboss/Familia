@@ -1,19 +1,6 @@
 package fr.familia.app.core.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.VolunteerActivism
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CardGiftcard
-import androidx.compose.material.icons.outlined.CardTravel
-import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.VolunteerActivism
-import androidx.compose.ui.graphics.vector.ImageVector
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -248,18 +235,21 @@ data object CalendarFeedDestination
 enum class TopLevelDestination(
     val route: Any,
     @StringRes val labelRes: Int,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
+    /** Its picto in the bar, an emoji in color (récit 120): the same whether the tab is on or not. */
+    val emoji: String,
     /** The module that hides the tab while it is switched off (null: always shown). */
     val feature: Feature? = null,
+    /** The same emoji twice, a small one behind (Cadeaux, Voyages): ModuleEmoji. */
+    val double: Boolean = false,
 ) {
-    Home(HomeRoute, R.string.nav_home, Icons.Filled.Home, Icons.Outlined.Home, Feature.Home),
-    Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
-    Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
-    HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
+    Home(HomeRoute, R.string.nav_home, "🏡", Feature.Home),
+    Planning(PlanningRoute, R.string.nav_planning, "📅"),
+    Gifts(GiftsRoute, R.string.nav_gifts, "🎁", Feature.Gifts, double = true),
+    HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, "🤝", Feature.HelpRequests),
     /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (l'admin 22/11). */
-    Trips(TripsDestination, R.string.nav_trips, Icons.Outlined.CardTravel, Icons.Outlined.CardTravel, Feature.Trips),
-    Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
+    Trips(TripsDestination, R.string.nav_trips, "🧳", Feature.Trips, double = true),
+    /** Papa, maman, fille, garçon (l'admin, 25/11). */
+    Members(MembersRoute, R.string.nav_members, "👨‍👩‍👧‍👦"),
     ;
 
     /** A child reads « Mes envies » on the Cadeaux tab (carte DESIGN-4). */
