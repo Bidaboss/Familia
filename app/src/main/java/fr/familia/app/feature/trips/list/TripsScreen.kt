@@ -514,7 +514,7 @@ private fun HeroCard(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(232.dp)
+            .height(240.dp)
             .clip(RoundedCornerShape(24.dp))
             .clickable(role = Role.Button, onClick = { onOpenTrip(trip.id) })
             .clearAndSetSemantics { contentDescription = "$description. $openLabel" },
@@ -565,7 +565,8 @@ private fun HeroCard(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(trip.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(dates, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // Large text (19 sp bold): over a pale photo or the sand, white keeps the 3:1 of large text.
+            Text(dates, style = MaterialTheme.typography.titleMedium, fontSize = 19.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
                 figures.forEach { figure ->
                     Column {
