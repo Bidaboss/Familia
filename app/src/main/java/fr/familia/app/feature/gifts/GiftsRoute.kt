@@ -14,6 +14,8 @@ import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 
 /** Connects the Cadeaux tab to its ViewModel. */
 @Composable
@@ -27,6 +29,8 @@ fun GiftsRoute(
     onOpenSurprisePicker: () -> Unit = {},
     /** « Ajouter une envie » on the new tab (PRODUIT-119). */
     onAddWish: (listId: String) -> Unit = onOpenList,
+    /** A surprise I prepare (brief Cadeaux et Surprise, §2). */
+    onOpenSurprise: (String) -> Unit = {},
 ) {
     // For the whole family only (récit 63): off, the admin principal keeps the tab as it was.
     val surpriseButton = LocalFeatureFlags.current.isOnForFamily(Feature.SurpriseButton)
@@ -54,6 +58,15 @@ fun GiftsRoute(
     LaunchedEffect(wishesIds, countsVisits) {
         if (countsVisits && wishesIds.isNotEmpty()) visits.markFirstSeen(wishesIds)
     }
+    // The surprises I prepare, one tile each; nothing while they cannot be read.
+    val surpriseRepo = container?.surpriseRepository
+    val surprises by remember(surpriseRepo, currentMember.id) {
+        surpriseRepo?.observeMine(currentMember.id)?.catch { emit(emptyList()) } ?: flowOf(emptyList())
+    }.collectAsStateWithLifecycle(emptyList())
+    val family = (state as? GiftsUiState.Success)?.sections?.map { it.member }.orEmpty()
+    val tiles = surprises.mapNotNull { s ->
+        family.firstOrNull { it.id == s.beneficiaryId }?.let { SurpriseTile(s.id, it.firstName, s.date) }
+    }
     GiftsScreen(
         state = state,
         onOpenList = { listId ->
@@ -66,5 +79,7 @@ fun GiftsRoute(
         onOpenMyPage = onOpenMyPage,
         onOpenSurprisePicker = onOpenSurprisePicker,
         onAddWish = onAddWish,
+        surprises = tiles,
+        onOpenSurprise = onOpenSurprise,
     )
 }

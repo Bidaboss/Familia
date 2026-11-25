@@ -150,6 +150,8 @@ import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
 import fr.familia.app.feature.gifts.surprise.SurprisePickRoute
+import fr.familia.app.feature.gifts.surprise.SurpriseEditRoute
+import fr.familia.app.feature.gifts.surprise.SurpriseRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -182,7 +184,6 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.photo.LocalPhotoStorage
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberInitials
@@ -232,6 +233,8 @@ import fr.familia.app.core.theme.LocalPhotoTheme
 import fr.familia.app.core.theme.LocalPhotoExtent
 import fr.familia.app.core.theme.PhotoBackdrop
 import fr.familia.app.core.theme.PhotoScroll
+import fr.familia.app.core.theme.PhotoBanner
+import fr.familia.app.core.theme.PhotoTitleShadow
 import fr.familia.app.feature.home.PhotoHome
 import fr.familia.app.feature.home.PhotoHomeHeader
 import fr.familia.app.core.theme.TitleFont
@@ -868,11 +871,18 @@ fun FamiliaApp(
         // draws its own header in place of the title bar (règles 2, 3, 9 à 11).
         val photoTheme = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Home) && features.isOn(Feature.Home) }
         val photoScroll = remember { PhotoScroll() }
-        Box(Modifier.fillMaxSize()) {
+        // Règle 20 (DESIGN-157 A): Famille shows the same photo in a banner at its top.
+        val onMembers = currentDestination.isOn(TopLevelDestination.Members)
+        val bannerScroll = remember { PhotoScroll() }
+        LaunchedEffect(onMembers) { bannerScroll.reset() }
+        Box(if (photoTheme != null) Modifier.fillMaxSize() else Modifier.fillMaxSize().themeBackground()) {
         if (photoTheme != null) PhotoBackdrop(photoTheme, photoScroll)
+        if (onMembers) PhotoBanner(bannerScroll)
         Scaffold(
             // The theme's background and its pattern show behind the tabs, the photo behind the Accueil.
-            modifier = (if (photoTheme != null) Modifier else Modifier.themeBackground()).nestedScroll(topBarScroll.nestedScrollConnection),
+            modifier = Modifier
+                .nestedScroll(topBarScroll.nestedScrollConnection)
+                .then(if (onMembers) Modifier.nestedScroll(bannerScroll.connection) else Modifier),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
@@ -891,6 +901,7 @@ fun FamiliaApp(
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
+                        onPhoto = onMembers && LocalPhotoTheme.current != null,
                         onOpenTrips = onTrips,
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
@@ -1640,6 +1651,7 @@ fun FamiliaApp(
                             onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
+                            onOpenSurprise = { id -> navController.navigate(SurpriseDestination(id)) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
                         )
                     }
@@ -1648,10 +1660,44 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
+                            // « Nouvelle surprise » for this person (brief §3), in place of the picker.
                             onPick = { id ->
                                 navController.popBackStack()
-                                navController.navigate(GiftListDestination(ideasListId(id)))
+                                navController.navigate(SurpriseEditDestination(beneficiaryId = id))
                             },
+                        )
+                    }
+                    composable<SurpriseEditDestination> { entry ->
+                        val args = entry.toRoute<SurpriseEditDestination>()
+                        SurpriseEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            beneficiaryId = args.beneficiaryId,
+                            surpriseId = args.surpriseId,
+                            onDone = { id ->
+                                if (id == null) {
+                                    // Deleted: the surprise behind closes too.
+                                    navController.popBackStack<SurpriseDestination>(inclusive = true)
+                                } else if (args.surpriseId == null) {
+                                    // Created or joined: the surprise opens in place of the form.
+                                    navController.popBackStack()
+                                    navController.navigate(SurpriseDestination(id))
+                                } else {
+                                    navController.popBackStack()
+                                }
+                            },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<SurpriseDestination> { entry ->
+                        val args = entry.toRoute<SurpriseDestination>()
+                        SurpriseRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            surpriseId = args.surpriseId,
+                            onBack = { navController.popBackStack() },
+                            onSettings = { navController.navigate(SurpriseEditDestination(surpriseId = args.surpriseId)) },
+                            onAddIdea = { personId -> navController.navigate(NotebookIdeaDestination(personId = personId)) },
                         )
                     }
                     composable<NotebookDestination> {
@@ -2129,7 +2175,10 @@ private fun TabTopBar(
     onAdd: (() -> Unit)? = null,
     /** The round « Retour » of a tab opened as a page: the Planning (récit 82). */
     onBack: (() -> Unit)? = null,
+    /** The tab lies on the banner of its photo (règle 20): its title is white until the content scrolls under it. */
+    onPhoto: Boolean = false,
 ) {
+    val overPhoto = onPhoto && (scrollBehavior?.state?.overlappedFraction ?: 0f) == 0f
     TopAppBar(
         scrollBehavior = scrollBehavior,
         navigationIcon = {
@@ -2144,7 +2193,7 @@ private fun TabTopBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
+            titleContentColor = if (overPhoto) Color.White else FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
         ),
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
         title = {
@@ -2158,7 +2207,11 @@ private fun TabTopBar(
                 }
                 Text(
                     greeting ?: stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
-                    style = base.copy(fontSize = base.fontSize * TAB_TITLE_SCALE, lineHeight = base.lineHeight * TAB_TITLE_SCALE),
+                    style = base.copy(
+                        fontSize = base.fontSize * TAB_TITLE_SCALE,
+                        lineHeight = base.lineHeight * TAB_TITLE_SCALE,
+                        shadow = if (overPhoto) PhotoTitleShadow else null,
+                    ),
                 )
             }
         },

@@ -463,6 +463,27 @@ Tant que le module n'est pas allumé pour la famille (`config/app.features.gifts
 
 Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.
 
+### `surprises/{surpriseId}` (brief Cadeaux et Surprise du 25/11)
+
+Une surprise préparée pour une personne, le bénéficiaire, par ses membres. **Le bénéficiaire ne la lit jamais**, ni avant, ni le jour J, ni après, même s'il est l'admin principal : aucune exception dans les règles.
+
+| Champ | Type | Règle |
+|---|---|---|
+| `beneficiaryId` | string | un membre qui existe ; ne change jamais |
+| `title` | string | 1 à 60 caractères |
+| `occasion` | string | `christmas`, `birthday` ou `other` |
+| `date` | string | AAAA-MM-JJ |
+| `memberIds` | string[] | 1 à 30, jamais le bénéficiaire, toujours le créateur |
+| `creatorId`, `creatorName` | string | un adulte (PRODUIT, 25/11) ; ne changent jamais |
+| `status` | string | `preparing` (la suite arrive avec « C'est offert ») |
+| `createdAt`, `updatedAt` | timestamp | heure du serveur |
+
+Lecture : les membres seulement (requête `memberIds array-contains`). Le créateur change les réglages et les membres. Un autre membre avec l'appli (adulte ou enfant avec l'appli) s'ajoute lui-même, et rien d'autre (« Rejoindre »), sans pouvoir la lire avant. Le créateur la supprime. « Prête » et « À confirmer » ne sont pas stockés : ils se déduisent des membres et de la date.
+
+### `openSurprises/{surpriseId}`
+
+`{beneficiaryId, title, creatorName, updatedAt}`, écrit par le créateur dans le même lot que la surprise (les valeurs sont vérifiées contre elle), supprimé avec elle. Lisible par toute la famille sauf le bénéficiaire : à la création d'une surprise, l'appli prévient qu'il en existe déjà une pour la même personne et propose « Rejoindre ».
+
 ### `notebooks/{memberId}/entries/{entryId}` (récit 9 bis, « Mon carnet de cadeaux »)
 
 Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni la personne qui recevra, ni l'admin principal, ni quelqu'un qui agit pour lui. Le carnet n'est pas dans l'export.
