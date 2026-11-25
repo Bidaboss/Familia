@@ -96,6 +96,8 @@ data class GiftItem(
      * household. It shows in their wishes too; like the beneficiary, they never see who reserved it.
      */
     val coBeneficiaryId: String? = null,
+    /** « Où trouver le cadeau ? » (correctif E6): a shop, a town or a site, in its keeper's words. */
+    val whereToFind: String? = null,
 )
 
 /** A wish of [listId] shared with a member (récit 73), as their own list shows it. */

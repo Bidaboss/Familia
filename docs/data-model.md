@@ -104,7 +104,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `placeKind` | `address` \| `household` \| null, facultatif | Ce qu'est le lieu (récit 74). Absent ou null : « Autre », le texte libre des événements d'avant. `address` : une adresse, « Itinéraire » l'ouvre dans Maps ou Waze. `household` : « Chez un foyer ». Avec `address` ou `household`, `place` n'est jamais vide |
 | `placeHouseholdId` | `householdId` ou null, facultatif | Le foyer de « Chez un foyer », qui doit exister ; null sinon. Ce n'est pas le destinataire : on peut fêter chez un autre foyer. L'adresse vient de la fiche du foyer (« Adresse du foyer », récit 66) ; sans elle, pas d'« Itinéraire » |
 | `note` | texte (1 000 au plus) ou null | Note facultative |
-| `mentionIds` | liste de `memberId`, facultative, 20 au plus | Les membres nommés « @Prénom » dans la note (Kévin, 19/11). Chacun nouvellement nommé reçoit « X t'a nommé dans « Titre » », directement, sans la notification habituelle en plus. Une série la copie sur chaque jour |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus | Les membres nommés « @Prénom » dans la note (l'admin, 19/11). Chacun nouvellement nommé reçoit « X t'a nommé dans « Titre » », directement, sans la notification habituelle en plus. Une série la copie sur chaque jour |
 | `targetType` | `self` \| `child` \| `household` \| `family` | Pour qui : moi, un enfant, un foyer, toute la famille |
 | `targetMemberId` | `memberId` ou null | L'auteur pour `self`, l'enfant pour `child`, sinon null |
 | `householdId` | `householdId` ou null | Le foyer pour `household`, sinon null |
@@ -549,7 +549,7 @@ Un commentaire sous un événement. Visible dans l'événement une fois le modul
 | `createdAt` | horodatage serveur | |
 | `expireAt` | horodatage | 365 jours après l'écriture, posé par le téléphone (les règles acceptent 360 à 370 jours). Firestore efface le commentaire à cette date (TTL, groupe de collections `comments`) |
 | `editedAt` | horodatage serveur, absent tant que le texte n'a pas changé | Affiche « modifié » |
-| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (Kévin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (l'admin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
 
 Droits : tous les membres lisent et écrivent les leurs. Seul l'auteur change le texte et les membres nommés (et rien d'autre). L'auteur, l'admin principal et un chef du foyer de l'auteur retirent un commentaire. L'appli montre les 30 plus récents, puis 30 de plus à chaque « Voir les commentaires plus anciens ».
 
@@ -613,7 +613,7 @@ Cloud Functions (`functions/src/goodNews.ts`) :
 | `authorId`, `authorName` | `memberId`, texte | Qui a écrit, et son prénom à ce moment-là |
 | `createdAt` | horodatage serveur | |
 | `editedAt` | horodatage serveur, facultatif | Posé quand l'auteur change le texte |
-| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (Kévin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (l'admin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
 
 Pas de date d'expiration : les commentaires restent tant que la nouvelle existe et partent avec elle (`onGoodNewsDeleted`). Tous les membres les lisent et écrivent les leurs, un enfant avec l'appli aussi, sans validation (PRODUIT-102). L'auteur change le texte ; l'auteur, l'auteur de la nouvelle, un adulte responsable de l'auteur, un chef de famille du foyer de la nouvelle et l'admin principal le retirent. `goodNews/{postId}/commentMutes/{memberId}` (`mutedAt`) : « Ne plus être prévenu », écrit et lu par ce membre seul.
 
@@ -636,10 +636,10 @@ Spec : « Spec Familia : coups de main » (tenue par [PRODUIT]), avec les cartes
 | `date` | texte `AAAA-MM-JJ` | Obligatoire, pas dans le passé à la création ni quand on la change |
 | `startTime`, `endTime` | texte `HH:mm` ou null | Facultatives ; la fin après le début |
 | `place` | texte (120 au plus) ou null | Lieu facultatif |
-| `placeKind`, `placeHouseholdId` | comme un événement, facultatifs | « Où » comme les événements (récit 74, Kévin 20/11) : absent pour « Autre » (les demandes d'avant), `address` pour une adresse, `household` pour « Chez un foyer » avec son foyer. `place` garde le texte affiché (le nom du foyer) |
+| `placeKind`, `placeHouseholdId` | comme un événement, facultatifs | « Où » comme les événements (récit 74, l'admin 20/11) : absent pour « Autre » (les demandes d'avant), `address` pour une adresse, `household` pour « Chez un foyer » avec son foyer. `place` garde le texte affiché (le nom du foyer) |
 | `note` | texte (1 000 au plus) ou null | Note facultative |
-| `mentionIds` | liste de `memberId`, facultative, 20 au plus, tous dans `notifyIds` | Les personnes prévenues nommées « @Prénom » dans la note (Kévin, 19/11). Chacune nouvellement nommée reçoit « X t'a nommé dans « Titre » », directement |
-| `photo` | texte ou absent/null | Facultatif (Kévin 16/11 : un QR code, ce qu'il faut récupérer) : la base `helpRequests/{requestId}/{memberId}/{photoId}` de deux fichiers Storage, `.jpg` (500 Ko au plus) et `-thumb.jpg`, envoyés avant la demande dans le dossier de qui écrit. Seuls ceux de `viewerIds` les lisent (pas même l'admin principal, limite de deux lectures de Storage). Le serveur les efface avec la demande |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, tous dans `notifyIds` | Les personnes prévenues nommées « @Prénom » dans la note (l'admin, 19/11). Chacune nouvellement nommée reçoit « X t'a nommé dans « Titre » », directement |
+| `photo` | texte ou absent/null | Facultatif (l'admin 16/11 : un QR code, ce qu'il faut récupérer) : la base `helpRequests/{requestId}/{memberId}/{photoId}` de deux fichiers Storage, `.jpg` (500 Ko au plus) et `-thumb.jpg`, envoyés avant la demande dans le dossier de qui écrit. Seuls ceux de `viewerIds` les lisent (pas même l'admin principal, limite de deux lectures de Storage). Le serveur les efface avec la demande |
 | `authorId`, `authorName` | `memberId`, texte | Le demandeur et son prénom au moment de la demande, jamais modifiés |
 | `forMemberId` | `memberId` | Le membre aidé : le demandeur, ou un de ses enfants pour un adulte |
 | `notifyIds` | liste de `memberId`, 1 à 30 | Les personnes prévenues, jamais le demandeur. Pour un enfant, ses adultes responsables y sont toujours (sauf s'il est lui-même le demandeur) |
@@ -750,7 +750,7 @@ Un objet écrit avant le 17/11 (avec `status` et `borrowerId`) se lit comme libr
 
 ## À qui le tour ? (PRD, récit 58), supprimé le 20/11
 
-La fonction n'existe plus : plus d'onglet dans Entraide, plus d'icône dans « Tout Familia », plus de ligne dans Administration > Modules, plus de lien de notification (`turnId`). Une clé `features.turns` restée dans `config/app` est ignorée. `onTurnChanged` reste exporté sans rien faire, car « Publier Firebase » déploie sans `--force`. Les règles refusent toute lecture et toute écriture sous `turns/`. Avec l'accord de Kévin (20/11), les données sont effacées une seule fois par `eraseTurns` (`functions/src/turns.ts`) : au premier changement de `config/app` après le déploiement (`onTurnsErase`), sinon par la tâche de 18 h. Le nombre de documents est écrit dans le journal avant l'effacement, puis gardé dans `migrations/turnsErased` (`count`, `at`), qui empêche un second passage.
+La fonction n'existe plus : plus d'onglet dans Entraide, plus d'icône dans « Tout Familia », plus de ligne dans Administration > Modules, plus de lien de notification (`turnId`). Une clé `features.turns` restée dans `config/app` est ignorée. `onTurnChanged` reste exporté sans rien faire, car « Publier Firebase » déploie sans `--force`. Les règles refusent toute lecture et toute écriture sous `turns/`. Avec l'accord de l'admin (20/11), les données sont effacées une seule fois par `eraseTurns` (`functions/src/turns.ts`) : au premier changement de `config/app` après le déploiement (`onTurnsErase`), sinon par la tâche de 18 h. Le nombre de documents est écrit dans le journal avant l'effacement, puis gardé dans `migrations/turnsErased` (`count`, `at`), qui empêche un second passage.
 
 ## Arbre généalogique (PRD, récit 40)
 
@@ -869,7 +869,7 @@ Droits : tous les membres les voient. L'auteur de la recette et l'admin principa
 | `text` | texte | Le commentaire, de 1 à 500 caractères, jamais modifié |
 | `authorId`, `authorName` | texte | Le membre qui l'a écrit et son prénom |
 | `createdAt` | horodatage | Heure du serveur |
-| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (Kévin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (l'admin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
 
 Droits : tous les membres lisent les commentaires et en écrivent en leur nom. Son auteur, l'auteur de la recette ou l'admin principal retire un commentaire.
 

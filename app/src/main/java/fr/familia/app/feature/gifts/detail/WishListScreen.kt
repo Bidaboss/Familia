@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.detail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -61,7 +61,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.Feature
@@ -78,7 +77,9 @@ import fr.familia.app.core.theme.photoCard
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.gifts.PictureOver
 import fr.familia.app.feature.gifts.formatEuros
+import fr.familia.app.feature.gifts.rememberLinkImage
 import fr.familia.app.feature.gifts.surpriseAccent
 import fr.familia.app.feature.gifts.surpriseDark
 import fr.familia.app.feature.gifts.wishOccasionLabel
@@ -109,6 +110,23 @@ internal fun WishListScreen(
     val owner = state.isMine || state.keptFromMe
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var openItemId by rememberSaveable { mutableStateOf<String?>(null) }
+    // The page of one of my wishes (correctif E9), over the list; back closes it.
+    var mineId by rememberSaveable { mutableStateOf<String?>(null) }
+    val mine = state.items.firstOrNull { it.item.id == mineId }?.item?.takeIf { owner }
+    if (mine != null) {
+        BackHandler { mineId = null }
+        MyWishDetail(
+            item = mine,
+            onBack = { mineId = null },
+            onEdit = { actions.onEditItem(mine.id) },
+            onSetOccasion = { actions.onSetWishOccasion(mine.id, it) },
+            onRemove = {
+                mineId = null
+                actions.onRemoveWish(mine.id)
+            },
+        )
+        return
+    }
     Box(modifier.fillMaxSize().then(if (photo == null) Modifier.themeBackground() else Modifier)) {
         if (photo != null) PhotoBackdrop(photo, scroll)
         Column(Modifier.fillMaxSize()) {
@@ -138,7 +156,7 @@ internal fun WishListScreen(
                 if (showsIdeas && tab == 1) {
                     ideasTab(state.beneficiary.firstName, ideas.orEmpty(), actions)
                 } else {
-                    wishesTab(state, owner, freshIds, actions, onOpen = { openItemId = it })
+                    wishesTab(state, owner, freshIds, actions, onOpen = { openItemId = it }, onOpenMine = { mineId = it })
                 }
             }
         }
@@ -154,6 +172,7 @@ private fun LazyListScope.wishesTab(
     freshIds: Set<String>,
     actions: GiftListActions,
     onOpen: (String) -> Unit,
+    onOpenMine: (String) -> Unit,
 ) {
     item(key = "notice") {
         val name = state.beneficiary.firstName
@@ -183,8 +202,9 @@ private fun LazyListScope.wishesTab(
         val item = row.item
         val edits = owner && row.canEdit
         GlassRow(
-            onClick = { if (edits) actions.onEditItem(item.id) else onOpen(item.id) },
-            onClickLabel = stringResource(if (edits) R.string.gift_item_edit_action else R.string.gift_item_details),
+            // My own wish opens its page (correctif E9, règle 155), someone else's its sheet.
+            onClick = { if (edits) onOpenMine(item.id) else onOpen(item.id) },
+            onClickLabel = stringResource(R.string.gift_item_details),
         ) {
             Vignette(item.title, size = if (owner) 44 else 52) { WishPicture(item) }
             Column(Modifier.weight(1f)) {
@@ -193,7 +213,7 @@ private fun LazyListScope.wishesTab(
                 Text(line, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
             if (edits) {
-                IconButton(onClick = { actions.onEditItem(item.id) }, modifier = Modifier.size(56.dp)) {
+                IconButton(onClick = { onOpenMine(item.id) }, modifier = Modifier.size(56.dp)) {
                     val label = stringResource(R.string.wishlist_edit_a11y, item.title)
                     Text("⋯", fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { contentDescription = label })
                 }
@@ -225,7 +245,8 @@ private fun LazyListScope.wishesTab(
             Button(
                 onClick = actions.onAddItem,
                 colors = ButtonDefaults.buttonColors(containerColor = surpriseDark(), contentColor = Color.White),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                // Full-width action of Cadeaux: 48 dp (règle 57 of regles-cadeaux-themes-photo.md, l'admin 25/11).
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text("+ " + stringResource(R.string.gift_add_wish), fontWeight = FontWeight.Bold) }
         }
     }
@@ -409,15 +430,10 @@ private fun Vignette(seed: String, size: Int, content: @Composable () -> Unit) {
 @Composable
 private fun WishPicture(item: GiftItem) {
     val photo = item.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
-    when {
-        photo != null -> CoverThumbnail(photo, size = 52.dp)
-        item.imageUrl != null -> AsyncImage(
-            model = item.imageUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
-        else -> Text("🎁", fontSize = 24.sp)
+    if (photo != null) {
+        CoverThumbnail(photo, size = 52.dp)
+    } else {
+        PictureOver(rememberLinkImage(item), Modifier.fillMaxSize()) { Text("🎁", fontSize = 24.sp) }
     }
 }
 

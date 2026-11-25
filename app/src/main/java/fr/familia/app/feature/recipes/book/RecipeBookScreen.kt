@@ -36,6 +36,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.feature.recipes.look
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.print.printFailedText
 import fr.familia.app.core.theme.ClayTint
@@ -177,7 +178,8 @@ private fun RecipeRow(item: BookRecipe, checked: Boolean, onToggle: () -> Unit) 
         Checkbox(checked = checked, onCheckedChange = null)
         Column(Modifier.weight(1f)) {
             Text(item.recipe.title, style = MaterialTheme.typography.bodyLarge)
-            val about = listOfNotNull(item.recipe.tags.firstOrNull(), item.origin?.let { stringResource(R.string.recipe_from, it) })
+            // Its chapter in the book (the category), then where it comes from.
+            val about = listOfNotNull(stringResource(item.recipe.category.look.labelRes), item.origin?.let { stringResource(R.string.recipe_from, it) })
             if (about.isNotEmpty()) {
                 Text(about.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(ClayTint.Plain))
             }

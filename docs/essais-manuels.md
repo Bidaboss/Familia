@@ -44,7 +44,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 6. Sur B, ouvre Famille, puis Notifications, et coupe « Rappel la veille à 18 h ». **Attendu :** le soir suivant, B ne reçoit plus de rappel.
 7. Sur A, supprime l'événement. **Attendu :** B reçoit « Événement annulé ».
 8. Sur B, bloque les notifications de Familia dans les réglages Android, puis rouvre Famille et Notifications. **Attendu :** un encadré dit que les notifications sont bloquées, avec un bouton pour les autoriser.
-9. Avec A et B dans deux foyers différents : sur A, ajoute un événement pour son foyer seulement. **Attendu :** B ne reçoit rien, mais le voit dans le planning avec « Toute la famille ». Le planning n'a plus de filtre par foyer (Kévin le 18/11) : B voit toujours toute la famille.
+9. Avec A et B dans deux foyers différents : sur A, ajoute un événement pour son foyer seulement. **Attendu :** B ne reçoit rien, mais le voit dans le planning avec « Toute la famille ». Le planning n'a plus de filtre par foyer (l'admin le 18/11) : B voit toujours toute la famille.
 10. Sur B, ajoute-toi en « Je viens » sur l'événement du foyer de A (repasse sur « Toute la famille »), puis sur A, change son heure. **Attendu :** B reçoit « Événement modifié ».
 11. Sur B, ouvre Famille, Notifications, puis « Réglages Android des notifications ». **Attendu :** les catégories Planning, Rappels et Cadeaux apparaissent (les autres arrivent avec leur module), chacune avec son interrupteur.
 
@@ -324,7 +324,7 @@ Sans interrupteur. À faire aussi en texte à 130 % et 200 %, en thème sombre e
 5. Dans les listes des bons plans et des objets, les filtres sont des pilules de 56 dp. Les actualités : la barre du haut commune, et la pilule « Les petits ».
 6. « Publier une actualité ». **Attendu :** les tuiles « Ton actualité », « Photos (1 à 3) », « De qui est cette nouvelle ? » (des ronds par personne) et « En plus ». « Publier pour toute la famille » est le bouton noir en bas. Sans photo, l'écran remonte jusqu'à la tuile des photos.
 
-## « Rejoignez-moi » revenu sur l'Accueil (Kévin, 20/11)
+## « Rejoignez-moi » revenu sur l'Accueil (l'admin, 20/11)
 
 Sans interrupteur nouveau, derrière « Lieux ». Deux téléphones, A et B.
 
@@ -334,7 +334,7 @@ Sans interrupteur nouveau, derrière « Lieux ». Deux téléphones, A et B.
 3. Sur A, ouvre l'Accueil. **Attendu :** la même tuile avec « Tu partages ce lieu jusqu'à … » et « Ne plus partager ». Touche-le : la tuile disparaît sur A, et le lieu disparaît sur B.
 4. Sans partage en cours, ou au bout de 2 h. **Attendu :** pas de tuile.
 
-## Défi du mois de l'Accueil précisé (Kévin, 20/11)
+## Défi du mois de l'Accueil précisé (l'admin, 20/11)
 
 Sans interrupteur. À partir du 1er décembre, quand un défi tourne.
 
@@ -629,7 +629,7 @@ Avec l'interrupteur « Partager » allumé :
 2. Ouvre l'actualité d'un enfant d'un autre foyer : l'image part sans la photo. Celle de ton enfant part avec.
 3. Ouvre un coup de main que tu as demandé à toute la famille, encore ouvert : Partager donne le titre et le moment, sans le lieu ni la note. Le bouton n'apparaît pas sur une demande faite à quelques personnes seulement, ni une fois la demande prise, ni sur celle de quelqu'un d'autre.
 
-## Une photo dans un coup de main (Kévin 16/11)
+## Une photo dans un coup de main (l'admin 16/11)
 1. Demande un coup de main, touche « Ajouter une photo », prends la photo d'un QR code ou choisis-la dans la galerie, puis envoie.
 2. Sur un téléphone prévenu, ouvre la demande : la photo est entière, sans être coupée. Touche-la : elle s'ouvre en grand sur fond noir, prête à être scannée. « Fermer » revient à la demande.
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
@@ -1340,7 +1340,7 @@ Deux téléphones, A et B. Le fil d'actualité est allumé.
 7. Avec TalkBack, place-toi sur le cœur. **Attendu :** « Mettre un cœur », puis l'action « Choisir une réaction ».
 8. **Administration**, « Voir comme… » un membre. **Attendu :** le cœur ne réagit pas, et aucune bulle ne s'affiche.
 
-## Nommer quelqu'un avec « @ » (Kévin, 19/11)
+## Nommer quelqu'un avec « @ » (l'admin, 19/11)
 
 Deux téléphones, A et B, de deux membres différents. Publier Firebase a été lancé avant l'APK (règles et notifications).
 
@@ -1356,7 +1356,7 @@ Deux téléphones, A et B, de deux membres différents. Publier Firebase a été
 10. Modifie un de tes commentaires d'événement et retire le nom. **Attendu :** le texte change, sans gras.
 11. **Administration**, « Voir comme… » un membre. **Attendu :** les noms sont en gras, mais les toucher n'ouvre rien, et il n'y a aucun champ pour écrire.
 
-## Nommer quelqu'un dans la description d'un événement ou d'un coup de main (Kévin, 19/11)
+## Nommer quelqu'un dans la description d'un événement ou d'un coup de main (l'admin, 19/11)
 
 Deux téléphones, A et B, de deux membres différents. Publier Firebase a été lancé avant l'APK.
 
@@ -1419,7 +1419,7 @@ Module « Fil d'actualité » allumé. Éteint, Albums reste la liste d'avant.
 
 Seul Planning depuis PRODUIT-131 : l'interrupteur « Nouveau Planning », l'ancien écran et sa vue « Liste » sont retirés.
 
-1. Ouvre l'onglet **Planning**. **Attendu :** en haut, « ‹ Du … au … ▾ › », avec en dessous « Semaine · toute la famille ». Dans la barre, à côté de « ? », un « + » rond, et plus de rond lilas du foyer (Kévin le 18/11). Il n'y a plus de bouton « Ajouter » en bas, ni d'onglets « Mois | Liste ».
+1. Ouvre l'onglet **Planning**. **Attendu :** en haut, « ‹ Du … au … ▾ › », avec en dessous « Semaine · toute la famille ». Dans la barre, à côté de « ? », un « + » rond, et plus de rond lilas du foyer (l'admin le 18/11). Il n'y a plus de bouton « Ajouter » en bas, ni d'onglets « Mois | Liste ».
 2. **Attendu :** la frise de 7 jours, comme sur l'Accueil, avec le même mot pour chaque jour. Aujourd'hui est choisi. Sous la frise, « Aujourd'hui, … », puis les jours suivants de la semaine qui ont quelque chose.
 3. Regarde une carte. **Attendu :** à gauche, un bloc pâle avec l'heure en gros (« 18 ») et les minutes dessous (« h00 »), « Journée » s'il n'y a pas d'heure. Au milieu : le titre, le lieu, la note s'il y en a une, les photos de ceux qui y vont (4 au plus, puis « +2 »), et « 3 y vont » en vert, ou « Tu y vas ». À droite, la photo de couverture s'il y en a une.
 4. Pour un anniversaire, **attendu :** un gâteau et « Journée » dans le bloc. Pour un voyage de plusieurs jours, **attendu :** « JOUR 2 sur 3 », avec les dates à la place du lieu.
@@ -1723,7 +1723,7 @@ Sous un mot publié, la page de l'étape a un bloc « Commentaires » (le même 
 1. Ouvre une étape qui a un mot. **Attendu :** sous le mot (et le cœur), « Commentaires », la phrase « Pas encore de commentaire… » et le champ. Sans mot, ou pendant l'écriture d'un mot neuf : pas de bloc.
 2. Écris un commentaire avec `@` et un prénom, envoie. **Attendu :** il apparaît signé, la personne citée est prévenue comme pour un événement.
 3. Modifie puis retire ton commentaire. Un autre membre ne peut pas modifier le tien.
-4. L'auteur du mot retire le commentaire d'un autre ; Kévin (admin principal) aussi ; un simple suiveur ne retire que les siens.
+4. L'auteur du mot retire le commentaire d'un autre ; l'admin (admin principal) aussi ; un simple suiveur ne retire que les siens.
 5. Compte qui ne suit pas le voyage : il n'ouvre pas la page. « Voir comme » : les commentaires se lisent, le champ n'envoie rien.
 6. Texte à 200 % et TalkBack : même lecture que sous un événement.
 
@@ -1789,7 +1789,7 @@ Rien à publier pour ces essais : aucune nouvelle donnée ni règle. Il faut un 
 
 ## APK allégée par R8 (audit du 22/11)
 
-L'APK de publication passe par R8 et le tri des ressources. Kévin a choisi (22/11) de la publier
+L'APK de publication passe par R8 et le tri des ressources. L'admin a choisi (22/11) de la publier
 directement : la famille essaie avec lui. Tout doit marcher comme avant ; un écran qui plante ou
 une image qui manque vient sans doute de R8 (le plantage arrive dans Administration > Plantages).
 Pour revenir en arrière : remettre isMinifyEnabled et isShrinkResources à false et republier.
@@ -1845,7 +1845,7 @@ Rien à publier : aucune règle ni function. (Plus d'interrupteur depuis : actif
 
 ## Compte à rebours du voyage (récit 95, temps 2, première partie)
 
-Rien à publier : aucune règle ni function. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
+Rien à publier : aucune règle ni function. Pas d'interrupteur : actif pour tous (décision de l'admin, 22/11).
 1. Ouvrir un voyage qui commence dans plus de 2 jours : en haut de la carte « Résumé », « 4 nuits avant le départ ».
 2. La veille : « Demain, c'est le départ ». Le jour du départ : « C'est le jour J ».
 3. Pendant le voyage : « Jour 2 sur 6 ». Après le retour : rien.
@@ -1853,12 +1853,12 @@ Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivante
 
 ## « À savoir sur… » dans la page d'étape (récit 96, temps 2)
 
-Rien à publier : aucune règle ni function, rien n'est enregistré. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
+Rien à publier : aucune règle ni function, rien n'est enregistré. Pas d'interrupteur : actif pour tous (décision de l'admin, 22/11).
 1. Ouvrir une étape d'un voyage dont le lieu est connu de Wikivoyage (« La Samoure », « Lyon »), page « Le mot de l'étape ».
 2. Sous le mot : la tuile « À savoir sur La Samoure » (3 lignes environ), « Lire la suite » (ouvre le navigateur) et « Source : Wikivoyage · CC BY-SA ».
 3. Pendant la recherche : des blocs gris et « On cherche des infos sur ce lieu… », jamais d'indicateur qui tourne.
 4. Lieu inconnu, sans réseau ou page qui nomme plusieurs lieux : la tuile ne s'affiche pas.
-## Voyage : plus d'interrupteurs, tout est actif (décision de Kévin, 22/11)
+## Voyage : plus d'interrupteurs, tout est actif (décision de l'admin, 22/11)
 
 Rien à publier : aucune règle ni function. Les modules « Carte du voyage avec les rues », « Idées autour d'une étape », « Globe animé du voyage » et « Créer un voyage par sa destination » ont disparu de Administration > Modules : tout est actif pour tous.
 1. « + » sur la liste des voyages : « Où allez-vous ? » s'ouvre d'abord (« Je tape un nom » reste possible).
@@ -2660,7 +2660,7 @@ Sur un téléphone en Android 10 ou plus :
 4. Dès l'ouverture, avant les images satellite : le globe est une Terre dessinée (terres beiges, mers bleues), plus jamais noir ; les images la recouvrent en quelques secondes. Ensuite le globe reste en satellite, il ne passe pas sur la Terre dessinée, et « Plantages » n'a pas de ligne « globe : imagerie absente ».
 5. Sans réseau dès l'ouverture : au bout de 8 s, Terre dessinée, et la ligne « globe : imagerie absente 8 s (0 sources), Terre dessinée ».
 6. Une destination dont le nom exact n'a pas de page Wikipédia (« Samoure, Charente », un camping…) : la photo vient du nom avant la virgule, sinon de la recherche Wikipédia, sinon d'une page à moins de 10 km. « Plantages » ne montre plus « refusé 404 ».
-7. Si aucune photo n'est trouvée : une ligne « Photo du lieu : aucune photo : nom, recherche et 10 km autour » (ou « lieu sans position »), sans le nom du lieu.
+7. Si aucune photo n'est trouvée : une ligne « Photo du lieu : aucune photo : nom, recherche, Wikidata et 10 km » (ou « lieu sans position »), sans le nom du lieu.
 
 ## Voyages : l'avatar en haut à droite, retour E-62
 
@@ -2698,3 +2698,20 @@ Sur un téléphone en Android 10 ou plus :
 3. Sur un téléphone qui gardait A ou B : le globe est en C dès l'ouverture.
 4. Le zoom reste : deux doigts écartés pour s'approcher, le globe se promène au doigt, le relief se dresse en 3D sur les montagnes en gros plan ; deux doigts rapprochés pour revenir au globe entier.
 5. Toucher le point d'un voyage, de loin ou en gros plan : le voyage s'ouvre.
+
+## Voyage : le « + » d'un transport sur sa propre ligne, au-dessus (retour du 25/11 soir)
+
+**Publier Firebase : non.**
+1. Ouvrir un voyage avec un transport (« Voiture · … ») : le « + » n'est plus à gauche du transport, il est sur sa propre ligne, juste au-dessus, entre l'étape d'avant et le transport.
+2. Le transport commence au même retrait que les autres blocs, aligné sous le « + ».
+3. Toucher ce « + » : le menu d'ajout s'ouvre ; ce qui est ajouté se place avant le transport.
+4. Deux transports qui se suivent : chacun a son « + » au-dessus de lui.
+5. Les « + » après une destination ne changent pas.
+
+## Voyage : photo d'une destination par OpenStreetMap et Wikidata (DEV-1, 25/11)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Une destination placée sur la carte, dont le nom n'a pas de page Wikipédia en français (un village à l'étranger, une petite île) : la photo vient maintenant de l'élément Wikidata du village ou du site d'OpenStreetMap à cet endroit, avec son auteur et sa licence en crédit.
+2. Une destination qui avait déjà une photo par Wikipédia : la même photo qu'avant.
+3. Si rien n'est trouvé : la photo d'une page à moins de 10 km, sinon le dessin, comme avant. « Plantages » ne montre rien pour ce cas.
+

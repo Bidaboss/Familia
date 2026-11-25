@@ -23,7 +23,7 @@ import fr.familia.app.core.ui.LocalMemberPhotos
  */
 internal val LocalMascotFruits = staticCompositionLocalOf<List<WelcomeFruit>> { emptyList() }
 
-/** From this size, the fruits are the members' photos (choix de Kévin, 20/11): smaller, a photo cannot be read. */
+/** From this size, the fruits are the members' photos (choix de l'admin, 20/11): smaller, a photo cannot be read. */
 private val PHOTOS_FROM = 100.dp
 
 /** A fruit with a photo is a little bigger than on the icon, so that the face can be seen. */

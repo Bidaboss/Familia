@@ -49,4 +49,23 @@ class RolesTest {
         assertTrue(family.canChangePhoto(owner, adult))
         assertTrue(family.canChangePhoto(owner, child))
     }
+
+    @Test
+    fun `a child is looked after by its responsible adults, in any household, and by the chef of its household`() {
+        val parent = m("parent", "h2")
+        val kid = Member("kid", "kid", null, null, "h1", MemberProfile.ChildWithApp, false, listOf("parent"), null)
+        assertTrue(caresFor(parent, kid))
+        assertTrue(caresFor(chef, kid))
+        assertTrue(caresFor(chef, small))
+        assertFalse(caresFor(otherAdult, kid))
+        assertFalse(caresFor(chef, neighbourChild))
+        assertTrue(family.canChangePhoto(parent, kid))
+    }
+
+    @Test
+    fun `nobody looks after an adult, nor themselves, in this sense`() {
+        assertFalse(caresFor(chef, adult))
+        assertFalse(caresFor(chef, chef))
+        assertFalse(caresFor(child, small))
+    }
 }

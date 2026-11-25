@@ -39,7 +39,7 @@ class HelpRequestEditViewModel(
     private val duplicateOf: String? = null,
     private val today: () -> LocalDate = LocalDate::now,
     private val writeTimeoutMillis: Long = 4_000,
-    /** Sends and removes the photo of the request (Kévin 16/11); null: no photo can be joined. */
+    /** Sends and removes the photo of the request (l'admin 16/11); null: no photo can be joined. */
     private val photos: SinglePhotoSaver? = null,
     private val photoTimeoutMillis: Long = 60_000,
 ) : ViewModel() {

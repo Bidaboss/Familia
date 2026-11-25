@@ -143,7 +143,7 @@ fun rememberNowTravelling(container: AppContainer?, member: Member): NowTravelli
 }
 
 /**
- * The card « En ce moment »: a pale blue background, a small landscape, « Paméla et Vincent sont à
+ * The card « En ce moment »: a pale blue background, a small landscape, « Camille et Noé sont à
  * Séville » and « Jour 3, 18 photos ». The whole card opens the trip.
  */
 @Composable

@@ -45,7 +45,7 @@ import fr.familia.app.core.ui.form.FormTileHeading
 import fr.familia.app.core.ui.frenchDateTime
 import java.time.Instant
 
-/** The counter under a comment field is shown from this many characters on (Kévin, 19/11); the limit stays. */
+/** The counter under a comment field is shown from this many characters on (l'admin, 19/11); the limit stays. */
 internal const val COMMENT_COUNT_FROM = 450
 
 /** Whether the « … sur 500 caractères » counter shows for a comment of [length] characters. */
@@ -118,7 +118,7 @@ fun EventCommentsContent(
     onEdit: (EventCommentRow, String, List<String>) -> Boolean,
     onRemove: (EventCommentRow) -> Unit,
     onMute: (Boolean) -> Unit,
-    /** Whom « @ » suggests (Kévin, 19/11); empty, « @ » suggests nobody. */
+    /** Whom « @ » suggests (l'admin, 19/11); empty, « @ » suggests nobody. */
     groups: List<PickGroup> = emptyList(),
     readOnly: Boolean = false,
     @StringRes empty: Int = R.string.event_comments_empty,
@@ -169,7 +169,7 @@ fun EventCommentsContent(
             onChange = onType,
             groups = groups,
             label = { Text(stringResource(R.string.recipe_comment_field)) },
-            // Kévin, 19/11: nothing under the field until the end is near.
+            // L'admin, 19/11: nothing under the field until the end is near.
             supportingText = commentCount(state.draft.length, EventComment.MAX_TEXT),
             minLines = 2,
             maxLength = EventComment.MAX_TEXT,

@@ -67,7 +67,7 @@ private class MentionTransformation(private val chosen: List<Member>, private va
 }
 
 /**
- * A text field where « @ » suggests the members of [groups], by household (Kévin, 19/11). [chosen]
+ * A text field where « @ » suggests the members of [groups], by household (l'admin, 19/11). [chosen]
  * are the members named so far; [onChange] gives the new text and the members still named in it.
  */
 @Composable

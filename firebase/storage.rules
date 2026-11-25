@@ -226,7 +226,7 @@ service firebase.storage {
                 != 'events/' + eventId + '/cover/' + authorId + '/' + fileName.split('[-.]')[0]);
     }
 
-    // The image of a coup de main (récit 13, Kévin 16/11: the QR code of a parcel to pick up),
+    // The image of a coup de main (récit 13, l'admin 16/11: the QR code of a parcel to pick up),
     // helpRequests/{requestId}/{authorId}/{photoId}.jpg and {photoId}-thumb.jpg. Sent to the
     // sender's own folder before its name goes in the field photo of the request, where
     // firestore.rules checks that they may write it. Only those who see the request (viewerIds,

@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
 
-/** « @Prénom » in the note of an event (Kévin, 19/11). Fictional family. */
+/** « @Prénom » in the note of an event (l'admin, 19/11). Fictional family. */
 class EventMentionTest {
 
     private val base = EventForm(title = "Pique-nique", date = LocalDate.of(2027, 6, 1), target = TestFamily.event("x", TestFamily.adult).target)

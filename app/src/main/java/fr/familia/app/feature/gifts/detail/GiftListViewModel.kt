@@ -472,6 +472,16 @@ class GiftListViewModel(
 
     fun release(itemId: String) = write { it.release(listId, itemId) }
 
+    /** The page of one of my wishes (correctif E9): its occasion changed in one touch. */
+    fun setWishOccasion(itemId: String, occasion: GiftOccasion?) {
+        val item = currentSuccess()?.items?.firstOrNull { it.item.id == itemId }?.item ?: return
+        if (item.occasion == occasion) return
+        write { it.saveItem(listId, item.copy(occasion = occasion), isNew = false) }
+    }
+
+    /** « Retirer de mes envies » (correctif E10), once confirmed. */
+    fun removeWish(itemId: String) = write { it.deleteItem(listId, itemId) }
+
     /** On « Mes envies », the holder says which occasion the gift is for: it is revealed the day after. */
     fun setClaimOccasion(itemId: String, occasion: GiftOccasion) = write { it.setClaimOccasion(listId, itemId, occasion) }
 

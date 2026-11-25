@@ -195,53 +195,31 @@ class MemberEditViewModelTest {
     }
 
     @Test
-    fun `a chef edits within their own household only, without creating households`() {
-        val state = vm(FakeMembers(twoHouseholds), memberId = "adult2", me = chef).editing()
-        assertEquals(listOf("h2"), state.households.map { it.id })
-        assertEquals("h2", state.form.householdId)
-        assertFalse(state.canAddHousehold)
-        // Responsible adults come from the chef's household, without the edited member.
-        assertEquals(listOf("Inès"), state.adults.map { it.firstName })
-    }
-
-    @Test
-    fun `a chef cannot open a member of another household, nor the admin principal`() {
+    fun `a chef no longer opens the form of anyone, their household included (récit 114, C2)`() {
+        assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(twoHouseholds), memberId = "adult2", me = chef).uiState.value)
+        assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(twoHouseholds), memberId = "chef2", me = chef).uiState.value)
         assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(twoHouseholds), memberId = "adult1", me = chef).uiState.value)
         assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(twoHouseholds), memberId = "admin1", me = chef).uiState.value)
-        assertTrue(vm(FakeMembers(twoHouseholds), memberId = "adult2", me = chef).editing().canRemove)
     }
 
     @Test
-    fun `only the admin principal removes a chef`() {
+    fun `the admin principal opens and removes anyone`() {
         val otherChef = neighbour.copy(isAdmin = true)
         val family = twoHouseholds.copy(members = listOf(admin, adult, chef, otherChef))
-        val state = vm(FakeMembers(family), memberId = "adult2", me = chef).editing()
-        assertFalse(state.canRemove)
-        assertTrue(state.removeOwnerOnly)
-        assertTrue(vm(FakeMembers(family), memberId = "adult2", me = admin).editing().canRemove)
+        val state = vm(FakeMembers(family), memberId = "adult2", me = admin).editing()
+        assertTrue(state.canRemove)
+        assertTrue(state.canEditEmail)
+        assertTrue(state.canEditParents)
     }
 
     @Test
-    fun `a chef cannot change another chef's address, only their own`() {
-        val otherChef = neighbour.copy(isAdmin = true)
-        val repo = FakeMembers(twoHouseholds.copy(members = listOf(admin, adult, chef, otherChef)))
-        val viewModel = vm(repo, memberId = "adult2", me = chef)
-        assertFalse(viewModel.editing().canEditEmail)
-        viewModel.update { it.copy(firstName = "Loup", email = "taken@example.com") }
+    fun `the surnom is kept when the admin principal saves the rest of the member`() {
+        val named = adult.copy(nickname = "Mamie")
+        val repo = FakeMembers(family.copy(members = listOf(admin, named)))
+        val viewModel = vm(repo, memberId = "adult1")
+        viewModel.update { it.copy(firstName = "Sasha") }
         viewModel.save()
-        assertEquals("adult2@example.com", repo.saved.single().first.email)
-        assertTrue(vm(repo, memberId = "chef2", me = chef).editing().canEditEmail)
-    }
-
-    @Test
-    fun `a chef keeps the responsible adults the admin principal chose in another household`() {
-        val kid = Member("kid2", "Noé", null, null, "h2", MemberProfile.ChildWithoutApp, false, listOf("adult1", "chef2"), null)
-        val repo = FakeMembers(twoHouseholds.copy(members = twoHouseholds.members + kid))
-        val viewModel = vm(repo, memberId = "kid2", me = chef)
-        assertFalse(viewModel.editing().canEditParents)
-        viewModel.update { it.copy(firstName = "Noa", parentIds = setOf("chef2")) }
-        viewModel.save()
-        assertEquals(listOf("adult1", "chef2"), repo.saved.single().first.parentIds)
+        assertEquals("Mamie", repo.saved.single().first.nickname)
     }
 
     @Test

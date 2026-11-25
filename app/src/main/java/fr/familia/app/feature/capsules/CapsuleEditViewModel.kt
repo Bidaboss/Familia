@@ -59,7 +59,7 @@ sealed interface CapsuleEditUiState {
         val today: LocalDate,
         val members: List<RecipientChoice>,
         val errors: Set<CapsuleFormError> = emptySet(),
-        /** The family by household, for the picker (règle de Kévin, 17/11); empty shows [members] as chips. */
+        /** The family by household, for the picker (règle de l'admin, 17/11); empty shows [members] as chips. */
         val groups: List<PickGroup> = emptyList(),
         /** null: not sending; 0: writing the capsule; n: sending photo n. */
         val sendingPhoto: Int? = null,

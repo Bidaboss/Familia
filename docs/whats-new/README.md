@@ -5,7 +5,7 @@ La feuille « Quoi de neuf ? » s'ouvre à la première ouverture après une mis
 ## Comment ça marche
 
 1. Ajoute un fichier `.json` dans ce dossier, dans la même PR que la nouveauté ou juste après. Nomme-le par la date à partir de laquelle il peut partir, par exemple `2026-11-28.json`. Un fichier daté d'un jour à venir attend : la publication qui le prend est la première faite ce jour-là ou après (heure de Paris). Chaque version a ainsi ses propres cartes et son propre numéro.
-2. Kévin lance « APK de publication » comme d'habitude. Le workflow donne au nouveau fichier le numéro de la version publiée, puis il écrit tout l'historique dans `config/app.whatsNew`. Kévin n'a aucun geste de plus à faire.
+2. L'admin lance « APK de publication » comme d'habitude. Le workflow donne au nouveau fichier le numéro de la version publiée, puis il écrit tout l'historique dans `config/app.whatsNew`. L'admin n'a aucun geste de plus à faire.
 3. Un fichier déjà publié garde son numéro de version. Tu peux corriger une faute dedans : la correction part à la publication suivante.
 
 On ne connaît pas le numéro de version à l'avance, parce que c'est le nombre de commits de main. Le nom du fichier sert donc seulement à le reconnaître d'une publication à l'autre.

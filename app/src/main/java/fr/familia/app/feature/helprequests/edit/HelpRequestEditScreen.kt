@@ -140,7 +140,7 @@ fun HelpRequestEditScreen(
     onShortcut: (NotifyShortcut) -> Unit,
     onSave: () -> Unit,
     onBack: () -> Unit,
-    /** A photo can be joined (Kévin 16/11): false when photos cannot be sent. */
+    /** A photo can be joined (l'admin 16/11): false when photos cannot be sent. */
     photoOn: Boolean = true,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
@@ -268,7 +268,7 @@ private fun FormContent(
         Tile(Icons.Outlined.CalendarMonth, stringResource(R.string.helprequest_when), Modifier.bringIntoViewRequester(time)) {
             WhenFields(form, errors, onChange)
         }
-        // « Où » like the events (récit 74, Kévin 20/11): chez un foyer, une adresse, or autre.
+        // « Où » like the events (récit 74, l'admin 20/11): chez un foyer, une adresse, or autre.
         Tile(Icons.Outlined.Place, stringResource(R.string.helprequest_where), Modifier.bringIntoViewRequester(place)) {
             PlaceChooser(
                 kind = form.placeKind,
@@ -411,7 +411,7 @@ private fun RequestFields(state: HelpRequestEditUiState.Editing, onChange: ((Hel
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         modifier = Modifier.fillMaxWidth(),
     )
-    // « @Prénom » names one of those warned (Kévin, 19/11).
+    // « @Prénom » names one of those warned (l'admin, 19/11).
     val warned = state.warnedIds
     MentionTextField(
         text = form.note,
@@ -424,7 +424,7 @@ private fun RequestFields(state: HelpRequestEditUiState.Editing, onChange: ((Hel
         enabled = !state.isSaving,
         minLines = 3,
     )
-    // A photo to show what it is about: a QR code, a parcel, a place (Kévin 16/11).
+    // A photo to show what it is about: a QR code, a parcel, a place (l'admin 16/11).
     if (photoOn) {
         Text(stringResource(R.string.helprequest_photo_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         PhotoField(

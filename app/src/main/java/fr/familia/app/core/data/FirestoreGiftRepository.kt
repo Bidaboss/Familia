@@ -145,9 +145,11 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             // The same for « Déjà acheté » (récit 68), before « Publier Firebase ».
             val bought = if (item.alreadyBought) mapOf("alreadyBought" to true) else emptyMap()
             val shared = item.coBeneficiaryId?.let { mapOf("coBeneficiaryId" to it) }.orEmpty()
+            // « Où trouver le cadeau ? » too, left out when there is none.
+            val where = item.whereToFind?.let { mapOf("whereToFind" to it) }.orEmpty()
             batch.set(
                 ref,
-                fields + photo + bought + shared + mapOf(
+                fields + photo + bought + shared + where + mapOf(
                     "authorId" to item.authorId,
                     "authorName" to item.authorName,
                     "visibleToBeneficiary" to item.visibleToBeneficiary,
@@ -160,7 +162,8 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
                 ref,
                 fields + ("photo" to (item.photo ?: FieldValue.delete())) +
                     ("alreadyBought" to (if (item.alreadyBought) true else FieldValue.delete())) +
-                    ("coBeneficiaryId" to (item.coBeneficiaryId ?: FieldValue.delete())),
+                    ("coBeneficiaryId" to (item.coBeneficiaryId ?: FieldValue.delete())) +
+                    ("whereToFind" to (item.whereToFind ?: FieldValue.delete())),
             )
         }
         // « Cadeau commun avec… » (récit 73): the list names who shares one of its wishes, in the same
@@ -473,6 +476,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             alreadyBought = getBoolean("alreadyBought") == true,
             contributedTotal = getLong("contributedTotal")?.toInt()?.coerceAtLeast(0) ?: 0,
             coBeneficiaryId = getString("coBeneficiaryId"),
+            whereToFind = getString("whereToFind")?.takeIf { it.isNotBlank() },
         )
     }
 

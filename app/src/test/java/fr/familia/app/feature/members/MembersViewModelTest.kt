@@ -76,7 +76,8 @@ class MembersViewModelTest {
         val chef = vm.uiState.value as MembersUiState.Success
         assertFalse(chef.canAddMembers)
         assertFalse(chef.isOwner)
-        assertEquals(setOf("1"), chef.editableMemberIds)
+        // Récit 114 (C2): a chef only renames their household, they edit nobody.
+        assertEquals(emptySet<String>(), chef.editableMemberIds)
         assertEquals(setOf("h1"), chef.renamableHouseholdIds)
 
         source.value = source.value.copy(members = listOf(me, neighbour))

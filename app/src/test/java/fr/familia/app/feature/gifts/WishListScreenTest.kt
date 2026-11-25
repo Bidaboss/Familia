@@ -77,8 +77,34 @@ class WishListScreenTest {
         assertEquals(1, count("+ Ajouter une envie"))
         assertEquals(0, count("Libre"))
         assertEquals(0, count("Ses envies"))
-        compose.onNodeWithContentDescription("Modifier Un casque").performClick()
+        // ⋯ opens the page of the wish (correctif E9), whose « Modifier cette envie » opens the form.
+        compose.onNodeWithContentDescription("Ouvrir Un casque").performClick()
+        assertEquals(1, count("Toute la famille voit cette envie."))
+        compose.onNodeWithText("Modifier cette envie", substring = true).performClick()
         assertEquals(listOf("casque"), edited)
+    }
+
+    @Test
+    fun `the page of my wish changes its occasion in one touch and removes it once asked`() {
+        val occasions = mutableListOf<Pair<String, fr.familia.app.core.model.GiftOccasion?>>()
+        val removed = mutableListOf<String>()
+        compose.setContent {
+            FamiliaTheme {
+                GiftListScreen(
+                    state(isMine = true),
+                    GiftListActions(onSetWishOccasion = { id, o -> occasions += id to o }, onRemoveWish = { removed += it }),
+                )
+            }
+        }
+        compose.onNodeWithText("Un livre").performClick()
+        compose.onNodeWithText("Noël").performClick()
+        assertEquals(listOf("livre" to fr.familia.app.core.model.GiftOccasion.Christmas), occasions)
+        compose.onNodeWithText("Retirer de mes envies").performClick()
+        assertTrue(removed.isEmpty())
+        compose.onNodeWithText("Retirer").performClick()
+        assertEquals(listOf("livre"), removed)
+        // Back on the list.
+        assertEquals(1, count("Toute la famille voit ces envies."))
     }
 
     @Test

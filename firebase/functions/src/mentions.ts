@@ -1,4 +1,4 @@
-// « @Prénom » dans un commentaire (Kévin, 19/11): the comment keeps the members it names
+// « @Prénom » dans un commentaire (l'admin, 19/11): the comment keeps the members it names
 // (mentionIds). Each of them is told once, directly, « Camille t'a nommé dans un commentaire »,
 // instead of the usual « a commenté ». Never the one who wrote it, nor a child without the app.
 // The note of an event or of a coup de main names members the same way.
@@ -20,7 +20,7 @@ export function mentionTitle(authorName: string): string {
 }
 
 /**
- * « @Prénom » in the note of an event or a coup de main (Kévin, 19/11): the members named by this
+ * « @Prénom » in the note of an event or a coup de main (l'admin, 19/11): the members named by this
  * write and not before, among [withApp], never the one who wrote it. Each is told once, on the
  * write that names them; changing the rest of the note tells nobody again.
  */

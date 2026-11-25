@@ -91,7 +91,7 @@ fun AppearanceScreen(
     onChooseBodyFont: (BodyFont) -> Unit = {},
     icon: AppIcon = AppIcon.Default,
     onChooseIcon: (AppIcon) -> Unit = {},
-    /** What plays at each opening (Kévin, 17/11): the welcome, the tree, or nothing. */
+    /** What plays at each opening (l'admin, 17/11): the welcome, the tree, or nothing. */
     opening: OpeningStyle = OpeningStyle.Long,
     onChooseOpening: (OpeningStyle) -> Unit = {},
 ) {
@@ -114,7 +114,7 @@ fun AppearanceScreen(
         ) {
             item(key = "theme") {
                 FormTile(icon = Icons.Outlined.Palette, title = stringResource(R.string.appearance_theme_title)) {
-                    // « Étendue de la photo » before the gallery (Kévin, 25/11 10 h 42).
+                    // « Étendue de la photo » before the gallery (l'admin, 25/11 10 h 42).
                     Text(stringResource(R.string.appearance_extent_title), style = MaterialTheme.typography.titleSmall)
                     ChoiceTiles(PhotoExtent.entries, columns = 2) { extent, tileModifier ->
                         ChoiceTile(

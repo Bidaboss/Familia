@@ -68,7 +68,8 @@ class WikimediaPlacePhotos(
 
     override suspend fun of(place: String, lat: Double?, lng: Double?): PlacePhoto? {
         of(place)?.let { return it }
-        val around = if (lat == null || lng == null) null else near(lat, lng)
+        // Then the item of OpenStreetMap at the point (DEV-1), before the nearest page with a photo.
+        val around = if (lat == null || lng == null) null else wikidataAt(place, lat, lng) ?: near(lat, lng)
         // For « Plantages »: where the search went, never the place itself.
         if (around == null) onRefused(noPhotoLine(withPoint = lat != null && lng != null))
         return around
@@ -90,6 +91,45 @@ class WikimediaPlacePhotos(
         refusal(found)?.let(onRefused)
         return found?.getOrNull()
     }
+
+    /**
+     * The Wikidata photo of the town or site of OpenStreetMap at [lat], [lng] (DEV-1, 25/11): the one
+     * named like [place] first. Null when OpenStreetMap is busy or none has a photo.
+     */
+    private suspend fun wikidataAt(place: String, lat: Double, lng: Double): PlacePhoto? {
+        val key = "wd@%.3f,%.3f-".format(java.util.Locale.ROOT, lat, lng) + place.trim().take(MAX_TITLE)
+        known[key]?.let { return it.getOrNull() }
+        val found = withContext(Dispatchers.IO) {
+            withTimeoutOrNull(WIKIDATA_TIMEOUT_MS) {
+                runCatching {
+                    val query = wikidataAroundQuery(lat, lng)
+                    val items = OVERPASS_SERVERS.firstNotNullOfOrNull { server ->
+                        readQuietly(server + "?data=" + java.net.URLEncoder.encode(query, "UTF-8"))?.let { parseWikidataItems(it, lat, lng, place) }
+                    } ?: return@runCatching null
+                    items.firstNotNullOfOrNull { item ->
+                        val file = read(wikidataImageUrl(item))?.let(::parseWikidataImage) ?: return@firstNotNullOfOrNull null
+                        read(commonsPhotoUrl(file))?.let(::parseCommonsPhoto)
+                    }
+                }
+            }
+        }
+        // Kept only when an item was found: OpenStreetMap busy or slow tries again next time.
+        if (found != null && found.getOrNull() != null) known[key] = found
+        return found?.getOrNull()
+    }
+
+    /** An answer of OpenStreetMap, or null: a busy server is common and is not a failure for « Plantages ». */
+    private fun readQuietly(address: String): String? = runCatching {
+        val connection = URL(address).openConnection() as HttpURLConnection
+        try {
+            connection.connectTimeout = 5_000
+            connection.readTimeout = 10_000
+            connection.setRequestProperty("User-Agent", USER_AGENT)
+            if (connection.responseCode == 200) connection.inputStream.bufferedReader().readText() else null
+        } finally {
+            connection.disconnect()
+        }
+    }.getOrNull()
 
     private fun read(address: String): String? {
         val connection = URL(address).openConnection() as HttpURLConnection
@@ -114,6 +154,7 @@ class WikimediaPlacePhotos(
     companion object {
         private const val USER_AGENT = WIKIMEDIA_USER_AGENT
         private const val TIMEOUT_MS = 8_000L
+        private const val WIKIDATA_TIMEOUT_MS = 14_000L
         private const val MAX_TITLE = 100
     }
 }
@@ -123,7 +164,7 @@ fun photoRefusalLine(code: Int, host: String?): String = "refusé $code ${host.o
 
 /** The line of « Plantages » when no way gave a photo: whether the pages around could be asked. */
 fun noPhotoLine(withPoint: Boolean): String =
-    if (withPoint) "aucune photo : nom, recherche et 10 km autour" else "aucune photo : nom et recherche, lieu sans position"
+    if (withPoint) "aucune photo : nom, recherche, Wikidata et 10 km" else "aucune photo : nom et recherche, lieu sans position"
 
 /**
  * The titles tried for [place]: itself, then the part before its first comma

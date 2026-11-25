@@ -101,6 +101,7 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.gifts.formatEuros
+import fr.familia.app.feature.gifts.rememberLinkImage
 import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.gifts.listSubtitle
 import fr.familia.app.feature.gifts.listTitle
@@ -144,6 +145,10 @@ data class GiftListActions(
     val onAddIdea: (() -> Unit)? = null,
     /** One of my private ideas for the person, opened in my notebook. */
     val onOpenIdea: (entryId: String) -> Unit = {},
+    /** The page of one of my wishes (correctif E9): its occasion in one touch. */
+    val onSetWishOccasion: (itemId: String, occasion: GiftOccasion?) -> Unit = { _, _ -> },
+    /** « Retirer de mes envies », once confirmed (correctif E10). */
+    val onRemoveWish: (itemId: String) -> Unit = {},
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -494,7 +499,7 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         val photo = item.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
         // The photo of its author (récit 44) comes before the picture of the shop page.
         if (photo != null) CoverBanner(photo)
-        item.imageUrl?.takeIf { photo == null }?.let { image ->
+        rememberLinkImage(item)?.takeIf { photo == null }?.let { image ->
             // The picture of the shop page of a shared link (récit 8 bis): decorative.
             AsyncImage(
                 model = image,
@@ -506,6 +511,8 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         Text(item.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         ItemDetails(row, ClayTint.Plain)
         item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        // « Où trouver le cadeau ? » (correctif E6), in its keeper's words.
+        item.whereToFind?.let { Text(stringResource(R.string.wish_where, it), style = MaterialTheme.typography.bodyLarge) }
         row.claim?.let { ClaimStatus(it, item, ClayTint.Plain) }
         row.contributions?.let { AlreadyBoughtStatus(it, item, ClayTint.Plain, detailed = true, seesContributors = state.seesContributors) }
         // La bascule (brief §5, fiche C8): read only, its state in the surprises, « Offrir cette envie ».

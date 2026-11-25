@@ -204,7 +204,7 @@ fun InAppUpdateDialogs(
 }
 
 /**
- * « Mise à jour en cours » (spec DESIGN « la ronde de la famille », choisie par Kévin le 18/11): a
+ * « Mise à jour en cours » (spec DESIGN « la ronde de la famille », choisie par l'admin le 18/11): a
  * line, the round of the family, the real percentage and its bar, then what Android asks next.
  */
 @Composable

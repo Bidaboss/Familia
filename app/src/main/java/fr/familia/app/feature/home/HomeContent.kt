@@ -70,7 +70,7 @@ sealed interface HomeUiState {
         val trips: List<HomeTrip> = emptyList(),
         val canCreateTrip: Boolean = false,
         /**
-         * The block « Sondages » (BUG-1, tranché par Kévin le 16/11): the polls that wait for my
+         * The block « Sondages » (BUG-1, tranché par l'admin le 16/11): the polls that wait for my
          * vote, then those where I voted. It shows only while the module is on ([pollsOn]) and
          * there is a poll to show (DESIGN: never an empty block); [canAskPoll] adds « Nouveau sondage ».
          */

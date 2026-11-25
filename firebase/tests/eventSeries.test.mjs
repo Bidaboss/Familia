@@ -47,7 +47,7 @@ async function seedSeries(overrides = {}) {
   }));
 }
 
-describe('« @Prénom » in the note of a series (Kévin, 19/11)', () => {
+describe('« @Prénom » in the note of a series (l’admin, 19/11)', () => {
   test('a series names members like an event', async () => {
     const db = as(env, ADULT);
     await assertSucceeds(setDoc(ref(db, 'm1'), series(ADULT, { note: '@Noé', mentionIds: [OTHER_ADULT.memberId] })));

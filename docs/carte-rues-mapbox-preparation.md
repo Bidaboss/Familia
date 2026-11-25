@@ -1,6 +1,6 @@
 # Carte du voyage avec les rues (Mapbox) : l'essai (PRODUIT-147)
 
-Kévin a confirmé son compte (sans carte bancaire, licence pour son usage) et rangé le jeton public. Étude : `docs/carte-du-voyage-fonds-de-carte.md`, section 4.
+L'admin a confirmé son compte (sans carte bancaire, licence pour son usage) et rangé le jeton public. Étude : `docs/carte-du-voyage-fonds-de-carte.md`, section 4.
 
 ## Prêt dans le code
 
@@ -8,7 +8,7 @@ Kévin a confirmé son compte (sans carte bancaire, licence pour son usage) et r
 - **Choix du fond** : `mapGround(streetsOn, token, hasNetwork)` (feature/trips/map/MapGround.kt, testé). Les rues seulement si le module est allumé, le jeton présent dans l'APK et le réseau là. Sinon la carte dessinée sur le paysage du voyage reste, sans message. `TripMap` a déjà un paramètre `background` : le fond de rues viendra s'y brancher, les points et le trait gardent la même projection (`projectToUnit`).
 - **Jeton** : `BuildConfig.MAPBOX_PUBLIC_TOKEN`, lu dans le secret GitHub `MAPBOX_PUBLIC_TOKEN` (ou `keystore.properties` en local). Seul le workflow « APK de publication » le reçoit ; les APK de test de la CI sont des artefacts publics et ne l'ont pas. Vide, tout reste comme avant.
 
-## Ce que Kévin fait quand il a vérifié son compte
+## Ce que l'admin fait quand il a vérifié son compte
 
 1. Créer le compte Mapbox, relever la carte bancaire demandée ou non, le plafond de dépense possible, et demander par écrit au support si une appli familiale gratuite relève de la licence « production ».
 2. Créer un jeton **public** (`pk.`) avec les droits minimum. Pas de jeton secret.
@@ -22,7 +22,7 @@ Kévin a confirmé son compte (sans carte bancaire, licence pour son usage) et r
 - **Repli sans message** : sans jeton, sans réseau, ou si Mapbox répond par un refus (jeton, limite de débit, plafond du compte « demo access » qui coupe toutes les API sans rien facturer), l'image ne vient pas et la carte dessinée sur le paysage du voyage reste sous les points, sans message d'erreur. Le risque d'un plafond atteint est donc une carte qui redevient dessinée, pas un coût.
 - **Pas de zoom ni de déplacement** : c'est une image, pas une carte vivante. Le SDK (carte interactive) n'est pas retenu pour l'essai.
 
-## Texte d'encadrement de la télémétrie (à valider par Kévin et [PRODUIT])
+## Texte d'encadrement de la télémétrie (à valider par l'admin et [PRODUIT])
 
 Avec l'image statique il n'y a pas de SDK, donc pas de télémétrie à couper ni de réglage à offrir. Ce qui part : la zone du voyage et le jeton public, vers Mapbox, quand le module est allumé. À dire sur l'écran de la carte, sous la carte, quand les rues sont affichées (pas encore dans l'appli, à valider) :
 

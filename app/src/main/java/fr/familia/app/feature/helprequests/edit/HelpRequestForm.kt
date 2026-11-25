@@ -17,14 +17,14 @@ data class HelpRequestForm(
     val endTime: LocalTime? = null,
     val place: String = "",
     val note: String = "",
-    /** The members named « @Prénom » in [note] (Kévin, 19/11). */
+    /** The members named « @Prénom » in [note] (l'admin, 19/11). */
     val mentionIds: List<String> = emptyList(),
     val forMemberId: String = "",
     /** The people ticked, without those who are always warned (see [HelpRequestEditUiState.Editing.lockedIds]). */
     val notifyIds: Set<String> = emptySet(),
-    /** What was done with the photo since the form opened (Kévin 16/11). */
+    /** What was done with the photo since the form opened (l'admin 16/11). */
     val photo: PhotoEdit = PhotoEdit.Unchanged,
-    /** « Où » like the events (récit 74, Kévin 20/11): [place] is the text of « Autre » or « Adresse », or the household's name. */
+    /** « Où » like the events (récit 74, l'admin 20/11): [place] is the text of « Autre » or « Adresse », or the household's name. */
     val placeKind: PlaceKind = PlaceKind.Other,
     val placeHouseholdId: String? = null,
 ) {

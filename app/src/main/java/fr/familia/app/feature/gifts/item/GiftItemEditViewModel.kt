@@ -24,6 +24,8 @@ import fr.familia.app.feature.gifts.keepsListsOf
 import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.core.model.householdGroups
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,12 +46,14 @@ data class GiftItemForm(
     val alreadyBought: Boolean = false,
     /** « Cadeau commun avec… » (récit 73): the member of the household it is shared with, or null. */
     val coBeneficiaryId: String? = null,
+    /** « Où trouver le cadeau ? » (correctif E6): a shop, a town or a site. */
+    val whereToFind: String = "",
 )
 
 /** Where a link shared from another app goes (récit 50): my wishes when [memberId] is null, else an idea for them. */
 data class ShareTarget(val memberId: String?, val name: String)
 
-enum class GiftItemFormError { TitleMissing, TitleTooLong, BadLink, BadPrice, NoteTooLong }
+enum class GiftItemFormError { TitleMissing, TitleTooLong, BadLink, BadPrice, NoteTooLong, WhereTooLong }
 
 sealed interface GiftItemEditUiState {
     data object Loading : GiftItemEditUiState
@@ -140,6 +144,8 @@ class GiftItemEditViewModel(
     /** The picture read for [previewedUrl]: dropped if the member changes the link. */
     private var previewImage: String? = null
     private var previewedUrl: String? = null
+    /** The reading of a link typed by hand, started once the member stops typing. */
+    private var typedPreview: Job? = null
 
     private val _uiState = MutableStateFlow<GiftItemEditUiState>(GiftItemEditUiState.Loading)
     val uiState: StateFlow<GiftItemEditUiState> = _uiState.asStateFlow()
@@ -217,6 +223,7 @@ class GiftItemEditViewModel(
                 occasion = it.occasion,
                 alreadyBought = it.alreadyBought,
                 coBeneficiaryId = it.coBeneficiaryId,
+                whereToFind = it.whereToFind.orEmpty(),
             )
         } ?: GiftItemForm()
         val form = restoredDraft() ?: shared?.takeIf { existing == null } ?: initialForm
@@ -241,6 +248,8 @@ class GiftItemEditViewModel(
             sharedByOther = if (sharedEditor) beneficiary.firstName else null,
         )
         if (shared != null && existing == null) readPreview(shared.url)
+        // A wish saved with a link but no picture (typed by hand before): its page gives one now.
+        if (existing != null && existing.imageUrl == null && existing.photo == null && existing.url != null) readPreview(existing.url, fillForm = false)
     }
 
     /**
@@ -315,7 +324,7 @@ class GiftItemEditViewModel(
     }
 
     /** Fills what the member has not typed yet with what the shop page says. */
-    private suspend fun readPreview(url: String) {
+    private suspend fun readPreview(url: String, fillForm: Boolean = true) {
         val repo = previews ?: return
         val preview = try {
             repo.preview(url)
@@ -331,9 +340,10 @@ class GiftItemEditViewModel(
         }
         previewImage = preview.imageUrl
         previewedUrl = url
-        val form = state.form.copy(
+        val form = if (!fillForm) state.form else state.form.copy(
             title = state.form.title.ifBlank { preview.title.orEmpty() },
             price = state.form.price.ifBlank { preview.price?.let(::priceText).orEmpty() },
+            whereToFind = state.form.whereToFind.ifBlank { onlineWhere(url).orEmpty() },
         )
         _uiState.value = state.copy(
             form = form,
@@ -375,6 +385,7 @@ class GiftItemEditViewModel(
             title, saved[DRAFT_URL] ?: "", saved[DRAFT_PRICE] ?: "", saved[DRAFT_NOTE] ?: "", occasion,
             alreadyBought = saved[DRAFT_BOUGHT] ?: false,
             coBeneficiaryId = saved[DRAFT_CO],
+            whereToFind = saved[DRAFT_WHERE] ?: "",
         )
     }
 
@@ -388,6 +399,7 @@ class GiftItemEditViewModel(
         saved[DRAFT_OCCASION] = form.occasion?.name
         saved[DRAFT_BOUGHT] = form.alreadyBought
         saved[DRAFT_CO] = form.coBeneficiaryId
+        saved[DRAFT_WHERE] = form.whereToFind
         _uiState.value = state.copy(
             form = form,
             errors = errorsFor(form),
@@ -395,6 +407,31 @@ class GiftItemEditViewModel(
             saveFailed = false,
             imageUrl = imageFor(form),
         )
+        if (form.url != state.form.url) readTypedLink(form.url)
+    }
+
+    /** A link typed or pasted from the keyboard is read too, as « Coller » does, once typing stops. */
+    private fun readTypedLink(url: String) {
+        typedPreview?.cancel()
+        val link = normalizeLink(url) ?: return
+        if (previews == null || link == previewedUrl?.let(::normalizeLink)) return
+        typedPreview = viewModelScope.launch {
+            delay(TYPED_LINK_PAUSE_MILLIS)
+            readPreview(link)
+        }
+    }
+
+    /**
+     * « Coller » (correctif E6): the link of the clipboard, then what its shop page says fills what
+     * the member has not typed yet, as for a shared link (récit 8 bis).
+     */
+    fun pasteLink(url: String) {
+        update { it.copy(url = url, whereToFind = it.whereToFind.ifBlank { onlineWhere(url).orEmpty() }) }
+        typedPreview?.cancel()
+        val state = _uiState.value as? GiftItemEditUiState.Editing ?: return
+        if (previews == null || normalizeLink(url) == null) return
+        _uiState.value = state.copy(previewLoading = true)
+        viewModelScope.launch { readPreview(url) }
     }
 
     fun save() {
@@ -428,6 +465,7 @@ class GiftItemEditViewModel(
             // Récit 73: chosen once by the keeper of the wish, then nobody changes it.
             coBeneficiaryId = form.coBeneficiaryId?.takeIf { co -> state.coChoices.any { it.memberId == co } }
                 ?: original?.coBeneficiaryId?.takeIf { state.coChoices.isEmpty() },
+            whereToFind = form.whereToFind.trim().ifEmpty { null },
         )
         val before = original?.photo
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
@@ -485,10 +523,14 @@ class GiftItemEditViewModel(
     }
 }
 
+/** The pause after the last letter of a typed link before its page is read. */
+private const val TYPED_LINK_PAUSE_MILLIS = 800L
+
 private const val DRAFT_TITLE = "draft.title"
 private const val DRAFT_URL = "draft.url"
 private const val DRAFT_PRICE = "draft.price"
 private const val DRAFT_NOTE = "draft.note"
+private const val DRAFT_WHERE = "draft.where"
 private const val DRAFT_OCCASION = "draft.occasion"
 private const val DRAFT_TARGET = "draft.target"
 private const val DRAFT_BOUGHT = "draft.alreadyBought"
@@ -502,6 +544,12 @@ fun validateItem(form: GiftItemForm): Set<GiftItemFormError> = buildSet {
     if (form.url.isNotBlank() && normalizeLink(form.url) == null) add(GiftItemFormError.BadLink)
     if (form.price.isNotBlank() && (parseEuros(form.price)?.let { it <= 100_000 } != true)) add(GiftItemFormError.BadPrice)
     if (form.note.trim().length > 500) add(GiftItemFormError.NoteTooLong)
+    if (form.whereToFind.trim().length > 120) add(GiftItemFormError.WhereTooLong)
+}
+
+/** « En ligne · boutique-exemple.fr », what « Où trouver le cadeau ? » proposes from a link (règles, K8). */
+fun onlineWhere(url: String): String? = normalizeLink(url)?.let { link ->
+    runCatching { java.net.URI(link).host }.getOrNull()?.removePrefix("www.")?.takeIf { it.isNotBlank() }?.let { "En ligne · $it" }
 }
 
 /** « amazon.fr/… » becomes « https://amazon.fr/… »; anything that is not a web link gives null. */

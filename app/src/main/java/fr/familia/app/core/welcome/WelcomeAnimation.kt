@@ -57,7 +57,7 @@ import kotlin.math.sin
 
 /*
  * The steps below keep the timings of the spec DESIGN (« animation d'ouverture », part 2), and the
- * clock plays them slower (Kévin, PRODUIT-113, 18/11: « laisser le temps à l'œil humain de voir ce
+ * clock plays them slower (l'admin, PRODUIT-113, 18/11: « laisser le temps à l'œil humain de voir ce
  * qu'il se passe »), 8 s in all:
  *  1. 0 to 2 s: the small tree arrives and grows, sun, roots, trunk from the ground, leaves (spec 0 to 700 ms);
  *  2. 2 to 5.6 s: the fruits come out, become the photos and go round the sun, then the words (spec 700 ms to 3.4 s);
@@ -180,7 +180,7 @@ internal fun WelcomePicture(
                 }
             }
 
-            // Each fruit is a member (règle de Kévin, 18/11): their photo, or their letters on their
+            // Each fruit is a member (règle de l'admin, 18/11): their photo, or their letters on their
             // color, from the moment it comes out on the tree (550 to 900 ms). Then it goes to its
             // place on the circle, growing from about 20 to 52 dp (1.6 to 2.5 s).
             val travel = easeInOut(phase(time, 1_600f, 2_500f))

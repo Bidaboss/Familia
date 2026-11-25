@@ -20,7 +20,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.Instant
 
-/** « Rejoignez-moi » back on the Accueil (Kévin, 20/11): a place I was sent, above the frise. */
+/** « Rejoignez-moi » back on the Accueil (l'admin, 20/11): a place I was sent, above the frise. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w360dp-h1600dp-xxhdpi")
 class HomeJoinMeTest {

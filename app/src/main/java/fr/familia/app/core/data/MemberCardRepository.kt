@@ -32,6 +32,13 @@ class FirestoreMemberCardRepository(private val db: FirebaseFirestore) : MemberC
                         shoes = it.getString("shoes").orEmpty(),
                         tastes = it.getString("tastes").orEmpty(),
                         hobbies = it.getString("hobbies").orEmpty(),
+                        top = it.getString("top").orEmpty(),
+                        bottom = it.getString("bottom").orEmpty(),
+                        ring = it.getString("ring").orEmpty(),
+                        allergies = it.getString("allergies").orEmpty(),
+                        diet = it.getString("diet").orEmpty(),
+                        avoid = it.getString("avoid").orEmpty(),
+                        now = it.getString("now").orEmpty(),
                     )
                 },
             )
@@ -47,10 +54,17 @@ class FirestoreMemberCardRepository(private val db: FirebaseFirestore) : MemberC
         }
         doc.set(
             mapOf(
-                // The whole document is replaced, so the sizes and allergies of an older version go.
+                // The whole document is replaced: every field is written, blank when unknown.
                 "shoes" to card.shoes,
                 "tastes" to card.tastes,
                 "hobbies" to card.hobbies,
+                "top" to card.top,
+                "bottom" to card.bottom,
+                "ring" to card.ring,
+                "allergies" to card.allergies,
+                "diet" to card.diet,
+                "avoid" to card.avoid,
+                "now" to card.now,
                 "updatedBy" to byId,
                 "updatedAt" to FieldValue.serverTimestamp(),
             ),

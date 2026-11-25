@@ -57,6 +57,7 @@ fun GiftItemEditRoute(
         onSave = viewModel::save,
         onDelete = viewModel::delete,
         onBack = onDone,
+        onPasteLink = viewModel::pasteLink,
     )
 }
 

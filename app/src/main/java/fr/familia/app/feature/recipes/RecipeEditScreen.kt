@@ -118,7 +118,7 @@ fun RecipeEditScreen(
     onBack: () -> Unit,
     /** The field « Sa petite histoire », with the switch recipeBook (récit 47). */
     showStory: Boolean = false,
-    /** The photos of a new recipe (retour de Kévin, 17/11); null hides them. */
+    /** The photos of a new recipe (retour de l'admin, 17/11); null hides them. */
     photos: RecipeEditPhotoActions? = null,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }

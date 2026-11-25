@@ -32,7 +32,7 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 
 /*
- * The common picker of members (règle de Kévin, 17/11): every list of members is sorted by household,
+ * The common picker of members (règle de l'admin, 17/11): every list of members is sorted by household,
  * and where members are picked, ticking a household ticks all of its members. A household is half
  * ticked when only some of its members are. Each screen keeps its own choice of who may be picked
  * (with the app, me aside…) and its own order of households; the picker only shows and toggles.

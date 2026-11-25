@@ -1,8 +1,6 @@
 package fr.familia.app.feature.members.profile
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Text
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.getOrNull
@@ -12,10 +10,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.text.TextLayoutResult
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberCard
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.feature.events.TestFamily
-import fr.familia.app.feature.gifts.WishPreview
-import fr.familia.app.feature.gifts.profile.ProfileWishesContent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -40,7 +37,7 @@ class MemberProfileV2DesignTest {
     private val june = LocalDate.of(2026, 6, 10)
     private val none = Kinship(emptyList(), emptyList(), emptyList())
 
-    private fun v2(kin: Kinship = none, address: String? = null, hasTastes: Boolean = false, wishCount: Int = 0, hasRecipe: Boolean = false) = ProfileV2State(
+    private fun v2(kin: Kinship = none, address: String? = null, hasTastes: Boolean = false, wishCount: Int = 0, recipeCount: Int = 0) = ProfileV2State(
         today = june,
         household = TestFamily.family.households.first().copy(address = address),
         kinship = kin,
@@ -49,7 +46,9 @@ class MemberProfileV2DesignTest {
         managesHousehold = true,
         hasTastes = hasTastes,
         wishCount = wishCount,
-        hasRecipe = hasRecipe,
+        recipeCount = recipeCount,
+        card = MemberCard("x", now = "Je prépare le repas de Noël pour toute la famille", allergies = "Arachides", tastes = "Le chocolat noir, les polars"),
+        canEditCard = true,
     )
 
     private fun show(member: Member, isMe: Boolean, state: ProfileV2State = v2()) {
@@ -58,10 +57,8 @@ class MemberProfileV2DesignTest {
                 Column {
                     ContentV2(
                         MemberProfileUiState.Ready(member, "Foyer Un", isMe, canEdit = isMe, souvenirs = emptyList()),
-                        ProfileV2Ui(state), onSetShown = { _, _ -> }, onOpenRecipes = null,
+                        ProfileV2Ui(state, onOpenWishes = {}, onPrepareSurprise = {}, onOpenRecipes = {}, onAddRecipe = {}),
                         wishes = null,
-                        card = { Text("Carte des goûts") },
-                        gifts = { Text("Carte des cadeaux") },
                     )
                 }
             }
@@ -115,51 +112,24 @@ class MemberProfileV2DesignTest {
     }
 
     @Test
-    fun `a child is reached through the parents who gave a phone`() {
-        val parent = TestFamily.adult.copy(phone = "06 12 34 56 78")
-        val kin = Kinship(listOf(KinPerson("adult1", "Adult1", parent), KinPerson("other", "Autre", null)), emptyList(), emptyList())
-        show(TestFamily.kid, isMe = false, state = v2(kin = kin))
-        assertEquals(1, count("Pour joindre Kid1, passe par ses parents."))
-        assertEquals(1, count("Appeler Adult1"))
-        assertEquals(0, count("Coordonnées"))
-    }
-
-    @Test
-    fun `no button to reach a child whose parents gave no phone`() {
-        show(TestFamily.kid, isMe = false, state = v2(kin = kinOfKid()))
-        assertEquals(0, count("Pour joindre"))
-    }
-
-    @Test
-    fun `soon before someone else's birthday, Cadeaux says Bientôt`() {
+    fun `soon before someone else's birthday, a dark row in Cadeaux and the pill under the name`() {
         show(TestFamily.otherAdult.copy(birthDate = LocalDate.of(1990, 6, 20)), isMe = false)
-        assertEquals(1, count("Bientôt"))
         assertEquals(1, count("Son anniversaire est dans 10 jours"))
         assertEquals(1, count("Anniversaire dans 10 jours"))
     }
 
     @Test
-    fun `never Bientôt on my own page`() {
+    fun `on my own page, the pill but never the dark row`() {
         show(TestFamily.adult.copy(birthDate = LocalDate.of(1990, 6, 20)), isMe = true)
-        assertEquals(0, count("Bientôt"))
+        assertEquals(0, count("Son anniversaire"))
+        assertEquals(1, count("Anniversaire dans 10 jours"))
     }
 
     @Test
-    fun `my wishes on my page show their titles, never who took them`() {
-        compose.setContent {
-            FamiliaTheme {
-                CompositionLocalProvider(LocalProfileSection provides true) {
-                    Column {
-                        ProfileWishesContent(WishPreview(2, listOf("Un livre", "Un vélo")), TestFamily.adult, isMe = true, keptByMe = true, onOpen = {})
-                    }
-                }
-            }
-        }
-        compose.waitForIdle()
-        assertEquals(1, count("MES ENVIES (2)"))
-        assertEquals(1, count("Un vélo"))
-        assertEquals(0, count("Réservé"))
-        assertEquals(0, count("Pris"))
+    fun `an adult's age is not written`() {
+        show(TestFamily.otherAdult.copy(birthDate = LocalDate.of(1985, 2, 3)), isMe = false)
+        assertEquals(1, count("anniversaire le 3 février"))
+        assertEquals(0, count("41 ans"))
     }
 
     @Test

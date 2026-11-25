@@ -1,192 +1,183 @@
 package fr.familia.app.feature.members.profile
 
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import fr.familia.app.core.ui.FamiliaTopBar
-import androidx.compose.material3.ButtonDefaults
-import fr.familia.app.core.theme.themeBackground
-import fr.familia.app.core.ui.memberColor
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
-import fr.familia.app.core.model.Souvenir
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.LocalPhotoTheme
+import fr.familia.app.core.theme.PhotoBackdrop
+import fr.familia.app.core.theme.PhotoScroll
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.ui.frenchDate
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.feature.souvenirs.BravoSheet
 import fr.familia.app.feature.souvenirs.SouvenirKind
-import fr.familia.app.feature.souvenirs.SouvenirMedal
-import fr.familia.app.feature.souvenirs.nextSouvenirs
 import fr.familia.app.feature.souvenirs.previewSouvenirs
 import java.time.LocalDate
-import fr.familia.app.core.ui.LoadingState
 
-/** A member's page (récit 34): who they are, and the souvenirs they show. Stateless. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * A member's page (brief Famille-recettes, F6 à F8), lying on the photo of the theme like Famille.
+ * « Ma fiche » or « Fiche de Hugo » at the top, never a ⋮ menu, and « Modifier » on the right for
+ * those who may. On my own page « Modifier » opens the same page in place (règle 3, F10): « Modifier
+ * la fiche » at the top, Annuler | Enregistrer held at the bottom, « Quitter sans enregistrer ? »
+ * when something changed. Stateless.
+ */
 @Composable
 fun MemberProfileScreen(
     state: MemberProfileUiState,
     onBack: () -> Unit,
     onEdit: () -> Unit,
-    onSetShown: (key: String, shown: Boolean) -> Unit,
     onDismissBravo: () -> Unit = {},
-    onOpenRecipes: (() -> Unit)? = null,
     /** The cards of vœux (récit 36), while their module is on. */
     wishes: (@Composable (Member) -> Unit)? = null,
-    /** Pointure, goûts et passions (récit 7 bis), while their module is on. */
-    card: (@Composable (Member) -> Unit)? = null,
-    /** « Ses envies » and « Ce que je lui offre » (retour d'essai, 17/11), while Cadeaux is on. */
-    gifts: (@Composable (Member) -> Unit)? = null,
-    /** What the page organised in sections reads besides the member (récit 66). */
     v2: ProfileV2Ui = ProfileV2Ui(null),
 ) {
     (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
-        SouvenirKind.of(souvenir.key)?.let { kind ->
-            BravoSheet(
-                kind = kind,
-                souvenir = souvenir,
-                onShow = {
-                    onSetShown(souvenir.key, true)
-                    onDismissBravo()
-                },
-                onDismiss = onDismissBravo,
-            )
-        }
+        // The Réussites are public now (règle 8): the sheet only says bravo.
+        SouvenirKind.of(souvenir.key)?.let { kind -> BravoSheet(kind = kind, souvenir = souvenir, onShow = onDismissBravo, onDismiss = onDismissBravo) }
     }
-    Scaffold(
-        modifier = Modifier.themeBackground(),
-        containerColor = Color.Transparent,
-        topBar = {
-            val ready = state as? MemberProfileUiState.Ready
-            // DESIGN-60, option A: the bar sits on the calm band of the member's color, « Fiche de
-            // Hugo » (« Ma fiche » on mine). Never a ⋮ menu.
-            FamiliaTopBar(
-                title = {
-                    val title = when {
-                        ready == null -> ""
-                        ready.isMe -> stringResource(R.string.profile_v2_my_page)
-                        else -> stringResource(R.string.profile_v2_page_title, ready.member.firstName)
-                    }
-                    Text(title, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                },
-                containerColor = ready?.let { calmBandColor(memberColor(it.member)) } ?: Color.Transparent,
-                navigationIcon = { BackButton(onClick = onBack) },
-                actions = {
-                    // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.
-                    if (ready?.canEdit == true) {
-                        TextButton(
-                            onClick = onEdit,
-                            modifier = Modifier.heightIn(min = 56.dp),
-                        ) {
-                            Text(stringResource(R.string.profile_edit))
+    val photo = LocalPhotoTheme.current
+    val scroll = remember { PhotoScroll() }
+    val editing = v2.edit?.takeIf { state is MemberProfileUiState.Ready }
+    var leaving by rememberSaveable { mutableStateOf(false) }
+    val back: () -> Unit = when {
+        editing == null -> onBack
+        editing.changed -> ({ leaving = true })
+        else -> v2.onCancelEdit
+    }
+    BackHandler(enabled = editing != null, onBack = back)
+    Box(Modifier.fillMaxSize().then(if (photo == null) Modifier.themeBackground() else Modifier)) {
+        if (photo != null) PhotoBackdrop(photo, scroll)
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                val ready = state as? MemberProfileUiState.Ready
+                FamiliaTopBar(
+                    title = {
+                        val title = when {
+                            ready == null -> ""
+                            editing != null -> stringResource(R.string.profile_edit)
+                            ready.isMe -> stringResource(R.string.profile_v2_my_page)
+                            else -> stringResource(R.string.profile_v2_page_title, ready.member.firstName)
                         }
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
-            when (state) {
-                MemberProfileUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
-                MemberProfileUiState.NotFound -> EmptyState(
-                    icon = Icons.Outlined.Person,
-                    title = stringResource(R.string.member_not_found_title),
-                    body = stringResource(R.string.profile_not_found_body),
+                        Text(title, style = onPhotoStyle(MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold)), maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                    },
+                    navigationIcon = { BackButton(onClick = back) },
+                    actions = {
+                        // One « Modifier » for the whole page (règle 3), for those who may.
+                        if (ready?.canEdit == true && editing == null) {
+                            Surface(
+                                onClick = onEdit,
+                                shape = MaterialTheme.shapes.extraLarge,
+                                color = Color.Transparent,
+                                modifier = Modifier.heightIn(min = 56.dp).ficheCard(28.dp),
+                            ) {
+                                Box(Modifier.padding(horizontal = 18.dp), contentAlignment = Alignment.Center) {
+                                    Text(stringResource(R.string.profile_edit), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = ficheInk())
+                                }
+                            }
+                        }
+                    },
                 )
-                is MemberProfileUiState.Ready -> ContentV2(state, v2, onSetShown, onOpenRecipes, wishes, card, gifts)
+            },
+            bottomBar = { editing?.let { EditBar(it, onCancel = back, onSave = v2.onSaveEdit) } },
+        ) { padding ->
+            Box(Modifier.padding(padding).fillMaxSize()) {
+                when (state) {
+                    MemberProfileUiState.Loading -> FicheSkeleton()
+                    MemberProfileUiState.NotFound -> EmptyState(
+                        icon = Icons.Outlined.Person,
+                        title = stringResource(R.string.member_not_found_title),
+                        body = stringResource(R.string.profile_not_found_body),
+                    )
+                    is MemberProfileUiState.Ready -> ContentV2(state, v2, wishes, scrollConnection = scroll.connection.takeIf { photo != null })
+                }
             }
         }
     }
+    if (leaving && editing != null) {
+        LeaveDialog(onStay = { leaving = false }, onLeave = { leaving = false; v2.onCancelEdit() })
+    }
 }
 
-/** My souvenirs with their switch, or the ones this member shows (récit 34), without their title. */
-@OptIn(ExperimentalLayoutApi::class)
+/** Annuler | Enregistrer, held at the bottom while « Modifier » is open (règle 3); Enregistrer waits for a change. */
 @Composable
-internal fun SouvenirsContent(state: MemberProfileUiState.Ready, onSetShown: (String, Boolean) -> Unit) {
-    val member = state.member
-    val earned = state.souvenirs.mapNotNull { s -> SouvenirKind.of(s.key)?.let { it to s } }
-    if (state.isMe) {
-        Text(stringResource(R.string.souvenirs_private_help), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        earned.forEach { (kind, souvenir) -> MySouvenir(kind, souvenir, onSetShown) }
-        val next = nextSouvenirs(state.souvenirs)
-        if (next.isNotEmpty()) {
-            Text(stringResource(R.string.souvenirs_next), style = MaterialTheme.typography.titleMedium)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                next.forEach { SouvenirMedal(it, earnedAt = null, counters = state.counters) }
+private fun EditBar(edit: FicheEdit, onCancel: () -> Unit, onSave: () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp, shadowElevation = 8.dp) {
+        Row(
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.action_cancel), style = MaterialTheme.typography.titleMedium)
             }
-        }
-    } else if (earned.isEmpty()) {
-        Text(stringResource(R.string.souvenirs_none_shown, member.firstName), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    } else {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            earned.forEach { (kind, souvenir) -> SouvenirMedal(kind, souvenir.earnedAt) }
+            Button(onClick = onSave, enabled = edit.canSave, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.member_save), style = MaterialTheme.typography.titleMedium)
+            }
         }
     }
 }
 
-/** One of my souvenirs, with the switch « Montrer sur ma fiche ». */
+/** « Quitter sans enregistrer ? » (F12): Rester keeps the fields, Quitter drops what was typed. */
 @Composable
-private fun MySouvenir(kind: SouvenirKind, souvenir: Souvenir, onSetShown: (String, Boolean) -> Unit) {
-    // The switch under the medal, on the whole width (retour d'essai du 18/11) : à côté de la
-    // médaille, avec un grand texte, « Montrer » se coupait en plein mot.
-    ClayCard(Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SouvenirMedal(kind, souvenir.earnedAt)
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(value = souvenir.shown, role = Role.Switch, onValueChange = { onSetShown(souvenir.key, it) }),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(stringResource(R.string.souvenirs_show), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                Switch(checked = souvenir.shown, onCheckedChange = null)
-            }
-        }
-    }
+private fun LeaveDialog(onStay: () -> Unit, onLeave: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onStay,
+        title = { Text(stringResource(R.string.profile_edit_leave_title)) },
+        text = { Text(stringResource(R.string.profile_edit_leave_body)) },
+        confirmButton = {
+            TextButton(onClick = onLeave, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.profile_edit_leave_go)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onStay, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.profile_edit_leave_stay)) }
+        },
+    )
 }
-
-
-internal fun birthdayLabel(date: LocalDate): String = frenchDate(date, "d MMMM")
 
 @FamiliaPreviews
 @Composable
 private fun MemberProfilePreview() {
-    val member = Member("a", "Camille", null, LocalDate.of(1990, 5, 4), "h1", MemberProfile.Adult, true, emptyList(), null, colorIndex = 2)
+    val member = Member("a", "Camille", null, LocalDate.of(1990, 5, 4), "h1", MemberProfile.Adult, true, emptyList(), null, colorIndex = 2, nickname = "Mamie")
     FamiliaTheme {
         Surface {
             MemberProfileScreen(
                 MemberProfileUiState.Ready(member, "Foyer Martin", isMe = true, canEdit = true, souvenirs = previewSouvenirs()),
-                {}, {}, { _, _ -> },
+                {}, {},
             )
         }
     }

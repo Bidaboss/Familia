@@ -168,6 +168,11 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   await db.recursiveDelete(member.collection('reminders'));
   // « Carnet de baroudeur » (récit 107): the places added by hand are private too.
   await db.recursiveDelete(member.collection('travelPlaces'));
+  // « Mes notes » (récit 114, lot A4): their notes about the others, and the notes of the others
+  // about them, which nobody can read any more.
+  await db.recursiveDelete(member.collection('notes'));
+  const others = await db.collection('members').select().get();
+  await Promise.all(others.docs.map((m) => m.ref.collection('notes').doc(memberId).delete()));
   await db.recursiveDelete(db.collection('usage').doc(memberId).collection('days'));
   return folders;
 }
