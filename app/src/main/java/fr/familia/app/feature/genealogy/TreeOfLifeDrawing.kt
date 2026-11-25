@@ -74,7 +74,6 @@ import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.theme.LocalClayStyle
 import fr.familia.app.core.theme.Nunito
 import fr.familia.app.core.theme.OnMemberColor
-import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.LocalMemberInitials
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.memberColor
@@ -413,7 +412,7 @@ internal fun isHighContrast(style: ClayStyle): Boolean =
     style.shadow == ClayShadow.None && style.border != null
 
 /**
- * The « Arbre » tab: the hint, « Faire l'affiche » when [onMakePoster], the drawing and, for who may
+ * The « Arbre » tab: the hint, the drawing and, for who may
  * edit, « + Ajouter un proche » at the bottom right (brief Famille-recettes, règle 11: a dark
  * extended button with its text, no more the round « + » at the top).
  */
@@ -422,7 +421,6 @@ internal fun TreeOfLifeView(
     state: GenealogyUiState.Ready,
     onOpen: (String) -> Unit,
     onAddKin: (() -> Unit)?,
-    onMakePoster: (() -> Unit)? = null,
 ) {
     val outlined = isHighContrast(LocalClayStyle.current)
     Column(Modifier.fillMaxSize()) {
@@ -431,9 +429,6 @@ internal fun TreeOfLifeView(
             fontSize = 13.sp,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
-        if (onMakePoster != null) {
-            ClayLink(stringResource(R.string.tree_poster_open), onClick = onMakePoster, modifier = Modifier.padding(start = 12.dp))
-        }
         Box(Modifier.fillMaxSize()) {
             TreeOfLifeDrawing(state.tree, state.words, onOpen, outlined, bottomSpace = if (onAddKin != null) 88.dp else 0.dp)
             if (onAddKin != null) {

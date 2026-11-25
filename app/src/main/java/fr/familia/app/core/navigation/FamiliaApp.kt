@@ -123,8 +123,6 @@ import fr.familia.app.feature.capsules.CapsulesRoute
 import fr.familia.app.feature.genealogy.GenealogyDestination
 import fr.familia.app.feature.genealogy.GenealogyRoute
 import fr.familia.app.feature.genealogy.GenealogyTab
-import fr.familia.app.feature.genealogy.poster.TreePosterDestination
-import fr.familia.app.feature.genealogy.poster.TreePosterRoute
 import fr.familia.app.core.album.book.PhotoBookDestination
 import fr.familia.app.feature.albums.book.PhotoBookRoute
 import fr.familia.app.feature.help.HelpButton
@@ -1553,7 +1551,6 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
                             onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
-                            onMakePoster = { navController.navigate(TreePosterDestination) },
                         )
                     }
                     composable<PhotoBookDestination> { entry ->
@@ -1562,9 +1559,6 @@ fun FamiliaApp(
                             album = entry.toRoute<PhotoBookDestination>(),
                             onBack = { navController.popBackStack() },
                         )
-                    }
-                    composable<TreePosterDestination> {
-                        TreePosterRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<CapsuleEditDestination> {
                         CapsuleEditRoute(
@@ -2003,8 +1997,7 @@ fun FamiliaApp(
                                         container = container,
                                         currentMember = currentMember,
                                         onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
-                                        onMakePoster = { navController.navigate(TreePosterDestination) },
-                                    )
+                                                )
                                 }
                             } else {
                                 null
@@ -2439,7 +2432,7 @@ private fun NavHostController.seeWhere(feature: Feature, meId: String, nextEvent
         Feature.Polls -> ({ navigate(PollsDestination) { launchSingleTop = true } })
         Feature.Recipes -> ({ navigate(RecipesDestination()) { launchSingleTop = true } })
         Feature.Capsules -> ({ navigate(CapsulesDestination) { launchSingleTop = true } })
-        Feature.Genealogy, Feature.TreePoster, Feature.ArbreDeVie -> ({ navigate(GenealogyDestination) { launchSingleTop = true } })
+        Feature.Genealogy, Feature.ArbreDeVie -> ({ navigate(GenealogyDestination) { launchSingleTop = true } })
         Feature.Places -> ({ navigate(JoinMeDestination) { launchSingleTop = true } })
         Feature.WhoIsIt -> ({ navigate(WhoIsItDestination) { launchSingleTop = true } })
         Feature.RecipeBook -> ({ navigate(RecipeBookDestination) { launchSingleTop = true } })

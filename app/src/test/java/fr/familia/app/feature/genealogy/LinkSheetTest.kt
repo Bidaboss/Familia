@@ -138,20 +138,20 @@ class LinkSheetTest {
     }
 
     @Test
-    fun `the tree offers « Ajouter un proche » to who may edit, and the poster`() {
+    fun `the tree offers « Ajouter un proche » to who may edit, and no poster any more`() {
         var added = false
-        var poster = false
         compose.setContent {
             FamiliaTheme {
-                TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "camille", isOwner = true), onOpen = {}, onAddKin = { added = true }, onMakePoster = { poster = true })
+                TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "camille", isOwner = true), onOpen = {}, onAddKin = { added = true })
             }
         }
-        // Over the drawing: reached by their action, the button by the text it holds.
+        // Over the drawing: reached by its action, by the text it holds.
         fun press(text: String) = compose.onNode(hasClickAction() and (hasText(text) or hasAnyDescendant(hasText(text))), useUnmergedTree = true)
             .performSemanticsAction(SemanticsActions.OnClick)
         press("Ajouter un proche")
-        press("Faire l'affiche de l'arbre")
-        assertTrue(added && poster)
+        assertTrue(added)
+        // The poster of the tree is gone (récit 53 removed).
+        compose.onAllNodesWithText("Faire l'affiche de l'arbre", useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test

@@ -101,8 +101,6 @@ fun GenealogyScreen(
     actions: GenealogyActions? = null,
     actionFailed: Boolean = false,
     onFailureShown: () -> Unit = {},
-    /** « Faire l'affiche de l'arbre », with the switch treePoster (récit 53); null hides it. */
-    onMakePoster: (() -> Unit)? = null,
     /** L'arbre de vie (switch arbreDeVie): the « Arbre » and « Liste » tabs; off, the rows only. */
     treeOfLife: Boolean = false,
 ) {
@@ -116,7 +114,7 @@ fun GenealogyScreen(
             )
         },
     ) { padding ->
-        GenealogyContent(state, onOpenProfile, actions, onMakePoster, onBack, treeOfLife, Modifier.padding(padding))
+        GenealogyContent(state, onOpenProfile, actions, onBack, treeOfLife, Modifier.padding(padding))
     }
     GenealogyFailure(actionFailed, onFailureShown)
 }
@@ -130,7 +128,6 @@ internal fun GenealogyContent(
     state: GenealogyUiState,
     onOpenProfile: ((String) -> Unit)?,
     actions: GenealogyActions?,
-    onMakePoster: (() -> Unit)?,
     onBack: (() -> Unit)?,
     treeOfLife: Boolean,
     modifier: Modifier = Modifier,
@@ -144,7 +141,7 @@ internal fun GenealogyContent(
                 title = stringResource(R.string.genealogy_failed_title),
                 body = stringResource(R.string.genealogy_failed_body),
             )
-            is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster, onBack, treeOfLife, inFamilyTab)
+            is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onBack, treeOfLife, inFamilyTab)
         }
     }
 }
@@ -178,7 +175,6 @@ private fun ReadyTree(
     state: GenealogyUiState.Ready,
     onOpenProfile: ((String) -> Unit)?,
     actions: GenealogyActions?,
-    onMakePoster: (() -> Unit)?,
     onBack: (() -> Unit)?,
     treeOfLife: Boolean = false,
     inFamilyTab: Boolean = false,
@@ -240,11 +236,8 @@ private fun ReadyTree(
             TreeViewSwitch(view, onChange = { view = it }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
         }
         if (treeOfLife && view == TreeView.Tree) {
-            TreeOfLifeView(state, onOpen = { open = it }, onAddKin = editing?.let { { editKin = NEW_KIN } }, onMakePoster = onMakePoster)
+            TreeOfLifeView(state, onOpen = { open = it }, onAddKin = editing?.let { { editKin = NEW_KIN } })
         } else {
-            if (onMakePoster != null) {
-                ClayLink(stringResource(R.string.tree_poster_open), onClick = onMakePoster, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
-            }
             if (editing != null) {
                 OutlinedButton(
                     onClick = { editKin = NEW_KIN },

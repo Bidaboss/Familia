@@ -280,7 +280,6 @@
     <string name="feature_help_carpool">Sur la fiche d\'un événement, sous « Je viens » : on propose ses places en voiture, ou on en demande une.</string>
     <string name="feature_help_recurring_events">En créant un événement, « Se répète » : chaque semaine, chaque mois… Les dates suivantes se créent seules.</string>
     <string name="feature_help_arbre_de_vie">Montre l\'arbre de la famille dessiné comme un arbre de vie.</string>
-    <string name="feature_help_tree_poster">Dans l\'arbre généalogique, « Faire l\'affiche » : l\'arbre en PDF A4 ou A3 à imprimer.</string>
     <string name="feature_help_photo_book">Dans l\'album d\'un voyage ou d\'un événement, « Faire le livre photo » en PDF.</string>
     <string name="feature_help_year_in_review">Le récit de l\'année : sur l\'Accueil du 26/12 au 10/01, et toute l\'année dans le tiroir, sous Se souvenir.</string>
     <string name="feature_help_my_reminders">Sur la fiche d\'un événement, « Me le rappeler » : un rappel privé. Les rappels par défaut sont dans Notifications.</string>
@@ -2194,7 +2193,6 @@
     <string name="recipe_book_failed">Le livre n\'a pas pu être fait. Vérifie ta connexion, puis réessaie.</string>
     <string name="recipe_book_print_hint">Tu peux le faire imprimer dans une boutique photo : demande un livret au format A5.</string>
     <string name="recipe_book_share_chooser">Enregistrer, imprimer ou envoyer le livre</string>
-    <!-- L'affiche de l'arbre (récit 53) -->
     <string name="photo_book_open">Faire le livre photo</string>
     <string name="photo_book_title">Le livre photo</string>
     <string name="photo_book_intro">Choisis les photos et leur ordre. Ton téléphone en fait un PDF, à garder, imprimer ou offrir.</string>
@@ -2225,27 +2223,6 @@
     <string name="photo_book_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer le livre hors de Familia.</string>
     <string name="photo_book_empty_title">Pas encore de photo pour un livre</string>
     <string name="photo_book_empty_body">Ajoute d\'abord des photos à l\'album, puis reviens faire le livre.</string>
-    <string name="tree_poster_open">Faire l\'affiche de l\'arbre</string>
-    <string name="tree_poster_title">L\'affiche de l\'arbre</string>
-    <string name="tree_poster_intro">Choisis ce que montre l\'affiche. Ton téléphone en fait un PDF en paysage, à garder, imprimer ou accrocher.</string>
-    <string name="tree_poster_default_title">L\'arbre de la famille</string>
-    <string name="tree_poster_field_title">Titre de l\'affiche</string>
-    <string name="tree_poster_year">Année : %1$d</string>
-    <string name="tree_poster_start">À partir de qui ?</string>
-    <string name="tree_poster_start_all">Toute la famille</string>
-    <string name="tree_poster_start_from">%1$s et ses descendants</string>
-    <string name="tree_poster_sheet">La feuille</string>
-    <string name="tree_poster_a4">A4, pour une imprimante à la maison</string>
-    <string name="tree_poster_a3">A3, deux fois plus grand, pour une boutique photo</string>
-    <string name="tree_poster_photos">Mettre les photos</string>
-    <string name="tree_poster_photos_children">Un enfant dont tu n\'es pas un des adultes garde son initiale.</string>
-    <string name="tree_poster_make">Faire l\'affiche</string>
-    <string name="tree_poster_failed">L\'affiche n\'a pas pu être faite. Vérifie ta connexion, puis réessaie.</string>
-    <string name="tree_poster_print_hint">Seule l\'année de naissance apparaît, jamais la date. Une boutique photo peut l\'imprimer en grand.</string>
-    <string name="tree_poster_share_chooser">Enregistrer, imprimer ou envoyer l\'affiche</string>
-    <string name="tree_poster_empty_title">L\'arbre est encore vide</string>
-    <string name="tree_poster_empty_body">Relie d\'abord des personnes dans l\'arbre généalogique, puis reviens faire l\'affiche.</string>
-    <string name="tree_poster_empty_back">Revenir à l\'arbre</string>
     <string name="recipe_book_empty_title">Le carnet attend sa première recette</string>
     <string name="recipe_book_empty_body">Le livre se fera dès qu\'il y aura des recettes dans le carnet. Note la première, les autres suivront.</string>
     <string name="recipe_book_empty_back">Revenir au carnet</string>
@@ -3719,7 +3696,6 @@
     <string name="gooddeal_publish_family">Publier pour la famille</string>
     <!-- Récit 49 : le planning dans Google Agenda -->
     <string name="feature_calendar_feed">Planning dans mon agenda</string>
-    <string name="feature_tree_poster">Affiche de l\'arbre</string>
     <string name="feature_arbre_de_vie">Arbre de vie</string>
     <string name="feature_photo_book">Livre photo</string>
     <string name="account_calendar_feed">Voir dans mon agenda</string>

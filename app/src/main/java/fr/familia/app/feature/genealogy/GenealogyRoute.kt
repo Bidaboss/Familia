@@ -11,7 +11,6 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
-import fr.familia.app.core.viewas.LocalViewAs
 import kotlinx.serialization.Serializable
 
 /** L'arbre généalogique (PRD, récit 40), behind Feature.Genealogy. */
@@ -24,7 +23,6 @@ fun GenealogyRoute(
     currentMember: Member,
     onBack: () -> Unit,
     onOpenProfile: ((String) -> Unit)? = null,
-    onMakePoster: (() -> Unit)? = null,
 ) {
     val viewModel = genealogyViewModel(container, currentMember)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -37,8 +35,6 @@ fun GenealogyRoute(
         actions = actions,
         actionFailed = failed,
         onFailureShown = viewModel::failureShown,
-        // Not in « Voir comme »: the poster would be made with someone else's rights (récit 53).
-        onMakePoster = onMakePoster?.takeIf { LocalFeatureFlags.current.isOn(Feature.TreePoster) && LocalViewAs.current.viewed == null },
         treeOfLife = LocalFeatureFlags.current.isOn(Feature.ArbreDeVie),
     )
 }
@@ -52,7 +48,6 @@ fun GenealogyTab(
     container: AppContainer?,
     currentMember: Member,
     onOpenProfile: ((String) -> Unit)? = null,
-    onMakePoster: (() -> Unit)? = null,
 ) {
     val viewModel = genealogyViewModel(container, currentMember)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,8 +56,6 @@ fun GenealogyTab(
         state = state,
         onOpenProfile = onOpenProfile,
         actions = rememberGenealogyActions(viewModel),
-        // The tree left Tout Familia: « Faire l'affiche » comes along (récit 53).
-        onMakePoster = onMakePoster?.takeIf { LocalFeatureFlags.current.isOn(Feature.TreePoster) && LocalViewAs.current.viewed == null },
         onBack = null,
         treeOfLife = LocalFeatureFlags.current.isOn(Feature.ArbreDeVie),
         inFamilyTab = true,
