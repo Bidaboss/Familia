@@ -68,7 +68,7 @@ class GazettePostTest {
     }
 
     @Test
-    fun `a word, a photo or both; 1 000 characters and 6 photos at most (PRD 119 b)`() {
+    fun `a word, a photo or both, 1 000 characters and 6 photos at most (PRD 119 b)`() {
         assertEquals(setOf(PostFormError.Empty), PostForm(text = "  ").validate())
         assertTrue(PostForm(text = "Coucou").validate().isEmpty())
         assertTrue(PostForm(photos = listOf("content://a")).validate().isEmpty())
@@ -117,7 +117,7 @@ class GazettePostTest {
     }
 
     @Test
-    fun `only its author changes the text; the photos stay`() = runTest {
+    fun `only its author changes the text, the photos stay`() = runTest {
         val posts = FakePosts(listOf(post("p1", "kid1").copy(photoIds = listOf("a"))))
         val parent = PostEditViewModel(posts, FakeMembers(), FakeUploader(), "adult1", "p1")
         advanceUntilIdle()
