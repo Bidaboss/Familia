@@ -31,6 +31,12 @@ import fr.familia.app.feature.feed.rememberFeedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import fr.familia.app.core.model.isToConfirm
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -107,6 +113,7 @@ class HomeActions(
 )
 
 /** Connects the Accueil tab to its ViewModel; each module feeds its card only while it shows. */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun HomeRoute(
     container: AppContainer?,
@@ -255,9 +262,25 @@ fun HomeRoute(
     }
     Box(if (photo != null) Modifier.nestedScroll(photo.scroll.connection) else Modifier) {
     // My surprises, for « À répondre » on the photo: the one of the day waits for « C'est offert ».
+    // « Je ne participe pas » is final: a surprise I left never asks me to confirm it (only the ones of
+    // the day are checked, one small listener each).
     val mySurprisesFlow = remember(container, currentMember.id, actions.onOpenSurprise != null) {
-        container?.surpriseRepository?.takeIf { actions.onOpenSurprise != null }?.observeMine(currentMember.id)
-            ?: kotlinx.coroutines.flow.flowOf(emptyList())
+        val repository = container?.surpriseRepository?.takeIf { actions.onOpenSurprise != null }
+        repository?.observeMine(currentMember.id)?.flatMapLatest { mine ->
+            val today = java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris"))
+            val due = mine.filter { it.isToConfirm(today) }
+            if (due.isEmpty()) {
+                flowOf(mine)
+            } else {
+                combine(
+                    due.map { surprise ->
+                        repository.observeMemberRows(surprise.id).map { rows ->
+                            surprise.id.takeIf { rows.any { it.memberId == currentMember.id && it.declined } }
+                        }
+                    },
+                ) { left -> mine.filter { it.id !in left.filterNotNull() } }
+            }
+        } ?: flowOf(emptyList())
     }
     val mySurprises by mySurprisesFlow.collectAsState(initial = emptyList())
     HomeR1bisScreen(
