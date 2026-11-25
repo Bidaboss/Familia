@@ -52,8 +52,8 @@ import fr.familia.app.core.theme.themeBackground
 /*
  * La gazette est l'Accueil (récit 115, brief §3) : « Ma journée » n'est plus un onglet mais un écran
  * à part, posé AU-DESSUS de la gazette dans l'Accueil (pas une page de navigation). La fermeture éclair
- * (PR 6 du brief) le dévoilera derrière la gazette ; en attendant, la ligne de résumé de l'en-tête
- * l'ouvre, et elle reste l'accès sans geste (TalkBack, animations réduites).
+ * (MyDayZipper.kt) le dévoile derrière la gazette ; la ligne de résumé de l'en-tête l'ouvre aussi, et
+ * elle reste l'accès sans geste (TalkBack, animations réduites).
  */
 
 /** What « Ma journée » counts for the line of the header: the things of today, and what waits for me. */
@@ -134,6 +134,12 @@ internal fun MyDayTitle(onPhoto: Boolean, onClose: () -> Unit) {
         }
     }
 }
+
+/** The room under the content of « Ma journée », so it never goes under the zipper at the bottom (brief §7). */
+internal val MY_DAY_ZIPPER_ROOM = 140.dp
+
+/** The room under the list of « Ma journée » on the photo: 24 dp, or [MY_DAY_ZIPPER_ROOM] behind the zipper. */
+internal val LocalMyDayBottom = androidx.compose.runtime.staticCompositionLocalOf { 24.dp }
 
 /** The round of the ✕ (W1, then the « Carnet post-it » of the brief §8). */
 private val MyDayCloseColor = Color(0xFFF0E3C4)

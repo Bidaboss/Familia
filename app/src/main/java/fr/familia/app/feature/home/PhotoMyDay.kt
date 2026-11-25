@@ -424,7 +424,7 @@ internal fun PhotoDayList(
         onOpenAll = r1.onOpenAll,
     )
     LazyColumn(
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = LocalMyDayBottom.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize(),
     ) {

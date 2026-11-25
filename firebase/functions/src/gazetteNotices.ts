@@ -106,7 +106,8 @@ export async function gazetteThreadViewers(db: Firestore, threadId: string, with
   const all = new Set(withApp);
   const among = (ids: unknown) => new Set((Array.isArray(ids) ? ids : []).filter((id): id is string => typeof id === 'string' && all.has(id)));
   switch (kind) {
-    case 'birthday': case 'weekly': case 'deal':
+    // An event and a recipe keep their comments on themselves today (takesComments), but are seen by all.
+    case 'event': case 'recipe': case 'birthday': case 'weekly': case 'deal':
       return all;
     case 'post':
       return first !== '' && (await db.collection('gazettePosts').doc(first).get()).exists ? all : new Set();

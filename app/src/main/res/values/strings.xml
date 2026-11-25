@@ -2645,6 +2645,10 @@
     </plurals>
     <string name="home_myday_open_a11y">Ouvrir Ma journée : %1$s</string>
     <string name="home_myday_close">Fermer Ma journée</string>
+    <!-- La fermeture éclair (brief §7): the slider is a button for TalkBack. -->
+    <string name="home_zipper_open">Ouvrir Ma journée</string>
+    <string name="home_zipper_open_waiting">Ouvrir Ma journée, %1$s</string>
+    <string name="home_zipper_close">Fermer Ma journée</string>
     <string name="home_photo_today">Aujourd\'hui</string>
     <string name="home_photo_planning">Planning ›</string>
     <string name="home_photo_nothing">Rien de prévu</string>
