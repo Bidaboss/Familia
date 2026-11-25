@@ -24,6 +24,9 @@ import fr.familia.app.core.model.ideaProposalId
 import fr.familia.app.core.model.wishProposalId
 import fr.familia.app.core.model.wishesListId
 import kotlinx.coroutines.CancellationException
+import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.core.model.isToConfirm
+import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,6 +91,8 @@ sealed interface SurpriseUiState {
         val isAdult: Boolean = true,
         val validated: Boolean = false,
         val declined: Boolean = false,
+        /** The day itself or after: the big orange card « C'est offert » (fiche C7). */
+        val isDay: Boolean = false,
     ) : SurpriseUiState {
         val isCreator: Boolean get() = surprise.creatorId == meId
 
@@ -120,6 +125,7 @@ private data class Gifts(
     val myShares: Map<String, Int> = emptyMap(),
     val ownShares: Map<String, Map<String, Int>> = emptyMap(),
     val rows: List<SurpriseMemberRow> = emptyList(),
+    val today: LocalDate? = null,
 )
 
 /**
@@ -135,6 +141,7 @@ class SurpriseViewModel(
     private val notebook: NotebookRepository?,
     private val currentMemberId: String,
     private val surpriseId: String,
+    private val today: Flow<LocalDate> = currentDayFlow(),
 ) : ViewModel() {
 
     private val failed = MutableStateFlow(false)
@@ -159,11 +166,11 @@ class SurpriseViewModel(
                 }
             }
             val gifts = combine(
-                takes,
+                combine(takes, today) { t, day -> t to day },
                 repo.observeMyShares(surpriseId, currentMemberId).catch { emit(emptyMap()) },
                 ownShares,
                 repo.observeMemberRows(surpriseId).catch { emit(emptyList()) },
-            ) { t, mine, own, rows -> Gifts(t, mine, own, rows) }
+            ) { (t, day), mine, own, rows -> Gifts(t, mine, own, rows, day) }
             combine(
                 combine(memberRepo.observeFamily(), wishItems, repo.observeProposals(surpriseId), repo.observeMyRatings(surpriseId, currentMemberId)) { family, items, proposals, ratings ->
                     Sources(surprise, family.members, items, proposals, ratings)
@@ -252,6 +259,12 @@ class SurpriseViewModel(
             state.results.filter { it.takenByMe }.forEach { repo.release(surpriseId, it.proposal.id) }
             repo.decline(surpriseId, currentMemberId)
         }
+    }
+
+    /** « C'est offert »: confirmed for everyone; the surprise then leaves every screen. */
+    fun markOffered() {
+        val repo = surprises ?: return
+        write { repo.markOffered(surpriseId, currentMemberId) }
     }
 
     private fun write(block: suspend () -> Unit) {
@@ -356,6 +369,7 @@ private fun surpriseState(
         isAdult = sources.members.firstOrNull { it.id == meId }?.profile == MemberProfile.Adult,
         validated = validated,
         declined = myRow?.declined == true,
+        isDay = gifts.today?.let { surprise.isToConfirm(it) } == true,
     )
 }
 
@@ -373,5 +387,6 @@ internal fun surpriseStateForTest(
     myShares: Map<String, Int> = emptyMap(),
     ownShares: Map<String, Map<String, Int>> = emptyMap(),
     rows: List<SurpriseMemberRow> = emptyList(),
+    today: LocalDate? = null,
 ): SurpriseUiState.Ready? =
-    surpriseState(Sources(surprise, members, wishItems, proposals, myRatings), entries, history, meId, Gifts(takes, myShares, ownShares, rows))
+    surpriseState(Sources(surprise, members, wishItems, proposals, myRatings), entries, history, meId, Gifts(takes, myShares, ownShares, rows, today))

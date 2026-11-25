@@ -1020,6 +1020,14 @@
     <string name="surprise_decline_body">C\'est définitif : tu ne pourras plus noter, prendre un cadeau ni mettre une part. Ce que tu as pris sera libéré. Seul le créateur de la surprise peut te réinviter.</string>
     <string name="surprise_decline_confirm">Je ne participe pas</string>
     <string name="surprise_declined_notice">Tu ne participes pas à cette surprise. Seul son créateur peut te réinviter.</string>
+    <string name="surprise_day_title">C\'est le jour J !</string>
+    <string name="surprise_day_question">Les cadeaux ont-ils été remis à %1$s ?</string>
+    <string name="surprise_offered_action">C\'est offert</string>
+    <string name="surprise_day_hint">Un seul membre suffit : la surprise est alors confirmée pour tout le monde et la tuile disparaît de Cadeaux.</string>
+    <string name="surprise_offered_confirm_title">Les cadeaux de %1$s sont offerts ?</string>
+    <string name="surprise_offered_confirm_body">C\'est confirmé pour tout le monde : les cadeaux pris passent dans « Déjà offert à %1$s » et la surprise se termine. Plus rien ne pourra être changé.</string>
+    <string name="surprise_tile_to_confirm">Surprise à confirmer</string>
+    <string name="surprise_tile_day">Pour %1$s · c\'est le jour J : touche « C\'est offert » une fois les cadeaux remis</string>
     <string name="gift_offer_wish">Offrir cette envie</string>
     <string name="gift_surprise_state_title">Dans la surprise (vu seulement de ceux qui la préparent)</string>
     <string name="gift_surprise_free">Libre</string>

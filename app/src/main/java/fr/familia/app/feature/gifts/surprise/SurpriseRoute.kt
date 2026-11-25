@@ -46,6 +46,8 @@ fun SurpriseRoute(
             onShare = viewModel::setShare,
             onValidate = viewModel::setValidated,
             onDecline = { (state as? SurpriseUiState.Ready)?.let(viewModel::decline) },
+            // Offered, the surprise is over for everyone: back to Cadeaux, where its tile is gone.
+            onOffered = { viewModel.markOffered(); onBack() },
         ),
     )
 }
