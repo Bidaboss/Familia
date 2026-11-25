@@ -29,7 +29,16 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
+import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.ui.ClayCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -59,7 +68,11 @@ import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 
-/** One recipe: its ingredients, then its steps, numbered. Stateless. */
+/**
+ * One recipe (R4, R5): its card (title, « De … », category and tags, story), the photos of the
+ * dish, its ingredients, then its steps, numbered. Only its author changes or removes it
+ * (DESIGN-173). Stateless.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeDetailScreen(
@@ -117,16 +130,18 @@ private fun Content(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(recipe.title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-            state.origin?.let { Text(stringResource(R.string.recipe_from, it), style = MaterialTheme.typography.bodyLarge, color = muted) }
-            recipe.servings?.let {
-                Text(pluralStringResource(R.plurals.recipe_servings, it, it), style = MaterialTheme.typography.bodyLarge, color = muted)
+        // R4: the title, « De … · Pour 6 personnes », the category then the tags, and the little story.
+        ClayCard(modifier = Modifier.fillMaxWidth()) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(recipe.title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+                val servings = recipe.servings?.let { pluralStringResource(R.plurals.recipe_servings, it, it) }
+                val line = listOfNotNull(state.origin?.let { stringResource(R.string.recipe_from, it) }, servings).joinToString(" · ")
+                if (line.isNotEmpty()) Text(line, style = MaterialTheme.typography.bodyLarge, color = muted)
+                RecipeChips(recipe)
+                if (bookOn && recipe.story.isNotBlank()) {
+                    Text(stringResource(R.string.recipe_story_quote, recipe.story.trim()), style = MaterialTheme.typography.bodyLarge, fontStyle = FontStyle.Italic, color = muted)
+                }
             }
-            if (recipe.tags.isNotEmpty()) Text(recipe.tags.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = muted)
-        }
-        if (bookOn && recipe.story.isNotBlank()) {
-            Text(recipe.story, style = MaterialTheme.typography.bodyLarge, fontStyle = FontStyle.Italic)
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle(stringResource(R.string.recipe_photos_title))
@@ -140,21 +155,66 @@ private fun Content(
         FormTile(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.recipe_steps), Modifier.fillMaxWidth()) {
             recipe.stepLines.forEachIndexed { index, line -> Line("${index + 1}.", line) }
         }
-        Text(stringResource(R.string.recipe_written_by, recipe.authorName), style = MaterialTheme.typography.bodyMedium, color = muted)
-        // Sent as a text, never with the photos (carte EXPERT-6).
-        ClayLink(stringResource(R.string.recipe_share), onClick = onShare)
+        ClayCard(modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.recipe_written_by, state.authorName ?: recipe.authorName), style = MaterialTheme.typography.bodyMedium, color = muted)
+            // Sent as a text, never with the photos (carte EXPERT-6).
+            ClayLink(stringResource(R.string.recipe_share), onClick = onShare)
+        }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle(stringResource(R.string.recipe_comments_title))
             comments()
         }
         if (state.canManage) {
-            FilledTonalButton(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+            // The one filled button of the screen (charte Argile), 56 dp.
+            Button(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.recipe_edit))
             }
             if (state.removeFailed) {
                 Text(stringResource(R.string.recipe_remove_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
             RemoveButton(recipe.title, onRemove)
+        } else {
+            // R5: nobody else, not even the admin principal, changes it (DESIGN-173).
+            AuthorOnlyNote()
+        }
+    }
+}
+
+/** The category first, filled, then the free tags (règle 16 du brief); read as one line by TalkBack. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RecipeChips(recipe: Recipe) {
+    val category = stringResource(recipe.category.look.labelRes)
+    val all = listOf(category) + recipe.tags
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.clearAndSetSemantics { contentDescription = all.joinToString(", ") },
+    ) {
+        Chip(category, filled = true)
+        recipe.tags.forEach { Chip(it, filled = false) }
+    }
+}
+
+@Composable
+private fun Chip(text: String, filled: Boolean) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = if (filled) colors.primary else colors.secondaryContainer,
+        contentColor = if (filled) colors.onPrimary else colors.onSecondaryContainer,
+    ) {
+        Text(text, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
+    }
+}
+
+/** « 🔒 Seule la personne qui l'a notée peut la modifier ou la retirer. » */
+@Composable
+private fun AuthorOnlyNote() {
+    ClayCard(modifier = Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Outlined.Lock, contentDescription = null, tint = FamiliaClay.colors.onTintVariant(ClayTint.Plain))
+            Text(stringResource(R.string.recipe_author_only), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -189,23 +249,32 @@ private fun RemoveButton(title: String, onRemove: () -> Unit) {
             onDismissRequest = { confirm = false },
             title = { Text(stringResource(R.string.recipe_remove_title, title)) },
             text = { Text(stringResource(R.string.recipe_remove_body)) },
+            // R8: « Annuler » and a filled red « Retirer », 56 dp each.
             confirmButton = {
-                TextButton(onClick = { confirm = false; onRemove() }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.recipe_remove_confirm), color = MaterialTheme.colorScheme.error)
-                }
+                Button(
+                    onClick = { confirm = false; onRemove() },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
+                    modifier = Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.recipe_remove_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_keep)) }
+                TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
 }
 
 internal fun previewRecipeDetail(canManage: Boolean = true) =
-    RecipeDetailUiState.Ready(previewRecipes().first(), "Mamie Jeanne", canManage)
+    RecipeDetailUiState.Ready(previewRecipes().first(), "Mamie Jeanne", canManage, authorName = "Camille")
 
 @FamiliaPreviews
 @Composable
 private fun RecipeDetailPreview() {
-    FamiliaTheme { Surface { RecipeDetailScreen(previewRecipeDetail(), {}, {}, {}) } }
+    FamiliaTheme { Surface { RecipeDetailScreen(previewRecipeDetail(), {}, {}, {}, bookOn = true) } }
+}
+
+@FamiliaPreviews
+@Composable
+private fun RecipeDetailOtherPreview() {
+    FamiliaTheme { Surface { RecipeDetailScreen(previewRecipeDetail(canManage = false), {}, {}, {}) } }
 }

@@ -90,12 +90,19 @@ sealed interface RecipeDetailUiState {
     /** Removed meanwhile, or not readable. */
     data object Missing : RecipeDetailUiState
 
-    data class Ready(val recipe: Recipe, val origin: String?, val canManage: Boolean, val removeFailed: Boolean = false) : RecipeDetailUiState
+    /** [origin]: « De … », its origin or who noted it; [authorName]: who noted it, by today's first name. */
+    data class Ready(
+        val recipe: Recipe,
+        val origin: String?,
+        val canManage: Boolean,
+        val removeFailed: Boolean = false,
+        val authorName: String? = null,
+    ) : RecipeDetailUiState
 
     data object Removed : RecipeDetailUiState
 }
 
-/** One recipe; its author or the admin principal may change or remove it. */
+/** One recipe; only its author may change or remove it (DESIGN-173). */
 class RecipeDetailViewModel(
     private val recipes: RecipeRepository?,
     members: MemberRepository?,
@@ -115,7 +122,13 @@ class RecipeDetailViewModel(
                 val state: RecipeDetailUiState = when {
                     removed == true -> RecipeDetailUiState.Removed
                     recipe == null || me == null -> RecipeDetailUiState.Missing
-                    else -> RecipeDetailUiState.Ready(recipe, originLabel(recipe, family), canManageRecipe(recipe, me), removed == false)
+                    else -> RecipeDetailUiState.Ready(
+                        recipe,
+                        fromLabel(recipe, family),
+                        canManageRecipe(recipe, me),
+                        removed == false,
+                        authorLabel(recipe, family),
+                    )
                 }
                 state
             }

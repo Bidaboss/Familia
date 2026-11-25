@@ -140,13 +140,30 @@ data class GiftListActions(
     val onOpenList: (listId: String) -> Unit = {},
     /** « Offrir cette envie » (brief §5): opens the surprise for the person, or starts one. */
     val onOfferWish: () -> Unit = {},
+    /** « + Ajouter une idée » in « Mes idées » (correctif E4): a private idea for the person; null while the notebook is off. */
+    val onAddIdea: (() -> Unit)? = null,
+    /** One of my private ideas for the person, opened in my notebook. */
+    val onOpenIdea: (entryId: String) -> Unit = {},
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: Modifier = Modifier) {
+fun GiftListScreen(
+    state: GiftListUiState,
+    actions: GiftListActions,
+    modifier: Modifier = Modifier,
+    /** My notebook ideas for the person of a list of wishes; null hides « Mes idées ». */
+    ideas: List<fr.familia.app.core.model.NotebookEntry>? = null,
+    /** The wishes added since my last visit (« nouveau »). */
+    freshIds: Set<String> = emptySet(),
+) {
     val success = state as? GiftListUiState.Success
+    // A list of wishes is redone after the prototype (correctif E2 à E4).
+    if (success != null && success.list.kind == GiftListKind.Wishes) {
+        WishListScreen(success, actions, ideas, freshIds, modifier)
+        return
+    }
     Scaffold(
         modifier = modifier.themeBackground(),
         containerColor = Color.Transparent,
@@ -317,7 +334,7 @@ private fun Header(state: GiftListUiState.Success, onOpenBeneficiary: ((String) 
  * With [itemId], only what concerns that idea (its sheet covers the list).
  */
 @Composable
-private fun ActionMessage(state: GiftListUiState.Success, itemId: String? = null) {
+internal fun ActionMessage(state: GiftListUiState.Success, itemId: String? = null) {
     val lost = state.claimLost?.takeIf { itemId == null || it.itemId == itemId }
     val text = when {
         lost?.reason == ClaimLost.Reason.Taken -> stringResource(R.string.gift_claim_taken)
@@ -456,7 +473,7 @@ private fun ItemDetails(row: ItemRow, tint: ClayTint, forMe: Boolean = false) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ItemSheet(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions, onDismiss: () -> Unit) {
+internal fun ItemSheet(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions, onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         ItemSheetContent(row, state, actions, onEdit = {
             onDismiss()

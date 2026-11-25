@@ -290,7 +290,6 @@
     <string name="feature_help_news_feed">En haut de l\'Accueil, « Aujourd\'hui » ou « Le fil » : ce qui s\'est passé dans la famille, jour par jour.</string>
     <string name="feature_help_admin_announcements">Dans Administration, « Envoyer une notification » : tu écris un message à toute la famille ou à quelques foyers. On ne peut pas y répondre.</string>
     <string name="feature_help_challenge_details">Toucher le défi explique ce qui compte et ce qu\'on gagne ; le foyer qui le lance peut ajouter un mot. Éteint, tu gardes l\'écran actuel.</string>
-    <string name="feature_help_family_tab_v2">L\'onglet Famille commence par ta fiche et ton foyer ; les autres foyers sont plus bas, repliés. Éteint, même toi tu gardes l\'onglet actuel.</string>
     <string name="feature_help_opening_animation">À chaque ouverture, les fruits de l\'arbre deviennent la famille. Dans Apparence, chacun choisit l\'animation longue, courte ou aucune.</string>
     <string name="feature_home">Accueil</string>
     <string name="feature_gifts">Listes et cadeaux</string>
@@ -751,6 +750,27 @@
     </plurals>
     <string name="members_open_profile">voir sa fiche</string>
     <string name="members_message_name">Écrire un message à %1$s</string>
+    <!-- Gérer la famille (brief Famille-recettes F5) -->
+    <string name="members_manage">Gérer</string>
+    <string name="members_manage_label">Gérer la famille</string>
+    <string name="manage_title">Gérer la famille</string>
+    <string name="manage_owner_only">Réservé à l\'administrateur principal.</string>
+    <string name="manage_owner_only_body">Seul l\'administrateur principal ajoute, déplace ou retire un membre.</string>
+    <string name="manage_invitations">Invitations</string>
+    <string name="manage_invitation_waiting">Invitation envoyée, pas encore dans l\'appli</string>
+    <string name="manage_invitation_no_email">Adresse Google à ajouter</string>
+    <string name="manage_invitation_remind">Relancer</string>
+    <string name="manage_invitation_remind_name">Relancer %1$s</string>
+    <string name="manage_invitation_add_email">Ajouter</string>
+    <string name="manage_actions">Actions</string>
+    <string name="manage_add">Ajouter un membre</string>
+    <string name="manage_add_body">Un adulte, un enfant avec ou sans l\'appli</string>
+    <string name="manage_move">Changer un membre de foyer</string>
+    <string name="manage_move_body">Quand quelqu\'un déménage</string>
+    <string name="manage_move_pick">Qui change de foyer ?</string>
+    <string name="manage_remove">Retirer un membre</string>
+    <string name="manage_remove_body">Avec confirmation. Sa fiche disparaît.</string>
+    <string name="manage_remove_pick">Qui retirer de Familia ?</string>
     <string name="profile_adult">Adulte</string>
     <string name="profile_child_with_app">Enfant, avec l\'appli</string>
     <string name="profile_child_without_app">Enfant, sans l\'appli</string>
@@ -1952,7 +1972,8 @@
     <string name="recipe_remove_failed">La recette n\'a pas pu être retirée. Vérifie la connexion et réessaie.</string>
     <string name="recipe_missing_title">Recette introuvable</string>
     <string name="recipe_missing_body">Elle a peut-être été retirée du carnet.</string>
-    <string name="recipe_unavailable_body">Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier.</string>
+    <string name="recipe_author_only">Seule la personne qui l\'a notée peut la modifier ou la retirer.</string>
+    <string name="recipe_story_quote">« %1$s »</string>
     <string name="recipe_leave_title">Quitter sans enregistrer ?</string>
     <string name="recipe_leave_body">Ce que tu as écrit sera perdu.</string>
     <string name="recipe_tile_main">La recette</string>
@@ -3036,13 +3057,14 @@
     <!-- Nouvel onglet Cadeaux (PRODUIT-119 et 120) -->
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
-        <item quantity="one">%d envie · la famille la voit</item>
-        <item quantity="other">%d envies · la famille les voit</item>
+        <item quantity="one">%d envie · ma fiche</item>
+        <item quantity="other">%d envies · ma fiche</item>
     </plurals>
     <string name="gifts_v2_add_wish">Ajouter une envie</string>
     <string name="gifts_v2_family">Toute la famille</string>
     <string name="gifts_v2_soon">Bientôt</string>
-    <string name="gifts_v2_my_page">Ma fiche</string>
+    <string name="gifts_v2_add_short">+ Ajouter</string>
+    <string name="gifts_v2_open_my_wishes">ouvrir mes envies</string>
     <string name="gifts_v2_open_wishes">ouvrir les envies de %1$s</string>
     <plurals name="gifts_v2_surprises_bar">
         <item quantity="one">%d surprise en préparation</item>
@@ -3662,7 +3684,6 @@
     <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="feature_packing_list">À emporter</string>
     <string name="feature_opening_animation">Animation de bienvenue</string>
-    <string name="feature_family_tab_v2">Famille par foyer</string>
     <string name="feature_challenge_details">Défis expliqués</string>
     <string name="feature_already_bought">Déjà acheté</string>
     <string name="gift_item_already_bought_check">Je l\'ai déjà acheté, une participation me ferait plaisir</string>
@@ -4179,4 +4200,18 @@
     <string name="enrich_show_prompt">Voir ou personnaliser le prompt</string>
     <string name="enrich_prompt_label">Le prompt, à modifier si tu veux</string>
     <string name="enrich_have_answer">J\'ai la réponse de l\'IA</string>
+    <!-- Listes d'envies refaites d'après le prototype (correctif E2 à E4) -->
+    <string name="wishlist_tab_theirs">Ses envies</string>
+    <string name="wishlist_tab_my_ideas">Mes idées</string>
+    <string name="wishlist_mine_notice">Toute la famille voit ces envies. Toi, tu ne vois jamais qui les réserve.</string>
+    <string name="wishlist_theirs_notice">Liste créée par %1$s depuis sa fiche. %1$s ne voit pas qui réserve.</string>
+    <string name="wishlist_theirs_empty">Pas encore d\'envie. Tu peux déjà lui préparer des idées.</string>
+    <string name="wishlist_edit_a11y">Modifier %1$s</string>
+    <string name="wishlist_ideas_private">Seul·e toi vois tes idées pour %1$s. %1$s et les autres ne les voient pas.</string>
+    <string name="wishlist_idea_only_me">Seulement toi</string>
+    <string name="wishlist_already_bought">Déjà acheté · participation souhaitée</string>
+    <string name="wishlist_new">nouveau</string>
+    <string name="wishlist_taken_by_me">Tu t\'en occupes</string>
+    <string name="wishlist_joint">Cadeau commun</string>
+    <string name="wishlist_reserved">Réservé</string>
 </resources>

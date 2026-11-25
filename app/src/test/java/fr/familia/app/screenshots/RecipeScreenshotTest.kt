@@ -43,6 +43,7 @@ class RecipeScreenshotTest {
             )
         }
     }
+    private val detailOther: @Composable () -> Unit = { Surface { RecipeDetailScreen(previewRecipeDetail(canManage = false), {}, {}, {}) } }
     private val edit: @Composable () -> Unit = { Surface { RecipeEditScreen(previewRecipeEdit(), {}, {}, {}) } }
 
     @Test
@@ -69,6 +70,9 @@ class RecipeScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun recipeFontScale200() = capture("recette_police_200", content = detail)
+
+    @Test
+    fun recipeOtherLight() = capture("recette_autre_clair", content = detailOther)
 
     @Test
     fun recipeEditLight() = capture("recette_modifier_clair", content = edit)

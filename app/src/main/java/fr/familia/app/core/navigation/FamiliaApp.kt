@@ -194,6 +194,8 @@ import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.core.ui.rememberMemberPhotos
 import fr.familia.app.feature.members.MembersRoute
+import fr.familia.app.feature.members.manage.ManageFamilyDestination
+import fr.familia.app.feature.members.manage.ManageFamilyRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.polls.detail.PollDetailRoute
@@ -1765,6 +1767,9 @@ fun FamiliaApp(
                             onOpenList = { other -> navController.navigate(GiftListDestination(other)) },
                             onOpenSurprise = { id -> navController.navigate(SurpriseDestination(id)) },
                             onPrepareSurprise = { id -> navController.navigate(SurpriseEditDestination(beneficiaryId = id)) },
+                            // « Mes idées » of a list of wishes (correctif E4): my notebook, for that person.
+                            onAddIdea = if (features.isOn(Feature.GiftNotebook)) ({ id -> navController.navigate(NotebookIdeaDestination(personId = id)) }) else null,
+                            onOpenIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
                             showClaimOccasion = features.isOn(Feature.WishesReveal),
                             onOpenBeneficiary = if (features.isOn(Feature.MemberCard)) {
                                 { id -> navController.navigate(MemberProfileDestination(id)) }
@@ -1981,6 +1986,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                             onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
+                            onManage = { navController.navigate(ManageFamilyDestination) { launchSingleTop = true } },
                             // Famille > Arbre (brief Famille-recettes, règle 1), while the module Arbre is on.
                             tree = if (features.isOn(Feature.Genealogy)) {
                                 {
@@ -2131,6 +2137,14 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<ManageFamilyDestination> {
+                        ManageFamilyRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                         )
                     }
                     composable<MemberEditDestination> { entry ->
