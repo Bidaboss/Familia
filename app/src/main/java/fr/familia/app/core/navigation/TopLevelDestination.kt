@@ -210,6 +210,8 @@ data class NotebookIdeaDestination(
     val personId: String? = null,
     /** « En faire une idée » from « Mes notes » (récit 114): the note the new idea starts with. */
     val note: String? = null,
+    /** A new idea from a surprise (correctif E13): the 🔒 says it stays mine until I add it. */
+    val fromSurprise: Boolean = false,
 )
 
 /** « Préparer une surprise » (récit 63): who the surprise is for. */

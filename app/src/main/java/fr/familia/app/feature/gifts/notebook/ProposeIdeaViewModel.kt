@@ -155,6 +155,7 @@ class ProposeIdeaViewModel(
             // The private note stays in the notebook: it may say where the gift is hidden.
             val item = GiftItem(
                 id = itemId, title = entry.title, url = entry.url, price = entry.price, note = null,
+                imageUrl = entry.imageUrl, whereToFind = entry.whereToFind,
                 authorId = me.id, authorName = me.firstName, visibleToBeneficiary = false,
             )
             // The item and the reservation are queued at once, in this order, so that they reach the

@@ -2592,7 +2592,7 @@ service cloud.firestore {
       return e.keys().hasAll(['source', 'personId', 'personName', 'occasion', 'year', 'title', 'url',
                               'price', 'note', 'status', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['source', 'personId', 'personName', 'occasion', 'year', 'title', 'url',
-                             'price', 'note', 'status', 'createdAt', 'updatedAt'])
+                             'price', 'note', 'status', 'createdAt', 'updatedAt', 'imageUrl', 'whereToFind'])
         && e.source == 'idea'
         // Someone of the family, or a person outside it known by their first name only.
         && (e.personId == null || (e.personId is string && exists(memberPath(e.personId))))
@@ -2600,6 +2600,10 @@ service cloud.firestore {
         && e.title is string && e.title.size() > 0 && e.title.size() <= 80
         && (e.url == null || (e.url is string && e.url.size() <= 500 && e.url.matches('^https?://.+')))
         && (e.price == null || (e.price is number && e.price >= 0 && e.price <= 100000))
+        // The picture of its link and « Où trouver le cadeau ? » (correctif E11 à E13), as on a wish.
+        && (!('imageUrl' in e) || e.imageUrl == null
+            || (e.imageUrl is string && e.imageUrl.size() <= 1000 && e.imageUrl.matches('^https://.+')))
+        && (!('whereToFind' in e) || e.whereToFind == null || (e.whereToFind is string && e.whereToFind.size() <= 120))
         && isValidNotebookFollowUp(e);
     }
 

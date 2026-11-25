@@ -56,6 +56,10 @@ data class NotebookEntry(
     val itemId: String? = null,
     /** Set by the copy of « Liste unique » (récit 9 ter): the entry of the copied gift. */
     val movedTo: String? = null,
+    /** The picture of its link's page (correctif E12), as on a wish. */
+    val imageUrl: String? = null,
+    /** « Où trouver le cadeau ? » (correctif E11): a shop, a town or a site, 120 characters at most. */
+    val whereToFind: String? = null,
 )
 
 /**

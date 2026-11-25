@@ -34,9 +34,11 @@ class LinkImages(private val previews: LinkPreviewRepository) {
 
     suspend fun imageOf(url: String): String? {
         known[url]?.let { return it.imageUrl }
-        val image = previews.preview(url)?.imageUrl
-        known[url] = Result(image)
-        return image
+        // A page that could not be read (offline, refused) is tried again later; only a page read
+        // without a picture is remembered as such.
+        val preview = previews.preview(url) ?: return null
+        known[url] = Result(preview.imageUrl)
+        return preview.imageUrl
     }
 }
 
