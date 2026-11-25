@@ -1,5 +1,9 @@
 package fr.familia.app.feature.home
 
+import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -199,7 +203,16 @@ private val DOW = DateTimeFormatter.ofPattern("EEE", Locale.FRANCE)
  * 40 dp drawn and 56 dp to touch (règle 5).
  */
 @Composable
-internal fun PhotoAnswerCard(todo: HomeTodo, today: LocalDate, colors: PhotoColors, actions: HomeActions, r1: HomeR1bisActions) {
+internal fun PhotoAnswerCard(
+    todo: HomeTodo,
+    today: LocalDate,
+    colors: PhotoColors,
+    actions: HomeActions,
+    r1: HomeR1bisActions,
+    /** The answer just given to this event (règle 6 de l'accueil): « ✓ Tu y vas » and « Changer » in place of the buttons. */
+    answered: Boolean? = null,
+    onChange: () -> Unit = {},
+) {
     val (icon, title, detail, onOpen) = when (todo) {
         is HomeTodo.Answer -> AnswerText(
             if (isFestive(todo.event.title)) "🎉" else "📅",
@@ -224,13 +237,33 @@ internal fun PhotoAnswerCard(todo: HomeTodo, today: LocalDate, colors: PhotoColo
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(start = 56.dp, top = 4.dp)) {
-            when (todo) {
-                is HomeTodo.Answer -> {
+            when {
+                todo is HomeTodo.Answer && answered != null -> {
+                    Text(
+                        stringResource(if (answered) R.string.home_photo_going_done else R.string.home_photo_not_going_done),
+                        color = if (answered) Color(0xFF1F5C3C) else Color(0xFF8A3B2B),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.align(Alignment.CenterVertically).semantics { liveRegion = LiveRegionMode.Polite },
+                    )
+                    // A link, 56 dp to touch: the buttons come back to answer again.
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.heightIn(min = 56.dp).clickable(role = Role.Button, onClick = onChange)) {
+                        Text(
+                            stringResource(R.string.home_photo_change),
+                            color = PhotoSoftBrown,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                        )
+                    }
+                }
+                todo is HomeTodo.Answer -> {
                     PhotoButton(stringResource(R.string.home_r1_going), colors.filled, Color.White) { r1.onAnswer(todo.event.id, true) }
                     PhotoButton(stringResource(R.string.home_r1_not_going), Color.White.copy(alpha = 0.7f), Color(0xFF8A3B2B)) { r1.onAnswer(todo.event.id, false) }
                 }
-                is HomeTodo.Help -> PhotoButton(stringResource(R.string.home_r1_help_open), colors.filled, Color.White, onOpen)
-                is HomeTodo.Vote -> PhotoButton(stringResource(R.string.home_r1_vote), colors.filled, Color.White, onOpen)
+                todo is HomeTodo.Help -> PhotoButton(stringResource(R.string.home_r1_help_open), colors.filled, Color.White, onOpen)
+                todo is HomeTodo.Vote -> PhotoButton(stringResource(R.string.home_r1_vote), colors.filled, Color.White, onOpen)
             }
         }
     }
@@ -366,8 +399,22 @@ internal fun PhotoDayList(
     onOpenFeed: (() -> Unit)?,
 ) {
     var allAnswers by rememberSaveable { mutableStateOf(false) }
-    val answers = if (allAnswers) ready.todos else ready.todos.take(PHOTO_ANSWERS_SHOWN)
-    val more = ready.todos.size - answers.size
+    // The answers given here stay on their card, « ✓ Tu y vas » with « Changer » (règle 6), until the
+    // Accueil is left; the event has already left « À répondre » once the answer is written.
+    var given by remember { mutableStateOf(mapOf<String, Given>()) }
+    val pendingKeys = ready.todos.map { it.key }.toSet()
+    val shownTodos = (ready.todos + given.values.map { it.todo }.filter { it.key !in pendingKeys }).sortedBy { it.date }
+    val answers = if (allAnswers) shownTodos else shownTodos.take(PHOTO_ANSWERS_SHOWN)
+    val more = shownTodos.size - answers.size
+    val answering = HomeR1bisActions(
+        onAnswer = { id, going ->
+            ready.todos.firstOrNull { it is HomeTodo.Answer && it.event.id == id }?.let { todo ->
+                given = given + (id to Given(todo as HomeTodo.Answer, going, changing = false))
+            } ?: given[id]?.let { given = given + (id to it.copy(going = going, changing = false)) }
+            r1.onAnswer(id, going)
+        },
+        onOpenAll = r1.onOpenAll,
+    )
     LazyColumn(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -381,10 +428,18 @@ internal fun PhotoDayList(
         item(key = "today") { PhotoTodayCard(days, ready.today, chosen, onChoose, colors, actions) }
         slots.firstSteps?.let { item(key = "firstSteps") { it() } }
         item(key = "answer-title") { PhotoSection(stringResource(R.string.home_photo_to_answer), colors, count = ready.todos.size) }
-        items(answers, key = { "answer-" + it.key }) { PhotoAnswerCard(it, ready.today, colors, actions, r1) }
+        items(answers, key = { "answer-" + it.key }) { todo ->
+            // « ✓ Tu y vas » only once the answer is written: it left « À répondre ». A failed answer keeps the buttons.
+            val reply = (todo as? HomeTodo.Answer)?.let { given[it.event.id] }?.takeIf { !it.changing && todo.key !in pendingKeys }
+            PhotoAnswerCard(
+                todo, ready.today, colors, actions, answering,
+                answered = reply?.going,
+                onChange = { (todo as? HomeTodo.Answer)?.let { a -> given[a.event.id]?.let { given = given + (a.event.id to it.copy(changing = true)) } } },
+            )
+        }
         if (more > 0) item(key = "answer-more") { PhotoMoreLine(more) { allAnswers = true } }
         slots.helpTodos?.let { item(key = "help") { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { it() } } }
-        if (ready.todos.isEmpty() && slots.helpTodos == null) item(key = "answer-none") { PhotoNothingToAnswer() }
+        if (shownTodos.isEmpty() && slots.helpTodos == null) item(key = "answer-none") { PhotoNothingToAnswer() }
         slots.nowTravelling?.let { item(key = "now") { it() } }
         item(key = "upcoming-title") {
             PhotoSection(stringResource(R.string.home_photo_upcoming), colors, pill = stringResource(R.string.home_photo_see_all), onPill = actions.onOpenPlanning)
@@ -407,3 +462,6 @@ private val HomeTodo.key: String
         is HomeTodo.Help -> "help-" + request.id
         is HomeTodo.Vote -> "poll-" + poll.id
     }
+
+/** An answer given on the Accueil: the event, the answer, and whether « Changer » shows the buttons again. */
+private data class Given(val todo: HomeTodo.Answer, val going: Boolean, val changing: Boolean)

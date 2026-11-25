@@ -871,6 +871,9 @@ fun FamiliaApp(
         // draws its own header in place of the title bar (règles 2, 3, 9 à 11).
         val photoTheme = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Home) && features.isOn(Feature.Home) }
         val photoScroll = remember { PhotoScroll() }
+        // The 8 photos into the cache once a photo shows, on Wi-Fi only (prefetchThemePhotos).
+        val appContext = LocalContext.current.applicationContext
+        LaunchedEffect(photoTheme != null) { if (photoTheme != null) fr.familia.app.core.theme.prefetchThemePhotos(appContext) }
         // Règle 20 (DESIGN-157 A): Famille shows the same photo in a banner at its top.
         val onMembers = currentDestination.isOn(TopLevelDestination.Members)
         val bannerScroll = remember { PhotoScroll() }
