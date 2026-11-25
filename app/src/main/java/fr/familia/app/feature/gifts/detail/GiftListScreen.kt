@@ -510,6 +510,8 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         Text(item.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         ItemDetails(row, ClayTint.Plain)
         item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        // « Où trouver le cadeau ? » (correctif E6), in its keeper's words.
+        item.whereToFind?.let { Text(stringResource(R.string.wish_where, it), style = MaterialTheme.typography.bodyLarge) }
         row.claim?.let { ClaimStatus(it, item, ClayTint.Plain) }
         row.contributions?.let { AlreadyBoughtStatus(it, item, ClayTint.Plain, detailed = true, seesContributors = state.seesContributors) }
         // La bascule (brief §5, fiche C8): read only, its state in the surprises, « Offrir cette envie ».
