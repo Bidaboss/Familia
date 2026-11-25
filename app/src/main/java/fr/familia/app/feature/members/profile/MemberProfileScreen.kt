@@ -45,7 +45,6 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.FamiliaTopBar
-import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.souvenirs.BravoSheet
 import fr.familia.app.feature.souvenirs.SouvenirKind
 import fr.familia.app.feature.souvenirs.previewSouvenirs
@@ -120,7 +119,7 @@ fun MemberProfileScreen(
         ) { padding ->
             Box(Modifier.padding(padding).fillMaxSize()) {
                 when (state) {
-                    MemberProfileUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
+                    MemberProfileUiState.Loading -> FicheSkeleton()
                     MemberProfileUiState.NotFound -> EmptyState(
                         icon = Icons.Outlined.Person,
                         title = stringResource(R.string.member_not_found_title),

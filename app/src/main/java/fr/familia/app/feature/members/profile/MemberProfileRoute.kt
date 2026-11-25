@@ -3,6 +3,7 @@ package fr.familia.app.feature.members.profile
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -19,8 +20,12 @@ import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.wishes.BirthdayCardsSection
 import fr.familia.app.feature.souvenirs.SouvenirCelebrationPreferences
+import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.time.ZoneId
+
+/** How long a member's page waits for all its data before showing what it has (its skeleton meanwhile). */
+internal const val FICHE_WAIT_MS = 1_500L
 
 /** Connects a member's page to its ViewModels. */
 @Composable
@@ -90,7 +95,15 @@ fun MemberProfileRoute(
     // « Modifier » in place (règle 3): on my own page (F10), and on every page for the admin principal (F9).
     val ready = state as? MemberProfileUiState.Ready
     val mayEdit = !viewingAs && ready != null && (memberId == currentMember.id || ready.canEdit)
-    val shown = ready?.copy(canEdit = mayEdit) ?: state
+    // The page shows whole or not at all (retour de l'admin, 25/11): its skeleton stays while the second half of its
+    // data comes, at most FICHE_WAIT_MS, never a first page without its tiles then the full one.
+    var waited by remember(memberId) { mutableStateOf(false) }
+    LaunchedEffect(memberId) { delay(FICHE_WAIT_MS); waited = true }
+    val shown = when {
+        ready == null -> state
+        v2State == null && !waited -> MemberProfileUiState.Loading
+        else -> ready.copy(canEdit = mayEdit)
+    }
     var started by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(mayEdit, v2State != null) {
         if (startEditing && !started && mayEdit && v2State != null) {
