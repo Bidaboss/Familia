@@ -2,6 +2,9 @@ package fr.familia.app.feature.genealogy
 
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -143,9 +146,11 @@ class LinkSheetTest {
                 TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "camille", isOwner = true), onOpen = {}, onAddKin = { added = true }, onMakePoster = { poster = true })
             }
         }
-        // Under the drawing, both are reached by their action (the drawing takes the touches around).
-        compose.onNodeWithText("Ajouter un proche").performSemanticsAction(SemanticsActions.OnClick)
-        compose.onNodeWithText("Faire l'affiche de l'arbre").performSemanticsAction(SemanticsActions.OnClick)
+        // Over the drawing: reached by their action, the button by the text it holds.
+        fun press(text: String) = compose.onNode(hasClickAction() and (hasText(text) or hasAnyDescendant(hasText(text))), useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.OnClick)
+        press("Ajouter un proche")
+        press("Faire l'affiche de l'arbre")
         assertTrue(added && poster)
     }
 
@@ -154,6 +159,6 @@ class LinkSheetTest {
         compose.setContent {
             FamiliaTheme { TreeOfLifeView(GenealogyUiState.Ready(tree, emptyMap(), "lou"), onOpen = {}, onAddKin = null) }
         }
-        compose.onAllNodesWithText("Ajouter un proche").assertCountEquals(0)
+        compose.onAllNodesWithText("Ajouter un proche", useUnmergedTree = true).assertCountEquals(0)
     }
 }
