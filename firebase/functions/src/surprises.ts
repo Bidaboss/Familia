@@ -183,7 +183,7 @@ export async function syncSurpriseNotebook(db: Firestore, surpriseId: string, pr
   await batch.commit();
 }
 
-// --- « C'est offert » (brief § 5, décision de Kévin du 25/11 13 h 26) ----------------------------------
+// --- « C'est offert » (brief § 5, décision de l'admin du 25/11) ----------------------------------
 //
 // One member writes status 'offered', offeredAt and offeredBy on the surprise. The server then, once:
 // - writes « Déjà offert à X », giftHistory/{beneficiaryId}/items/{sid}_{pid}, kept without limit;
