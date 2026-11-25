@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * Planning tab: upcoming events and the members' next birthdays, day by day (PRD, récit 3).
@@ -64,7 +65,7 @@ class PlanningViewModel(
                 scope.map { PlanningUiState.Success(emptyList(), day, it) } // Firebase not configured (previews).
             } else {
                 combine<Pair<List<Event>, Map<String, List<Rsvp>>>, Family, PlanningScope, List<Trip>, PlanningUiState>(
-                    events.observeUpcoming(day).withAnswers(),
+                    events.observeBetween(day, planningHorizon(day)).withAnswers(),
                     members.observeFamily(),
                     scope,
                     followedTrips(),
@@ -177,3 +178,11 @@ class PlanningViewModel(
         }
     }
 }
+
+/**
+ * The last day the planning reads: the end of the last month the month view reaches
+ * ([MONTHS_AHEAD]). An event further ahead, and its answers, are not read at all (lectures
+ * Firestore): a series that repeats for years no longer costs a listener per occurrence.
+ */
+internal fun planningHorizon(today: LocalDate): LocalDate =
+    YearMonth.from(today).plusMonths(MONTHS_AHEAD.toLong()).atEndOfMonth()
