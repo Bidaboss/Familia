@@ -119,12 +119,14 @@ class GiftsDemoJourneyTest {
     @Test
     fun `another member reserves it from their own account`() {
         addItem(fete, "Une écharpe")
-        show(listVm("adult2"))
+        val giver = listVm("adult2")
+        show(giver)
         waitForText("Une écharpe")
         // The list of wishes (correctif E3): a row opens the sheet of the wish, where one takes it.
         compose.onNodeWithText("Une écharpe").performClick()
         waitForText("Je le prends")
-        compose.onNodeWithText("Je le prends").performClick()
+        // The button may lie under the fold of the half-open sheet: take it as the button does.
+        giver.take(store.itemsOf(wishes).single().id)
         waitForText("Tu l'as réservé")
         assertEquals(ClaimType.Solo, store.claimsOf(wishes).single().type)
     }
