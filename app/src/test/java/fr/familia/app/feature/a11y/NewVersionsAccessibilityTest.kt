@@ -17,7 +17,8 @@ import fr.familia.app.feature.feed.FeedList
 import fr.familia.app.feature.feed.FeedState
 import fr.familia.app.feature.feed.GoodNewsFeedCard
 import fr.familia.app.feature.feed.HelpFeedCard
-import fr.familia.app.feature.feed.HomeFeedSwitch
+import fr.familia.app.feature.home.MyDaySummary
+import fr.familia.app.feature.home.MyDaySummaryLine
 import fr.familia.app.feature.goodnews.previewGoodNewsItems
 import fr.familia.app.feature.helprequests.list.previewHelpRequests
 import fr.familia.app.feature.planning.PlanningMode
@@ -65,7 +66,7 @@ class NewVersionsAccessibilityTest {
     fun `the new Planning of a child`() = check { PlanningV2(previewPlanning(), child, {}, {}, onShareBirthday = null) }
 
     @Test
-    fun `the switch Aujourd'hui or Le fil`() = check { HomeFeedSwitch(onFeed = false, unseen = 4, onChoose = {}) }
+    fun `the line of the header that opens Ma journée`() = check { MyDaySummaryLine(MyDaySummary(2, 3), onPhoto = false, onOpen = {}) }
 
     @Test
     fun `the fil d'actualité`() = check { FeedList(feed(readOnly = false)) }

@@ -28,10 +28,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -54,7 +52,15 @@ private val DateCream = Color(0xFFFFF3E2)
  * the settings (the « ? » is there now, règle 8). It scrolls with the Accueil.
  */
 @Composable
-fun PhotoHomeHeader(firstName: String, today: LocalDate, onAdd: (() -> Unit)?, avatar: @Composable () -> Unit, modifier: Modifier = Modifier) {
+fun PhotoHomeHeader(
+    firstName: String,
+    today: LocalDate,
+    onAdd: (() -> Unit)?,
+    avatar: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    /** With the gazette (récit 115, fiche Y1): the line that opens « Ma journée », in place of the date. */
+    summary: (@Composable () -> Unit)? = null,
+) {
     Row(
         modifier.fillMaxWidth().padding(top = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -72,12 +78,16 @@ fun PhotoHomeHeader(firstName: String, today: LocalDate, onAdd: (() -> Unit)?, a
                 color = Color.White,
                 modifier = Modifier.semantics { heading() },
             )
-            Text(
-                frenchDate(today, "EEEE d MMMM").replaceFirstChar { it.titlecase(Locale.FRANCE) },
-                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, shadow = PhotoTitleShadow),
-                fontWeight = FontWeight.Bold,
-                color = DateCream,
-            )
+            if (summary != null) {
+                summary()
+            } else {
+                Text(
+                    frenchDate(today, "EEEE d MMMM").replaceFirstChar { it.titlecase(Locale.FRANCE) },
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, shadow = PhotoTitleShadow),
+                    fontWeight = FontWeight.Bold,
+                    color = DateCream,
+                )
+            }
         }
         if (onAdd != null) {
             // A 40 dp round, white at 92 %, in a 56 dp target (règle 5).
@@ -93,44 +103,6 @@ fun PhotoHomeHeader(firstName: String, today: LocalDate, onAdd: (() -> Unit)?, a
 
 /** The brown of the texts on the cream of the photo cards (A1: rgb(90,58,46)). */
 internal val PhotoBrown = Color(0xFF5A3A2E)
-
-/**
- * « Ma journée | Le fil » on the photo (récit 113, règle 3, A1 §1.3): a frosted bar of 54 dp, the
- * chosen half in the dark color of the theme with a white text, the number of news on « Le fil » in
- * the accent color.
- */
-@Composable
-fun PhotoFeedSwitch(onFeed: Boolean, unseen: Int, accent: Color, dark: Color, onChoose: (Boolean) -> Unit, modifier: Modifier = Modifier) {
-    // The bar is drawn 54 dp high, but each segment is touchable on 56 dp (règle 5, B1 de #616).
-    Box(modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-    Box(Modifier.matchParentSize().padding(vertical = 1.dp).photoCard(24.dp))
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectableGroup()
-            .padding(horizontal = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Segment(stringResource(R.string.home_photo_my_day), chosen = !onFeed, dark = dark, onClick = { onChoose(false) }, modifier = Modifier.weight(1f))
-        Segment(stringResource(R.string.feed_tab_feed), chosen = onFeed, dark = dark, onClick = { onChoose(true) }, modifier = Modifier.weight(1f)) {
-            if (unseen > 0) {
-                val news = pluralStringResource(R.plurals.feed_tab_new, unseen, unseen)
-                Box(
-                    Modifier
-                        .padding(start = 8.dp)
-                        .clip(CircleShape)
-                        .background(accent)
-                        .padding(horizontal = 7.dp, vertical = 2.dp)
-                        .semantics { contentDescription = news },
-                ) {
-                    Text(unseen.toString(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.clearAndSetSemantics { })
-                }
-            }
-        }
-    }
-    }
-}
 
 /**
  * The same pill switch (.seg) for another screen, such as the two tabs of a surprise (fiche C4):

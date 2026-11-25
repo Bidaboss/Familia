@@ -5,7 +5,12 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.VolunteerActivism
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.R
@@ -106,6 +111,32 @@ class R1bisScreenshotTest {
     @Test
     @Config(qualifiers = "w960dp-h600dp-xhdpi")
     fun homeTablet() = capture("r1bis_accueil_tablette", content = home)
+
+    /** La gazette is the Accueil (récit 115): its header line, then « Ma journée » opened over it. */
+    private fun gazette(open: Boolean): @Composable () -> Unit = {
+        Surface {
+            HomeR1bisScreen(
+                state, HomeActions(), HomeR1bisActions(),
+                feed = { summary ->
+                    Column(Modifier.padding(16.dp)) {
+                        summary()
+                        Text("La gazette de la famille")
+                    }
+                },
+                myDayOpen = open,
+            )
+        }
+    }
+
+    @Test
+    fun gazetteHome() = capture("gazette_accueil_ligne_ma_journee", content = gazette(open = false))
+
+    @Test
+    fun gazetteMyDay() = capture("gazette_ma_journee_ouverte", content = gazette(open = true))
+
+    @Test
+    @Config(fontScale = 2f)
+    fun gazetteHomeFontScale200() = capture("gazette_accueil_police_200", content = gazette(open = false))
 
     @Test
     fun allFamilia() = capture("r1bis_tout_familia", content = all)
