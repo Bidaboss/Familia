@@ -65,4 +65,12 @@ class TripDatesTest {
         assertTrue(DateRange(aug2, aug2).complete)
         assertTrue(DateRange(aug2, aug9).complete)
     }
+
+    @Test
+    fun `no day before today, but a trip already dated in the past keeps its days`() {
+        val today = LocalDate.of(2026, 11, 25)
+        assertEquals(today, firstPickableDay(null, today))
+        assertEquals(today, firstPickableDay(LocalDate.of(2027, 4, 11), today))
+        assertEquals(aug2, firstPickableDay(aug2, LocalDate.of(2027, 8, 20)))
+    }
 }
