@@ -59,6 +59,7 @@ import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { deleteGazetteThreadsOfThing, refreshGazetteThread } from './gazetteThreads';
 import { clearEndedPostPlaces, GazettePostData, onGazettePostRemoved } from './gazettePosts';
+import { GazetteCommentData, GazettePostNoticeData, notifyGazetteComment, notifyGazettePostMentions } from './gazetteNotices';
 import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices } from './prefs';
@@ -125,6 +126,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
         ...(notice.announcementId ? { announcementId: notice.announcementId } : {}),
         ...(notice.surpriseId ? { surpriseId: notice.surpriseId } : {}),
+        ...(notice.gazetteThreadId ? { gazetteThreadId: notice.gazetteThreadId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -716,6 +718,18 @@ export const onGazettePostDeleted = onDocumentDeleted('gazettePosts/{postId}', a
   await onGazettePostRemoved(getFirestore(), removeFiles, event.params.postId, event.data?.data() as GazettePostData | undefined);
 });
 
+// A publication tells the members it names; an edit, only those it newly names (PR 7 du brief).
+export const onGazettePostCreated = onDocumentCreated('gazettePosts/{postId}', async (event) => {
+  await notifyGazettePostMentions(getFirestore(), send, event.params.postId, undefined, event.data?.data() as GazettePostNoticeData | undefined);
+});
+
+export const onGazettePostUpdated = onDocumentUpdated('gazettePosts/{postId}', async (event) => {
+  await notifyGazettePostMentions(
+    getFirestore(), send, event.params.postId,
+    event.data?.before.data() as GazettePostNoticeData | undefined, event.data?.after.data() as GazettePostNoticeData | undefined,
+  );
+});
+
 // Commentaires des bonnes nouvelles (récit 67): the count of the news, and who is told.
 export const onGoodNewsCommentWritten = onDocumentCreated('goodNews/{postId}/comments/{commentId}', async (event) => {
   const data = event.data?.data() as GoodNewsCommentData | undefined;
@@ -730,6 +744,9 @@ export const onGoodNewsCommentRemoved = onDocumentDeleted('goodNews/{postId}/com
 // La gazette (récits 115, 116): the count and the 2 latest comments of a card, kept on its thread.
 export const onGazetteCommentWritten = onDocumentCreated('gazetteThreads/{threadId}/comments/{commentId}', async (event) => {
   await refreshGazetteThread(getFirestore(), event.params.threadId);
+  // The people concerned are told (PR 7 du brief); a failing notice never stops the count above.
+  const comment = event.data?.data() as GazetteCommentData | undefined;
+  if (comment) await notifyGazetteComment(getFirestore(), send, event.params.threadId, event.params.commentId, comment);
 });
 
 export const onGazetteCommentRemoved = onDocumentDeleted('gazetteThreads/{threadId}/comments/{commentId}', async (event) => {

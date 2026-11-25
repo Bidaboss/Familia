@@ -2,7 +2,7 @@
 // and, under it, its comments. The phone writes the J'aime and the comments; the server alone keeps
 // what the card shows of the comments: how many (commentCount) and the 2 latest (last), so a card
 // reads one document, never the whole conversation (brief §9, « ne charger les commentaires complets
-// qu'à l'ouverture du détail »). The notifications of the comments come with PR 5 of the brief.
+// qu'à l'ouverture du détail »). The notifications of the comments: gazetteNotices.ts.
 
 import { FieldPath, Firestore, Timestamp } from 'firebase-admin/firestore';
 

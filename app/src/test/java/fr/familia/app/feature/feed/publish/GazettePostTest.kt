@@ -10,6 +10,8 @@ import fr.familia.app.core.model.canRemoveGazettePost
 import fr.familia.app.core.model.gazetteMentionCandidates
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
+import fr.familia.app.feature.feed.PostFeedCard
+import fr.familia.app.feature.feed.cardOfThread
 import fr.familia.app.feature.feed.postsForFeed
 import fr.familia.app.feature.feed.timeLeft
 import fr.familia.app.feature.joinme.FakeLocator
@@ -214,5 +216,12 @@ class GazettePostTest {
         vm.locationRefused()
         assertEquals(PlaceProblem.NoPermission, (vm.uiState.value as PostEditUiState.Editing).placeProblem)
         assertFalse((vm.uiState.value as PostEditUiState.Editing).canPublish)
+    }
+
+    @Test
+    fun `a touched notification finds the card of its thread, or nothing once it left the gazette (PR 7)`() {
+        val cards = listOf(PostFeedCard(post("p1", "adult1"), null), PostFeedCard(post("p2", "adult2"), null))
+        assertEquals("p2", (cardOfThread(cards, "post:p2") as PostFeedCard).post.id)
+        assertEquals(null, cardOfThread(cards, "post:gone"))
     }
 }

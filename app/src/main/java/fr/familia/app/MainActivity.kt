@@ -21,6 +21,7 @@ import fr.familia.app.feature.gifts.LocalLinkImages
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.sharedWish
 import fr.familia.app.feature.auth.SessionRoute
+import fr.familia.app.feature.feed.GazetteThreadRequest
 import fr.familia.app.feature.home.TodayOpenRequest
 
 class MainActivity : ComponentActivity() {
@@ -63,6 +64,7 @@ class MainActivity : ComponentActivity() {
     private val openLendItemId = mutableStateOf<String?>(null)
     /** A message of the admin principal whose notification was touched (récit 69). */
     private val openAnnouncementId = mutableStateOf<String?>(null)
+    private val openGazette = mutableStateOf(false)
 
     /** A link shared from another app, for « Mes envies » (récit 8 bis). */
     private val sharedWish = mutableStateOf<SharedWish?>(null)
@@ -96,6 +98,7 @@ class MainActivity : ComponentActivity() {
             val goodDealsToOpen by openGoodDeals
             val lendItemToOpen by openLendItemId
             val announcementToOpen by openAnnouncementId
+            val gazetteToOpen by openGazette
             val wishToAdd by sharedWish
             val memberToOpen by openMemberId
             FamiliaTheme {
@@ -137,6 +140,8 @@ class MainActivity : ComponentActivity() {
                                 onLendItemOpened = { openLendItemId.value = null },
                                 openAnnouncementId = announcementToOpen,
                                 onAnnouncementOpened = { openAnnouncementId.value = null },
+                                openGazette = gazetteToOpen,
+                                onGazetteOpened = { openGazette.value = false },
                                 sharedWish = wishToAdd,
                                 onSharedWishOpened = { sharedWish.value = null },
                                 openMemberId = memberToOpen,
@@ -178,6 +183,10 @@ class MainActivity : ComponentActivity() {
                 DeepLink.GoodDeals -> openGoodDeals.value = true
                 is DeepLink.LendItem -> openLendItemId.value = link.id
                 is DeepLink.Announcement -> openAnnouncementId.value = link.id
+                is DeepLink.GazetteThread -> {
+                    GazetteThreadRequest.ask(link.id)
+                    openGazette.value = true
+                }
             }
         }
         intent.sharedWish()?.let { sharedWish.value = it }

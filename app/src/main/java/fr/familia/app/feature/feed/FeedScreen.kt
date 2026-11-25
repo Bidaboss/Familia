@@ -42,6 +42,7 @@ import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.viewas.LocalViewAs
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -131,6 +132,22 @@ fun FeedList(
     // The card opened by its counter of comments (brief §4), over the gazette; kept by its key.
     var detailKey by rememberSaveable { mutableStateOf<String?>(null) }
     val detail = detailKey?.let { key -> cards.firstOrNull { it.key == key } }
+    // A touched notification (a comment, a mention) opens the detail of its card once it shows;
+    // a card no longer in the gazette leaves the gazette as it is.
+    val askedThread by GazetteThreadRequest.asked.collectAsStateWithLifecycle()
+    LaunchedEffect(askedThread, cards) {
+        val threadId = askedThread ?: return@LaunchedEffect
+        cardOfThread(cards, threadId)?.let {
+            detailKey = it.key
+            GazetteThreadRequest.consume()
+        }
+    }
+    LaunchedEffect(askedThread) {
+        if (askedThread != null) {
+            delay(10_000)
+            GazetteThreadRequest.consume()
+        }
+    }
     val listState = rememberLazyListState()
     Box(modifier.fillMaxSize()) {
     LazyColumn(

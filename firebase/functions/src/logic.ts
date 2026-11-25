@@ -80,6 +80,10 @@ export interface Notice {
   direct?: boolean;
   /** Notices with the same tag replace each other on the phone (the cards of the day). */
   tag?: string;
+  /** La gazette (PR 7 du brief): the card to open, by its thread (« post:p1 »). */
+  gazetteThreadId?: string;
+  /** A member named « @Prénom » (gazette): never waits for the résumé du soir, but sleeps at night. */
+  named?: boolean;
 }
 
 export type ChangeKind = 'added' | 'edited' | 'deleted';

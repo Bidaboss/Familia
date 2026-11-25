@@ -137,6 +137,7 @@ import fr.familia.app.feature.lending.LendItemEditRoute
 import fr.familia.app.feature.lending.LendItemsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
+import fr.familia.app.feature.feed.FeedOpenRequest
 import fr.familia.app.feature.feed.publish.PostEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
@@ -406,6 +407,9 @@ fun FamiliaApp(
     /** A message of the admin principal whose notification was touched (récit 69). */
     openAnnouncementId: String? = null,
     onAnnouncementOpened: () -> Unit = {},
+    /** A comment or a mention of the gazette was touched: the Accueil, on the gazette (its card opens there). */
+    openGazette: Boolean = false,
+    onGazetteOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -712,6 +716,15 @@ fun FamiliaApp(
         if (openAnnouncementId != null) {
             navController.navigate(AnnouncementDestination(openAnnouncementId)) { launchSingleTop = true }
             onAnnouncementOpened()
+        }
+    }
+
+    // La gazette (PR 7 du brief): the Accueil, « Ma journée » closed; the card opens in the gazette.
+    LaunchedEffect(openGazette) {
+        if (openGazette) {
+            navController.navigateToTab(TopLevelDestination.Home)
+            FeedOpenRequest.ask()
+            onGazetteOpened()
         }
     }
 
