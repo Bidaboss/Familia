@@ -66,6 +66,7 @@ import fr.familia.app.core.model.KinLinkKind
 import fr.familia.app.core.model.TreeBox
 import fr.familia.app.core.model.TreePerson
 import fr.familia.app.core.model.treeParentLines
+import fr.familia.app.core.theme.LocalPhotoTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
@@ -236,7 +237,7 @@ private fun ReadyTree(
             TreeViewSwitch(view, onChange = { view = it }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
         }
         if (treeOfLife && view == TreeView.Tree) {
-            TreeOfLifeView(state, onOpen = { open = it }, onAddKin = editing?.let { { editKin = NEW_KIN } })
+            TreeOfLifeView(state, onOpen = { open = it }, onAddKin = editing?.let { { editKin = NEW_KIN } }, onPhoto = inFamilyTab && LocalPhotoTheme.current != null)
         } else {
             if (editing != null) {
                 OutlinedButton(

@@ -73,7 +73,6 @@ import fr.familia.app.core.theme.ClayShadow
 import fr.familia.app.core.theme.ClayStyle
 import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.theme.LocalClayStyle
-import fr.familia.app.core.theme.LocalPhotoTheme
 import fr.familia.app.core.theme.Nunito
 import fr.familia.app.core.theme.OnMemberColor
 import fr.familia.app.core.theme.PhotoSectionShadow
@@ -430,11 +429,12 @@ internal fun TreeOfLifeView(
     state: GenealogyUiState.Ready,
     onOpen: (String) -> Unit,
     onAddKin: (() -> Unit)?,
+    /** On the photo of the Famille tab (the page of the tree keeps its plain background). */
+    onPhoto: Boolean = false,
 ) {
     val outlined = isHighContrast(LocalClayStyle.current)
     Column(Modifier.fillMaxSize()) {
         // On the photo of the Famille tab: white with a shadow, like the other texts on a photo.
-        val onPhoto = LocalPhotoTheme.current != null
         Text(
             stringResource(R.string.tree_of_life_hint),
             fontSize = 13.sp,
