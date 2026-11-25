@@ -73,7 +73,7 @@ import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, del
 import { deleteStepPlaces } from './tripPlaces';
 import { resetOldReservationsOnce } from './surpriseSwitch';
 import {
-  cancelSurpriseOffered, deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isCancelAsked, isNewlyOffered,
+  cancelSurpriseOffered, onSurpriseDateChanged, onSurpriseMemberDeclined, onWishChangedForSurprises, deleteMemberSurprises, deleteProposalRatings, deleteSurpriseContent, deleteTakeShares, isCancelAsked, isNewlyOffered,
   onSurpriseOffered,
   purgeOfferedSurprises, sendSurpriseReminders, syncSurpriseNotebook, updateRatingAverage, updateTakeTotal,
 } from './surprises';
@@ -456,6 +456,13 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
   const before = event.data?.before.data() as GiftItemData | undefined;
   const after = event.data?.after.data() as GiftItemData | undefined;
   await onGiftItemChanged(getFirestore(), send, event.params.listId, event.params.itemId, before, after);
+  // A wish proposed in a surprise: the proposal follows it, its members learn it (brief § 7).
+  try {
+    await onWishChangedForSurprises(getFirestore(), send, event.params.listId, event.params.itemId,
+      before as Record<string, unknown> | undefined, after as Record<string, unknown> | undefined);
+  } catch (e) {
+    console.error('surprise wish changed', e);
+  }
   // A photo the item no longer names (récit 44), whoever removed the item: « name.jpg » and « name-thumb.jpg ».
   // Offered in a surprise: the photo is kept for an admin cancel, and goes with the purge.
   const photo = typeof before?.photo === 'string' && !(before as { offeredIn?: unknown }).offeredIn ? before.photo : null;
@@ -540,8 +547,18 @@ export const onSurpriseDeleted = onDocumentDeleted('surprises/{sid}', async (eve
 // « C'est offert » (brief § 5): « Déjà offert à X », the wishes and ideas leave their lists, the
 // notebooks say « Offert », the other members are told.
 export const onSurpriseUpdated = onDocumentUpdated('surprises/{sid}', async (event) => {
-  if (!isNewlyOffered(event.data?.before.data(), event.data?.after.data())) return;
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  // A new date: the members learn it; the reminders read it each morning (brief § 7).
+  await onSurpriseDateChanged(getFirestore(), send, event.params.sid, before, after);
+  if (!isNewlyOffered(before, after)) return;
   await onSurpriseOffered(getFirestore(), send, event.params.sid);
+});
+
+// « Je ne participe pas »: the other members learn it (brief § 7).
+export const onSurpriseMemberWritten = onDocumentWritten('surprises/{sid}/members/{memberId}', async (event) => {
+  await onSurpriseMemberDeclined(getFirestore(), send, event.params.sid, event.params.memberId,
+    event.data?.before.data(), event.data?.after.data());
 });
 
 // « Annuler C'est offert » (Administration > Surprises offertes récemment, admin principal seul).
