@@ -1,12 +1,18 @@
 package fr.familia.app.feature.feed.publish
 
 import fr.familia.app.core.data.GazettePostRepository
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GazettePost
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.PostPlace
 import fr.familia.app.core.model.canRemoveGazettePost
 import fr.familia.app.core.model.gazetteMentionCandidates
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.feed.postsForFeed
+import fr.familia.app.feature.feed.timeLeft
+import fr.familia.app.feature.joinme.FakeLocator
 import fr.familia.app.feature.goodnews.FakeUploader
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,6 +26,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.Duration
 import java.time.Instant
 
 /**
@@ -45,6 +52,8 @@ class GazettePostTest {
         override suspend fun publish(post: GazettePost) { published += post }
         override suspend fun edit(id: String, text: String, mentionIds: List<String>) { edits += Triple(id, text, mentionIds) }
         override suspend fun remove(id: String) { posts.value = posts.value.filter { it.id != id } }
+        val stopped = mutableListOf<Pair<String, String>>()
+        override suspend fun stopSharing(id: String, label: String) { stopped += id to label }
     }
 
     private fun post(id: String, author: String, at: Long = 0) = GazettePost(id, author, author, "Coucou", createdAt = Instant.ofEpochSecond(at))
@@ -128,5 +137,82 @@ class GazettePostTest {
         author.save()
         advanceUntilIdle()
         assertEquals(Triple("p1", "", emptyList<String>()), posts.edits.single())
+    }
+
+    @Test
+    fun `the chef de famille of the child removes it too, not the chef of another one (règle du 25 11)`() {
+        fun m(id: String, household: String, admin: Boolean = false, profile: MemberProfile = MemberProfile.Adult, parents: List<String> = emptyList()) =
+            Member(id, id, "$id@example.com", null, household, profile, admin, parents, "uid-$id")
+        val owner = m("owner", "h0", admin = true)
+        val chef = m("chef", "h1", admin = true)
+        val otherChef = m("chef2", "h2", admin = true)
+        val parent = m("parent", "h1")
+        val child = m("child", "h1", profile = MemberProfile.ChildWithApp, parents = listOf("parent"))
+        val family = Family(emptyList(), listOf(owner, chef, otherChef, parent, child), ownerId = "owner")
+        val byChild = post("p", "child")
+        assertTrue(canRemoveGazettePost(byChild, chef, family))
+        assertTrue(canRemoveGazettePost(byChild, parent, family))
+        assertTrue(canRemoveGazettePost(byChild, owner, family))
+        assertFalse(canRemoveGazettePost(byChild, otherChef, family))
+        // A chef never removes the publication of another adult of the household.
+        assertFalse(canRemoveGazettePost(post("q", "parent"), chef, family))
+    }
+
+    @Test
+    fun `a position alone is a publication, shared 2 hours (récit 117)`() {
+        val here = PostPlace("Annecy · Haute-Savoie", 45.9, 6.12)
+        assertTrue(PostForm(place = here).validate().isEmpty())
+        val at = Instant.ofEpochSecond(1_000)
+        val shared = post("p", "adult1").copy(createdAt = at, place = here)
+        assertEquals(at.plus(Duration.ofHours(2)), shared.shareEndsAt)
+        assertTrue(shared.isSharing(at.plus(Duration.ofMinutes(119))))
+        assertFalse(shared.isSharing(at.plus(Duration.ofHours(2))))
+        // Once stopped, only the name stays: no point, nothing shared.
+        val stopped = shared.copy(place = PostPlace(here.label))
+        assertEquals(null, stopped.shareEndsAt)
+        assertFalse(stopped.isSharing(at))
+    }
+
+    @Test
+    fun `the time left reads 1 h 10, 1 h, 45 min, and never 0 min`() {
+        assertEquals("1 h 10", timeLeft(Duration.ofMinutes(70)))
+        assertEquals("1 h", timeLeft(Duration.ofMinutes(60)))
+        assertEquals("45 min", timeLeft(Duration.ofMinutes(45)))
+        assertEquals("1 min", timeLeft(Duration.ofSeconds(5)))
+    }
+
+    @Test
+    fun `« Dire où je suis » puts the town of the moment, or « Ma position », and sends the point`() = runTest {
+        val posts = FakePosts()
+        val locator = FakeLocator(position = 45.9 to 6.12, addresses = mapOf((45.9 to 6.12) to "Annecy · Haute-Savoie"))
+        val vm = PostEditViewModel(posts, FakeMembers(), FakeUploader(), "adult1", null, locator = locator)
+        advanceUntilIdle()
+        vm.locate()
+        advanceUntilIdle()
+        assertEquals(PostPlace("Annecy · Haute-Savoie", 45.9, 6.12), (vm.uiState.value as PostEditUiState.Editing).form.place)
+        vm.save()
+        advanceUntilIdle()
+        assertEquals(PostPlace("Annecy · Haute-Savoie", 45.9, 6.12), posts.published.single().place)
+
+        locator.position = 1.0 to 2.0
+        val unnamed = PostEditViewModel(FakePosts(), FakeMembers(), FakeUploader(), "adult1", null, locator = locator)
+        advanceUntilIdle()
+        unnamed.locate()
+        advanceUntilIdle()
+        assertEquals("Ma position", (unnamed.uiState.value as PostEditUiState.Editing).form.place?.label)
+    }
+
+    @Test
+    fun `no position, or the permission refused, says so and publishes nothing`() = runTest {
+        val vm = PostEditViewModel(FakePosts(), FakeMembers(), FakeUploader(), "adult1", null, locator = FakeLocator(position = null))
+        advanceUntilIdle()
+        vm.locate()
+        advanceUntilIdle()
+        val editing = vm.uiState.value as PostEditUiState.Editing
+        assertEquals(PlaceProblem.NoPosition, editing.placeProblem)
+        assertEquals(null, editing.form.place)
+        vm.locationRefused()
+        assertEquals(PlaceProblem.NoPermission, (vm.uiState.value as PostEditUiState.Editing).placeProblem)
+        assertFalse((vm.uiState.value as PostEditUiState.Editing).canPublish)
     }
 }

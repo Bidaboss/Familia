@@ -98,7 +98,6 @@ enum class ModuleSpec(
     Lending("lending", R.string.entraide_tab_lending, "📦", ModuleFamily.Organise),
     Polls("polls", R.string.all_polls, "📊", ModuleFamily.Organise),
     /** Until « Dire où je suis » of the gazette (récit 117): then it leaves the menu. */
-    Where("where", R.string.all_where, "📍", ModuleFamily.Organise),
     Gifts("gifts", R.string.all_gifts, "🎁", ModuleFamily.Treat, double = true),
     Trips("trips", R.string.all_trips, "🧳", ModuleFamily.Treat, double = true),
     Recipes("recipes", R.string.all_recipes, "📖", ModuleFamily.Treat),

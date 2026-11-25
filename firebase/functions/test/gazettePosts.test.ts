@@ -2,8 +2,8 @@
 import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { gazettePostPhotoPaths, onGazettePostRemoved } from '../src/gazettePosts';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { clearEndedPostPlaces, gazettePostPhotoPaths, onGazettePostRemoved } from '../src/gazettePosts';
 
 const app = initializeApp({ projectId: 'demo-familia' }, 'gazette-posts');
 const db = getFirestore(app);
@@ -44,5 +44,25 @@ describe('a removed publication, against the emulator', () => {
       /storage down/,
     );
     assert.equal((await db.doc('gazetteThreads/post:p3').get()).exists, false);
+  });
+});
+
+describe('« Dire où je suis »: the point goes after 2 h, against the emulator', () => {
+  const at = (h: number) => Timestamp.fromMillis(Date.UTC(2026, 10, 25, h));
+
+  test('a position older than 2 h loses its point and keeps its town; a newer one stays', async () => {
+    await db.recursiveDelete(db.collection('gazettePosts'));
+    await db.doc('gazettePosts/old').set({ text: '', loc: { label: 'Annecy', lat: 45.9, lng: 6.1 }, locLive: true, createdAt: at(10) });
+    await db.doc('gazettePosts/new').set({ text: '', loc: { label: 'Lyon', lat: 45.7, lng: 4.8 }, locLive: true, createdAt: at(12) });
+    await db.doc('gazettePosts/stopped').set({ text: 'Coucou', loc: { label: 'Nice' }, createdAt: at(9) });
+    const cleared = await clearEndedPostPlaces(db, new Date(Date.UTC(2026, 10, 25, 12, 30)));
+    assert.equal(cleared, 1);
+    const old = (await db.doc('gazettePosts/old').get()).data();
+    assert.deepEqual(old?.loc, { label: 'Annecy' });
+    assert.equal(old?.locLive, undefined);
+    assert.deepEqual((await db.doc('gazettePosts/new').get()).get('loc'), { label: 'Lyon', lat: 45.7, lng: 4.8 });
+    assert.deepEqual((await db.doc('gazettePosts/stopped').get()).get('loc'), { label: 'Nice' });
+    // Run again: nothing left to erase.
+    assert.equal(await clearEndedPostPlaces(db, new Date(Date.UTC(2026, 10, 25, 12, 30))), 0);
   });
 });

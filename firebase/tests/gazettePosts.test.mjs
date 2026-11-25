@@ -3,7 +3,7 @@
 // kid1 (child with the app, parent adult1).
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, SECOND_ADMIN, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -101,9 +101,70 @@ describe('remove (récit 121)', () => {
     await assertSucceeds(deleteDoc(ref(as(env, ADMIN))));
   });
 
-  test('nobody else, not even a chef of the household', async () => {
+  test('the chef de famille of its household too, as for the photos of an album (règle du 25/11)', async () => {
+    await assertSucceeds(deleteDoc(ref(as(env, SECOND_ADMIN))));
+  });
+
+  test('nobody else: another adult, a chef of another household', async () => {
     await assertFails(deleteDoc(ref(as(env, OTHER_ADULT))));
-    await assertFails(deleteDoc(ref(as(env, SECOND_ADMIN))));
     await assertFails(deleteDoc(ref(as(env, NEIGHBOUR))));
+  });
+
+  test('a chef never removes the publication of another adult', async () => {
+    await stored(post(OTHER_ADULT), 'p2');
+    await assertFails(deleteDoc(ref(as(env, SECOND_ADMIN), 'p2')));
+    await assertFails(deleteDoc(ref(as(env, ADULT), 'p2')));
+  });
+});
+
+const HERE = { label: 'Annecy · Haute-Savoie', lat: 45.9, lng: 6.12 };
+
+describe('« Dire où je suis » (récit 117)', () => {
+  test('a position alone, or with a word, shared with its point', async () => {
+    const db = as(env, KID);
+    await assertSucceeds(setDoc(ref(db, 'p1'), post(KID, { text: '', photoIds: [], loc: HERE, locLive: true })));
+    await assertSucceeds(setDoc(ref(db, 'p2'), post(KID, { loc: HERE, locLive: true })));
+  });
+
+  test('never a point without locLive, a wrong point, nor a long or empty name', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(ref(db), post(ADULT, { loc: HERE })));
+    await assertFails(setDoc(ref(db), post(ADULT, { locLive: true })));
+    await assertFails(setDoc(ref(db), post(ADULT, { loc: HERE, locLive: false })));
+    await assertFails(setDoc(ref(db), post(ADULT, { loc: { ...HERE, lat: 91 }, locLive: true })));
+    await assertFails(setDoc(ref(db), post(ADULT, { loc: { ...HERE, lng: '6' }, locLive: true })));
+    await assertFails(setDoc(ref(db), post(ADULT, { loc: { ...HERE, label: 'x'.repeat(81) }, locLive: true })));
+    await assertFails(setDoc(ref(db), post(ADULT, { loc: { ...HERE, label: '' }, locLive: true })));
+    await assertFails(setDoc(ref(db), post(ADULT, { loc: { ...HERE, alt: 3 }, locLive: true })));
+    await assertFails(setDoc(ref(db), post(ADULT, { text: '', photoIds: [], loc: { label: 'Annecy' } })));
+  });
+
+  describe('« Arrêter »: the point goes, the name stays', () => {
+    beforeEach(async () => { await stored(post(KID, { loc: HERE, locLive: true })); });
+    const stop = (by) => updateDoc(ref(as(env, by)), { loc: { label: HERE.label }, locLive: deleteField() });
+
+    test('its author, a responsible adult, the chef de famille, the admin principal', async () => {
+      await assertSucceeds(stop(KID));
+      await stored(post(KID, { loc: HERE, locLive: true }));
+      await assertSucceeds(stop(ADULT));
+      await stored(post(KID, { loc: HERE, locLive: true }));
+      await assertSucceeds(stop(SECOND_ADMIN));
+      await stored(post(KID, { loc: HERE, locLive: true }));
+      await assertSucceeds(stop(ADMIN));
+    });
+
+    test('nobody else, and never a new name, a new point or another field', async () => {
+      await assertFails(stop(OTHER_ADULT));
+      await assertFails(stop(NEIGHBOUR));
+      await assertFails(updateDoc(ref(as(env, KID)), { loc: { label: 'Ailleurs' }, locLive: deleteField() }));
+      await assertFails(updateDoc(ref(as(env, KID)), { loc: { ...HERE, lat: 10 }, locLive: deleteField() }));
+      await assertFails(updateDoc(ref(as(env, KID)), { loc: { label: HERE.label } }));
+      await assertFails(updateDoc(ref(as(env, ADULT)), { loc: { label: HERE.label }, locLive: deleteField(), text: 'x' }));
+    });
+
+    test('the author changes the text, the position stays as it was', async () => {
+      await assertSucceeds(updateDoc(ref(as(env, KID)), { text: 'En route', editedAt: serverTimestamp() }));
+      await assertFails(updateDoc(ref(as(env, KID)), { text: 'En route', loc: { label: HERE.label }, editedAt: serverTimestamp() }));
+    });
   });
 });

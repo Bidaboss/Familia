@@ -8,16 +8,16 @@ class AllFamiliaTest {
 
     private fun module(key: String) = AllModule(ModuleSpec.entries.first { it.key == key }) {}
 
-    private val modules = listOf(module("polls") to "Sondages", module("recipes") to "Recettes", module("where") to "Où je suis")
+    private val modules = listOf(module("polls") to "Sondages", module("recipes") to "Recettes", module("lending") to "On se prête")
 
     @Test
     fun `a blank search shows every module`() {
-        assertEquals(listOf("polls", "recipes", "where"), filterModules(modules, "  ").map { it.key })
+        assertEquals(listOf("polls", "recipes", "lending"), filterModules(modules, "  ").map { it.key })
     }
 
     @Test
     fun `the search forgets accents and capitals`() {
-        assertEquals(listOf("where"), filterModules(modules, "OU JE").map { it.key })
+        assertEquals(listOf("lending"), filterModules(modules, "ON SE PRETE").map { it.key })
         assertEquals(listOf("recipes"), filterModules(modules, "RECET").map { it.key })
         assertEquals(emptyList<String>(), filterModules(modules, "zzz").map { it.key })
     }
@@ -34,17 +34,17 @@ class AllFamiliaTest {
     }
 
     @Test
-    fun `the menu holds 14 modules at most, in the order of the brief, without the gazette (récit 120)`() {
+    fun `the menu holds 13 modules, in the order of the brief, without the gazette nor « Où je suis » (récits 117 et 120)`() {
         assertEquals(
             listOf(
-                "planning", "help", "goodDeals", "lending", "polls", "where",
+                "planning", "help", "goodDeals", "lending", "polls",
                 "gifts", "trips", "recipes", "challenges",
                 "albums", "capsule", "yearInReview", "whoIsIt",
             ),
             ModuleSpec.entries.map { it.key },
         )
         val keys = ModuleSpec.entries.map { it.key }
-        assertTrue(keys.none { it in listOf("feed", "goodNews", "souvenirs") })
+        assertTrue(keys.none { it in listOf("feed", "goodNews", "souvenirs", "where") })
     }
 
     @Test
@@ -52,7 +52,7 @@ class AllFamiliaTest {
         assertEquals(ModuleFamily.Remember, ModuleSpec.WhoIsIt.family)
         assertEquals(ModuleSpec.WhoIsIt, ModuleSpec.entries.last())
         assertEquals(
-            listOf(6, 4, 4),
+            listOf(5, 4, 4),
             ModuleFamily.entries.map { family -> ModuleSpec.entries.count { it.family == family } },
         )
     }

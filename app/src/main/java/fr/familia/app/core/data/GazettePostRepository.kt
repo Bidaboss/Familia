@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
 import fr.familia.app.core.model.GazettePost
+import fr.familia.app.core.model.PostPlace
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -30,6 +31,9 @@ interface GazettePostRepository {
 
     /** Its author changes the text and the members named (« modifié »). */
     suspend fun edit(id: String, text: String, mentionIds: List<String>)
+
+    /** « Arrêter » (récit 117): the point goes, the name of the place stays (« était à Lyon »). */
+    suspend fun stopSharing(id: String, label: String)
 
     /** Removes it: the server then removes its photos, its J'aime and its comments. */
     suspend fun remove(id: String)
@@ -76,7 +80,7 @@ class FirestoreGazettePostRepository(private val db: FirebaseFirestore) : Gazett
                 "photoIds" to post.photoIds,
                 "mentionIds" to post.mentionIds,
                 "createdAt" to FieldValue.serverTimestamp(),
-            ),
+            ) + (post.place?.let { place -> placeFields(place) } ?: emptyMap()),
         ).await()
     }
 
@@ -84,6 +88,10 @@ class FirestoreGazettePostRepository(private val db: FirebaseFirestore) : Gazett
         posts().document(id).update(
             mapOf("text" to text, "mentionIds" to mentionIds, "editedAt" to FieldValue.serverTimestamp()),
         ).await()
+    }
+
+    override suspend fun stopSharing(id: String, label: String) {
+        posts().document(id).update(mapOf("loc" to mapOf("label" to label), "locLive" to FieldValue.delete())).await()
     }
 
     override suspend fun remove(id: String) {
@@ -95,11 +103,25 @@ class FirestoreGazettePostRepository(private val db: FirebaseFirestore) : Gazett
     }
 }
 
+/**
+ * A place being shared: its name and its point, and locLive, which the server looks for to erase the
+ * point once the 2 h are over (clearEndedPostPlaces).
+ */
+private fun placeFields(place: PostPlace): Map<String, Any> {
+    val lat = place.lat
+    val lng = place.lng
+    return if (lat != null && lng != null) {
+        mapOf("loc" to mapOf("label" to place.label, "lat" to lat, "lng" to lng), "locLive" to true)
+    } else {
+        emptyMap()
+    }
+}
+
 /** Null when a field is missing or of the wrong type, so one bad document never breaks the gazette. */
 internal fun DocumentSnapshot.toGazettePost(): GazettePost? {
     val text = getString("text") ?: return null
     val photoIds = (get("photoIds") as? List<*>)?.filterIsInstance<String>() ?: return null
-    if (text.isBlank() && photoIds.isEmpty()) return null
+    if (text.isBlank() && photoIds.isEmpty() && get("loc") == null) return null
     return GazettePost(
         id = id,
         authorId = getString("authorId") ?: return null,
@@ -111,5 +133,12 @@ internal fun DocumentSnapshot.toGazettePost(): GazettePost? {
         createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
         editedAt = getTimestamp("editedAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
         pending = metadata.hasPendingWrites() && getTimestamp("createdAt") == null,
+        place = (get("loc") as? Map<*, *>)?.let { loc ->
+            val label = (loc["label"] as? String)?.takeIf { it.isNotBlank() } ?: return@let null
+            val lat = (loc["lat"] as? Number)?.toDouble()
+            val lng = (loc["lng"] as? Number)?.toDouble()
+            // The point counts only while the sharing is on.
+            if (getBoolean("locLive") == true && lat != null && lng != null) PostPlace(label, lat, lng) else PostPlace(label)
+        },
     )
 }

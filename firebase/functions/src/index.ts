@@ -58,7 +58,7 @@ import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { deleteGazetteThreadsOfThing, refreshGazetteThread } from './gazetteThreads';
-import { GazettePostData, onGazettePostRemoved } from './gazettePosts';
+import { clearEndedPostPlaces, GazettePostData, onGazettePostRemoved } from './gazettePosts';
 import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices } from './prefs';
@@ -943,6 +943,12 @@ export const onPresentationWritten = onDocumentWritten('config/presentation', as
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
+  // « Dire où je suis » (récit 117): the point of a position goes once its 2 h are over.
+  try {
+    await clearEndedPostPlaces(getFirestore(), new Date());
+  } catch (e) {
+    console.error('postPlaces', e);
+  }
   // DESIGN-105: the documents written before « Privé / Partagé » stay shared with those who go,
   // once, at the first run after the rules are published (then a single read of the marker).
   try {
