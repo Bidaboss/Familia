@@ -228,6 +228,11 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.theme.LocalPhotoTheme
+import fr.familia.app.core.theme.PhotoBackdrop
+import fr.familia.app.core.theme.PhotoScroll
+import fr.familia.app.feature.home.PhotoHome
+import fr.familia.app.feature.home.PhotoHomeHeader
 import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.LocalClayStyle
@@ -855,9 +860,15 @@ fun FamiliaApp(
                 onDismiss = { accountOpen = false },
             )
         }
+        // Récit 113: with a photo theme, the Accueil lies on its photo, under the status bar too, and
+        // draws its own header in place of the title bar (règles 2, 3, 9 à 11).
+        val photoTheme = LocalPhotoTheme.current?.takeIf { currentDestination.isOn(TopLevelDestination.Home) && features.isOn(Feature.Home) }
+        val photoScroll = remember { PhotoScroll() }
+        Box(Modifier.fillMaxSize()) {
+        if (photoTheme != null) PhotoBackdrop(photoTheme, photoScroll)
         Scaffold(
-            // The theme's background and its pattern show behind the tabs.
-            modifier = Modifier.themeBackground().nestedScroll(topBarScroll.nestedScrollConnection),
+            // The theme's background and its pattern show behind the tabs, the photo behind the Accueil.
+            modifier = (if (photoTheme != null) Modifier else Modifier.themeBackground()).nestedScroll(topBarScroll.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
@@ -872,7 +883,7 @@ fun FamiliaApp(
                 val onWeekly = if (weeklyOn && viaPlanning) ({ navController.navigate(WeeklyQuestionDestination()) }) else null
                 val onTrips = if (features.isOn(Feature.Trips) && viaPlanning) ({ navController.navigate(TripsDestination) { launchSingleTop = true } }) else null
                 // The Voyages list draws its own sky-colored bar.
-                if (tab != null && tab != TopLevelDestination.Trips) {
+                if (tab != null && tab != TopLevelDestination.Trips && photoTheme == null) {
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
@@ -979,6 +990,16 @@ fun FamiliaApp(
                         HomeTab(
                             container = container,
                             currentMember = currentMember,
+                            photo = photoTheme?.let { theme ->
+                                PhotoHome(theme, photoScroll) {
+                                    PhotoHomeHeader(
+                                        firstName = currentMember.firstName,
+                                        today = today,
+                                        onAdd = { addOpen = true },
+                                        avatar = { AccountButton(currentMember) { accountOpen = true } },
+                                    )
+                                }
+                            },
                             actions = HomeActions(
                                 onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                                 onOpenPlanning = { navController.navigateToTab(TopLevelDestination.Planning) },
@@ -2072,6 +2093,7 @@ fun FamiliaApp(
                 }
             }
             }
+        }
         }
     }
     }

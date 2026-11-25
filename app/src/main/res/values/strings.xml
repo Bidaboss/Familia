@@ -2248,6 +2248,8 @@
     <string name="home_empty_body">Les prochains événements, les anniversaires et ce que tu as à faire s\'afficheront ici.</string>
     <string name="home_todo_title">À faire pour moi</string>
     <string name="home_r1_greeting">Bonjour %1$s</string>
+    <string name="home_photo_greeting">Bonjour %1$s 👋</string>
+    <string name="home_photo_my_day">Ma journée</string>
     <string name="home_r1_todo">À faire</string>
     <string name="home_r1_calm">Rien à faire aujourd\'hui. Profites-en pour le défi !</string>
     <string name="home_r1_day_none">%1$s, rien de prévu</string>
