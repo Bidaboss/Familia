@@ -29,7 +29,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -60,6 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.ChoiceTile
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.TripPlaceKind
@@ -377,7 +377,7 @@ private fun TargetChoice(destinations: List<TripStep>, current: EnrichTarget, on
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.enrich_for)) },
         text = {
-            Column(Modifier.selectableGroup().verticalScroll(rememberScrollState())) {
+            Column(Modifier.selectableGroup().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Choice(stringResource(R.string.enrich_for_trip), current == EnrichTarget.Trip) { onPick(EnrichTarget.Trip) }
                 destinations.forEach { step ->
                     val target = EnrichTarget.Destination(step.id)
@@ -389,15 +389,16 @@ private fun TargetChoice(destinations: List<TripStep>, current: EnrichTarget, on
     )
 }
 
+/** One choice as a tile (refonte, DESIGN-57): no more radio buttons. */
 @Composable
 private fun Choice(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
-    }
+    ChoiceTile(
+        title = label,
+        selected = selected,
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        titleStyle = MaterialTheme.typography.bodyLarge,
+    )
 }
 
 @Composable
