@@ -115,6 +115,9 @@ data class ProfileV2Ui(
     val onDraft: (FicheDraft) -> Unit = {},
     val onCancelEdit: () -> Unit = {},
     val onSaveEdit: () -> Unit = {},
+    /** « + Nouveau foyer » and « Retirer de Familia », the admin principal's (F9, F11). */
+    val onAddHousehold: (String) -> Unit = {},
+    val onRemove: () -> Unit = {},
 )
 
 /**
@@ -139,8 +142,7 @@ internal fun ContentV2(
     val mayFill = state.isMe && !viewingAs
     val mayEditCard = data?.canEditCard == true && !viewingAs
     val card = data?.card
-    var editingCard by rememberSaveable { mutableStateOf(false) }
-    val edit = v2.edit?.takeIf { state.isMe && !viewingAs }
+    val edit = v2.edit?.takeIf { !viewingAs }
     Column(
         Modifier
             .fillMaxSize()
@@ -152,20 +154,19 @@ internal fun ContentV2(
         Header(state, today, onSavePhoto = v2.onSavePhoto?.takeIf { mayFill }, onRemovePhoto = v2.onRemovePhoto)
         if (edit != null) {
             // « Modifier » in place (F10): the same tiles, only their fields open.
-            IdentityEdit(member, edit.draft, hasCard = card != null, v2.onDraft)
+            IdentityEdit(member, edit, hasCard = card != null, v2.onDraft)
             if (card != null) {
-                KnowEdit(edit.draft, v2.onDraft)
-                TastesEdit(edit.draft, kid = member.profile != MemberProfile.Adult, v2.onDraft)
+                KnowEdit(edit.draft, state.isMe, v2.onDraft)
+                TastesEdit(edit.draft, kid = member.profile != MemberProfile.Adult, isMe = state.isMe, v2.onDraft)
             }
         } else {
             card?.let { NowCard(it, editable = mayFill && mayEditCard, onSave = { text -> v2.onSaveCard(it.copy(now = text)) }) }
             member.phone?.takeIf { hasCoordinates(member) && !state.isMe }?.let { ContactButtons(it) }
             if (mayFill && data != null) FillGauge(member, data, state.souvenirs.isNotEmpty())
             wishes?.invoke(member)
-            // On my own page everything changes through « Modifier »; the pencils stay for who keeps a child's or another's card.
-            val onEditCard = if (mayEditCard && !state.isMe) ({ editingCard = true }) else null
-            card?.let { KnowPart(it, state.isMe, onEditCard) }
-            card?.let { TastesPart(it, state.isMe, onEditCard, invite = if (mayFill && mayEditCard) v2.onStartEdit else null) }
+            // Everything changes through the one « Modifier » (règle 3): no pencil on a tile.
+            card?.let { KnowPart(it, state.isMe, onEdit = null) }
+            card?.let { TastesPart(it, state.isMe, onEdit = null, invite = if (mayFill && mayEditCard) v2.onStartEdit else null) }
         }
         GiftsPart(member, state.isMe, today, data?.wishCount ?: 0, v2.onOpenWishes, v2.onPrepareSurprise?.takeIf { !state.isMe && !viewingAs })
         v2.onOpenRecipes?.let { open -> RecipesPart(state.isMe, data?.recipeCount ?: 0, open, v2.onAddRecipe?.takeIf { mayFill }) }
@@ -173,12 +174,21 @@ internal fun ContentV2(
         SuccessesPart(state.souvenirs, state.isMe)
         data?.let { NewsPart(it) }
         if (edit != null) {
-            if (hasCoordinates(member)) CoordinatesEdit(data?.household?.address, edit, v2.onDraft)
+            if (hasCoordinates(member)) CoordinatesEdit(member, state.isMe, data?.household?.address, edit, v2.onDraft)
+            if (edit.admin != null) {
+                ProfileEdit(edit, v2.onDraft)
+                HouseholdEdit(edit, v2.onDraft, v2.onAddHousehold)
+                RemovePart(member.firstName, edit, v2.onRemove)
+            }
         } else {
             data?.let { CoordinatesPart(member, it, state.isMe, mayFill, v2.onStartEdit, v2.onSaveAddress) }
         }
         data?.household?.takeIf { data.canRenameHousehold && !viewingAs && edit == null }?.let { HouseholdPart(it, data.householdSize, v2.onRenameHousehold) }
         data?.note?.takeIf { !state.isMe && !viewingAs }?.let { NotesPart(member.firstName, it, v2.onEditNote, v2.onMakeIdea) }
+        if (data?.adminKeeps == true && edit == null) {
+            // A parent sees why there is no « Modifier » on their child's page, never a refusal (récit 114).
+            Text(stringResource(R.string.profile_admin_keeps), style = onPhotoStyle(MaterialTheme.typography.bodyLarge), modifier = Modifier.padding(horizontal = 8.dp))
+        }
         if (state.saveFailed || data?.saveFailed == true) {
             Text(
                 stringResource(R.string.profile_v2_save_failed),
@@ -186,9 +196,6 @@ internal fun ContentV2(
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
-    }
-    if (editingCard && card != null) {
-        MemberCardDialog(card, kid = member.profile != MemberProfile.Adult, onSave = v2.onSaveCard, onDismiss = { editingCard = false })
     }
 }
 

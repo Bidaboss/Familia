@@ -1944,13 +1944,18 @@ fun FamiliaApp(
                         )
                     }
                     composable<MemberProfileDestination> { entry ->
-                        val memberId = entry.toRoute<MemberProfileDestination>().memberId
+                        val route = entry.toRoute<MemberProfileDestination>()
+                        val memberId = route.memberId
                         MemberProfileRoute(
                             container = container,
                             currentMember = currentMember,
                             memberId = memberId,
                             onBack = { navController.popBackStack() },
-                            onEdit = { navController.navigate(MemberEditDestination(memberId)) },
+                            startEditing = route.edit,
+                            onRemoved = { name ->
+                                navController.popBackStack()
+                                scope.launch { snackbar.showConfirmation(context.getString(R.string.profile_removed, name)) }
+                            },
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination(memberId)) }) else null,
                             onAddRecipe = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipeEditDestination()) }) else null,
                             giftActions = ProfileGiftActions(
@@ -1983,7 +1988,7 @@ fun FamiliaApp(
                         MembersRoute(
                             container = container,
                             currentMember = currentMember,
-                            onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                            onEditMember = { id -> if (id == null) navController.navigate(MemberEditDestination()) else navController.navigate(MemberProfileDestination(id, edit = true)) },
                             onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
                             onManage = { navController.navigate(ManageFamilyDestination) { launchSingleTop = true } },
                             // Famille > Arbre (brief Famille-recettes, règle 1), while the module Arbre is on.
@@ -2143,7 +2148,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
-                            onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                            onEditMember = { id -> if (id == null) navController.navigate(MemberEditDestination()) else navController.navigate(MemberProfileDestination(id, edit = true)) },
                         )
                     }
                     composable<MemberEditDestination> { entry ->

@@ -31,6 +31,10 @@ import fr.familia.app.core.model.managesHousehold
 import fr.familia.app.core.model.nextBirthday
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.feature.members.MembersViewModel
+import fr.familia.app.feature.members.edit.FormError
+import fr.familia.app.feature.members.edit.MAX_FIRST_NAME
+import fr.familia.app.feature.members.edit.MemberForm
+import fr.familia.app.feature.members.edit.validate
 import fr.familia.app.core.ui.sendWrite
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -105,6 +109,8 @@ data class ProfileV2State(
     val note: String? = null,
     /** The member of the page, as the family list has them (surnom and phone for « Modifier »). */
     val member: Member? = null,
+    /** A parent on their child's page: « C'est l'administrateur qui tient la fiche à jour » (récit 114). */
+    val adminKeeps: Boolean = false,
 )
 
 /**
@@ -112,10 +118,38 @@ data class ProfileV2State(
  * phone (an adult only) and my card. The first name, the birth date and the address stay the
  * admin principal's.
  */
-data class FicheDraft(val nickname: String, val phone: String, val card: MemberCard)
+data class FicheDraft(
+    val nickname: String,
+    val phone: String,
+    val card: MemberCard,
+    /** The address of the household: the admin principal's only. */
+    val address: String = "",
+    /** Profil, first name, birth date, household, parents and color: the admin principal's only (règle 4), null for anyone else. */
+    val form: MemberForm? = null,
+)
+
+/** What the admin principal chooses from while « Modifier » is open (F9). */
+data class FicheAdmin(
+    val households: List<Household>,
+    /** Who can be responsible for a child: the adults, never the member themselves. */
+    val adults: List<Member>,
+    /** Shown once « Enregistrer » was tried, so nothing is red from the start. */
+    val errors: Set<FormError>,
+    /** My own page: « Tu es l'administrateur principal : tu ne peux pas être retiré. » */
+    val isSelf: Boolean,
+    /** Children for whom this member is the only responsible adult: removal waits until another is added. */
+    val soleParentOf: List<String>,
+)
 
 /** « Modifier » under way: the draft, whether it differs from the page, and whether it can be saved. */
-data class FicheEdit(val draft: FicheDraft, val changed: Boolean, val phoneValid: Boolean, val saving: Boolean = false) {
+data class FicheEdit(
+    val draft: FicheDraft,
+    val changed: Boolean,
+    val phoneValid: Boolean,
+    val saving: Boolean = false,
+    /** The choices of the admin principal, null for anyone else. */
+    val admin: FicheAdmin? = null,
+) {
     val canSave: Boolean get() = changed && phoneValid && !saving
 }
 
@@ -163,6 +197,9 @@ internal const val PHOTOS_MAX = 6
 
 /** The longest phone the rules take. */
 private const val PHONE_MAX = 24
+
+/** The longest address of a household. */
+private const val ADDRESS_MAX = 200
 
 /** Offline, a write shows at once and leaves with the network: past this, it is taken as sent. */
 private const val WRITE_TIMEOUT = 4_000L
@@ -280,6 +317,7 @@ class MemberProfileV2ViewModel(
     private val moments = combine(upcoming, answers) { e, a -> e to a }
 
     val state: StateFlow<ProfileV2State?> = combine(family, tree, moments, news, combine(saving, failed) { s, f -> s to f }) { fam, t, m, n, sf ->
+        lastFamily = fam
         val member = fam.members.firstOrNull { it.id == memberId } ?: return@combine null
         val reader = fam.members.firstOrNull { it.id == readerId }
         ProfileV2State(
@@ -303,6 +341,7 @@ class MemberProfileV2ViewModel(
                 (reader.id == memberId || (fam.ownerId == reader.id && member.isAdmin)),
             note = t.second.note,
             member = member,
+            adminKeeps = reader != null && member.profile != MemberProfile.Adult && fam.ownerId != reader.id && reader.id in member.parentIds,
         )
     }.orElse(null).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -333,19 +372,60 @@ class MemberProfileV2ViewModel(
 
     private val draft = MutableStateFlow<FicheDraft?>(null)
     private var draftStart: FicheDraft? = null
+    /** The admin tried « Enregistrer »: the fields in error turn red from then on, not before. */
+    private val tried = MutableStateFlow(false)
+    private val removedName = MutableStateFlow<String?>(null)
 
-    /** « Modifier » on my own page, null while the page is only read. */
-    val edit: StateFlow<FicheEdit?> = combine(draft, saving) { d, s ->
-        d?.let { FicheEdit(it, changed = it != draftStart, phoneValid = it.phone.isBlank() || isPhone(it.phone.trim()), saving = s) }
+    /** The first name of the member once removed from their page: the page closes and says so. */
+    val removed: StateFlow<String?> = removedName
+
+    /** « Modifier » open, null while the page is only read. */
+    val edit: StateFlow<FicheEdit?> = combine(draft, saving, tried) { d, s, t ->
+        d?.let { typed ->
+            val admin = typed.form?.let { form -> adminOf(form, t) }
+            FicheEdit(typed, changed = typed != draftStart, phoneValid = typed.phone.isBlank() || isPhone(typed.phone.trim()), saving = s, admin = admin)
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    /** « Modifier » (règle 3): the same page, its fields open. My own page only, never in « Voir comme ». */
+    /** The family as last read, for the choices of the admin (households, responsible adults). */
+    private var lastFamily: Family? = null
+
+    private fun adminOf(form: MemberForm, showErrors: Boolean): FicheAdmin? {
+        val fam = lastFamily ?: return null
+        val original = fam.members.firstOrNull { it.id == memberId } ?: return null
+        val children = fam.members.filter { memberId in it.parentIds }
+        return FicheAdmin(
+            households = fam.households.sortedBy { it.name.lowercase() },
+            adults = fam.members.filter { it.profile == MemberProfile.Adult && it.id != memberId }.sortedBy { it.firstName.lowercase() },
+            errors = if (showErrors) validate(form, fam, memberId, today, emailRequired = original.uid != null) else emptySet(),
+            isSelf = memberId == readerId,
+            soleParentOf = children
+                .filter { child -> child.parentIds.none { id -> id != memberId && fam.members.any { it.id == id } } }
+                .map { it.firstName }
+                .sorted(),
+        )
+    }
+
+    /**
+     * « Modifier » (règle 3): the same page, its fields open. My own page, and every page for the
+     * admin principal (règle 4: Profil, Foyer et parents). Never in « Voir comme ».
+     */
     fun startEdit() {
-        if (readerId != memberId || draft.value != null) return
+        if (draft.value != null) return
         val current = state.value ?: return
         val member = current.member ?: return
-        val start = FicheDraft(member.nickname.orEmpty(), member.phone.orEmpty(), current.card ?: MemberCard(memberId))
+        val fam = lastFamily ?: return
+        val owner = fam.ownerId == readerId
+        if (readerId != memberId && !owner) return
+        val start = FicheDraft(
+            nickname = member.nickname.orEmpty(),
+            phone = member.phone.orEmpty(),
+            card = current.card ?: MemberCard(memberId),
+            address = current.household?.address.orEmpty(),
+            form = if (owner) MemberForm.from(member) else null,
+        )
         draftStart = start
+        tried.value = false
         failed.value = false
         draft.value = start
     }
@@ -356,6 +436,8 @@ class MemberProfileV2ViewModel(
             nickname = typed.nickname.take(Member.NICKNAME_MAX),
             phone = typed.phone.take(PHONE_MAX),
             card = typed.card.copy(memberId = memberId),
+            address = typed.address.take(ADDRESS_MAX),
+            form = typed.form?.copy(firstName = typed.form.firstName.take(MAX_FIRST_NAME)).takeIf { draftStart?.form != null },
         )
     }
 
@@ -363,11 +445,27 @@ class MemberProfileV2ViewModel(
     fun cancelEdit() {
         draft.value = null
         draftStart = null
+        tried.value = false
+    }
+
+    /** « + Nouveau foyer » (F9): created at once, then chosen for this member. The admin principal only. */
+    fun addHousehold(name: String) {
+        val repo = members ?: return
+        val typed = draft.value ?: return
+        val form = typed.form ?: return
+        val trimmed = name.trim().take(MembersViewModel.MAX_HOUSEHOLD_NAME)
+        if (trimmed.isEmpty()) return
+        val household = Household(repo.newHouseholdId(), trimmed)
+        lastFamily = lastFamily?.let { it.copy(households = it.households + household) }
+        draft.value = typed.copy(form = form.copy(householdId = household.id))
+        write { if (sendWrite(WRITE_TIMEOUT) { repo.saveHousehold(household) } == null) error("refused") }
     }
 
     /**
      * « Enregistrer »: only what changed is sent, each part on its own write. Once all are taken (or
      * queued offline), the page goes back to reading; a refusal keeps the fields open and says so.
+     * For the admin principal, the member (first name, surnom, birth date, profile, household,
+     * parents, color) goes in one write, checked like the rules check it.
      */
     fun saveEdit() {
         val typed = draft.value ?: return
@@ -377,18 +475,76 @@ class MemberProfileV2ViewModel(
         if (phone.isNotEmpty() && !isPhone(phone)) return
         val card = typed.card.cleaned() ?: return run { failed.value = true }
         val nickname = typed.nickname.trim()
-        val adult = state.value?.member?.let(::hasCoordinates) == true
+        val fam = lastFamily
+        val original = fam?.members?.firstOrNull { it.id == memberId }
+        val adult = original?.let(::hasCoordinates) == true
         val repo = members
+        val member = typed.form?.let { form ->
+            if (fam == null || original == null) return
+            if (validate(form, fam, memberId, today, emailRequired = original.uid != null).isNotEmpty()) {
+                tried.value = true
+                return
+            }
+            memberToSave(form, fam, original, nickname, phone)
+        }
+        val household = start.address.trim().let { before ->
+            typed.address.trim().takeIf { typed.form != null && it != before }
+        }?.let { address -> state.value?.household?.copy(address = address.ifEmpty { null }) }
         saving.value = true
         failed.value = false
         viewModelScope.launch {
             val sent = buildList {
-                if (repo != null && nickname != start.nickname.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.saveNickname(memberId, nickname.ifEmpty { null }) })
-                if (repo != null && adult && phone != start.phone.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.savePhone(memberId, phone.ifEmpty { null }) })
+                if (repo != null && member != null && original != null) {
+                    if (member != original) add(sendWrite(WRITE_TIMEOUT) { repo.saveMember(member, original.email) })
+                } else {
+                    if (repo != null && nickname != start.nickname.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.saveNickname(memberId, nickname.ifEmpty { null }) })
+                    if (repo != null && adult && phone != start.phone.trim()) add(sendWrite(WRITE_TIMEOUT) { repo.savePhone(memberId, phone.ifEmpty { null }) })
+                }
+                if (repo != null && household != null) add(sendWrite(WRITE_TIMEOUT) { repo.saveHousehold(household) })
                 cards?.let { c -> if (card != start.card.cleaned()) add(sendWrite(WRITE_TIMEOUT) { c.saveCard(card, readerId) }) }
             }
             saving.value = false
             if (sent.all { it != null }) cancelEdit() else failed.value = true
+        }
+    }
+
+    /**
+     * The member as the admin principal saves them: the form, the surnom, and my own phone on my own
+     * page (another's phone is theirs, récit 66). Chefs are named in Administration only, and only
+     * current adults stay responsible for a child (the rules refuse any other).
+     */
+    private fun memberToSave(form: MemberForm, fam: Family, original: Member, nickname: String, phone: String): Member {
+        val adults = fam.members.filter { it.profile == MemberProfile.Adult && it.id != memberId }.map { it.id }.toSet()
+        val kept = form.copy(isAdmin = original.isAdmin, parentIds = form.parentIds.filter { it in adults }.toSet())
+        val myPhone = if (memberId == readerId) phone.ifEmpty { null } else original.phone
+        return kept.toMember(memberId, original.uid).let { m ->
+            m.copy(phone = myPhone?.takeIf { m.profile == MemberProfile.Adult }, nickname = nickname.ifEmpty { null })
+        }
+    }
+
+    /**
+     * « Retirer de Familia » (F11): the admin principal, never on their own page, never while this
+     * member is a child's only responsible adult. Their children keep their other adults.
+     */
+    fun removeMember() {
+        val repo = members ?: return
+        val fam = lastFamily ?: return
+        if (fam.ownerId != readerId || memberId == readerId) return
+        val admin = draft.value?.form?.let { adminOf(it, false) } ?: return
+        if (admin.soleParentOf.isNotEmpty()) return
+        val member = fam.members.firstOrNull { it.id == memberId } ?: return
+        val children = fam.members.filter { memberId in it.parentIds }.map { it.copy(parentIds = it.parentIds - memberId) }
+        saving.value = true
+        failed.value = false
+        viewModelScope.launch {
+            val sent = sendWrite(WRITE_TIMEOUT) { repo.removeMember(member, children) }
+            saving.value = false
+            if (sent == null) {
+                failed.value = true
+            } else {
+                cancelEdit()
+                removedName.value = member.firstName
+            }
         }
     }
 

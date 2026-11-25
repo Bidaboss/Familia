@@ -99,7 +99,11 @@ data object RecapDestination
 
 /** A member's page, read-only, opened from Famille while the Souvenirs module is on (récit 34). */
 @Serializable
-data class MemberProfileDestination(val memberId: String)
+data class MemberProfileDestination(
+    val memberId: String,
+    /** « Modifier sa fiche » from Gérer or the tree: the page opens in « Modifier » (récit 114, F9). */
+    val edit: Boolean = false,
+)
 
 /** « Nos réponses »: the questions of the week already asked (récit 37). */
 @Serializable

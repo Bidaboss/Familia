@@ -74,7 +74,7 @@ fun MemberProfileScreen(
     }
     val photo = LocalPhotoTheme.current
     val scroll = remember { PhotoScroll() }
-    val editing = v2.edit?.takeIf { (state as? MemberProfileUiState.Ready)?.isMe == true }
+    val editing = v2.edit?.takeIf { state is MemberProfileUiState.Ready }
     var leaving by rememberSaveable { mutableStateOf(false) }
     val back: () -> Unit = when {
         editing == null -> onBack
