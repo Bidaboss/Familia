@@ -87,4 +87,10 @@ interface SurpriseRepository {
 
     /** « Je ne participe pas »: final, only the creator invites again. */
     suspend fun decline(surpriseId: String, memberId: String)
+
+    /**
+     * « C'est offert », from the day itself: one member confirms it for all. The server does the
+     * rest (« Déjà offert à X », the notebooks, the end of the reminders).
+     */
+    suspend fun markOffered(surpriseId: String, memberId: String)
 }

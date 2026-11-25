@@ -204,7 +204,8 @@ class FirestoreSurpriseRepository(private val db: FirebaseFirestore) : SurpriseR
 
     override suspend fun setRemoved(surpriseId: String, proposal: SurpriseProposal, removed: Boolean) {
         val doc = proposals(surpriseId).document(proposal.id)
-        // A wish never noted has no proposal yet: written first, as at its first note.
+        // A wish never noted has no proposal yet: written first, as at its first note. Two writes, not a
+        // batch: the create rule wants removed false, and a batch is checked against its final state.
         if (proposal.kind == ProposalKind.Wish) doc.set(proposalFields(proposal), SetOptions.mergeFields(PROPOSAL_FIELDS)).await()
         doc.update("removed", removed).await()
     }
@@ -310,6 +311,17 @@ class FirestoreSurpriseRepository(private val db: FirebaseFirestore) : SurpriseR
     override suspend fun decline(surpriseId: String, memberId: String) {
         surprises.document(surpriseId).collection("members").document(memberId)
             .set(mapOf("declined" to true, "validated" to false, "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()
+    }
+
+    override suspend fun markOffered(surpriseId: String, memberId: String) {
+        surprises.document(surpriseId).update(
+            mapOf(
+                "status" to "offered",
+                "offeredAt" to FieldValue.serverTimestamp(),
+                "offeredBy" to memberId,
+                "updatedAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
     }
 
     /**

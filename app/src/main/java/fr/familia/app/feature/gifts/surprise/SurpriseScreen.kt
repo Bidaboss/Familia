@@ -1,6 +1,13 @@
 package fr.familia.app.feature.gifts.surprise
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,6 +98,7 @@ class SurpriseActions(
     val onShare: (ResultRow, Int) -> Unit = { _, _ -> },
     val onValidate: (Boolean) -> Unit = {},
     val onDecline: () -> Unit = {},
+    val onOffered: () -> Unit = {},
 )
 
 /**
@@ -99,9 +107,12 @@ class SurpriseActions(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions, initialTab: SurpriseTab = SurpriseTab.Proposals) {
+fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions) {
     val ready = state as? SurpriseUiState.Ready
-    var tab by rememberSaveable { mutableStateOf(initialTab) }
+    // Until a tab is chosen: « Résultats » from the day itself (the tile « Surprise à confirmer »
+    // opens it, brief §2), « Propositions » before.
+    var chosen by rememberSaveable { mutableStateOf<SurpriseTab?>(null) }
+    val tab = chosen ?: if (ready?.isDay == true) SurpriseTab.Results else SurpriseTab.Proposals
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.themeBackground(),
@@ -140,14 +151,69 @@ fun SurpriseScreen(state: SurpriseUiState, actions: SurpriseActions, initialTab:
                     title = stringResource(R.string.surprise_unavailable_title),
                     body = stringResource(R.string.surprise_unavailable_body),
                 )
-                is SurpriseUiState.Ready -> when (tab) {
-                    SurpriseTab.Proposals -> Proposals(state, actions) { Tabs(state, tab) { tab = it } }
-                    SurpriseTab.Results -> Results(state, actions) { Tabs(state, tab) { tab = it } }
+                is SurpriseUiState.Ready -> {
+                    // The orange card of the day itself sits above the tabs, on both (fiche C7).
+                    val head: @Composable () -> Unit = {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            if (state.isDay && !state.declined) DayCard(state.beneficiary.firstName, actions.onOffered)
+                            Tabs(state, tab) { chosen = it }
+                        }
+                    }
+                    when (tab) {
+                        SurpriseTab.Proposals -> Proposals(state, actions, head)
+                        SurpriseTab.Results -> Results(state, actions, head)
+                    }
                 }
             }
         }
     }
 }
+
+/**
+ * « 🎉 C'est le jour J ! » (brief §6, fiche C7): the orange card and its big « 🎁 C'est offert », asked
+ * again before. One member is enough: confirmed for all, the tile leaves Cadeaux for everyone.
+ */
+@Composable
+private fun DayCard(name: String, onOffered: () -> Unit) {
+    var asking by rememberSaveable { mutableStateOf(false) }
+    Box(
+        Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(DayFrom, DayTo)))
+            .padding(16.dp),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("🎉 " + stringResource(R.string.surprise_day_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Brown)
+            Text(stringResource(R.string.surprise_day_question, name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Brown)
+            Button(
+                onClick = { asking = true },
+                shape = RoundedCornerShape(36.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Brown, contentColor = Color.White),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
+            ) { Text("🎁 " + stringResource(R.string.surprise_offered_action), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold) }
+            Text(stringResource(R.string.surprise_day_hint), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = Brown)
+        }
+    }
+    if (asking) {
+        AlertDialog(
+            onDismissRequest = { asking = false },
+            title = { Text(stringResource(R.string.surprise_offered_confirm_title, name)) },
+            text = { Text(stringResource(R.string.surprise_offered_confirm_body, name)) },
+            confirmButton = {
+                TextButton(onClick = { asking = false; onOffered() }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.surprise_offered_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { asking = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
+
+/** The orange of the day itself (fiches §0). */
+private val DayFrom = Color(0xFFF7B955)
+private val DayTo = Color(0xFFE08A3C)
 
 /** The two tabs of a surprise. */
 enum class SurpriseTab { Proposals, Results }

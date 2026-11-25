@@ -132,6 +132,15 @@ class FakeSurprises(initial: List<Surprise> = emptyList(), private val failWith:
         updateRow(surpriseId, memberId) { it.copy(declined = true, validated = false) }
     }
 
+    val offered = mutableListOf<Pair<String, String>>()
+
+    override suspend fun markOffered(surpriseId: String, memberId: String) {
+        failWith?.let { throw it }
+        offered += surpriseId to memberId
+        // Offered, it is gone for everyone: no access to a past surprise (DESIGN-162).
+        surprises.value = surprises.value.filter { it.id != surpriseId }
+    }
+
     private fun updateRow(surpriseId: String, memberId: String, change: (SurpriseMemberRow) -> SurpriseMemberRow) {
         val list = rows.value[surpriseId].orEmpty()
         val row = change(list.firstOrNull { it.memberId == memberId } ?: SurpriseMemberRow(memberId))

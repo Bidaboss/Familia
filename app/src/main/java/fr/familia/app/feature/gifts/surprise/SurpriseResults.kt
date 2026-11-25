@@ -438,7 +438,7 @@ private fun ValidationCard(state: SurpriseUiState.Ready, actions: SurpriseAction
 
 @Composable
 private fun MemberLine(status: MemberStatus) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             if (status.isMe) stringResource(R.string.surprise_me) else status.name,
             style = MaterialTheme.typography.bodyLarge,
