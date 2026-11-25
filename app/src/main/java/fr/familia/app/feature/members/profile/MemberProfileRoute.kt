@@ -92,9 +92,10 @@ fun MemberProfileRoute(
     val edit by v2Model.edit.collectAsStateWithLifecycle()
     val removed by v2Model.removed.collectAsStateWithLifecycle()
     val viewingAs = LocalViewAs.current.viewed != null
-    // « Modifier » in place (règle 3): on my own page (F10), and on every page for the admin principal (F9).
+    // « Modifier » in place (règle 3): on my own page (F10), on a child's page for the adults who look after
+    // them (précision de C2, 25/11), and on every page for the admin principal (F9).
     val ready = state as? MemberProfileUiState.Ready
-    val mayEdit = !viewingAs && ready != null && (memberId == currentMember.id || ready.canEdit)
+    val mayEdit = !viewingAs && ready != null && (memberId == currentMember.id || ready.canEdit || v2State?.canEdit == true)
     // The page shows whole or not at all (retour de l'admin, 25/11): its skeleton stays while the second half of its
     // data comes, at most FICHE_WAIT_MS, never a first page without its tiles then the full one.
     var waited by remember(memberId) { mutableStateOf(false) }

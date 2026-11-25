@@ -2029,7 +2029,6 @@
     <string name="profile_edit_remove_body">Sa fiche et tout ce qu\'il a partagé (recettes, photos, commentaires) disparaissent de Familia. Cela ne peut pas se défaire.</string>
     <string name="profile_removed">%1$s est retiré de Familia, avec tout ce qu\'il a partagé (recettes, photos, commentaires).</string>
     <string name="profile_edit_phone_theirs">C\'est %1$s qui donne son numéro, depuis sa fiche.</string>
-    <string name="profile_admin_keeps">C\'est l\'administrateur qui tient la fiche à jour.</string>
     <string name="profile_v2_household">Foyer</string>
     <plurals name="profile_v2_household_people">
         <item quantity="one">%d personne</item>
