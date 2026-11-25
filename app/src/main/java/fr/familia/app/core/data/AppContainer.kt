@@ -131,6 +131,9 @@ interface AppContainer {
     /** « Me le rappeler » (récit 56): private, so « Voir comme » keeps it null. */
     val eventReminderRepository: EventReminderRepository? get() = null
 
+    /** « Mes notes » (récit 114): private, so « Voir comme » keeps it null. */
+    val memberNoteRepository: MemberNoteRepository? get() = null
+
     /** « Événements qui reviennent » (récit 54). */
     val eventSeriesRepository: EventSeriesRepository? get() = null
 
@@ -253,6 +256,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val lendItemRepository: LendItemRepository? by lazy { firestore?.let { FirestoreLendItemRepository(it, sendJournal) } }
     override val carpoolRepository: CarpoolRepository? by lazy { firestore?.let { FirestoreCarpoolRepository(it) } }
     override val eventReminderRepository: EventReminderRepository? by lazy { firestore?.let { FirestoreEventReminderRepository(it) } }
+    override val memberNoteRepository: MemberNoteRepository? by lazy { firestore?.let { FirestoreMemberNoteRepository(it) } }
     override val eventSeriesRepository: EventSeriesRepository? by lazy { firestore?.let { FirestoreEventSeriesRepository(it) } }
     override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
