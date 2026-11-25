@@ -146,6 +146,20 @@ Repli si ça bloque :
 8. Une carte sans rien à dire ne s'affiche pas. Sans aucune carte, **attendu :** « Rien de prévu pour l'instant » avec « Voir le planning ».
 9. Éteins « Accueil ». **Attendu :** l'onglet reste jusqu'à la prochaine ouverture de l'appli, puis l'appli s'ouvre à nouveau sur le Planning.
 
+## Accueil sur la photo du thème (récit 113, PR 2)
+
+Tant que les photos ne sont pas branchées, l'accueil montre un dégradé des deux couleurs du thème à la place de la photo : c'est normal.
+
+1. Allume « Thèmes au choix » et choisis un thème photo (par exemple Mer de nuages). Ouvre l'Accueil. **Attendu :** plus de barre de titre ; en haut l'olivier, « Bonjour Prénom 👋 », la date, un rond « + » et ton avatar ; puis un espace libre, puis la bascule « Ma journée / Le fil ».
+2. Fais défiler. **Attendu :** le fond glisse plus lentement que les cartes ; l'en-tête part avec le contenu.
+3. « Ma journée ». **Attendu :** « Aujourd'hui » avec une petite pastille « Planning › » ; la carte du jour (« Rien de prévu » ou « 2 choses aujourd'hui ») et les 7 jours, un point jaune sous les jours chargés. Touche un jour chargé : ses lignes (heure, couleur, titre) s'affichent dans la carte.
+4. « À répondre » : au plus 2 cartes avec « J'y vais » et « Non » côte à côte ; s'il y en a plus, une ligne « Et N autres… » qui les montre toutes. Sans rien à répondre : la carte verte « Rien à répondre pour l'instant ».
+5. « À venir » : seulement les 30 prochains jours, triés par date, « dans N jours » à droite ; sinon « Rien de prévu dans le mois ». « Tout voir › » ouvre le Planning.
+6. « En bref » : la ligne « Le fil de la famille » (ouvre le fil) puis le défi du mois.
+7. Choisis « Le fil » dans la bascule. **Attendu :** le fil s'affiche sous la même bascule, toujours sur la photo.
+8. Passe le téléphone en mode sombre. **Attendu :** même rendu qu'en clair (DESIGN-160).
+9. Active Contraste fort ou repasse le module Thèmes à éteint. **Attendu :** l'accueil d'avant, sans photo.
+
 ## Thèmes au choix (récit 113, thèmes photo du 25/11 ; polices DESIGN-45 et 46)
 
 1. Dans Administration > Modules, allume « Thèmes au choix ». Dans l'onglet Famille, **attendu :** une ligne « Apparence » apparaît sous les réglages.
