@@ -942,6 +942,38 @@
     <string name="surprise_open">Ouvrir</string>
     <string name="surprise_unavailable_title">Surprise introuvable</string>
     <string name="surprise_unavailable_body">Elle a peut-être été supprimée, ou tu ne peux pas la préparer.</string>
+    <!-- La surprise, onglet Propositions (brief §4, fiche C4). -->
+    <string name="surprise_settings">Réglages de la surprise</string>
+    <string name="surprise_wishes_title">Les envies de %1$s</string>
+    <string name="surprise_wishes_body">Créées par %1$s depuis sa fiche. Elles sont toutes dans la surprise : note-les.</string>
+    <string name="surprise_wishes_none">%1$s n\'a pas encore d\'envie.</string>
+    <string name="surprise_rate_wish">Note cette envie</string>
+    <string name="surprise_rate_idea">Note cette idée</string>
+    <string name="surprise_no_rating">Aucune note</string>
+    <plurals name="surprise_few_ratings">
+        <item quantity="one">%d note</item>
+        <item quantity="other">%d notes</item>
+    </plurals>
+    <string name="surprise_average">★ %1$s · %2$d/%3$d votes</string>
+    <plurals name="surprise_star">
+        <item quantity="one">%d étoile</item>
+        <item quantity="other">%d étoiles</item>
+    </plurals>
+    <string name="surprise_my_ideas">Mes idées (%1$d)</string>
+    <string name="surprise_my_ideas_none">Tu n\'as pas encore d\'idée pour %1$s. Une idée reste privée tant que tu ne l\'ajoutes pas.</string>
+    <string name="surprise_idea_private">🔒 Privée</string>
+    <string name="surprise_idea_added">✓ Ajoutée</string>
+    <string name="surprise_idea_add_action">Ajouter « %1$s » à la surprise</string>
+    <string name="surprise_idea_remove_action">Remettre « %1$s » en privé</string>
+    <string name="surprise_ideas_of_others">Les idées de chacun</string>
+    <string name="surprise_ideas_of_others_none">Personne n\'a encore ajouté d\'idée.</string>
+    <string name="surprise_idea_of">💡 Idée de %1$s</string>
+    <string name="surprise_my_idea">💡 Mon idée</string>
+    <string name="surprise_already_given">Déjà offert à %1$s (%2$d)</string>
+    <string name="surprise_add_idea">Ajouter une idée</string>
+    <string name="surprise_write_failed">Pas enregistré. Vérifie ta connexion, puis réessaie.</string>
+    <string name="surprise_tile_preparing">Surprise en préparation</string>
+    <string name="surprise_tile_for">Pour %1$s · %2$s</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
     <string name="gift_my_wishes">Mes envies</string>
     <string name="gift_wishes_of">Envies de %1$s</string>

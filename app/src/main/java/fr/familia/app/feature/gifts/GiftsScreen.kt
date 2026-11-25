@@ -55,6 +55,12 @@ fun GiftsScreen(
     onOpenSurprisePicker: (() -> Unit)? = null,
     /** « Ajouter une envie » (PRODUIT-119). */
     onAddWish: (listId: String) -> Unit = onOpenList,
+    /**
+     * The surprises this member prepares (brief Cadeaux et Surprise, §2): one dark tile each at the
+     * top, and « Préparer une surprise » for an adult. Null keeps the bar of before.
+     */
+    surprises: List<SurpriseTile>? = null,
+    onOpenSurprise: (String) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -87,7 +93,7 @@ fun GiftsScreen(
                 // Nothing of a surprise in « Voir comme » (récit 63).
                 giftsV2Content(
                     state,
-                    GiftsV2Actions(onOpenList, onOpenMyPage, onAddWish, onOpenSurprisePicker),
+                    GiftsV2Actions(onOpenList, onOpenMyPage, onAddWish, onOpenSurprisePicker, surprises, onOpenSurprise),
                     showPreparing = !someListsHidden,
                 )
             }

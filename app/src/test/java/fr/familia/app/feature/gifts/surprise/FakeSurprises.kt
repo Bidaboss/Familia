@@ -1,7 +1,9 @@
 package fr.familia.app.feature.gifts.surprise
 
 import fr.familia.app.core.data.SurpriseRepository
+import fr.familia.app.core.model.GiftHistoryItem
 import fr.familia.app.core.model.OpenSurprise
+import fr.familia.app.core.model.SurpriseProposal
 import fr.familia.app.core.model.Surprise
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,4 +39,35 @@ class FakeSurprises(initial: List<Surprise> = emptyList(), private val failWith:
         failWith?.let { throw it }
         surprises.value = surprises.value.map { if (it.id == id && memberId !in it.memberIds) it.copy(memberIds = it.memberIds + memberId) else it }
     }
+
+    val proposals = MutableStateFlow<Map<String, List<SurpriseProposal>>>(emptyMap())
+    /** surpriseId/memberId → proposal → stars. */
+    val ratings = MutableStateFlow<Map<String, Map<String, Int>>>(emptyMap())
+    val history = MutableStateFlow<Map<String, List<GiftHistoryItem>>>(emptyMap())
+
+    override fun observeProposals(surpriseId: String): Flow<List<SurpriseProposal>> = proposals.map { it[surpriseId].orEmpty() }
+
+    override fun observeMyRatings(surpriseId: String, memberId: String): Flow<Map<String, Int>> =
+        ratings.map { it["$surpriseId/$memberId"].orEmpty() }
+
+    override suspend fun rate(surpriseId: String, proposal: SurpriseProposal, memberId: String, stars: Int?) {
+        failWith?.let { throw it }
+        val key = "$surpriseId/$memberId"
+        val mine = ratings.value[key].orEmpty()
+        ratings.value = ratings.value + (key to if (stars == null) mine - proposal.id else mine + (proposal.id to stars))
+        val list = proposals.value[surpriseId].orEmpty()
+        if (list.none { it.id == proposal.id }) proposals.value = proposals.value + (surpriseId to list + proposal.copy(ratingSum = 0, ratingCount = 0))
+    }
+
+    override suspend fun addIdea(surpriseId: String, proposal: SurpriseProposal) {
+        failWith?.let { throw it }
+        proposals.value = proposals.value + (surpriseId to proposals.value[surpriseId].orEmpty().filter { it.id != proposal.id } + proposal)
+    }
+
+    override suspend fun removeIdea(surpriseId: String, proposalId: String) {
+        failWith?.let { throw it }
+        proposals.value = proposals.value + (surpriseId to proposals.value[surpriseId].orEmpty().filter { it.id != proposalId })
+    }
+
+    override fun observeHistory(beneficiaryId: String): Flow<List<GiftHistoryItem>> = history.map { it[beneficiaryId].orEmpty() }
 }

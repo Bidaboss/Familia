@@ -217,6 +217,10 @@ data object SurprisePickDestination
 @Serializable
 data class SurpriseEditDestination(val beneficiaryId: String? = null, val surpriseId: String? = null)
 
+/** A surprise and its proposals (brief Cadeaux et Surprise, §4). */
+@Serializable
+data class SurpriseDestination(val surpriseId: String)
+
 /** « Proposer à la famille »: a private idea of the notebook becomes a surprise item. */
 @Serializable
 data class ProposeIdeaDestination(val entryId: String)
