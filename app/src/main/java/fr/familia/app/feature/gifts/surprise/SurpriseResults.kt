@@ -359,7 +359,7 @@ private fun MyPart(row: ResultRow, actions: SurpriseActions) {
             onClick = { commit((stored - 1).coerceAtLeast(0)) },
             enabled = stored > 0,
             colors = IconButtonDefaults.filledIconButtonColors(containerColor = Brown, contentColor = Color.White),
-            modifier = Modifier.size(56.dp).padding(6.dp),
+            modifier = Modifier.size(56.dp),
         ) { Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.surprise_part_less)) }
         OutlinedTextField(
             value = text,
@@ -374,7 +374,7 @@ private fun MyPart(row: ResultRow, actions: SurpriseActions) {
         FilledIconButton(
             onClick = { commit(stored + 1) },
             colors = IconButtonDefaults.filledIconButtonColors(containerColor = Brown, contentColor = Color.White),
-            modifier = Modifier.size(56.dp).padding(6.dp),
+            modifier = Modifier.size(56.dp),
         ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.surprise_part_more)) }
     }
     val typed = text.toIntOrNull() ?: 0
