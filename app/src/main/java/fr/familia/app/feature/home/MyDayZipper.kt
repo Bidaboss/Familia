@@ -5,16 +5,16 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,11 +60,13 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.R
+import fr.familia.app.feature.feed.FeedDetailOpen
 import fr.familia.app.feature.trips.list.animationsOff
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 /*
  * La fermeture éclair de « Ma journée » (brief §7, PR 8 du brief). Un curseur doré de tirette (style
@@ -229,7 +231,9 @@ internal fun MyDayZipper(
         }
         val swing = swingAngle.value
         val measurer = rememberTextMeasurer()
-        Box(
+        // No slider over the detail of a publication: it has the whole screen (retour du 26/11).
+        val detailOpen by FeedDetailOpen.shown.collectAsStateWithLifecycle()
+        if (!detailOpen) Box(
             Modifier
                 .align(Alignment.TopCenter)
                 .offset { IntOffset(0, y.roundToInt()) }

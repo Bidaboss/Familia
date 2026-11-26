@@ -27,6 +27,13 @@ import fr.familia.app.feature.feed.FeedSocialEnv
 import fr.familia.app.feature.feed.FeedState
 import fr.familia.app.feature.feed.LocalFeedGlass
 import fr.familia.app.feature.feed.PostFeedCard
+import fr.familia.app.core.theme.PaperTheme
+import fr.familia.app.feature.feed.FeedCardDetail
+import fr.familia.app.feature.feed.LocalFeedSocialEnv
+import fr.familia.app.feature.feed.publish.PostEditScreen
+import fr.familia.app.feature.feed.publish.PostEditUiState
+import fr.familia.app.feature.feed.publish.PostForm
+import fr.familia.app.feature.feed.publish.SheetCream
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Test
@@ -94,6 +101,32 @@ class GazetteCardsScreenshotTest {
 
     @Test
     fun gazetteCardsOnCream() = capture("gazette_cartes_creme") { FeedList(feed(), onPublish = {}) }
+
+    @Test
+    fun publishSheet() = capture("gazette_publier_feuille") {
+        // The content of the sheet on its cream, as it rises from the bottom (retour du 26/11).
+        Box(Modifier.fillMaxSize().background(SheetCream)) {
+            PaperTheme {
+                PostEditScreen(
+                    PostEditUiState.Editing(PostForm(), null, adult, listOf(other)),
+                    {}, {}, {}, {}, {}, {}, {}, onClose = {},
+                )
+            }
+        }
+    }
+
+    @Test
+    fun photoDetailOnBlack() = capture("gazette_detail_photo_noir") {
+        val post = GazettePost(
+            "p2", "a", "Camille", "Balade au bord du lac", photoIds = listOf("x1", "x2", "x3"),
+            createdAt = Instant.parse("2026-11-17T07:12:00Z"),
+        )
+        val card = PostFeedCard(post, posts = null)
+        val env = FeedSocialEnv(Threads, null, adult, false)
+        CompositionLocalProvider(LocalFeedSocialEnv provides env) {
+            FeedCardDetail(card, card.social, FeedContext(adult, family, today, false), env, onClose = {})
+        }
+    }
 
     private fun capture(name: String, content: @Composable () -> Unit) {
         captureRoboImage("build/outputs/roborazzi/$name.png") { FamiliaTheme(darkTheme = false) { content() } }

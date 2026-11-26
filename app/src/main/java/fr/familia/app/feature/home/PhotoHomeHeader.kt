@@ -56,38 +56,63 @@ fun PhotoHomeHeader(
     /** With the gazette (récit 115, fiche Y1): the line that opens « Ma journée », in place of the date. */
     summary: (@Composable () -> Unit)? = null,
 ) {
-    Row(
+    if (summary != null) {
         // With the gazette, the slider of the zipper hangs over the top: the greeting starts under it,
-        // so it never hides the 👋 (retour du 26/11).
-        modifier.fillMaxWidth().padding(top = if (summary != null) 58.dp else 18.dp),
+        // at least 8 dp under its bottom, so it never hides the 👋 (retour du 26/11). The avatar stays at
+        // the top right, as high as on the other screens of the app (retour du 26/11).
+        Box(modifier.fillMaxWidth()) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 64.dp, end = 56.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                HomeLogo()
+                Column(Modifier.weight(1f)) {
+                    Greeting(firstName)
+                    summary()
+                }
+            }
+            Box(Modifier.align(Alignment.TopEnd).padding(top = 8.dp)) { avatar() }
+        }
+        return
+    }
+    Row(
+        modifier.fillMaxWidth().padding(top = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(Modifier.size(48.dp).clip(CircleShape).background(colorResource(R.color.ic_launcher_background))) {
-            // The foreground is drawn on the 108 grid: its middle 72 is what the launcher shows.
-            Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, modifier = Modifier.requiredSize(72.dp).align(Alignment.Center))
-        }
+        HomeLogo()
         Column(Modifier.weight(1f)) {
-            val title = MaterialTheme.typography.titleLarge
+            Greeting(firstName)
             Text(
-                stringResource(R.string.home_photo_greeting, firstName),
-                style = title.copy(fontSize = 21.sp, lineHeight = 26.sp, shadow = PhotoTitleShadow),
-                color = Color.White,
-                modifier = Modifier.semantics { heading() },
+                frenchDate(today, "EEEE d MMMM").replaceFirstChar { it.titlecase(Locale.FRANCE) },
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, shadow = PhotoTitleShadow),
+                fontWeight = FontWeight.Bold,
+                color = DateCream,
             )
-            if (summary != null) {
-                summary()
-            } else {
-                Text(
-                    frenchDate(today, "EEEE d MMMM").replaceFirstChar { it.titlecase(Locale.FRANCE) },
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, shadow = PhotoTitleShadow),
-                    fontWeight = FontWeight.Bold,
-                    color = DateCream,
-                )
-            }
         }
         avatar()
     }
+}
+
+/** The olive tree of the app in its red ring. */
+@Composable
+private fun HomeLogo() {
+    Box(Modifier.size(48.dp).clip(CircleShape).background(colorResource(R.color.ic_launcher_background))) {
+        // The foreground is drawn on the 108 grid: its middle 72 is what the launcher shows.
+        Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, modifier = Modifier.requiredSize(72.dp).align(Alignment.Center))
+    }
+}
+
+/** « Bonjour Camille 👋 », white on the photo. */
+@Composable
+private fun Greeting(firstName: String) {
+    Text(
+        stringResource(R.string.home_photo_greeting, firstName),
+        style = MaterialTheme.typography.titleLarge.copy(fontSize = 21.sp, lineHeight = 26.sp, shadow = PhotoTitleShadow),
+        color = Color.White,
+        modifier = Modifier.semantics { heading() },
+    )
 }
 
 /** The brown of the texts on the cream of the photo cards (A1: rgb(90,58,46)). */

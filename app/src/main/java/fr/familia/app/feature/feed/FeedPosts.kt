@@ -8,6 +8,13 @@ import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -125,12 +132,15 @@ class PostFeedCard(val post: GazettePost, private val posts: GazettePostReposito
                 }
             }
         }
+        val dark = LocalFeedDetailDark.current
         FeedCardShell(
             tone = FeedTone.Green,
             onOpen = LocalFeedCardDetail.current,
-            header = { PostHeader(post, context, onMenu = if (canEdit || canRemove) ({ menu = true }) else null) },
+            // On the black of the detail the photo comes first, then who (prototype, fiche D1).
+            header = if (dark) null else ({ PostHeader(post, context, onMenu = if (canEdit || canRemove) ({ menu = true }) else null) }),
         ) {
             if (post.photoIds.isNotEmpty()) PostPhotos(post)
+            if (dark) PostHeader(post, context, onMenu = if (canEdit || canRemove) ({ menu = true }) else null)
             if (post.text.isNotBlank()) {
                 MentionText(post.text, post.mentionIds, style = MaterialTheme.typography.bodyLarge, maxLines = if (LocalFeedCardDetail.current == null) Int.MAX_VALUE else 6)
             }
@@ -303,34 +313,92 @@ private fun openOnMap(context: Context, lat: Double, lng: Double, label: String)
     }
 }
 
-/** The photos one by one, edge to edge, « 1 / 3 » in a dark pill in the corner (fiche C5). */
+/**
+ * The photos one by one, edge to edge, « 1 / 3 » in a dark pill in the corner (fiche C5). On the
+ * black of the detail (fiche D1, retour du 26/11): each photo whole, never cut (Fit), round white
+ * arrows of 56 dp on the edges and dots under it.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PostPhotos(post: GazettePost) {
     val pager = rememberPagerState { post.photoIds.size }
-    // Edge to edge in the card (prototype: 366 × 200 dp in a card of 368).
-    Box(Modifier.feedEdgeToEdge().fillMaxWidth().aspectRatio(366f / 200f)) {
-        HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
-            StorageImage(
-                post.photoPath(post.photoIds[page]),
-                stringResource(R.string.gazette_post_photo, page + 1, post.photoIds.size),
-                Modifier.fillMaxSize(),
-            )
+    val dark = LocalFeedDetailDark.current
+    val scope = rememberCoroutineScope()
+    val count = post.photoIds.size
+    Column(Modifier.feedEdgeToEdge().fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        // Edge to edge in the card (prototype: 366 × 200 dp in a card of 368); square on the black.
+        Box(Modifier.fillMaxWidth().aspectRatio(if (dark) 1f else 366f / 200f).then(if (dark) Modifier.background(Color.Black) else Modifier)) {
+            HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
+                StorageImage(
+                    post.photoPath(post.photoIds[page]),
+                    stringResource(R.string.gazette_post_photo, page + 1, count),
+                    Modifier.fillMaxSize(),
+                    contentScale = if (dark) ContentScale.Fit else ContentScale.Crop,
+                    showLoading = if (dark) true else null,
+                )
+            }
+            if (dark && count > 1) {
+                if (pager.currentPage > 0) {
+                    PhotoArrow("‹", stringResource(R.string.gazette_post_photo_previous), Modifier.align(Alignment.CenterStart)) {
+                        scope.launch { pager.animateScrollToPage(pager.currentPage - 1) }
+                    }
+                }
+                if (pager.currentPage < count - 1) {
+                    PhotoArrow("›", stringResource(R.string.gazette_post_photo_next), Modifier.align(Alignment.CenterEnd)) {
+                        scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
+                    }
+                }
+            }
+            if (count > 1) {
+                Text(
+                    "${pager.currentPage + 1} / $count",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Black.copy(alpha = 0.55f))
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                )
+            }
         }
-        if (post.photoIds.size > 1) {
-            Text(
-                "${pager.currentPage + 1} / ${post.photoIds.size}",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(10.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Black.copy(alpha = 0.55f))
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
-            )
+        if (dark && count > 1) {
+            // The dots: the photo shown is a longer white one.
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 10.dp).clearAndSetSemantics { },
+            ) {
+                repeat(count) { index ->
+                    val on = index == pager.currentPage
+                    Box(
+                        Modifier
+                            .size(width = if (on) 20.dp else 8.dp, height = 8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(if (on) Color.White else Color.White.copy(alpha = 0.35f)),
+                    )
+                }
+            }
         }
+    }
+}
+
+/** A round white arrow of 56 dp on the edge of a photo of the detail. */
+@Composable
+private fun PhotoArrow(arrow: String, label: String, modifier: Modifier, onClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .padding(8.dp)
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.92f))
+            .clickable(onClickLabel = label, onClick = onClick)
+            .semantics { contentDescription = label; role = Role.Button },
+    ) {
+        Text(arrow, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF2B1D12))
     }
 }
 

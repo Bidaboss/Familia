@@ -1502,7 +1502,8 @@
     <string name="gazette_post_publish">Publier</string>
     <string name="gazette_post_save">Enregistrer</string>
     <string name="gazette_post_audience">👪 Toute la famille le verra</string>
-    <string name="gazette_post_hint">Quoi de neuf, %1$s ?</string>
+    <string name="gazette_post_hint">Un mot, une nouvelle, une photo à partager…</string>
+    <string name="gazette_post_close">Fermer</string>
     <string name="gazette_post_add_photo">📷 Ajouter une photo</string>
     <string name="gazette_post_mention">＠ Mentionner</string>
     <string name="gazette_post_locate">📍 Dire où je suis</string>
@@ -4482,4 +4483,19 @@
     <string name="wish_form_where_hint">Magasin, ville, site…</string>
     <string name="wish_where">📍 Où le trouver : %1$s</string>
     <string name="error_gift_where_too_long">120 caractères au plus.</string>
+    <!-- Le détail d'une publication sur noir (retour du 26/11, fiche D1). -->
+    <string name="gazette_post_photo_previous">Photo précédente</string>
+    <string name="gazette_post_photo_next">Photo suivante</string>
+    <string name="feed_comment_just_now">À l\'instant</string>
+    <string name="feed_comment_minutes_ago">Il y a %1$d min</string>
+    <string name="feed_comment_hours_ago">Il y a %1$d h</string>
+    <string name="feed_detail_comments_title">Commentaires (%1$d)</string>
+    <string name="feed_detail_no_comment">Pas encore de commentaire</string>
+    <string name="feed_detail_told_one">%1$s sera prévenu de ton commentaire.</string>
+    <string name="feed_detail_told_many">%1$s seront prévenus de ton commentaire.</string>
+    <plurals name="feed_detail_photo_count">
+        <item quantity="one">Photo</item>
+        <item quantity="many">%1$d photos</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
 </resources>
