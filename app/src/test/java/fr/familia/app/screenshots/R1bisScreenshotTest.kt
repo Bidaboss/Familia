@@ -128,6 +128,21 @@ class R1bisScreenshotTest {
     @Test
     fun gazetteMyDay() = capture("gazette_ma_journee_ouverte", content = gazette(open = true))
 
+    /** The carnet stays a light page on a photo theme too (brief §8). */
+    @Test
+    fun gazetteMyDayOnPhoto() = capture("gazette_ma_journee_carnet_lac", theme = FamiliaThemeId.Lake, content = gazette(open = true))
+
+    /** And in the dark mode of the phone. */
+    @Test
+    fun gazetteMyDayDark() {
+        val content = gazette(open = true)
+        captureRoboImage("build/outputs/roborazzi/gazette_ma_journee_carnet_sombre.png") { FamiliaTheme(darkTheme = true) { content() } }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun gazetteMyDayFontScale200() = capture("gazette_ma_journee_carnet_police_200", content = gazette(open = true))
+
     @Test
     @Config(fontScale = 2f)
     fun gazetteHomeFontScale200() = capture("gazette_accueil_police_200", content = gazette(open = false))

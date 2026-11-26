@@ -136,6 +136,11 @@ fun ClayCard(
     emphasis: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    // In the « Carnet post-it » of Ma journée (brief §8), the card is a note.
+    LocalClayNote.current?.let { note ->
+        NoteCard(note, modifier, onClick, onClickLabel, contentPadding, content)
+        return
+    }
     val colors = FamiliaClay.colors
     val style = FamiliaClay.style
     val shape = if (style.cardRadius == 28.dp) ClayCardShape else RoundedCornerShape(style.cardRadius)
