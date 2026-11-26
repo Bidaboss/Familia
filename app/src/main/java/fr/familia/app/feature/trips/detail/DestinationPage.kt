@@ -259,53 +259,15 @@ private fun DayField(label: String, day: String, onClick: (() -> Unit)?, modifie
     }
 }
 
-/** HÉBERGEMENT, RESTAURANTS and SPOTS, each with its places and « + Ajouter » for who goes (règles 18-20). */
+/**
+ * The programme of the destination laid out by day (récit 122, DESIGN-GAZETTE-1 A): its accommodation,
+ * each day of the stay with « + Ajouter » for who goes, then « À caser ».
+ */
 @Composable
 private fun Programme(row: TimelineRow.Destination, actions: TimelineActions) {
-    val places = actions.places[row.step.id].orEmpty()
-    val add = actions.onAddPlace
-    if (places.isEmpty() && add == null) return
-    WhiteCard {
-        TripPlaceKind.entries.forEachIndexed { index, kind ->
-            val ofKind = places.filter { it.kind == kind }
-            if (ofKind.isEmpty() && add == null) return@forEachIndexed
-            if (index > 0) Spacer(Modifier.height(6.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.semantics(mergeDescendants = true) { heading() }) {
-                Icon(placeKindIcon(kind), contentDescription = null, tint = InkSoft, modifier = Modifier.size(18.dp))
-                Text(
-                    sectionTitle(kind).uppercase(),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = InkSoft,
-                    letterSpacing = 0.6.sp,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
-            HorizontalDivider(color = FieldBorder)
-            DestinationProgramme(ofKind, actions)
-            if (add != null) {
-                val described = stringResource(R.string.destination_add_a11y, placeKindLabel(kind))
-                TextButton(
-                    onClick = { add(row.step.id, kind) },
-                    modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = described },
-                    colors = ButtonDefaults.textButtonColors(contentColor = Ink),
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Text(stringResource(R.string.destination_add), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(start = 8.dp))
-                }
-            }
-        }
-    }
+    if (!hasProgramme(row, actions) && actions.onAddPlace == null) return
+    DayProgramme(row, actions, full = true)
 }
-
-@Composable
-private fun sectionTitle(kind: TripPlaceKind): String = stringResource(
-    when (kind) {
-        TripPlaceKind.Lodging -> R.string.destination_lodging
-        TripPlaceKind.Restaurant -> R.string.destination_restaurants
-        TripPlaceKind.Spot -> R.string.destination_spots
-    },
-)
 
 /** The photos of the destination and its voice notes, as under its card in « Le trajet ». */
 @Composable

@@ -1667,6 +1667,14 @@
     <string name="destination_spots">Spots</string>
     <string name="destination_add">Ajouter</string>
     <string name="destination_add_a11y">Ajouter : %1$s</string>
+    <string name="day_add_lodging">Hébergement</string>
+    <string name="day_add_a11y">Ajouter un restaurant ou un spot le %1$s</string>
+    <string name="day_free">Rien de prévu, journée libre</string>
+    <string name="day_to_place">À caser</string>
+    <string name="day_to_place_hint">sans jour</string>
+    <string name="day_choose">Choisir le jour</string>
+    <string name="day_choose_a11y">Choisir le jour de %1$s</string>
+    <string name="day_choose_failed">Le jour n\'a pas pu être enregistré. Réessaie avec du réseau.</string>
     <string name="destination_all_about">Tout savoir sur %1$s</string>
     <string name="destination_bar_a11y">Destination %1$d : %2$s</string>
     <string name="trip_dates_title">Dates du voyage</string>

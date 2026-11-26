@@ -67,7 +67,7 @@ fun TripDetailRoute(
     /** The page of a place programmed under a destination (récit 103, règle 19). */
     onOpenPlace: (placeId: String) -> Unit = {},
     /** A new accommodation, restaurant or spot under the destination [stepId] (règle 20). */
-    onAddPlace: (stepId: String, kind: TripPlaceKind) -> Unit = { _, _ -> },
+    onAddPlace: (stepId: String, kind: TripPlaceKind, day: java.time.LocalDate?) -> Unit = { _, _, _ -> },
     /** A new destination or transport from a « + » of « Le trajet », starting on [day] (DESIGN-99 A). */
     onInsertStep: (kind: fr.familia.app.feature.trips.step.StepAddKind, day: java.time.LocalDate) -> Unit = { _, _ -> onAddStep() },
     /** The album of the trip opened on one photo (récit 104). */
@@ -184,6 +184,20 @@ fun TripDetailRoute(
         places = remember(places) { placesByStep(places) },
         onOpenPlace = onOpenPlace,
         onAddPlace = if (shown?.isParticipant == true) onAddPlace else null,
+        // Récit 122: « Choisir le jour », written at once for everyone; « À caser » again with null.
+        onPlaceDay = container?.tripPlaceRepository?.takeIf { shown?.isParticipant == true }?.let { repo ->
+            { place, day ->
+                scope.launch {
+                    try {
+                        repo.savePlace(tripId, place.copy(day = day), isNew = false)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Toast.makeText(context, R.string.day_choose_failed, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        },
         onInsertStep = if (shown?.isParticipant == true) onInsertStep else null,
         onEnrich = onOpenEnrich?.takeIf { shown?.isParticipant == true && container?.tripPlaceRepository != null },
         photos = byStep.byStay,

@@ -95,8 +95,10 @@ class TimelineActions(
     /** The places programmed under each destination, by its step id (règle 18), from [placesByStep]. */
     val places: Map<String, List<TripPlace>> = emptyMap(),
     val onOpenPlace: (placeId: String) -> Unit = {},
-    /** Null for who does not go: they see the programme, without « + ». */
-    val onAddPlace: ((stepId: String, kind: TripPlaceKind) -> Unit)? = null,
+    /** Null for who does not go: they see the programme, without « + ». [day]: the day of the stay it is added to (récit 122), null for none. */
+    val onAddPlace: ((stepId: String, kind: TripPlaceKind, day: LocalDate?) -> Unit)? = null,
+    /** « Choisir le jour » of a place (récit 122): the day of the stay, null for « À caser ». Null for who does not go. */
+    val onPlaceDay: ((place: TripPlace, day: LocalDate?) -> Unit)? = null,
     /** Null for who does not go: no « + » between the elements (DESIGN-99 A). A destination or a transport from [day]. */
     val onInsertStep: ((kind: StepAddKind, day: LocalDate) -> Unit)? = null,
     /** « Enrichir avec une IA » in the menu of a « + »; null when it is not offered. */
@@ -275,7 +277,7 @@ fun TimelineAddMenu(expanded: Boolean, onDismiss: () -> Unit, spot: InsertSpot, 
                 TripPlaceKind.Spot to R.string.timeline_add_spot,
                 TripPlaceKind.Restaurant to R.string.timeline_add_restaurant,
             ).forEach { (kind, label) ->
-                InsertItem(stringResource(label), placeKindIcon(kind)) { onDismiss(); addPlace(destination, kind) }
+                InsertItem(stringResource(label), placeKindIcon(kind)) { onDismiss(); addPlace(destination, kind, null) }
             }
         }
         actions.onEnrich?.let { enrich ->
@@ -423,12 +425,15 @@ private fun DestinationRow(trip: Trip, row: TimelineRow.Destination, plusBlocked
         val places = actions.places[row.step.id].orEmpty()
         val photos = actions.photos[row.step.id].orEmpty()
         val notes = actions.voiceNotes[row.step.id].orEmpty()
+        // Récit 122 (DESIGN-GAZETTE-1 A): the accommodation, then the days that have something, then « À caser ».
+        if (places.isNotEmpty()) {
+            Box(Modifier.padding(start = ROUND_SIZE + 8.dp)) { DayProgramme(row, actions, full = false) }
+        }
         // E-50: no card with only the add-photo icon; the photos are added from the page of the destination.
-        if (places.isNotEmpty() || photos.isNotEmpty() || notes.isNotEmpty()) {
+        if (photos.isNotEmpty() || notes.isNotEmpty()) {
             Column(
                 Modifier.padding(start = ROUND_SIZE + 8.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
-                DestinationProgramme(places, actions)
                 if (photos.isNotEmpty()) StepPhotoStrip(photos, name, actions.onOpenPhoto, actions.onAddPhoto?.let { add -> { add(row.step.id) } })
                 notes.forEach { note -> VoiceNoteRow(note, actions) }
             }
@@ -546,33 +551,6 @@ internal fun VoiceNoteRow(note: TripVoiceNote, actions: TimelineActions) {
                 TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
             },
         )
-    }
-}
-
-/**
- * Under a destination, in smaller type (règle 18): its accommodation, restaurants and spots, each
- * opening its page (règle 19). They are added by the « + » after the destination (F2 §2).
- */
-@Composable
-internal fun DestinationProgramme(places: List<TripPlace>, actions: TimelineActions) {
-    places.forEach { place ->
-        val kind = placeKindLabel(place.kind)
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(role = Role.Button, onClickLabel = stringResource(R.string.timeline_open, place.name)) { actions.onOpenPlace(place.id) }
-                .heightIn(min = 56.dp)
-                .padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(placeKindIcon(place.kind), contentDescription = null, tint = InkSoft, modifier = Modifier.size(20.dp))
-            Column(Modifier.weight(1f).padding(start = 10.dp)) {
-                Text("${place.name} ›", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                val time = place.arriveTime?.let { " · " + formatTime(it) }.orEmpty()
-                Text(kind + time, style = MaterialTheme.typography.bodySmall, color = InkSoft)
-            }
-        }
     }
 }
 
