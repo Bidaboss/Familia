@@ -4265,6 +4265,25 @@
     <string name="place_kind_lodging">Hébergement</string>
     <string name="place_kind_restaurant">Restaurant</string>
     <string name="place_kind_spot">Spot</string>
+    <!-- Récit 122 : les lieux d'une destination rangés par jour -->
+    <string name="place_tile_day">Jour</string>
+    <string name="place_day_none">Pas encore de jour (à caser)</string>
+    <string name="place_day_change">Changer</string>
+    <string name="place_day_hint">Le jour du séjour où vous y allez. Sans jour, il reste « À caser ».</string>
+    <string name="place_day_question">Quel jour pour « %1$s » ?</string>
+    <string name="place_day_during">Pendant le séjour : %1$s</string>
+    <string name="place_tile_nights">Nuits</string>
+    <string name="place_nights_change">Changer</string>
+    <string name="place_nights_hint">Tout le séjour, sauf si vous dormez à plusieurs endroits.</string>
+    <string name="place_nights_question">Quelles nuits à « %1$s » ?</string>
+    <string name="place_nights_arrive">Arrivée</string>
+    <string name="place_nights_leave">Départ le matin du</string>
+    <string name="place_nights_whole">Tout le séjour</string>
+    <plurals name="place_nights">
+        <item quantity="one">%1$d nuit, %2$s → %3$s</item>
+        <item quantity="many">%1$d nuits, %2$s → %3$s</item>
+        <item quantity="other">%1$d nuits, %2$s → %3$s</item>
+    </plurals>
     <string name="place_page_title">Lieu</string>
     <string name="place_new_lodging">Ton hébergement</string>
     <string name="place_new_restaurant">Ton restaurant</string>

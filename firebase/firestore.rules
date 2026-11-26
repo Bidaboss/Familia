@@ -3325,7 +3325,7 @@ service cloud.firestore {
 
     function isValidTripPlace(p) {
       return p.keys().hasAll(['stepId', 'kind', 'name', 'address', 'lat', 'lng', 'arriveTime', 'note', 'cost', 'updatedAt'])
-        && p.keys().hasOnly(['stepId', 'kind', 'name', 'address', 'lat', 'lng', 'arriveTime', 'note', 'cost', 'updatedAt'])
+        && p.keys().hasOnly(['stepId', 'kind', 'name', 'address', 'lat', 'lng', 'arriveTime', 'note', 'cost', 'updatedAt', 'day', 'checkIn', 'checkOut'])
         && p.stepId is string
         && p.kind in ['lodging', 'restaurant', 'spot']
         && p.name is string && p.name.size() > 0 && p.name.size() <= 120
@@ -3334,7 +3334,22 @@ service cloud.firestore {
         && (p.arriveTime == null || isClockTime(p.arriveTime))
         && (p.note == null || (p.note is string && p.note.size() <= 600))
         && (p.cost == null || (p.cost is number && p.cost >= 0 && p.cost <= 1000000))
+        && isValidTripPlaceDays(p)
         && p.updatedAt == request.time;
+    }
+
+    // Récit 122: the day of a restaurant or a spot (« yyyy-MM-dd », absent = « À caser »), the nights
+    // of an accommodation (checkIn, then the morning of checkOut, absent = the whole stay). Each is
+    // optional, so a version of the app without them still writes; the app keeps them in the stay.
+    function isTripPlaceDay(d) {
+      return d is string && d.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function isValidTripPlaceDays(p) {
+      return (!('day' in p) || (p.kind != 'lodging' && isTripPlaceDay(p.day)))
+        && (!('checkIn' in p) || (p.kind == 'lodging' && isTripPlaceDay(p.checkIn)))
+        && (!('checkOut' in p) || (p.kind == 'lodging' && isTripPlaceDay(p.checkOut)))
+        && (!('checkIn' in p) || !('checkOut' in p) || p.checkIn < p.checkOut);
     }
 
     match /trips/{tripId}/places/{placeId} {

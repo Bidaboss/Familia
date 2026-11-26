@@ -1,5 +1,6 @@
 package fr.familia.app.core.model
 
+import java.time.LocalDate
 import java.time.LocalTime
 
 /** The three kinds of place a destination programmes (récit 103, règles 18 to 21), [key] as stored in Firestore. */
@@ -20,6 +21,11 @@ enum class TripPlaceKind(val key: String) {
  * page of the place asks (règle 21); [cost] is optional, in the currency of the trip (règle 40).
  * Kept in `trips/{tripId}/places/{placeId}`: read by the followers, written by the participants,
  * as the steps.
+ *
+ * Récit 122 (DESIGN-GAZETTE-1 A): a restaurant or a spot has its [day] in the stay, null when it
+ * has none yet (« À caser »); an accommodation has its nights, from [checkIn] to the morning of
+ * [checkOut], null for the whole stay. A day outside the stay (the stay was made shorter) is read as
+ * « À caser », never rewritten.
  */
 data class TripPlace(
     val id: String,
@@ -32,6 +38,9 @@ data class TripPlace(
     val arriveTime: LocalTime?,
     val note: String?,
     val cost: Double? = null,
+    val day: LocalDate? = null,
+    val checkIn: LocalDate? = null,
+    val checkOut: LocalDate? = null,
 ) {
     val hasPosition: Boolean get() = lat != null && lng != null
 }

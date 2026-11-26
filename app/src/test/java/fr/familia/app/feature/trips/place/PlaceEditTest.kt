@@ -275,4 +275,36 @@ class PlaceEditTest {
         assertEquals(8.74, withPoint.destinationLng!!, 0.0)
         assertNull(vm(placeId = null, stepId = "s1", kind = TripPlaceKind.Spot).editing().destinationLat)
     }
+
+    @Test
+    fun `récit 122, a spot added from a day of the stay starts on that day and is saved with it`() {
+        val places = FakePlaces()
+        val day = java.time.LocalDate.of(2027, 7, 10)
+        val vm = PlaceEditViewModel(trips(), places, FakeMembers(), "adult2", "t1", null, stepId = "s1", kind = TripPlaceKind.Spot, presetName = "Le phare", presetDay = day)
+        val state = vm.editing()
+        assertEquals(day, state.form.day)
+        assertEquals(day, state.stayStart)
+        vm.save()
+        assertEquals(day, places.saved.single().first.day)
+    }
+
+    @Test
+    fun `récit 122, « À caser » saves no day, and an accommodation keeps its nights only`() {
+        val places = FakePlaces(listOf(bistrot.copy(day = java.time.LocalDate.of(2027, 7, 10))))
+        val vm = vm(places)
+        vm.update { it.copy(day = null) }
+        vm.save()
+        assertNull(places.saved.single().first.day)
+
+        val form = PlaceForm(name = "Camping", day = java.time.LocalDate.of(2027, 7, 11), checkIn = java.time.LocalDate.of(2027, 7, 11), checkOut = java.time.LocalDate.of(2027, 7, 13))
+        val lodging = form.toPlace("h1", "s1", TripPlaceKind.Lodging)
+        assertNull(lodging.day)
+        assertEquals(java.time.LocalDate.of(2027, 7, 11), lodging.checkIn)
+        assertEquals(java.time.LocalDate.of(2027, 7, 13), lodging.checkOut)
+        val spot = form.toPlace("p2", "s1", TripPlaceKind.Spot)
+        assertEquals(java.time.LocalDate.of(2027, 7, 11), spot.day)
+        assertNull(spot.checkIn)
+        // A departure before the arrival is not kept: the whole stay.
+        assertNull(form.copy(checkOut = java.time.LocalDate.of(2027, 7, 11)).toPlace("h1", "s1", TripPlaceKind.Lodging).checkIn)
+    }
 }

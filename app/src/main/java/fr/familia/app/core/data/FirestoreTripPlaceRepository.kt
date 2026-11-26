@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 import java.time.LocalTime
 
 /** `trips/{tripId}/places/{placeId}` (récit 103). The hour is « HH:mm », as for the steps. */
@@ -38,7 +39,7 @@ class FirestoreTripPlaceRepository(private val db: FirebaseFirestore) : TripPlac
     override fun newPlaceId(tripId: String): String = places(tripId).document().id
 
     override suspend fun savePlace(tripId: String, place: TripPlace, isNew: Boolean) {
-        val data = mapOf(
+        val data = mutableMapOf<String, Any?>(
             "stepId" to place.stepId,
             "kind" to place.kind.key,
             "name" to place.name,
@@ -50,6 +51,10 @@ class FirestoreTripPlaceRepository(private val db: FirebaseFirestore) : TripPlac
             "cost" to place.cost,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
+        // Récit 122: only written when set, so a place without a day still saves before the rules know them.
+        place.day?.let { data["day"] = it.toString() }
+        place.checkIn?.let { data["checkIn"] = it.toString() }
+        place.checkOut?.let { data["checkOut"] = it.toString() }
         // The same write either way: the rules check the whole shape, and the id is known before.
         places(tripId).document(place.id).set(data).await()
     }
@@ -75,5 +80,12 @@ internal fun DocumentSnapshot.toPlace(): TripPlace? {
         arriveTime = getString("arriveTime")?.let { runCatching { LocalTime.parse(it) }.getOrNull() },
         note = getString("note"),
         cost = getDouble("cost"),
+        day = date("day"),
+        checkIn = date("checkIn"),
+        checkOut = date("checkOut"),
     )
 }
+
+/** A day stored « yyyy-MM-dd »; null when absent or unreadable. */
+private fun DocumentSnapshot.date(field: String): LocalDate? =
+    getString(field)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }

@@ -2827,3 +2827,13 @@ Sur un téléphone en Android 10 ou plus :
 1. Ouvrir un ancien voyage qui n'a que des vols, des trajets ou des activités, sans destination : la grande photo montre le lieu d'arrivée des trajets et les activités, jamais un lieu de départ.
 2. Dans la liste des voyages, sa tuile montre la photo du premier de ces lieux.
 3. Un voyage avec des destinations ne montre toujours que ses destinations.
+
+## Voyage : le jour d'un resto ou d'un spot, les nuits d'un hébergement (récit 122, partie 1)
+
+**Publier Firebase : oui** (règles), puis « APK de publication ».
+1. Dans un voyage, ouvrir un restaurant ou un spot d'une destination de plusieurs nuits : une tuile « Jour » montre « Pas encore de jour (à caser) ».
+2. Toucher « Changer » : la feuille « Quel jour pour « … » ? » montre une case par jour du séjour, trois par ligne, et « Pas encore de jour (à caser) ». Choisir un jour, la tuile le montre (« Lun. 12 avril · J2 »), « Enregistrer ».
+3. Rouvrir le lieu : le jour est gardé. Le remettre « à caser » et enregistrer.
+4. Ouvrir un hébergement : la tuile « Nuits » montre « 5 nuits, dim. 11 → ven. 16 » (tout le séjour). « Changer » : choisir l'arrivée puis le matin du départ ; « Tout le séjour » revient au séjour entier.
+5. Un membre qui suit le voyage sans y participer lit le jour et les nuits, sans bouton.
+6. Le rangement par jour sous la destination viendra dans la partie 2.

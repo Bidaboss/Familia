@@ -93,4 +93,11 @@ data class TripPlaceDestination(val tripId: String, val placeId: String)
  * TripPlaceKind (« Lodging », « Restaurant », « Spot »); [name], when chosen in a search, fills the page.
  */
 @Serializable
-data class TripPlaceAddDestination(val tripId: String, val stepId: String, val kind: String, val name: String? = null)
+data class TripPlaceAddDestination(
+    val tripId: String,
+    val stepId: String,
+    val kind: String,
+    val name: String? = null,
+    /** Récit 122: the day « ＋ Ajouter » of a day fills in, « yyyy-MM-dd »; null for « À caser ». */
+    val day: String? = null,
+)

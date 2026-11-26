@@ -34,6 +34,8 @@ fun PlaceEditRoute(
     stepId: String? = null,
     kind: TripPlaceKind? = null,
     presetName: String? = null,
+    /** Récit 122: the day of a new place added from a day of the stay. */
+    presetDay: java.time.LocalDate? = null,
 ) {
     val viewModel: PlaceEditViewModel = viewModel(
         factory = viewModelFactory {
@@ -48,6 +50,7 @@ fun PlaceEditRoute(
                     stepId = stepId,
                     kind = kind,
                     presetName = presetName,
+                    presetDay = presetDay,
                     savedState = createSavedStateHandle(),
                 )
             }

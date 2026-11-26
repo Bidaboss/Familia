@@ -999,7 +999,11 @@ Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus
 | `arriveTime` | texte ou null | Heure d'arrivée « HH:mm », facultative (règle 21) |
 | `note` | texte ou null | Notes sur plusieurs lignes, 600 caractères au plus |
 | `cost` | nombre ou null | Coût pour le groupe, dans la monnaie du voyage, de 0 à 1 000 000 (budget, règle 40) |
+| `day` | texte, absent | Récit 122 : le jour d'un restaurant ou d'un spot dans le séjour, « yyyy-MM-dd » ; absent = « À caser ». Jamais pour un hébergement |
+| `checkIn`, `checkOut` | texte, absents | Récit 122 : les nuits d'un hébergement, de `checkIn` au matin de `checkOut` (après `checkIn`) ; absents = tout le séjour. Seulement pour un hébergement |
 | `updatedAt` | horodatage | Heure du serveur |
+
+Récit 122 : ces trois champs sont facultatifs, écrits seulement quand ils ont une valeur, pour qu'une version de l'appli qui ne les connaît pas écrive encore. Un jour hors du séjour (séjour raccourci) se lit « À caser », sans réécriture ; des nuits hors du séjour se lisent « tout le séjour ».
 
 Droits : ceux qui suivent le voyage (`readerIds`) lisent, les participants ajoutent, modifient et suppriment, sous une destination qui existe ; l'admin principal peut aussi supprimer. Un nom changé retire l'adresse et le point (c'est un autre lieu). `onStepDeletedPlaces` supprime les lieux d'une destination supprimée ; la suppression du voyage les emporte tous. Tests : `firebase/tests/tripPlaces.test.mjs` et `firebase/functions/test/tripPlaces.test.ts`.
 

@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Hotel
@@ -221,6 +222,11 @@ private fun FormContent(
             if (state.destination.isNotEmpty()) FormHint(stringResource(R.string.place_in_destination, state.destination))
         }
 
+        // Récit 122: the day of a restaurant or a spot, the nights of an accommodation, in the stay.
+        if (state.stayStart != null && state.stayEnd != null) {
+            StayTile(state, onChange)
+        }
+
         TripTile(Icons.Outlined.Schedule, stringResource(if (state.kind == TripPlaceKind.Spot) R.string.place_tile_time else R.string.place_tile_arrive)) {
             if (state.canEdit) {
                 TimeBox(
@@ -297,6 +303,83 @@ private fun FormContent(
         }
         if (state.canDelete) DeletePlaceButton(state.kind, form.name, enabled = !state.isSaving, onDelete)
         Spacer(Modifier.height(8.dp))
+    }
+}
+
+/**
+ * « Jour » (récit 122): the day of a restaurant or a spot in the stay, « Pas encore de jour (à caser) »
+ * when it has none; « Nuits » for an accommodation, the whole stay unless chosen. A button of 56 dp
+ * opens the choice; a follower only reads it.
+ */
+@Composable
+private fun StayTile(state: PlaceEditUiState.Editing, onChange: ((PlaceForm) -> PlaceForm) -> Unit) {
+    val start = state.stayStart ?: return
+    val end = state.stayEnd ?: return
+    val form = state.form
+    var open by rememberSaveable { mutableStateOf(false) }
+    if (state.kind == TripPlaceKind.Lodging) {
+        val nights = lodgingNights(form.toPlace("", "", TripPlaceKind.Lodging), start, end)
+        val text = nightsLabel(nights.checkIn, nights.checkOut)
+        TripTile(Icons.Outlined.CalendarMonth, stringResource(R.string.place_tile_nights)) {
+            if (state.canEdit) {
+                ChoiceButton(text, stringResource(R.string.place_nights_change)) { open = true }
+                FormHint(stringResource(R.string.place_nights_hint))
+            } else {
+                Text(text, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+        if (open) {
+            NightsChoiceSheet(
+                name = form.name.ifBlank { placeKindLabel(state.kind) },
+                start = start,
+                end = end,
+                checkIn = nights.checkIn,
+                checkOut = nights.checkOut,
+                onChoose = { checkIn, checkOut -> onChange { it.copy(checkIn = checkIn, checkOut = checkOut) } },
+                onDismiss = { open = false },
+            )
+        }
+    } else {
+        val days = stayDays(start, end)
+        val day = form.day?.takeIf { it in days }
+        val text = day?.let { stayDayLabel(it, days.indexOf(it) + 1) } ?: stringResource(R.string.place_day_none)
+        TripTile(Icons.Outlined.CalendarMonth, stringResource(R.string.place_tile_day)) {
+            if (state.canEdit) {
+                ChoiceButton(text, stringResource(R.string.place_day_change)) { open = true }
+                FormHint(stringResource(R.string.place_day_hint))
+            } else {
+                Text(text, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+        if (open) {
+            DayChoiceSheet(
+                name = form.name.ifBlank { placeKindLabel(state.kind) },
+                destination = state.destination,
+                days = days,
+                chosen = day,
+                onChoose = { chosen -> onChange { it.copy(day = chosen) }; open = false },
+                onDismiss = { open = false },
+            )
+        }
+    }
+}
+
+/** A white line of 56 dp that says the choice and opens it, read as « Changer le jour, lun. 12 avril ». */
+@Composable
+private fun ChoiceButton(text: String, action: String, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable(role = Role.Button, onClickLabel = action, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+        Text(action, style = MaterialTheme.typography.labelLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = TripPathColors.Ink)
     }
 }
 
@@ -383,6 +466,7 @@ internal fun previewPlaceEditState(
     isNew: Boolean = false,
     canEdit: Boolean = true,
     errors: Set<PlaceFormError> = emptySet(),
+    day: java.time.LocalDate? = java.time.LocalDate.of(2027, 4, 12),
 ): PlaceEditUiState.Editing = PlaceEditUiState.Editing(
     kind = kind,
     form = PlaceForm(
@@ -390,12 +474,15 @@ internal fun previewPlaceEditState(
         arriveTime = LocalTime.of(20, 0),
         note = "Table réservée au nom de Camille.\nGoûter le fiadone.",
         cost = if (PlaceFormError.CostInvalid in errors) "beaucoup" else "80",
+        day = day,
     ),
     isNew = isNew,
     canEdit = canEdit,
     canDelete = canEdit && !isNew,
     errors = errors,
     destination = "Ajaccio",
+    stayStart = java.time.LocalDate.of(2027, 4, 11),
+    stayEnd = java.time.LocalDate.of(2027, 4, 16),
 )
 
 @FamiliaPreviews
