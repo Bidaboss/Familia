@@ -1,26 +1,11 @@
 package fr.familia.app.feature.feed
 
 import fr.familia.app.core.data.gazetteThreadId
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
@@ -31,7 +16,6 @@ import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.concerns
-import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.events.album.eventAlbumFolder
 import fr.familia.app.feature.trips.photos.tripAlbumFolder
@@ -128,9 +112,6 @@ class AlbumFeedSource(
     }
 }
 
-/** How many thumbnails a card shows; the others are counted on the last one. */
-private const val THUMBS = 3
-
 class AlbumFeedCard(
     val album: FeedAlbum,
     val day: LocalDate,
@@ -153,52 +134,40 @@ class AlbumFeedCard(
         val tone = FeedTone.Green
         val newest = photos.first()
         val names = authorNames
+        val openAlbum = { navigation.onOpenAlbumPhoto(album.album, newest.id) }
+        val dark = LocalFeedDetailDark.current
+        val header: @Composable () -> Unit = {
+            FeedHeader(
+                member = context.member(newest.authorId),
+                name = if (names.size == 1) names.first() else pluralStringResource(R.plurals.feed_album_authors, names.size - 1, names.first(), names.size - 1),
+                action = pluralStringResource(
+                    if (names.size == 1) R.plurals.feed_action_album_one else R.plurals.feed_action_album_many,
+                    photos.size,
+                    photos.size,
+                ),
+                emoji = "📷",
+                time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
+            )
+        }
+        // Like a publication of photos (retour du 26/11, §11): the photo edge to edge in the card and
+        // the black detail on a touch; there, a touch on the photo opens the album.
         FeedCardShell(
             tone = tone,
-            onOpen = { navigation.onOpenAlbumPhoto(album.album, newest.id) },
-            header = {
-                FeedHeader(
-                    member = context.member(newest.authorId),
-                    name = if (names.size == 1) names.first() else pluralStringResource(R.plurals.feed_album_authors, names.size - 1, names.first(), names.size - 1),
-                    action = pluralStringResource(
-                        if (names.size == 1) R.plurals.feed_action_album_one else R.plurals.feed_action_album_many,
-                        photos.size,
-                        photos.size,
-                    ),
-                    emoji = "📷",
-                    time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                )
-            },
+            onOpen = if (dark) openAlbum else LocalFeedCardDetail.current ?: openAlbum,
+            header = if (dark) null else header,
         ) {
-            Text(
-                album.album.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.ExtraBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            // The thumbnails are said by the line above: TalkBack reads the card once.
-            Row(Modifier.clearAndSetSemantics {}, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                val shown = photos.take(THUMBS)
-                shown.forEachIndexed { index, photo ->
-                    Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(12.dp))) {
-                        StorageImage(photo.thumbnailPath, null, Modifier.fillMaxSize())
-                        val more = photos.size - THUMBS
-                        if (index == shown.lastIndex && more > 0) {
-                            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)), contentAlignment = Alignment.Center) {
-                                Text(
-                                    stringResource(R.string.feed_album_more, more),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White,
-                                )
-                            }
-                        }
-                    }
-                }
-                // Fewer photos than places: the thumbnails keep their size.
-                repeat(THUMBS - shown.size) { Box(Modifier.weight(1f)) }
+            if (!dark) AlbumCaption(album.album.title)
+            FeedPhotos(photos.map { it.photoPath })
+            if (dark) {
+                header()
+                AlbumCaption(album.album.title)
             }
         }
     }
+}
+
+/** The name of the event or of the trip, as the text of a publication. */
+@Composable
+private fun AlbumCaption(title: String) {
+    Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
 }

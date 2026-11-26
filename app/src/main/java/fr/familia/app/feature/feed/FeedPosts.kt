@@ -139,7 +139,7 @@ class PostFeedCard(val post: GazettePost, private val posts: GazettePostReposito
             // On the black of the detail the photo comes first, then who (prototype, fiche D1).
             header = if (dark) null else ({ PostHeader(post, context, onMenu = if (canEdit || canRemove) ({ menu = true }) else null) }),
         ) {
-            if (post.photoIds.isNotEmpty()) PostPhotos(post)
+            if (post.photoIds.isNotEmpty()) FeedPhotos(post.photoIds.map(post::photoPath))
             if (dark) PostHeader(post, context, onMenu = if (canEdit || canRemove) ({ menu = true }) else null)
             if (post.text.isNotBlank()) {
                 MentionText(post.text, post.mentionIds, style = MaterialTheme.typography.bodyLarge, maxLines = if (LocalFeedCardDetail.current == null) Int.MAX_VALUE else 6)
@@ -320,17 +320,17 @@ private fun openOnMap(context: Context, lat: Double, lng: Double, label: String)
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PostPhotos(post: GazettePost) {
-    val pager = rememberPagerState { post.photoIds.size }
+internal fun FeedPhotos(paths: List<String>) {
+    val pager = rememberPagerState { paths.size }
     val dark = LocalFeedDetailDark.current
     val scope = rememberCoroutineScope()
-    val count = post.photoIds.size
+    val count = paths.size
     Column(Modifier.feedEdgeToEdge().fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         // Edge to edge in the card (prototype: 366 × 200 dp in a card of 368); square on the black.
         Box(Modifier.fillMaxWidth().aspectRatio(if (dark) 1f else 366f / 200f).then(if (dark) Modifier.background(Color.Black) else Modifier)) {
             HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
                 StorageImage(
-                    post.photoPath(post.photoIds[page]),
+                    paths[page],
                     stringResource(R.string.gazette_post_photo, page + 1, count),
                     Modifier.fillMaxSize(),
                     contentScale = if (dark) ContentScale.Fit else ContentScale.Crop,
@@ -364,7 +364,7 @@ private fun PostPhotos(post: GazettePost) {
                 )
             }
         }
-        if (dark && count > 1) {
+        if (dark && count in 2..MAX_DOTS) {
             // The dots: the photo shown is a longer white one.
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -384,6 +384,9 @@ private fun PostPhotos(post: GazettePost) {
         }
     }
 }
+
+/** Beyond this many photos (an album), « 3 / 24 » says where one is, without dots. */
+private const val MAX_DOTS = 10
 
 /** A round white arrow of 56 dp on the edge of a photo of the detail. */
 @Composable
