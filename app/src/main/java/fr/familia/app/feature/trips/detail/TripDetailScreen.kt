@@ -412,10 +412,9 @@ private fun PathContent(
     LaunchedEffect(state.trip.id) { TripOpenTiming.reached("écran") }
     val expanded = level >= 1
     var selected by rememberSaveable(state.trip.id) { mutableStateOf<Int?>(null) }
-    // Back first puts the map back as it was (règle 25, « Retour dézoome »), then lowers the sheet.
-    androidx.activity.compose.BackHandler(enabled = mapLayout && (selected != null || level > 0)) {
-        if (selected != null) selected = null else level -= 1
-    }
+    // Back first puts the map back as it was (règle 25, « Retour dézoome »); it never lowers the sheet:
+    // it goes straight to the screen before (l'admin, 26/11).
+    androidx.activity.compose.BackHandler(enabled = mapLayout && selected != null) { selected = null }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
     // Three heights as on the prototype (DESIGN-98 A): 22 % at the bottom, 48 % in the middle, the whole screen.
     val lowHeight = maxHeight * backdropSheetShare(0)
