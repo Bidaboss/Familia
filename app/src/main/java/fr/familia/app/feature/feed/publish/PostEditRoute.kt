@@ -2,6 +2,7 @@ package fr.familia.app.feature.feed.publish
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -114,13 +116,16 @@ fun PostEditSheet(
         AlertDialog(
             onDismissRequest = { confirmLeave = false },
             title = { Text(stringResource(R.string.gazette_post_leave_title)) },
-            confirmButton = { TextButton(onClick = { confirmLeave = false }) { Text(stringResource(R.string.member_leave_keep)) } },
+            confirmButton = { TextButton(onClick = { confirmLeave = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.member_leave_keep)) } },
             dismissButton = {
-                TextButton(onClick = {
-                    confirmLeave = false
-                    // Leaving: what was written goes, the sheet closes.
-                    onClose()
-                }) { Text(stringResource(R.string.member_leave_discard)) }
+                TextButton(
+                    onClick = {
+                        confirmLeave = false
+                        // Leaving: what was written goes, the sheet closes.
+                        onClose()
+                    },
+                    modifier = Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.member_leave_discard)) }
             },
         )
     }
