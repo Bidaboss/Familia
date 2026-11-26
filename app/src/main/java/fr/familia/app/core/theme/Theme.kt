@@ -101,6 +101,22 @@ fun FamiliaTheme(
     }
 }
 
+/**
+ * A page that stays light whatever the theme and the dark mode of the phone: the carnet of « Ma
+ * journée » (brief §8). The light Argile colors and style, no photo, and the fonts chosen on this phone.
+ */
+@Composable
+fun PaperTheme(content: @Composable () -> Unit) {
+    val spec = themeSpec(FamiliaThemeId.Classic)
+    CompositionLocalProvider(
+        LocalClayColors provides spec.lightClay,
+        LocalClayStyle provides spec.style,
+        LocalPhotoTheme provides null,
+    ) {
+        MaterialTheme(colorScheme = spec.light, typography = MaterialTheme.typography, shapes = MaterialTheme.shapes, content = content)
+    }
+}
+
 /** The Argile colors of the current theme (cards, tints, reliefs). */
 object FamiliaClay {
     val colors: ClayColors

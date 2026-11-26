@@ -17,6 +17,11 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun SectionLabel(text: String, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
+    // In the carnet of Ma journée (brief §8), the titles are handwritten, as written.
+    if (LocalCarnetTitles.current) {
+        Text(text, style = CarnetTitle, modifier = modifier.semantics { heading() })
+        return
+    }
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, lineHeight = 18.sp, letterSpacing = 0.8.sp),

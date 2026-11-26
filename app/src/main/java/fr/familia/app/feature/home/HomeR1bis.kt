@@ -71,6 +71,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayNote
+import fr.familia.app.core.ui.LocalClayNote
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.core.ui.dayShortLabel
@@ -224,23 +226,17 @@ fun HomeR1bisScreen(
             waiting = summary.toAnswer,
             gazette = { feed { MyDaySummaryLine(summary, onPhoto = onPhotoSummary, onOpen = { onMyDay(true) }) } },
             myDay = {
-                MyDayLayer(photoTheme.takeIf { onPhotoSummary }) {
-                    CompositionLocalProvider(LocalMyDayBottom provides MY_DAY_ZIPPER_ROOM) {
-                        if (onPhotoSummary) {
-                            PhotoDayList(
-                                ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme!!), actions, r1,
-                                PhotoSlots({ MyDayTitle(onPhoto = true, onClose = close) }, joinMe, firstSteps, helpTodos, nowTravelling, challenge, null, buttons, mySurprises, surprisesToRate),
-                                0, null,
-                            )
-                        } else {
-                            Column(Modifier.fillMaxSize()) {
-                                Box(Modifier.padding(horizontal = ClaySpacing.screen)) { MyDayTitle(onPhoto = false, onClose = close) }
-                                ClassicDay(
-                                    Modifier.weight(1f), null, joinMe, frise, detail, firstSteps, buttons, todo, newsAndChallenge, nowTravelling, hasTodo, calm,
-                                    goodNews != null || challenge != null, PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = MY_DAY_ZIPPER_ROOM),
-                                )
-                            }
-                        }
+                // « Carnet post-it » (brief §8): the day on a page of carnet, its cards as notes.
+                // The day is yellow, « À faire » pink, the other blocks alternate.
+                MyDayLayer {
+                    Column(Modifier.fillMaxSize()) {
+                        Box(Modifier.padding(start = CarnetPage.contentStart, end = ClaySpacing.screen)) { MyDayTitle(onClose = close) }
+                        ClassicDay(
+                            Modifier.weight(1f), null, joinMe?.onNote(ClayNote.Pink), frise, detail.onNote(ClayNote.Yellow), firstSteps?.onNote(ClayNote.Pink),
+                            buttons.onNote(ClayNote.Yellow), todo.onNote(ClayNote.Pink), newsAndChallenge.onNote(ClayNote.Yellow), nowTravelling?.onNote(ClayNote.Pink),
+                            hasTodo, calm, goodNews != null || challenge != null,
+                            PaddingValues(start = CarnetPage.contentStart, end = ClaySpacing.screen, top = 4.dp, bottom = MY_DAY_ZIPPER_ROOM),
+                        )
                     }
                 }
             },
@@ -258,6 +254,12 @@ fun HomeR1bisScreen(
     Column(Modifier.fillMaxSize()) {
         ClassicDay(Modifier.weight(1f), top, joinMe, frise, detail, firstSteps, buttons, todo, newsAndChallenge, nowTravelling, hasTodo, calm, goodNews != null || challenge != null, padding)
     }
+}
+
+/** The block drawn on [note]: its cards become notes of the carnet (brief §8). */
+private fun (@Composable () -> Unit).onNote(note: ClayNote): @Composable () -> Unit {
+    val block = this
+    return { CompositionLocalProvider(LocalClayNote provides note) { block() } }
 }
 
 /** The day without photo, by width (§5): two panes, one column with two halves, or one column. */

@@ -18,12 +18,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -40,14 +40,10 @@ import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.model.Surprise
 import fr.familia.app.core.model.surprisesToConfirm
-import fr.familia.app.core.theme.FamiliaThemeId
-import fr.familia.app.core.theme.LocalPhotoHaze
-import fr.familia.app.core.theme.PhotoBackdrop
-import fr.familia.app.core.theme.PhotoScroll
-import fr.familia.app.core.theme.PhotoSectionShadow
-import fr.familia.app.core.theme.PhotoSectionText
+import fr.familia.app.core.theme.PaperTheme
 import fr.familia.app.core.theme.PhotoTitleShadow
-import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.CarnetTitle
+import fr.familia.app.core.ui.LocalCarnetTitles
 
 /*
  * La gazette est l'Accueil (récit 115, brief §3) : « Ma journée » n'est plus un onglet mais un écran
@@ -117,14 +113,13 @@ fun MyDaySummaryLine(summary: MyDaySummary, onPhoto: Boolean, onOpen: () -> Unit
     }
 }
 
-/** « Ma journée » and its round ✕ (fiche W1), at the top of the screen of the day. */
+/** « Ma journée », handwritten, and its round ✕ (fiche W1), at the top of the carnet (brief §8). */
 @Composable
-internal fun MyDayTitle(onPhoto: Boolean, onClose: () -> Unit) {
+internal fun MyDayTitle(onClose: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
         Text(
             stringResource(R.string.home_photo_my_day),
-            style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp, shadow = if (onPhoto) PhotoSectionShadow else null),
-            color = if (onPhoto) PhotoSectionText else MaterialTheme.colorScheme.onSurface,
+            style = CarnetTitle.copy(fontSize = 34.sp, lineHeight = 38.sp),
             modifier = Modifier.weight(1f).semantics { heading() },
         )
         IconButton(onClick = onClose, modifier = Modifier.size(56.dp)) {
@@ -138,34 +133,48 @@ internal fun MyDayTitle(onPhoto: Boolean, onClose: () -> Unit) {
 /** The room under the content of « Ma journée », so it never goes under the zipper at the bottom (brief §7). */
 internal val MY_DAY_ZIPPER_ROOM = 140.dp
 
-/** The room under the list of « Ma journée » on the photo: 24 dp, or [MY_DAY_ZIPPER_ROOM] behind the zipper. */
-internal val LocalMyDayBottom = androidx.compose.runtime.staticCompositionLocalOf { 24.dp }
-
 /** The round of the ✕ (W1, then the « Carnet post-it » of the brief §8). */
 private val MyDayCloseColor = Color(0xFFF0E3C4)
 
+/** The page of the carnet (brief §8): cream paper, pale blue lines every 32 dp, a red margin at 30 dp. */
+object CarnetPage {
+    val paper = Color(0xFFFBF7EC)
+    val line = Color(0xFFD6E2EE)
+    val margin = Color(0xFFE7A9A0)
+    val lineEvery = 32.dp
+    val marginAt = 30.dp
+
+    /** Where the content starts, right of the margin. */
+    val contentStart = 44.dp
+}
+
+/** Draws the page of the carnet behind the content. */
+internal fun Modifier.carnetPage(): Modifier = background(CarnetPage.paper).drawBehind {
+    val step = CarnetPage.lineEvery.toPx()
+    var y = step
+    while (y < size.height) {
+        drawLine(CarnetPage.line, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+        y += step
+    }
+    val x = CarnetPage.marginAt.toPx()
+    drawLine(CarnetPage.margin, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.5.dp.toPx())
+}
+
 /**
- * The screen of « Ma journée », over the gazette: on its own copy of the photo of the theme (with its
- * own blur) or on the background of the theme. It takes every touch, so the gazette under it never
- * reacts.
+ * The screen of « Ma journée », over the gazette: a page of carnet, light whatever the theme of the
+ * phone (brief §8). It takes every touch, so the gazette under it never reacts.
  */
 @Composable
-internal fun MyDayLayer(photoTheme: FamiliaThemeId?, content: @Composable () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .then(if (photoTheme == null) Modifier.themeBackground() else Modifier)
-            // Any touch on the layer stays on it: the gazette under it is not hit.
-            .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } },
-    ) {
-        if (photoTheme != null) {
-            val scroll = remember { PhotoScroll() }
-            CompositionLocalProvider(LocalPhotoHaze provides remember { dev.chrisbanes.haze.HazeState() }) {
-                PhotoBackdrop(photoTheme, scroll)
-                Box(Modifier.fillMaxSize().nestedScroll(scroll.connection)) { content() }
-            }
-        } else {
-            content()
+internal fun MyDayLayer(content: @Composable () -> Unit) {
+    PaperTheme {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .carnetPage()
+                // Any touch on the layer stays on it: the gazette under it is not hit.
+                .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } },
+        ) {
+            CompositionLocalProvider(LocalCarnetTitles provides true) { content() }
         }
     }
 }
