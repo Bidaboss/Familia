@@ -165,7 +165,12 @@ private fun DetailTitleBar(title: String, ink: Color, onClose: () -> Unit) {
  */
 @Composable
 private fun DarkCardDetail(card: FeedCard, social: FeedSocial, context: FeedContext, env: FeedSocialEnv, onClose: () -> Unit) {
-    val title = (card as? PostFeedCard)?.post?.photoIds?.size?.takeIf { it > 0 }
+    val photoCount = when (card) {
+        is PostFeedCard -> card.post.photoIds.size
+        is AlbumFeedCard -> card.photos.size
+        else -> 0
+    }
+    val title = photoCount.takeIf { it > 0 }
         ?.let { pluralStringResource(R.plurals.feed_detail_photo_count, it, it) }
         ?: stringResource(social.title)
     val commentable = social.commentable && env.comments != null

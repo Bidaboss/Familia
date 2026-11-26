@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.github.takahirom.roborazzi.captureRoboImage
+import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.data.GazetteLastComment
 import fr.familia.app.core.data.GazetteThread
 import fr.familia.app.core.data.GazetteThreadRepository
@@ -20,7 +21,9 @@ import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.feature.feed.AlbumFeedCard
 import fr.familia.app.feature.feed.EventFeedCard
+import fr.familia.app.feature.feed.FeedAlbum
 import fr.familia.app.feature.feed.FeedContext
 import fr.familia.app.feature.feed.FeedList
 import fr.familia.app.feature.feed.FeedSocialEnv
@@ -34,6 +37,7 @@ import fr.familia.app.feature.feed.publish.PostEditScreen
 import fr.familia.app.feature.feed.publish.PostEditUiState
 import fr.familia.app.feature.feed.publish.PostForm
 import fr.familia.app.feature.feed.publish.SheetCream
+import fr.familia.app.feature.yearago.MemoryAlbum
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Test
@@ -65,8 +69,15 @@ class GazetteCardsScreenshotTest {
             EventTarget.ForFamily, "b", "Noé", createdAt = Instant.parse("2026-11-18T08:40:00Z"),
         )
         val post = GazettePost("p1", "a", "Camille", "Balade au bord du lac", createdAt = Instant.parse("2026-11-17T07:12:00Z"))
+        // Les photos d'un événement, comme une publication de photo (§11).
+        val album = FeedAlbum(MemoryAlbum(MemoryAlbum.Kind.Event, "e0", "Repas de fête"), "events/e0", today)
+        val photo = AlbumPhoto("events/e0", "b", "Noé", 1, Instant.parse("2026-11-18T09:04:00Z"))
         return FeedState(
-            cards = listOf(EventFeedCard(event, canAnswer = true, rsvps = null, comments = null), PostFeedCard(post, posts = null)),
+            cards = listOf(
+                EventFeedCard(event, canAnswer = true, rsvps = null, comments = null),
+                AlbumFeedCard(album, today, listOf(photo)),
+                PostFeedCard(post, posts = null),
+            ),
             context = FeedContext(adult, family, today, false),
             unseen = 0,
             canLoadMore = true,
