@@ -100,9 +100,9 @@ class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRe
                 FeedHeader(
                     member = context.member(request.authorId),
                     name = request.authorName,
+                    action = stringResource(R.string.feed_action_help),
+                    emoji = "🤝",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_help),
-                    tone = tone,
                 )
             },
         ) {

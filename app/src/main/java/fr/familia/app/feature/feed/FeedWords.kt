@@ -126,9 +126,9 @@ class WordFeedCard(
                 FeedHeader(
                     member = author,
                     name = author?.firstName ?: word.authorName,
+                    action = stringResource(R.string.feed_action_word),
+                    emoji = "🧳",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_word),
-                    tone = tone,
                 )
             },
         ) {

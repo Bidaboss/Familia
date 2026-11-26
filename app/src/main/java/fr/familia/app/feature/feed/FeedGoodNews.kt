@@ -113,9 +113,9 @@ class GoodNewsFeedCard(
                 FeedHeader(
                     member = author,
                     name = author?.firstName ?: news.authorName.ifBlank { stringResource(R.string.feed_label_good_news) },
+                    action = stringResource(R.string.feed_action_good_news),
+                    emoji = "🎉",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_good_news),
-                    tone = tone,
                 )
             },
         ) {

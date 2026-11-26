@@ -4166,6 +4166,32 @@
     <string name="feed_empty">Rien de nouveau dans la famille ces deux dernières semaines.</string>
     <string name="feed_more">Voir plus ancien</string>
     <string name="feed_label_planning">Planning</string>
+    <!-- The top of a card of la gazette (prototype, .fh): « Prénom » in bold, then what they did. -->
+    <string name="feed_action_planned">a planifié %1$s</string>
+    <string name="feed_action_deal">a partagé un bon plan</string>
+    <string name="feed_action_address">a partagé une bonne adresse</string>
+    <plurals name="feed_action_album_one">
+        <item quantity="one">a ajouté %1$d photo</item>
+        <item quantity="many">a ajouté %1$d photos</item>
+        <item quantity="other">a ajouté %1$d photos</item>
+    </plurals>
+    <plurals name="feed_action_album_many">
+        <item quantity="one">ont ajouté %1$d photo</item>
+        <item quantity="many">ont ajouté %1$d photos</item>
+        <item quantity="other">ont ajouté %1$d photos</item>
+    </plurals>
+    <string name="feed_action_word">a écrit un mot d\'étape</string>
+    <string name="feed_action_recipe">a ajouté une recette</string>
+    <string name="feed_action_film">a fait le film du jour</string>
+    <string name="feed_action_good_news">a partagé une actualité</string>
+    <string name="feed_action_help">demande un coup de main</string>
+    <plurals name="feed_action_wishes">
+        <item quantity="one">a ajouté %1$d envie</item>
+        <item quantity="many">a ajouté %1$d envies</item>
+        <item quantity="other">a ajouté %1$d envies</item>
+    </plurals>
+    <string name="feed_who_liked">Qui a aimé ?</string>
+    <string name="feed_who_liked_title">Ils ont aimé</string>
     <string name="feed_event_going">J\'y vais</string>
     <string name="feed_birthday_mine">C\'est ton anniversaire !</string>
     <string name="feed_birthday_mine_a11y">Anniversaire. C\'est ton anniversaire !</string>

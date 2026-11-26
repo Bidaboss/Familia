@@ -64,12 +64,13 @@ class FeedTest {
     }
 
     @Test
-    fun `the day says today, yesterday, then the weekday, and the year only when it is not this one`() {
+    fun `the day says today and yesterday with the date, then the weekday, and the year only when it is not this one`() {
         val today = LocalDate.of(2026, 11, 18)
-        assertEquals("Aujourd'hui", feedDayLabel(today, today, "Aujourd'hui", "Hier"))
-        assertEquals("Hier", feedDayLabel(today.minusDays(1), today, "Aujourd'hui", "Hier"))
+        assertEquals("Aujourd'hui · mercredi 18 novembre", feedDayLabel(today, today, "Aujourd'hui", "Hier"))
+        assertEquals("Hier · mardi 17 novembre", feedDayLabel(today.minusDays(1), today, "Aujourd'hui", "Hier"))
         assertEquals("Lundi 16 novembre", feedDayLabel(today.minusDays(2), today, "Aujourd'hui", "Hier"))
         assertEquals("Lundi 1er décembre 2025", feedDayLabel(LocalDate.of(2025, 12, 1), today, "Aujourd'hui", "Hier"))
+        assertEquals(listOf("☀️", "🌙", "🗓️"), (0L..2L).map { feedDayEmoji(today.minusDays(it), today) })
     }
 
     @Test

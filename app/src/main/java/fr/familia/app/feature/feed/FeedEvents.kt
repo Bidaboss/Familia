@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -117,6 +119,13 @@ fun newEvents(events: List<Event>): List<Event> = events.filter { it.createdAt !
 fun feedEventDay(event: Event, today: LocalDate): LocalDate =
     if (event.date.isBefore(today.minusYears(1))) nextBirthday(event.date, today) else event.date
 
+/** The day name of the date block (prototype: « SAM » in red) and its number. */
+private val EventDayRed = Color(0xFFC0392B)
+private val EventDayInk = Color(0xFF2B1D12)
+
+/** « ✓ J'y vais » (prototype: brown #3A2A1A, radius 22). */
+private val EventGoingBrown = Color(0xFF3A2A1A)
+
 class EventFeedCard(
     val event: Event,
     /** I have not answered yet: « J'y vais » shows while the event is to come. */
@@ -139,19 +148,32 @@ class EventFeedCard(
         val day = feedEventDay(event, context.today)
         var answered by remember(event.id) { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
+        val author = context.member(event.authorId)
         FeedCardShell(
             tone = tone,
             onOpen = { navigation.onOpenEvent(event.id) },
+            // The same top as the other cards (prototype): « **Alix** a planifié Repas », « 📅 7 h 40 ».
+            header = author?.let { who ->
+                {
+                    FeedHeader(
+                        member = who,
+                        name = who.firstName,
+                        action = stringResource(R.string.feed_action_planned, event.title),
+                        emoji = "📅",
+                        time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
+                    )
+                }
+            },
         ) {
-            // Retour d'essai (20/11): one row centered, [day] [PLANNING / title / when] [J'y vais], the
-            // small label at the top of the title like « ANNIVERSAIRE », no header line of its own.
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // The white block of the date (prototype: « SAM » in red, « 28 » large, 46 × 50, radius 12),
+            // the title, when, then « J'y vais » for who has not answered.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(
                     Modifier
                         .widthIn(min = 46.dp)
-                        .heightIn(min = 48.dp)
+                        .heightIn(min = 50.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(tone.labelBackground)
+                        .background(Color.White)
                         .padding(horizontal = 6.dp, vertical = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -160,21 +182,14 @@ class EventFeedCard(
                         frenchDate(day, "EEE").removeSuffix(".").uppercase(Locale.FRANCE),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = tone.label,
+                        color = EventDayRed,
                     )
-                    Text(day.dayOfMonth.toString(), style = MaterialTheme.typography.titleMedium, color = tone.label)
+                    Text(day.dayOfMonth.toString(), style = MaterialTheme.typography.titleLarge, color = EventDayInk)
                 }
                 Column(Modifier.weight(1f)) {
                     Text(
-                        stringResource(R.string.feed_label_planning).uppercase(Locale.FRANCE),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = tone.label,
-                    )
-                    Text(
                         event.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
+                        style = MaterialTheme.typography.titleMedium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -185,6 +200,8 @@ class EventFeedCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+            run {
                 if (canAnswer && !answered && !context.readOnly && rsvps != null && !event.date.isBefore(context.today)) {
                     Button(
                         onClick = {
@@ -199,8 +216,10 @@ class EventFeedCard(
                                 }
                             }
                         },
+                        shape = RoundedCornerShape(22.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = EventGoingBrown, contentColor = Color.White),
                         modifier = Modifier.heightIn(min = 56.dp),
-                    ) { Text(stringResource(R.string.feed_event_going)) }
+                    ) { Text("✓ " + stringResource(R.string.feed_event_going), fontWeight = FontWeight.ExtraBold) }
                 }
             }
         }

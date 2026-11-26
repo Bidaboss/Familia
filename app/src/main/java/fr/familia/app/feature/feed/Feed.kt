@@ -160,12 +160,24 @@ fun feedDay(card: FeedCard): LocalDate = card.at.atZone(FAMILY_ZONE).toLocalDate
 fun feedDays(cards: List<FeedCard>): List<Pair<LocalDate, List<FeedCard>>> =
     cards.groupBy(::feedDay).toList()
 
-/** « Aujourd'hui », « Hier », « Lundi 16 novembre », with the year when it is not this one. */
-fun feedDayLabel(date: LocalDate, today: LocalDate, todayLabel: String, yesterdayLabel: String): String = when (date) {
-    today -> todayLabel
-    today.minusDays(1) -> yesterdayLabel
-    else -> frenchDate(date, if (date.year == today.year) "EEEE d MMMM" else "EEEE d MMMM yyyy")
-        .replaceFirstChar { it.titlecase(Locale.FRANCE) }
+/**
+ * « Aujourd'hui · mardi 24 novembre », « Hier · lundi 23 novembre », « Samedi 21 novembre » (the
+ * prototype gives the whole date, today too), with the year when it is not this one.
+ */
+fun feedDayLabel(date: LocalDate, today: LocalDate, todayLabel: String, yesterdayLabel: String): String {
+    val full = frenchDate(date, if (date.year == today.year) "EEEE d MMMM" else "EEEE d MMMM yyyy")
+    return when (date) {
+        today -> "$todayLabel · $full"
+        today.minusDays(1) -> "$yesterdayLabel · $full"
+        else -> full.replaceFirstChar { it.titlecase(Locale.FRANCE) }
+    }
+}
+
+/** The emoji in the round of a day mark: ☀️ today, 🌙 yesterday, 🗓️ before. */
+fun feedDayEmoji(date: LocalDate, today: LocalDate): String = when (date) {
+    today -> "☀️"
+    today.minusDays(1) -> "🌙"
+    else -> "🗓️"
 }
 
 /** The badge of « Le fil »: the cards of the others since I last looked. */

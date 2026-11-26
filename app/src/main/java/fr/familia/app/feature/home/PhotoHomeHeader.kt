@@ -15,10 +15,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,21 +44,22 @@ private val DateCream = Color(0xFFFFF3E2)
 
 /**
  * The top of the Accueil on its photo (récit 113, règle 2, fiche A1 §1.1): the olive tree of the app
- * in its red ring, « Bonjour Camille 👋 » and the date in white, then « + » and [avatar], which opens
- * the settings (the « ? » is there now, règle 8). It scrolls with the Accueil.
+ * in its red ring, « Bonjour Camille 👋 » and the date in white, then [avatar], which opens the
+ * settings (no « + » with the gazette, brief §3: « ＋ Publier » floats at the bottom) (the « ? » is there now, règle 8). It scrolls with the Accueil.
  */
 @Composable
 fun PhotoHomeHeader(
     firstName: String,
     today: LocalDate,
-    onAdd: (() -> Unit)?,
     avatar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     /** With the gazette (récit 115, fiche Y1): the line that opens « Ma journée », in place of the date. */
     summary: (@Composable () -> Unit)? = null,
 ) {
     Row(
-        modifier.fillMaxWidth().padding(top = 18.dp),
+        // With the gazette, the slider of the zipper hangs over the top: the greeting starts under it,
+        // so it never hides the 👋 (retour du 26/11).
+        modifier.fillMaxWidth().padding(top = if (summary != null) 58.dp else 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -87,14 +84,6 @@ fun PhotoHomeHeader(
                     fontWeight = FontWeight.Bold,
                     color = DateCream,
                 )
-            }
-        }
-        if (onAdd != null) {
-            // A 40 dp round, white at 92 %, in a 56 dp target (règle 5).
-            IconButton(onClick = onAdd, modifier = Modifier.size(56.dp)) {
-                Box(Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.92f)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add), tint = Color(0xFF231A16))
-                }
             }
         }
         avatar()

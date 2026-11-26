@@ -4,7 +4,6 @@ import fr.familia.app.core.data.gazetteThreadId
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -161,26 +160,23 @@ class AlbumFeedCard(
                 FeedHeader(
                     member = context.member(newest.authorId),
                     name = if (names.size == 1) names.first() else pluralStringResource(R.plurals.feed_album_authors, names.size - 1, names.first(), names.size - 1),
+                    action = pluralStringResource(
+                        if (names.size == 1) R.plurals.feed_action_album_one else R.plurals.feed_action_album_many,
+                        photos.size,
+                        photos.size,
+                    ),
+                    emoji = "📷",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_album),
-                    tone = tone,
                 )
             },
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    album.album.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    pluralStringResource(R.plurals.feed_album_photos, photos.size, photos.size),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                album.album.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
             // The thumbnails are said by the line above: TalkBack reads the card once.
             Row(Modifier.clearAndSetSemantics {}, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 val shown = photos.take(THUMBS)
