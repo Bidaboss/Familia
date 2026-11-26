@@ -9,10 +9,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.ui.draw.zIndex
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -307,7 +306,7 @@ private fun StopCard(
                     },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Filled.DragIndicator, contentDescription = null, tint = CarnetColors.Soft)
+                    Text("⠿", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = CarnetColors.Soft)
                 }
             }
             Box(Modifier.size(32.dp).clip(CircleShape).background(CarnetColors.Ink), contentAlignment = Alignment.Center) {
