@@ -2,11 +2,7 @@ package fr.familia.app.feature.home
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.InfiniteRepeatableSpec
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
@@ -66,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.feature.trips.list.animationsOff
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -90,6 +87,10 @@ internal object Zipper {
     const val SETTLE_MS = 260
     const val BACK_MS = 200
     const val TAP_MS = 520
+
+    /** The slider swings this many times, every few seconds, while something waits. */
+    const val SWINGS = 3
+    const val SWING_EVERY_MS = 4000L
 
     /** Half the width of the V at the top edge, for each pixel of the slider's depth. */
     const val V_SLOPE = 0.28f
@@ -206,27 +207,27 @@ internal fun MyDayZipper(
         // At rest it hangs from the top edge; open, it sits at the bottom, turned over.
         val y = (p * height - (if (p >= 1f) sliderPx else 0f)).coerceIn(0f, height - sliderPx)
         val turned = p >= 1f || (p > 0f && dragFrom >= 0.5f)
-        val swing = if (!still && p == 0f && waiting > 0) {
-            rememberInfiniteTransition(label = "zipper").animateFloat(
-                initialValue = 0f,
-                targetValue = 0f,
-                animationSpec = InfiniteRepeatableSpec(
+        // A small swing, a few times while something waits (never forever: a still screen rests).
+        val swingAngle = remember { Animatable(0f) }
+        val resting = p == 0f
+        LaunchedEffect(still, resting, waiting > 0) {
+            swingAngle.snapTo(0f)
+            if (still || !resting || waiting <= 0) return@LaunchedEffect
+            repeat(Zipper.SWINGS) {
+                delay(Zipper.SWING_EVERY_MS)
+                swingAngle.animateTo(
+                    0f,
                     keyframes {
-                        durationMillis = 4000
+                        durationMillis = 740
                         0f at 0
                         7f at 180
                         -6f at 380
                         3f at 560
-                        0f at 740
-                        0f at 4000
                     },
-                    RepeatMode.Restart,
-                ),
-                label = "swing",
-            ).value
-        } else {
-            0f
+                )
+            }
         }
+        val swing = swingAngle.value
         val measurer = rememberTextMeasurer()
         Box(
             Modifier
