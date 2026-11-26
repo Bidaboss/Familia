@@ -2501,5 +2501,5 @@ internal fun AnimatedContentTransitionScope<NavBackStackEntry>.touchesPhotoPage(
 
 /** The pages that draw their own photo, over the tabs that lie on the photo of the app. */
 internal fun NavDestination.isPhotoPage(): Boolean =
-    hasRoute<MemberProfileDestination>() || hasRoute<GiftListDestination>()
+    hasRoute<MemberProfileDestination>() || hasRoute<GiftListDestination>() || hasRoute<AllFamiliaDestination>()
 
