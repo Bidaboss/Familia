@@ -1032,7 +1032,7 @@ Droits : ceux qui suivent le voyage lisent ; chaque participant choisit une autr
 | `tripName` | texte, facultatif, 1 à 80 | Le nom du voyage (« Le tour des îles ») ; absent : le premier lieu |
 | `createdAt` | horodatage | Heure du serveur |
 
-Un voyage fait hors de l'appli (règle 38) : ni étape, ni kilomètre, ni photo. Privé : seul son membre le lit, l'ajoute et le supprime, l'admin principal compris ; jamais modifié. Absent de « Voir comme ». La suppression du membre l'efface (`deleteMemberData`). Tests : `firebase/tests/travelPlaces.test.mjs`.
+Un voyage fait hors de l'appli (règle 38) : ni étape, ni kilomètre, ni photo. Privé : seul son membre le lit, l'ajoute et le supprime, l'admin principal compris ; jamais modifié. « Modifier le voyage » (26/11) remplace donc ses lieux : les anciens sont supprimés et les nouveaux écrits dans un même lot, avec un nouveau `tripId`. Absent de « Voir comme ». La suppression du membre l'efface (`deleteMemberData`). Tests : `firebase/tests/travelPlaces.test.mjs`.
 
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 

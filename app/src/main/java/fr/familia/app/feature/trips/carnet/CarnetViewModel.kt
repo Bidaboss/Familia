@@ -130,8 +130,9 @@ class CarnetViewModel(
     /**
      * « Ajouter un voyage » (retour de l'admin du 26/11): [stops] one after the other from [date], each
      * with its days, as one trip named [name]. A single place without a name is saved as before.
+     * « Modifier le voyage » (demande de l'admin du 26/11): the places of [replacing] give way to them.
      */
-    fun addTrip(name: String?, date: LocalDate, stops: List<Pair<Place, Int>>) {
+    fun addTrip(name: String?, date: LocalDate, stops: List<Pair<Place, Int>>, replacing: ManualTrip? = null) {
         val repo = places ?: return
         if (stops.isEmpty()) return
         _adding.value = AddState.Saving
@@ -140,7 +141,7 @@ class CarnetViewModel(
                 val starts = chainedDays(date, stops.map { it.second })
                 val made = stops.zip(starts).map { (stop, start) ->
                     val (place, days) = stop
-                    val code = withTimeoutOrNull(COUNTRY_WAIT_MS) { countryOf(place.lat, place.lng) }
+                    val code = place.countryCode?.uppercase(Locale.ROOT)?.takeIf { it.length == 2 } ?: withTimeoutOrNull(COUNTRY_WAIT_MS) { countryOf(place.lat, place.lng) }
                     TravelPlace(
                         id = "",
                         name = destinationName(place).ifBlank { place.title.orEmpty() }.take(TravelPlace.MAX_NAME),
@@ -155,7 +156,11 @@ class CarnetViewModel(
                 val title = name?.trim()?.ifEmpty { null }
                 // Offline, Firestore keeps the write and sends it later: the carnet shows it at once.
                 withTimeoutOrNull(SAVE_WAIT_MS) {
-                    if (made.size == 1 && title == null) repo.addPlace(memberId, made.single()) else repo.addTrip(memberId, made, title)
+                    when {
+                        replacing != null -> repo.replaceTrip(memberId, replacing.places.map { it.id }, made, title)
+                        made.size == 1 && title == null -> repo.addPlace(memberId, made.single())
+                        else -> repo.addTrip(memberId, made, title)
+                    }
                 }
                 AddState.Saved
             } catch (e: CancellationException) {

@@ -25,6 +25,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Flag
@@ -103,6 +106,7 @@ fun CarnetScreen(
     onAdd: (() -> Unit)?,
     onRemove: (ManualTrip) -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
+    onEdit: (ManualTrip) -> Unit = {},
 ) {
     Scaffold(
         containerColor = CarnetColors.Page,
@@ -135,7 +139,7 @@ fun CarnetScreen(
                 Counter(state.carnet)
                 state.carnet.farthest?.let { Farthest(it) }
                 Trophies(state.carnet)
-                if (state.manual.isNotEmpty()) Manual(state.manual, onRemove = if (onAdd != null) onRemove else null)
+                if (state.manual.isNotEmpty()) Manual(state.manual, onRemove = if (onAdd != null) onRemove else null, onEdit = if (onAdd != null) onEdit else null)
             }
         }
     }
@@ -525,16 +529,22 @@ private fun TrophyCell(trophy: Trophy, won: Boolean, modifier: Modifier) {
 /**
  * The hand-added trips (« Ajouter un voyage », retour de l'admin du 26/11): the flag of the first place,
  * the name, « sept. 2025 · 8 j · 3 lieux », then its places with their days; « Retirer » removes the
- * whole trip after a question. [onRemove] null in « Voir comme ».
+ * whole trip after a question. The row or its pencil opens « Modifier le voyage » (demande de l'admin
+ * du 26/11). [onRemove] and [onEdit] null in « Voir comme ».
  */
 @Composable
-private fun Manual(places: List<TravelPlace>, onRemove: ((ManualTrip) -> Unit)?) {
+private fun Manual(places: List<TravelPlace>, onRemove: ((ManualTrip) -> Unit)?, onEdit: ((ManualTrip) -> Unit)?) {
     var asking by rememberSaveable { mutableStateOf<String?>(null) }
     val trips = manualGroups(places)
     CarnetPart(stringResource(R.string.carnet_manual)) {
         trips.forEach { trip ->
             val first = trip.places.first()
-            Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+            val editDescribed = stringResource(R.string.carnet_edit_described, trip.title)
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .then(if (onEdit != null) Modifier.clickable(role = Role.Button, onClickLabel = editDescribed) { onEdit(trip) } else Modifier),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(first.countryCode?.let(::flagOf).orEmpty(), fontSize = 22.sp, modifier = Modifier.padding(end = 8.dp))
                 Column(Modifier.weight(1f)) {
                     Text(trip.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
@@ -543,6 +553,11 @@ private fun Manual(places: List<TravelPlace>, onRemove: ((ManualTrip) -> Unit)?)
                         style = MaterialTheme.typography.bodyMedium,
                         color = CarnetColors.Soft,
                     )
+                }
+                if (onEdit != null) {
+                    androidx.compose.material3.IconButton(onClick = { onEdit(trip) }, modifier = Modifier.size(56.dp)) {
+                        Icon(Icons.Outlined.Edit, contentDescription = editDescribed, tint = CarnetColors.Ink)
+                    }
                 }
                 if (onRemove != null) {
                     val described = stringResource(R.string.carnet_remove_described, trip.title)

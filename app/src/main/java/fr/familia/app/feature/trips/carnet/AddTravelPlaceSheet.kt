@@ -9,6 +9,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DragIndicator
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.draw.zIndex
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -73,10 +81,22 @@ private class StopDraft(query: String = "", place: Place? = null, days: Int = DE
     var query by mutableStateOf(query)
     var place by mutableStateOf(place)
     var days by mutableStateOf(days)
+
+    /** The name the carnet shows for the place, which can be corrected (« Samoure 281 00 »). */
+    var label by mutableStateOf(place?.let(::placeLabel).orEmpty())
     var search by mutableStateOf<DestinationSearch>(DestinationSearch.Idle)
+
+    /** The height of its card on screen, to know when a drag has passed over the next one. */
+    var height = 0
 }
 
 private const val DEFAULT_DAYS = 3
+
+private fun placeLabel(place: Place): String =
+    fr.familia.app.feature.trips.edit.destinationName(place).ifBlank { place.title.orEmpty() }
+
+/** A place of a trip already in the carnet, back into the sheet. */
+private fun TravelPlace.asPlace() = Place(lat, lng, name = name, countryCode = countryCode)
 
 /**
  * « Ajouter un voyage » (règle 38, retour de l'admin du 26/11, maquette « carnet-voyage-plusieurs-lieux »):
@@ -84,6 +104,9 @@ private const val DEFAULT_DAYS = 3
  * chosen among the answers of the phone's geocoder (a city, a region or a country, règle 17) with its
  * number of days; their dates follow each other by themselves. It counts as one trip. [suggest] asks
  * the geocoder; [failed] says the last save did not go through.
+ *
+ * « Modifier le voyage » (demande de l'admin du 26/11, spec « modifier-voyage-ajoute »): the same sheet
+ * filled with [editing]; « Enregistrer » replaces it, « Retirer ce voyage » ([onRemoveTrip]) after a question.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,11 +117,19 @@ fun AddTravelPlaceSheet(
     suggest: suspend (String) -> List<Place>,
     onSave: (name: String?, start: LocalDate, stops: List<Pair<Place, Int>>) -> Unit,
     onDismiss: () -> Unit,
+    editing: ManualTrip? = null,
+    onRemoveTrip: (() -> Unit)? = null,
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var date by rememberSaveable { mutableStateOf<LocalDate?>(null) }
+    var name by rememberSaveable { mutableStateOf(editing?.name.orEmpty()) }
+    var date by rememberSaveable { mutableStateOf(editing?.start) }
     var problem by rememberSaveable { mutableStateOf<TravelPlaceProblem?>(null) }
-    val stops = remember { mutableStateListOf(StopDraft()) }
+    var askingRemove by rememberSaveable { mutableStateOf(false) }
+    var dragging by remember { mutableStateOf<StopDraft?>(null) }
+    var dragOffset by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    val stops = remember {
+        val first = editing?.places?.map { StopDraft(place = it.asPlace(), days = it.days.coerceIn(1, TravelPlace.MAX_DAYS)) }
+        mutableStateListOf(*(first?.takeIf { it.isNotEmpty() } ?: listOf(StopDraft())).toTypedArray())
+    }
     val scope = rememberCoroutineScope()
     val starts = date?.let { chainedDays(it, stops.map { stop -> stop.days }) }
     val total = stops.sumOf { it.days }
@@ -108,8 +139,8 @@ fun AddTravelPlaceSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp).navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(stringResource(R.string.carnet_add), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.carnet_add_intro), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(if (editing != null) R.string.carnet_edit else R.string.carnet_add), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
+            Text(stringResource(if (editing != null) R.string.carnet_edit_intro else R.string.carnet_add_intro), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Label(stringResource(R.string.carnet_add_name))
             OutlinedTextField(
                 value = name,
@@ -124,7 +155,38 @@ fun AddTravelPlaceSheet(
             TripDateButton(date, stringResource(R.string.carnet_add_date_pick), onPick = { date = it; problem = null }, initial = today.minusDays(1))
             Label(stringResource(R.string.carnet_add_places))
             stops.forEachIndexed { index, stop ->
+                // key: the card moves with its place while it is dragged, its drag going on.
+                androidx.compose.runtime.key(stop) {
+                val moving = dragging === stop
                 StopCard(
+                    modifier = Modifier
+                        .zIndex(if (moving) 1f else 0f)
+                        .graphicsLayer { translationY = if (moving) dragOffset else 0f }
+                        .onSizeChanged { stop.height = it.height },
+                    handle = if (stops.size < 2) null else Modifier.pointerInput(stop) {
+                        val gap = 10.dp.toPx()
+                        detectDragGestures(
+                            onDragStart = { dragging = stop; dragOffset = 0f },
+                            onDragEnd = { dragging = null; dragOffset = 0f },
+                            onDragCancel = { dragging = null; dragOffset = 0f },
+                        ) { change, amount ->
+                            change.consume()
+                            dragOffset += amount.y
+                            val at = stops.indexOf(stop)
+                            val next = stops.getOrNull(at + 1)
+                            val before = stops.getOrNull(at - 1)
+                            if (next != null && dragOffset > next.height / 2f + gap) {
+                                stops.removeAt(at); stops.add(at + 1, stop); dragOffset -= next.height + gap
+                            } else if (before != null && dragOffset < -(before.height / 2f + gap)) {
+                                stops.removeAt(at); stops.add(at - 1, stop); dragOffset += before.height + gap
+                            }
+                        }
+                    },
+                    onMove = { by ->
+                        val at = stops.indexOf(stop)
+                        val to = at + by
+                        if (to in stops.indices) { stops.removeAt(at); stops.add(to, stop) }
+                    },
                     number = index + 1,
                     stop = stop,
                     start = starts?.getOrNull(index),
@@ -138,9 +200,15 @@ fun AddTravelPlaceSheet(
                             }
                         }
                     },
-                    onRemove = if (stops.size > 1) ({ stops.remove(stop) }) else null,
+                    onRemove = when {
+                        stops.size > 1 -> ({ stops.remove(stop) })
+                        // The last place of a trip in the carnet: removing it removes the trip, after the question.
+                        onRemoveTrip != null -> ({ askingRemove = true })
+                        else -> null
+                    },
                     onChange = { problem = null },
                 )
+                }
             }
             DashedAddButton(stringResource(R.string.carnet_add_another)) { stops += StopDraft() }
             problem?.let { Text(stringResource(problemText(it)), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold) }
@@ -150,19 +218,50 @@ fun AddTravelPlaceSheet(
                     val first = stops.firstOrNull { it.place == null }
                     problem = travelPlaceProblem(first == null, date, total.takeIf { it in 1..TravelPlace.MAX_DAYS }, today)
                     val day = date
-                    if (problem == null && day != null) onSave(name.trim().ifEmpty { null }, day, stops.map { it.place!! to it.days })
+                    if (problem == null && day != null) onSave(name.trim().ifEmpty { null }, day, stops.map { stop -> stop.namedPlace() to stop.days })
                 },
                 enabled = !saving && ready,
                 colors = ButtonDefaults.buttonColors(containerColor = CarnetColors.Ink, contentColor = androidx.compose.ui.graphics.Color.White),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             ) {
                 Text(
-                    if (ready) pluralStringResource(R.plurals.carnet_add_save_days, total, total) else stringResource(R.string.carnet_add_save),
+                    when {
+                        editing != null && ready -> pluralStringResource(R.plurals.carnet_edit_save_days, total, total)
+                        editing != null -> stringResource(R.string.carnet_edit_save)
+                        ready -> pluralStringResource(R.plurals.carnet_add_save_days, total, total)
+                        else -> stringResource(R.string.carnet_add_save)
+                    },
                     fontWeight = FontWeight.ExtraBold,
                 )
             }
+            if (editing != null) {
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_cancel), color = CarnetColors.Ink)
+                }
+                if (onRemoveTrip != null) {
+                    TextButton(onClick = { askingRemove = true }, enabled = !saving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.carnet_edit_remove), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
+    if (askingRemove && editing != null && onRemoveTrip != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { askingRemove = false },
+            title = { Text(stringResource(R.string.carnet_remove_title, editing.title)) },
+            text = { Text(stringResource(R.string.carnet_remove_body)) },
+            confirmButton = { TextButton(onClick = { askingRemove = false; onRemoveTrip() }) { Text(stringResource(R.string.carnet_remove), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { askingRemove = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+}
+
+/** The place chosen, under the name typed for it (the one found when the field is left empty). */
+private fun StopDraft.namedPlace(): Place {
+    val picked = place!!
+    val typed = label.trim().take(TravelPlace.MAX_NAME)
+    return if (typed.isEmpty() || typed == placeLabel(picked)) picked else picked.copy(name = typed)
 }
 
 @Composable
@@ -172,29 +271,59 @@ private fun Label(text: String) {
 
 /** A place of the trip: its number, the search until one is chosen, then its dates and « − 3 j + ». */
 @Composable
-private fun StopCard(number: Int, stop: StopDraft, start: LocalDate?, onSearch: () -> Unit, onRemove: (() -> Unit)?, onChange: () -> Unit) {
+private fun StopCard(
+    modifier: Modifier,
+    handle: Modifier?,
+    onMove: (Int) -> Unit,
+    number: Int,
+    stop: StopDraft,
+    start: LocalDate?,
+    onSearch: () -> Unit,
+    onRemove: (() -> Unit)?,
+    onChange: () -> Unit,
+) {
     val shape = RoundedCornerShape(20.dp)
     Column(
-        Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Color.White, shape).border(2.dp, CarnetColors.Dash, shape).padding(12.dp),
+        modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Color.White, shape).border(2.dp, CarnetColors.Dash, shape).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         val picked = stop.place
         val label = stringResource(R.string.carnet_add_stop, number)
         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (handle != null) {
+                // ⠿: a long drag moves the place up or down (maquette « carnet-modifier-voyage »); TalkBack
+                // gets « Monter » and « Descendre » instead.
+                val shown = stop.label.ifBlank { label }
+                val moveLabel = stringResource(R.string.carnet_add_move, shown)
+                val up = stringResource(R.string.carnet_add_move_up, shown)
+                val down = stringResource(R.string.carnet_add_move_down, shown)
+                Box(
+                    handle.size(56.dp).semantics {
+                        contentDescription = moveLabel
+                        customActions = listOf(
+                            androidx.compose.ui.semantics.CustomAccessibilityAction(up) { onMove(-1); true },
+                            androidx.compose.ui.semantics.CustomAccessibilityAction(down) { onMove(1); true },
+                        )
+                    },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.DragIndicator, contentDescription = null, tint = CarnetColors.Soft)
+                }
+            }
             Box(Modifier.size(32.dp).clip(CircleShape).background(CarnetColors.Ink), contentAlignment = Alignment.Center) {
                 Text("$number", color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.Bold)
             }
             if (picked != null) {
-                val placeName = fr.familia.app.feature.trips.edit.destinationName(picked).ifBlank { picked.title.orEmpty() }
+                val placeName = stop.label.ifBlank { placeLabel(picked) }
                 Text(placeName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f).padding(start = 10.dp).semantics { contentDescription = "$label : $placeName" })
-                TextButton(onClick = { stop.place = null; onChange() }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.carnet_add_change)) }
+                TextButton(onClick = { stop.place = null; stop.label = ""; onChange() }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.carnet_add_change)) }
             } else {
                 Text(label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f).padding(start = 10.dp))
             }
             if (onRemove != null) {
                 val described = stringResource(R.string.carnet_add_stop_remove, picked?.title ?: label)
-                TextButton(onClick = onRemove, modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = described }) {
-                    Text(stringResource(R.string.carnet_remove), color = MaterialTheme.colorScheme.error)
+                androidx.compose.material3.IconButton(onClick = onRemove, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.Filled.Close, contentDescription = described, tint = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -221,7 +350,7 @@ private fun StopCard(number: Int, stop: StopDraft, start: LocalDate?, onSearch: 
                     s.places.forEach { place ->
                         Row(
                             Modifier.fillMaxWidth().heightIn(min = 56.dp)
-                                .selectable(selected = false, role = Role.RadioButton, onClick = { stop.place = place; stop.search = DestinationSearch.Idle; onChange() }),
+                                .selectable(selected = false, role = Role.RadioButton, onClick = { stop.place = place; stop.label = placeLabel(place); stop.search = DestinationSearch.Idle; onChange() }),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(Icons.Outlined.Place, contentDescription = null, tint = CarnetColors.Soft)
@@ -232,7 +361,16 @@ private fun StopCard(number: Int, stop: StopDraft, start: LocalDate?, onSearch: 
                 DestinationSearch.Idle -> Unit
             }
         } else {
-            val name = picked.title.orEmpty()
+            val name = stop.label.ifBlank { picked.title.orEmpty() }
+            OutlinedTextField(
+                value = stop.label,
+                onValueChange = { stop.label = it.take(TravelPlace.MAX_NAME) },
+                singleLine = true,
+                label = { Text(stringResource(R.string.carnet_add_stop_name)) },
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
+                modifier = Modifier.fillMaxWidth(),
+            )
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     start?.let { stringResource(R.string.carnet_add_stop_range, it.format(dayMonth), it.plusDays(stop.days.toLong()).format(dayMonth)) }.orEmpty(),

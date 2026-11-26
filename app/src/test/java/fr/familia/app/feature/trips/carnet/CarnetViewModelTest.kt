@@ -43,9 +43,10 @@ class CarnetViewModelTest {
 
     private class FakePlaces : TravelPlaceRepository {
         val places = MutableStateFlow<Map<String, List<TravelPlace>>>(emptyMap())
+        private var made = 0
         override fun observePlaces(memberId: String): Flow<List<TravelPlace>> = places.map { it[memberId].orEmpty() }
         override suspend fun addPlace(memberId: String, place: TravelPlace) {
-            places.value = places.value + (memberId to (places.value[memberId].orEmpty() + place.copy(id = "p${places.value.size}")))
+            places.value = places.value + (memberId to (places.value[memberId].orEmpty() + place.copy(id = "p${made++}")))
         }
         override suspend fun deletePlace(memberId: String, placeId: String) {
             places.value = places.value.mapValues { (_, list) -> list.filterNot { it.id == placeId } }
@@ -138,6 +139,46 @@ class CarnetViewModelTest {
         assertEquals(3, ready.carnet.destinations)
         vm.removeTrip(manualGroups(ready.manual).single())
         assertTrue(places.places.value["adult1"].orEmpty().isEmpty())
+        job.cancel()
+    }
+
+    @Test
+    fun `editing a trip replaces its places, renamed, reordered, with the days changed`() = runTest {
+        val places = FakePlaces()
+        val vm = CarnetViewModel(FakeTrips(initial = emptyList()), null, places, FakeMembers(), FakeLocator(), "adult1", flowOf(today))
+        val job = launch { vm.uiState.collect {} }
+        val start = LocalDate.of(2025, 9, 6)
+        vm.addTrip(
+            null,
+            start,
+            listOf(
+                Place(31.63, -8.0, address = "Samoure 281 00, Maroc") to 1,
+                Place(33.57, -7.59, address = "Camilles, Maroc") to 1,
+            ),
+        )
+        val before = vm.uiState.first { (it as? CarnetUiState.Ready)?.manual?.size == 2 } as CarnetUiState.Ready
+        val trip = manualGroups(before.manual).single()
+        vm.resetAdding()
+        vm.addTrip(
+            "Le grand tour",
+            start.minusDays(1),
+            listOf(
+                Place(33.57, -7.59, name = "Camilles", countryCode = "MA") to 2,
+                Place(31.63, -8.0, name = "Samoure", countryCode = "MA") to 3,
+                Place(38.7, -9.1, address = "Noé, Portugal") to 1,
+            ),
+            replacing = trip,
+        )
+        assertEquals(AddState.Saved, vm.adding.value)
+        val saved = places.places.value["adult1"].orEmpty()
+        assertEquals(listOf("Camilles", "Samoure", "Noé"), saved.map { it.name })
+        assertTrue(saved.none { it.id in trip.places.map { old -> old.id } })
+        assertEquals(listOf(start.minusDays(1), start.plusDays(1), start.plusDays(4)), saved.map { it.date })
+        assertTrue(saved.all { it.tripName == "Le grand tour" })
+        val ready = vm.uiState.first { (it as? CarnetUiState.Ready)?.manual?.size == 3 } as CarnetUiState.Ready
+        assertEquals(1, ready.carnet.trips)
+        assertEquals(6, ready.carnet.days)
+        assertEquals(listOf("FR", "MA", "PT"), ready.carnet.stamps.map { it.code })
         job.cancel()
     }
 }

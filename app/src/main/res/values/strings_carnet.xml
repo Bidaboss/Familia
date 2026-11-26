@@ -96,6 +96,20 @@
     <string name="carnet_add_less">Un jour de moins à %1$s</string>
     <string name="carnet_add_more">Un jour de plus à %1$s</string>
     <string name="carnet_add_stop_remove">Retirer %1$s du voyage</string>
+    <string name="carnet_add_stop_name">Nom du lieu</string>
+    <string name="carnet_add_move">Déplacer %1$s</string>
+    <string name="carnet_add_move_up">Monter %1$s</string>
+    <string name="carnet_add_move_down">Descendre %1$s</string>
+    <string name="carnet_edit">Modifier le voyage</string>
+    <string name="carnet_edit_intro">Change le nom, les dates ou les lieux.</string>
+    <string name="carnet_edit_described">Modifier %1$s</string>
+    <string name="carnet_edit_save">Enregistrer</string>
+    <string name="carnet_edit_remove">Retirer ce voyage</string>
+    <string name="carnet_edited">%1$s modifié</string>
+    <plurals name="carnet_edit_save_days">
+        <item quantity="one">Enregistrer · %1$d jour</item>
+        <item quantity="other">Enregistrer · %1$d jours</item>
+    </plurals>
     <plurals name="carnet_add_save_days">
         <item quantity="one">Ajouter au carnet · %1$d jour</item>
         <item quantity="other">Ajouter au carnet · %1$d jours</item>
