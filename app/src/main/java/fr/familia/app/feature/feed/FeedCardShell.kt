@@ -71,6 +71,10 @@ fun FeedCardShell(
     header: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    if (LocalFeedDetailDark.current) {
+        DarkDetailCard(modifier, header, content)
+        return
+    }
     if (LocalFeedGlass.current) {
         GlassCard(onOpen, modifier, header, content)
         return
@@ -159,6 +163,31 @@ private fun GlassCard(
 }
 
 private val GLASS_CORNER = 24.dp
+
+/**
+ * The detail of a photo or a film is on black (fiche D1, retour du 26/11): no white tile there, the
+ * card lies on the black, its texts white and cream.
+ */
+val LocalFeedDetailDark = staticCompositionLocalOf { false }
+
+/** The cream of the soft texts on the black of a detail (prototype: #E9DFD0). */
+val DetailCream = Color(0xFFE9DFD0)
+
+@Composable
+private fun DarkDetailCard(modifier: Modifier, header: (@Composable () -> Unit)?, content: @Composable () -> Unit) {
+    val scheme = MaterialTheme.colorScheme.copy(onSurface = Color.White, onSurfaceVariant = DetailCream, onBackground = Color.White)
+    MaterialTheme(colorScheme = scheme, typography = MaterialTheme.typography, shapes = MaterialTheme.shapes) {
+        CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides Color.White) {
+            Column(
+                modifier.fillMaxWidth().padding(horizontal = CARD_SIDE),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                header?.invoke()
+                content()
+            }
+        }
+    }
+}
 
 /** The side margin inside a card; a photo goes over it, edge to edge ([feedEdgeToEdge]). */
 private val CARD_SIDE = 14.dp

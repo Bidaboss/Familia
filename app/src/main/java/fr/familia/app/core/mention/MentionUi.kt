@@ -11,6 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,6 +87,9 @@ fun MentionTextField(
     supportingText: (@Composable () -> Unit)? = null,
     minLines: Int = 1,
     maxLength: Int = Int.MAX_VALUE,
+    /** The field of « Publier dans la gazette » is rounder and white (prototype, fiche M1). */
+    shape: Shape? = null,
+    colors: TextFieldColors? = null,
 ) {
     val style = mentionStyle()
     val transformation = remember(chosen, style) { MentionTransformation(chosen, style) }
@@ -104,6 +110,8 @@ fun MentionTextField(
             minLines = minLines,
             visualTransformation = transformation,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            shape = shape ?: OutlinedTextFieldDefaults.shape,
+            colors = colors ?: OutlinedTextFieldDefaults.colors(),
             modifier = Modifier.fillMaxWidth(),
         )
         if (query != null) {
@@ -136,6 +144,9 @@ fun MentionTextField(
     supportingText: (@Composable () -> Unit)? = null,
     minLines: Int = 1,
     maxLength: Int = Int.MAX_VALUE,
+    placeholder: (@Composable () -> Unit)? = null,
+    shape: Shape? = null,
+    colors: TextFieldColors? = null,
 ) {
     var field by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(text, TextRange(text.length))) }
     val value = if (field.text == text) field else TextFieldValue(text, TextRange(text.length))
@@ -154,6 +165,9 @@ fun MentionTextField(
         supportingText = supportingText,
         minLines = minLines,
         maxLength = maxLength,
+        placeholder = placeholder,
+        shape = shape,
+        colors = colors,
     )
 }
 

@@ -4,6 +4,9 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -217,6 +220,11 @@ fun FeedSocialBar(
             }
         }
     }
+    if (inDetail) {
+        // In the detail (fiche D1, retour du 26/11): one large button « ♡ 8 J'aime ».
+        DetailLikeButton(thread.reactions.size, mine, env.readOnly) { reaction -> react(reaction) }
+        return
+    }
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         // J'aime, Commenter and « Qui a aimé ? » on one line, the last one going under when it is narrow.
@@ -367,8 +375,75 @@ fun FeedSocialBar(
     }
 }
 
+/**
+ * « ♡ 8 J'aime » across the detail (56 dp, radius 28): very dark grey with a lighter outline on the
+ * black, the color of the cards on the background of the theme. A touch gives (or takes back) 💛, a
+ * long press chooses among the four.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun DetailLikeButton(count: Int, mine: String?, readOnly: Boolean, onReact: (String?) -> Unit) {
+    val dark = LocalFeedDetailDark.current
+    val background = if (dark) Color(0xFF2A2622) else MaterialTheme.colorScheme.surfaceVariant
+    val outline = if (dark) Color(0xFF4A433C) else MaterialTheme.colorScheme.outlineVariant
+    val ink = if (dark) Color.White else MaterialTheme.colorScheme.onSurface
+    val likeLabel = stringResource(R.string.feed_social_like)
+    val spoken = if (count > 0) pluralStringResource(R.plurals.feed_social_likes, count, count) else likeLabel
+    val chooseLabel = stringResource(R.string.feed_social_choose)
+    var choosing by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(28.dp)
+    Box {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clip(shape)
+                .background(background)
+                .border(2.dp, outline, shape)
+                .then(
+                    if (readOnly) {
+                        Modifier
+                    } else {
+                        Modifier.combinedClickable(
+                            onClick = { onReact(if (mine == null) GazetteReactions.first() else null) },
+                            onLongClick = { choosing = true },
+                        )
+                    },
+                )
+                .clearAndSetSemantics {
+                    contentDescription = spoken
+                    if (!readOnly) {
+                        role = Role.Button
+                        stateDescription = mine ?: ""
+                        customActions = listOf(CustomAccessibilityAction(chooseLabel) { choosing = true; true })
+                    }
+                },
+        ) {
+            Text(mine ?: "♡", style = BarStyle, color = ink)
+            Spacer(Modifier.width(8.dp))
+            Text(if (count > 0) "$count $likeLabel" else likeLabel, style = BarStyle, color = ink)
+        }
+        DropdownMenu(expanded = choosing, onDismissRequest = { choosing = false }) {
+            Row {
+                GazetteReactions.forEach { reaction ->
+                    DropdownMenuItem(
+                        text = { Text(reaction, style = MaterialTheme.typography.headlineSmall) },
+                        onClick = {
+                            choosing = false
+                            onReact(if (reaction == mine) null else reaction)
+                        },
+                        modifier = Modifier.widthIn(min = 56.dp).heightIn(min = 56.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
 /** The ink and the size of the bar (prototype: 18 sp, 700, #3A2A1A). */
-private val BarInk = androidx.compose.ui.graphics.Color(0xFF3A2A1A)
+private val BarInk = Color(0xFF3A2A1A)
 private val BarStyle = androidx.compose.ui.text.TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
 /** The first name of a member of the family, for « Qui a aimé ? »; given by the gazette. */

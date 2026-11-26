@@ -1,17 +1,24 @@
 package fr.familia.app.feature.feed.publish
 
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
@@ -25,12 +32,10 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -60,23 +65,43 @@ import fr.familia.app.core.model.GazettePost
 import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormOutlineButton
-import fr.familia.app.core.ui.form.StickyActionBar
+
+/** The brown of « Publier » and of the texts of the sheet (prototype, fiche M1). */
+internal val SheetBrown = Color(0xFF3A2A1A)
+
+/** The cream of the sheet, and the light outline of its field and its pills. */
+internal val SheetCream = Color(0xFFFFFAF2)
+private val SheetLine = Color(0xFFE8DFD0)
+
+/** « Publier », grey while there is nothing to publish. */
+private val PublishOff = Color(0xFFA89F94)
+
+/** The count of the characters shows from 900 of the 1 000 (fiche M1, tranché le 26/11). */
+internal const val COUNT_SHOWN_FROM = 900
+
+/** Whether leaving now would lose what was written. */
+fun hasChanges(state: PostEditUiState): Boolean {
+    val editing = state as? PostEditUiState.Editing ?: return false
+    return if (editing.isNew) {
+        editing.form.text.isNotBlank() || editing.form.photos.isNotEmpty() || editing.form.place != null
+    } else {
+        editing.form.text != editing.existing?.text
+    }
+}
 
 /**
- * « Publier dans la gazette » (récit 117, fiche M1): one screen, a word, « 📷 Ajouter une photo »,
- * « ＠ Mentionner » (a « @ » typed in the text proposes the members too). « Publier » is on as soon
- * as there is a word or a photo. « Modifier le texte » of one's own publication (fiche R4) is the
- * same screen, its photos fixed. Stateless.
+ * « Publier dans la gazette » (récit 117, fiche M1): the content of the sheet that rises over the
+ * gazette (prototype, retour du 26/11: never a page of its own). Its title and ✕, a word, « 📷 Ajouter
+ * une photo », « 📍 Dire où je suis », « ＠ Mentionner » (a « @ » typed in the text proposes the members
+ * too), then « Publier » across the bottom, on as soon as there is a word or a photo. « Modifier le
+ * texte » of one's own publication (fiche R4) is the same sheet, filled, its photos fixed. Stateless.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostEditScreen(
     state: PostEditUiState,
@@ -87,46 +112,36 @@ fun PostEditScreen(
     onSave: () -> Unit,
     onDismissFailure: () -> Unit,
     onCancelSending: () -> Unit,
-    onBack: () -> Unit,
+    /** The ✕: the sheet asks first when something would be lost. */
+    onClose: () -> Unit,
     /** « 📍 Dire où je suis » (récit 117); null: no position on this phone. */
     onLocate: (() -> Unit)? = null,
     onRemovePlace: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     val editing = state as? PostEditUiState.Editing
-    val changed = editing != null && (
-        if (editing.isNew) editing.form.text.isNotBlank() || editing.form.photos.isNotEmpty() || editing.form.place != null else editing.form.text != editing.existing?.text
-        )
-    var confirmLeave by rememberSaveable { mutableStateOf(false) }
-    BackHandler(enabled = changed && editing?.isSaving == false) { confirmLeave = true }
-    Scaffold(
-        topBar = {
-            FamiliaTopBar(
-                title = {
-                    Text(
-                        stringResource(if (editing?.isNew == false) R.string.gazette_post_edit_title else R.string.gazette_post_title),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                navigationIcon = {
-                    BackButton(onClick = { if (changed && editing?.isSaving == false) confirmLeave = true else if (editing?.isSaving != true) onBack() })
-                },
+    Column(modifier.fillMaxWidth().imePadding()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(start = ClaySpacing.screen, end = 4.dp),
+        ) {
+            Text(
+                stringResource(if (editing?.isNew == false) R.string.gazette_post_edit_title else R.string.gazette_post_title),
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                color = SheetBrown,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).semantics { heading() },
             )
-        },
-        bottomBar = {
-            editing?.let {
-                StickyActionBar(
-                    stringResource(if (it.isNew) R.string.gazette_post_publish else R.string.gazette_post_save),
-                    onSave,
-                    enabled = it.canPublish,
-                    busy = it.isSaving,
-                )
+            IconButton(onClick = { if (editing?.isSaving != true) onClose() }, modifier = Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.gazette_post_close), tint = SheetBrown)
             }
-        },
-    ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
+        }
+        Box(Modifier.weight(1f, fill = false)) {
             when (state) {
-                PostEditUiState.Loading, PostEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                PostEditUiState.Loading, PostEditUiState.Done -> Box(Modifier.fillMaxWidth().heightIn(min = 160.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
                 PostEditUiState.Unavailable -> EmptyState(
                     icon = Icons.Outlined.EditNote,
                     title = stringResource(R.string.gazette_post_missing_title),
@@ -135,14 +150,34 @@ fun PostEditScreen(
                 is PostEditUiState.Editing -> Form(state, onText, onAddPhotos, onRemovePhoto, onMentions, onCancelSending, onLocate, onRemovePlace)
             }
         }
-    }
-    if (confirmLeave) {
-        AlertDialog(
-            onDismissRequest = { confirmLeave = false },
-            title = { Text(stringResource(R.string.gazette_post_leave_title)) },
-            confirmButton = { TextButton(onClick = { confirmLeave = false }) { Text(stringResource(R.string.member_leave_keep)) } },
-            dismissButton = { TextButton(onClick = { confirmLeave = false; onBack() }) { Text(stringResource(R.string.member_leave_discard)) } },
-        )
+        editing?.let {
+            // « Publier » across the bottom of the sheet (56 dp, radius 28): grey while empty, then brown.
+            Button(
+                onClick = onSave,
+                enabled = it.canPublish && !it.isSaving,
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SheetBrown,
+                    contentColor = Color.White,
+                    disabledContainerColor = PublishOff,
+                    disabledContentColor = Color.White,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = ClaySpacing.screen, vertical = 12.dp)
+                    .heightIn(min = 56.dp),
+            ) {
+                if (it.isSaving) {
+                    CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Text(
+                        stringResource(if (it.isNew) R.string.gazette_post_publish else R.string.gazette_post_save),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                }
+            }
+        }
     }
     editing?.failure?.let { failure ->
         AlertDialog(
@@ -163,6 +198,20 @@ fun PostEditScreen(
     }
 }
 
+/** A pill of the sheet (prototype): light outline of 2 dp, brown bold text, 56 dp high. */
+@Composable
+private fun SheetPill(text: String, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(2.dp, SheetLine),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White, contentColor = SheetBrown),
+        modifier = Modifier.heightIn(min = 56.dp),
+    ) {
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Form(
@@ -177,15 +226,15 @@ private fun Form(
 ) {
     val form = state.form
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
-            .padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+            .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         // « Alix · Toute la famille le verra » (fiche M1).
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MemberAvatar(state.me, size = 48.dp)
+            MemberAvatar(state.me, size = 40.dp)
             Column {
-                Text(state.me.firstName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(state.me.firstName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = SheetBrown)
                 Text(stringResource(R.string.gazette_post_audience), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -204,12 +253,25 @@ private fun Form(
             groups = state.mentionGroups,
             chosen = named,
             label = null,
-            placeholder = { Text(stringResource(R.string.gazette_post_hint, state.me.firstName)) },
+            placeholder = { Text(stringResource(R.string.gazette_post_hint)) },
             isError = PostFormError.TextTooLong in state.errors,
-            supportingText = { Text(stringResource(R.string.goodnews_text_count, form.text.length, GazettePost.TEXT_MAX)) },
+            supportingText = if (form.text.length >= COUNT_SHOWN_FROM) {
+                { Text(stringResource(R.string.goodnews_text_count, form.text.length, GazettePost.TEXT_MAX)) }
+            } else {
+                null
+            },
             minLines = 4,
             maxLength = GazettePost.TEXT_MAX,
             enabled = !state.isSaving,
+            // Prototype: rounded (24 dp), white, a light outline of 2 dp.
+            shape = RoundedCornerShape(24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White,
+                unfocusedBorderColor = SheetLine,
+                focusedBorderColor = SheetBrown,
+            ),
         )
         if (PostFormError.Empty in state.errors) FormHint(stringResource(R.string.gazette_post_error_empty), isError = true)
 
@@ -237,17 +299,17 @@ private fun Form(
                         keepPhotoAccess(context, uris)
                         onAddPhotos(uris.map { it.toString() })
                     }
-                    FormOutlineButton(
+                    SheetPill(
                         stringResource(R.string.gazette_post_add_photo),
                         onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                     )
                 }
                 if (state.isNew && onLocate != null && form.place == null && !state.locating) {
-                    FormOutlineButton(stringResource(R.string.gazette_post_locate), onClick = onLocate)
+                    SheetPill(stringResource(R.string.gazette_post_locate), onClick = onLocate)
                 }
                 if (state.candidates.isNotEmpty()) {
                     // « ＠ Mentionner »: a « @ » at the cursor, and the field proposes the members.
-                    FormOutlineButton(
+                    SheetPill(
                         stringResource(R.string.gazette_post_mention),
                         onClick = {
                             val at = value.selection.start.coerceIn(0, value.text.length)
@@ -360,7 +422,7 @@ private fun PostEditScreenPreview() {
         Surface {
             PostEditScreen(
                 PostEditUiState.Editing(PostForm(text = "Belle journée au parc"), null, me, others),
-                {}, {}, {}, {}, {}, {}, {}, {},
+                {}, {}, {}, {}, {}, {}, {}, onClose = {},
             )
         }
     }

@@ -134,7 +134,8 @@ import fr.familia.app.feature.lending.LendItemsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.feed.FeedOpenRequest
-import fr.familia.app.feature.feed.publish.PostEditRoute
+import fr.familia.app.feature.feed.FeedDetailOpen
+import fr.familia.app.feature.feed.publish.PostEditSheet
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
@@ -751,6 +752,8 @@ fun FamiliaApp(
 
     // The bar only shows on the tabs, not on screens opened from them.
     val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
+    // A publication of the gazette open in its detail takes the whole screen, without the bar (26/11).
+    val detailOpen by FeedDetailOpen.shown.collectAsStateWithLifecycle()
     val onPlanningPage = currentDestination.isOn(TopLevelDestination.Planning)
 
     // Profile photos (PRD, récit 3 bis): read once here, shown by every avatar of the app.
@@ -834,6 +837,17 @@ fun FamiliaApp(
         var accountOpen by rememberSaveable { mutableStateOf(false) }
         // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
         val useRail = LocalConfiguration.current.screenWidthDp >= 600
+        // « ＋ Publier » and « Modifier le texte » open a sheet over the gazette (prototype, retour du
+        // 26/11), never a page: the id of the publication, or PostSheetNew.
+        var postSheet by rememberSaveable { mutableStateOf<String?>(null) }
+        postSheet?.let { which ->
+            PostEditSheet(
+                container = container,
+                currentMember = currentMember,
+                postId = which.takeIf { it != PostSheetNew },
+                onClose = { postSheet = null },
+            )
+        }
         if (accountOpen) {
             val shareContext = LocalContext.current
             val inViewAs = LocalViewAs.current.viewed != null
@@ -914,7 +928,7 @@ fun FamiliaApp(
                 // The round rises ALL_ROUND_RISE above the bar (récit 82). That rise belongs to the bar's
                 // height: the screens then stop above it, so the round never hides the end of a list, and
                 // its top half is touchable too (note C de #431).
-                if (onTab && !useRail) Box {
+                if (onTab && !useRail && !detailOpen) Box {
                 Column {
                 Spacer(Modifier.height(ALL_ROUND_RISE))
                 NavigationBar {
@@ -951,7 +965,7 @@ fun FamiliaApp(
             // Consumed here, so the inner screens with their own Scaffold do not add the system bars again.
             // R1 bis on a tablet (§5): the tabs go to a rail on the left (the gazette has « ＋ Publier », brief §3).
             Row(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
-            if (onTab && useRail) {
+            if (onTab && useRail && !detailOpen) {
                 NavigationRail(
                     modifier = Modifier.width(88.dp),
                 ) {
@@ -1038,8 +1052,8 @@ fun FamiliaApp(
                             onOpenGoodNewsFeed = { navController.navigate(GoodNewsFeedDestination) },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
-                            onPublishPost = { navController.navigate(GazettePostDestination()) },
-                            onEditPost = { id -> navController.navigate(GazettePostDestination(id)) },
+                            onPublishPost = { postSheet = PostSheetNew },
+                            onEditPost = { id -> postSheet = id },
                             onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                             onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                             onJoinMe = { navController.navigate(JoinMeDestination) { launchSingleTop = true } },
@@ -1945,15 +1959,6 @@ fun FamiliaApp(
                             onShareGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
                         )
                     }
-                    composable<GazettePostDestination> { entry ->
-                        PostEditRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            postId = entry.toRoute<GazettePostDestination>().postId,
-                            onDone = { navController.popBackStack() },
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
                     composable<GoodNewsEditDestination> { entry ->
                         GoodNewsEditRoute(
                             container = container,
@@ -2462,3 +2467,5 @@ internal fun AnimatedContentTransitionScope<NavBackStackEntry>.touchesPhotoPage(
 internal fun NavDestination.isPhotoPage(): Boolean =
     hasRoute<MemberProfileDestination>() || hasRoute<GiftListDestination>() || hasRoute<AllFamiliaDestination>()
 
+/** The sheet of a new publication (an id is never empty). */
+private const val PostSheetNew = ""
