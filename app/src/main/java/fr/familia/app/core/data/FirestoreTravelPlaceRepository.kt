@@ -33,7 +33,29 @@ class FirestoreTravelPlaceRepository(private val db: FirebaseFirestore) : Travel
     }
 
     override suspend fun addPlace(memberId: String, place: TravelPlace) {
-        val data = mapOf(
+        places(memberId).document().set(dataOf(place)).await()
+    }
+
+    override suspend fun addTrip(memberId: String, places: List<TravelPlace>, name: String?) {
+        if (places.isEmpty()) return
+        val refs = places.map { places(memberId).document() }
+        // One trip: the id of its first place for all, and its name; written together.
+        val tripId = refs.first().id
+        val tripName = name?.trim()?.take(TravelPlace.MAX_NAME)?.ifEmpty { null }
+        val batch = db.batch()
+        places.zip(refs).forEach { (place, ref) -> batch.set(ref, dataOf(place.copy(tripId = tripId, tripName = tripName))) }
+        batch.commit().await()
+    }
+
+    override suspend fun deletePlaces(memberId: String, placeIds: List<String>) {
+        if (placeIds.isEmpty()) return
+        val batch = db.batch()
+        placeIds.forEach { batch.delete(places(memberId).document(it)) }
+        batch.commit().await()
+    }
+
+    private fun dataOf(place: TravelPlace): Map<String, Any?> {
+        val data = mutableMapOf<String, Any?>(
             "name" to place.name.trim().take(TravelPlace.MAX_NAME),
             "country" to place.country?.trim()?.take(TravelPlace.MAX_COUNTRY)?.ifEmpty { null },
             "countryCode" to place.countryCode?.uppercase(Locale.ROOT)?.takeIf { it.length == 2 },
@@ -43,7 +65,10 @@ class FirestoreTravelPlaceRepository(private val db: FirebaseFirestore) : Travel
             "days" to place.days.toLong(),
             "createdAt" to FieldValue.serverTimestamp(),
         )
-        places(memberId).document().set(data).await()
+        // Only for a trip of several places: a place alone stays as older versions write it.
+        place.tripId?.let { data["tripId"] = it }
+        place.tripName?.let { data["tripName"] = it }
+        return data
     }
 
     override suspend fun deletePlace(memberId: String, placeId: String) {
@@ -66,5 +91,7 @@ internal fun DocumentSnapshot.toTravelPlace(): TravelPlace? {
         lng = lng,
         date = date,
         days = getLong("days")?.toInt() ?: 1,
+        tripId = getString("tripId")?.takeIf { it.isNotBlank() },
+        tripName = getString("tripName")?.takeIf { it.isNotBlank() },
     )
 }

@@ -125,16 +125,22 @@ class CarnetViewModel(
     }
 
     /** Adds [place] to the carnet: the sheet checked the date (past) and the days (1 to 365) first. */
-    fun add(place: Place, date: LocalDate, days: Int) {
+    fun add(place: Place, date: LocalDate, days: Int) = addTrip(null, date, listOf(place to days))
+
+    /**
+     * « Ajouter un voyage » (retour de l'admin du 26/11): [stops] one after the other from [date], each
+     * with its days, as one trip named [name]. A single place without a name is saved as before.
+     */
+    fun addTrip(name: String?, date: LocalDate, stops: List<Pair<Place, Int>>) {
         val repo = places ?: return
+        if (stops.isEmpty()) return
         _adding.value = AddState.Saving
         viewModelScope.launch {
             _adding.value = try {
-                val code = withTimeoutOrNull(COUNTRY_WAIT_MS) { countryOf(place.lat, place.lng) }
-                // Offline, Firestore keeps the write and sends it later: the carnet shows it at once.
-                withTimeoutOrNull(SAVE_WAIT_MS) {
-                    repo.addPlace(
-                    memberId,
+                val starts = chainedDays(date, stops.map { it.second })
+                val made = stops.zip(starts).map { (stop, start) ->
+                    val (place, days) = stop
+                    val code = withTimeoutOrNull(COUNTRY_WAIT_MS) { countryOf(place.lat, place.lng) }
                     TravelPlace(
                         id = "",
                         name = destinationName(place).ifBlank { place.title.orEmpty() }.take(TravelPlace.MAX_NAME),
@@ -142,16 +148,34 @@ class CarnetViewModel(
                         countryCode = code,
                         lat = place.lat,
                         lng = place.lng,
-                        date = date,
+                        date = start,
                         days = days,
-                    ),
-                )
+                    )
+                }
+                val title = name?.trim()?.ifEmpty { null }
+                // Offline, Firestore keeps the write and sends it later: the carnet shows it at once.
+                withTimeoutOrNull(SAVE_WAIT_MS) {
+                    if (made.size == 1 && title == null) repo.addPlace(memberId, made.single()) else repo.addTrip(memberId, made, title)
                 }
                 AddState.Saved
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 AddState.Failed
+            }
+        }
+    }
+
+    /** « Retirer » on a hand-added trip: all its places. */
+    fun removeTrip(trip: ManualTrip) {
+        val repo = places ?: return
+        viewModelScope.launch {
+            try {
+                repo.deletePlaces(memberId, trip.places.map { it.id })
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Offline: the cache removes them now, Firestore sends it later.
             }
         }
     }

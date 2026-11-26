@@ -101,7 +101,7 @@ fun CarnetScreen(
     state: CarnetUiState,
     onBack: () -> Unit,
     onAdd: (() -> Unit)?,
-    onRemove: (TravelPlace) -> Unit,
+    onRemove: (ManualTrip) -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
@@ -522,36 +522,49 @@ private fun TrophyCell(trophy: Trophy, won: Boolean, modifier: Modifier) {
     }
 }
 
-/** The hand-added destinations, each with « Retirer » after a question; [onRemove] null in « Voir comme ». */
+/**
+ * The hand-added trips (« Ajouter un voyage », retour de l'admin du 26/11): the flag of the first place,
+ * the name, « sept. 2025 · 8 j · 3 lieux », then its places with their days; « Retirer » removes the
+ * whole trip after a question. [onRemove] null in « Voir comme ».
+ */
 @Composable
-private fun Manual(places: List<TravelPlace>, onRemove: ((TravelPlace) -> Unit)?) {
+private fun Manual(places: List<TravelPlace>, onRemove: ((ManualTrip) -> Unit)?) {
     var asking by rememberSaveable { mutableStateOf<String?>(null) }
+    val trips = manualGroups(places)
     CarnetPart(stringResource(R.string.carnet_manual)) {
-        places.forEach { place ->
+        trips.forEach { trip ->
+            val first = trip.places.first()
             Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(place.countryCode?.let(::flagOf).orEmpty(), fontSize = 22.sp, modifier = Modifier.padding(end = 8.dp))
+                Text(first.countryCode?.let(::flagOf).orEmpty(), fontSize = 22.sp, modifier = Modifier.padding(end = 8.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(place.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                    Text(trip.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                     Text(
-                        stringResource(R.string.carnet_manual_line, place.date.format(monthYear), place.days),
+                        pluralStringResource(R.plurals.carnet_manual_trip_line, trip.places.size, trip.start.format(monthYear), trip.days, trip.places.size),
                         style = MaterialTheme.typography.bodyMedium,
                         color = CarnetColors.Soft,
                     )
                 }
                 if (onRemove != null) {
-                    val described = stringResource(R.string.carnet_remove_described, place.name)
-                    TextButton(onClick = { asking = place.id }, modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = described }) {
+                    val described = stringResource(R.string.carnet_remove_described, trip.title)
+                    TextButton(onClick = { asking = first.id }, modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = described }) {
                         Text(stringResource(R.string.carnet_remove), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+            if (trip.places.size > 1) {
+                Column(Modifier.padding(start = 38.dp, bottom = 6.dp)) {
+                    trip.places.forEach { place ->
+                        Text(stringResource(R.string.carnet_manual_line, place.name, place.days), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
         }
     }
-    val target = places.firstOrNull { it.id == asking }
+    val target = trips.firstOrNull { it.places.first().id == asking }
     if (target != null && onRemove != null) {
         AlertDialog(
             onDismissRequest = { asking = null },
-            title = { Text(stringResource(R.string.carnet_remove_title, target.name)) },
+            title = { Text(stringResource(R.string.carnet_remove_title, target.title)) },
             text = { Text(stringResource(R.string.carnet_remove_body)) },
             confirmButton = { TextButton(onClick = { asking = null; onRemove(target) }) { Text(stringResource(R.string.carnet_remove), color = MaterialTheme.colorScheme.error) } },
             dismissButton = { TextButton(onClick = { asking = null }) { Text(stringResource(R.string.action_cancel)) } },

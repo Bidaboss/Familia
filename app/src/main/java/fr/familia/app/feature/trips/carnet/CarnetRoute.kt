@@ -59,7 +59,7 @@ fun CarnetRoute(container: AppContainer?, currentMember: Member, onBack: () -> U
         state = state,
         onBack = onBack,
         onAdd = if (container?.travelPlaceRepository != null) ({ viewModel.resetAdding(); sheet = true }) else null,
-        onRemove = { viewModel.remove(it.id) },
+        onRemove = viewModel::removeTrip,
         snackbar = snackbar,
     )
     if (sheet) {
@@ -68,9 +68,9 @@ fun CarnetRoute(container: AppContainer?, currentMember: Member, onBack: () -> U
             saving = adding == AddState.Saving,
             failed = adding == AddState.Failed,
             suggest = { query -> locator?.suggest(query, 6).orEmpty() },
-            onSave = { place, date, days ->
-                lastName = fr.familia.app.feature.trips.edit.destinationName(place)
-                viewModel.add(place, date, days)
+            onSave = { name, date, stops ->
+                lastName = name ?: fr.familia.app.feature.trips.edit.destinationName(stops.first().first)
+                viewModel.addTrip(name, date, stops)
             },
             onDismiss = { sheet = false },
         )

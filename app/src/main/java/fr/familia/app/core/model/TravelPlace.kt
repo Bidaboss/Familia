@@ -18,6 +18,13 @@ data class TravelPlace(
     val lng: Double,
     val date: LocalDate,
     val days: Int,
+    /**
+     * « Ajouter un voyage » (retour de l'admin du 26/11): the places of one trip added together share
+     * [tripId] (the id of its first place) and its optional [tripName]. Null for a place added alone
+     * before: those whose days follow each other are read as one trip ([fr.familia.app.feature.trips.carnet.manualGroups]).
+     */
+    val tripId: String? = null,
+    val tripName: String? = null,
 ) {
     companion object {
         const val MAX_NAME = 80

@@ -90,4 +90,14 @@ describe('hand-added destinations of the carnet (récit 107)', () => {
     await assertFails(addDoc(collection(db, PATH), place({ km: 2000 })));
     await assertFails(addDoc(collection(db, PATH), place({ createdAt: Timestamp.fromMillis(0) })));
   });
+
+  test('the places of one trip share a tripId and an optional name (« Ajouter un voyage »)', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, `${PATH}/t1`), place({ tripId: 't1', tripName: 'Le tour des îles' })));
+    await assertSucceeds(setDoc(doc(db, `${PATH}/t2`), place({ tripId: 't1', date: '2019-05-17' })));
+    await assertFails(setDoc(doc(db, `${PATH}/t3`), place({ tripId: 'pas/valide' })));
+    await assertFails(setDoc(doc(db, `${PATH}/t4`), place({ tripId: 't1', tripName: '' })));
+    await assertFails(setDoc(doc(db, `${PATH}/t5`), place({ tripId: 't1', tripName: 'x'.repeat(81) })));
+    await assertFails(setDoc(doc(db, `${PATH}/t6`), place({ tripId: null })));
+  });
 });

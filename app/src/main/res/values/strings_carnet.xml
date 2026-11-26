@@ -60,14 +60,14 @@
     <string name="carnet_trophy_world">1er tour du monde</string>
     <string name="carnet_trophy_won">%1$s, gagné</string>
     <string name="carnet_trophy_locked">%1$s, pas encore</string>
-    <string name="carnet_manual">Ajoutées à la main</string>
+    <string name="carnet_manual">Ajoutés à la main</string>
     <string name="carnet_manual_line">%1$s · %2$d j</string>
     <string name="carnet_remove">Retirer</string>
     <string name="carnet_remove_described">Retirer %1$s du carnet</string>
     <string name="carnet_remove_title">Retirer %1$s ?</string>
-    <string name="carnet_remove_body">Elle disparaît du carnet et du planisphère. Les voyages de l\'appli ne changent pas.</string>
-    <string name="carnet_add">Ajouter une destination</string>
-    <string name="carnet_add_intro">Pour un voyage déjà fait : il apparaît dans « Souvenirs » et sur le planisphère. Sans kilomètres ni photos.</string>
+    <string name="carnet_remove_body">Il disparaît du carnet et du planisphère, avec tous ses lieux. Les voyages de l\'appli ne changent pas.</string>
+    <string name="carnet_add">Ajouter un voyage</string>
+    <string name="carnet_add_intro">Pour un voyage déjà fait, avec un ou plusieurs lieux. Il compte pour 1 voyage.</string>
     <string name="carnet_hand_added">Ajouté à la main</string>
     <string name="carnet_add_field">Recherchez une destination</string>
     <string name="carnet_add_search">Chercher</string>
@@ -85,4 +85,23 @@
     <string name="carnet_add_bad_days">Indique le nombre de jours (de 1 à 365).</string>
     <string name="carnet_add_failed">L\'ajout n\'a pas abouti. Vérifie le réseau et réessaie.</string>
     <string name="carnet_added">%1$s ajouté à ton carnet</string>
+    <string name="carnet_add_name">Nom du voyage (facultatif)</string>
+    <string name="carnet_add_name_hint">Ex. : Le tour des îles</string>
+    <string name="carnet_add_start">Départ</string>
+    <string name="carnet_add_places">Lieux visités</string>
+    <string name="carnet_add_another">Ajouter un autre lieu</string>
+    <string name="carnet_add_stop">Lieu %1$d</string>
+    <string name="carnet_add_stop_range">%1$s → %2$s</string>
+    <string name="carnet_add_stop_days">%1$d j</string>
+    <string name="carnet_add_less">Un jour de moins à %1$s</string>
+    <string name="carnet_add_more">Un jour de plus à %1$s</string>
+    <string name="carnet_add_stop_remove">Retirer %1$s du voyage</string>
+    <plurals name="carnet_add_save_days">
+        <item quantity="one">Ajouter au carnet · %1$d jour</item>
+        <item quantity="other">Ajouter au carnet · %1$d jours</item>
+    </plurals>
+    <plurals name="carnet_manual_trip_line">
+        <item quantity="one">%1$s · %2$d j · %3$d lieu</item>
+        <item quantity="other">%1$s · %2$d j · %3$d lieux</item>
+    </plurals>
 </resources>

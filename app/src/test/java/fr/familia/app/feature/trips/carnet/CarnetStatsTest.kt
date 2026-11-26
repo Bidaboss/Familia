@@ -102,8 +102,32 @@ class CarnetStatsTest {
         assertEquals("Portugal", countryName("PT"))
     }
 
-    private fun place(name: String, date: LocalDate, days: Int) =
-        fr.familia.app.core.model.TravelPlace(name, name, null, "GR", 37.0, 25.0, date, days)
+    private fun place(name: String, date: LocalDate, days: Int, tripId: String? = null, tripName: String? = null) =
+        fr.familia.app.core.model.TravelPlace(name, name, null, "GR", 37.0, 25.0, date, days, tripId, tripName)
+
+    @Test
+    fun `the places of « Ajouter un voyage » make one trip, with its name and its days in a row`() {
+        val d = LocalDate.of(2025, 9, 6)
+        val starts = chainedDays(d, listOf(3, 3, 2))
+        assertEquals(listOf(d, d.plusDays(3), d.plusDays(6)), starts)
+        val places = listOf(
+            place("Samoure", starts[0], 3, "t1", "Les îles"),
+            place("Camilles", starts[1], 3, "t1", "Les îles"),
+            place("Noé", starts[2], 2, "t1", "Les îles"),
+            // Added alone the next day: another trip, since it is not part of « Les îles ».
+            place("Lyon", d.plusDays(8), 1),
+        )
+        val trips = manualGroups(places)
+        assertEquals(2, trips.size)
+        val islands = trips.single { it.name == "Les îles" }
+        assertEquals(listOf("Samoure", "Camilles", "Noé"), islands.places.map { it.name })
+        assertEquals(8, islands.days)
+        assertEquals("Lyon", trips.single { it.name == null }.title)
+        val carnet = carnetOf(manualTrips(places), null)
+        assertEquals(2, carnet.trips)
+        assertEquals(9, carnet.days)
+        assertEquals(4, carnet.destinations)
+    }
 
     @Test
     fun `hand-added destinations that follow each other make one trip`() {
@@ -116,7 +140,8 @@ class CarnetStatsTest {
             place("Noé bis", d.plusDays(4), 1),
             place("Lyon", d.plusDays(30), 2),
         )
-        val trips = manualTrips(places)
+        // Most recent first: the trip of a month later, then the week in the islands.
+        val trips = manualTrips(places).reversed()
         assertEquals(2, trips.size)
         assertEquals(listOf("Samoure", "Camilles", "Noé", "Noé bis"), trips[0].stops.map { it.name })
         // From the 1st to the 6th: six days, not the sum of each destination.
