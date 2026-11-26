@@ -3,6 +3,7 @@ package fr.familia.app.feature.trips.place
 import fr.familia.app.core.model.TripPlaceKind
 import fr.familia.app.core.model.TripPlace
 import fr.familia.app.core.place.FoundPlace
+import java.time.LocalDate
 import java.time.LocalTime
 
 /**
@@ -20,6 +21,11 @@ data class PlaceForm(
     val cost: String = "",
     /** The place chosen in the search, or the saved one; null when the name was only typed. */
     val pick: PlacePick? = null,
+    /** Récit 122: the day of a restaurant or a spot, null for « À caser ». */
+    val day: LocalDate? = null,
+    /** Récit 122: the nights of an accommodation, both null for the whole stay. */
+    val checkIn: LocalDate? = null,
+    val checkOut: LocalDate? = null,
 ) {
     /** The place to save under [stepId], with the address and the point of [pick] when its name is still the one typed. */
     fun toPlace(id: String, stepId: String, kind: TripPlaceKind): TripPlace {
@@ -36,6 +42,9 @@ data class PlaceForm(
             arriveTime = arriveTime,
             note = note.trim().ifEmpty { null },
             cost = parseCost(cost),
+            day = day.takeIf { kind != TripPlaceKind.Lodging },
+            checkIn = checkIn.takeIf { kind == TripPlaceKind.Lodging && checkOut != null && checkIn != null && checkIn < checkOut },
+            checkOut = checkOut.takeIf { kind == TripPlaceKind.Lodging && checkIn != null && checkOut != null && checkIn < checkOut },
         )
     }
 
@@ -52,6 +61,9 @@ data class PlaceForm(
             note = place.note.orEmpty(),
             cost = place.cost?.let(::costText).orEmpty(),
             pick = PlacePick(place.name, place.address, place.lat, place.lng),
+            day = place.day,
+            checkIn = place.checkIn,
+            checkOut = place.checkOut,
         )
     }
 }

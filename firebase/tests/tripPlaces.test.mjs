@@ -111,3 +111,27 @@ describe('places of a destination (récit 103)', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/places/l'), noNote));
   });
 });
+
+describe('the day of a place and the nights of an accommodation (récit 122)', () => {
+  test('a restaurant or a spot takes a day, or none (« À caser »)', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/places/p1'), place({ day: '2027-07-12' })));
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/places/p2'), place({ kind: 'spot' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/places/p3'), place({ day: '12/07/2027' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/places/p4'), place({ day: null })));
+  });
+
+  test('an accommodation takes its nights, never a day', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/places/h1'), place({ kind: 'lodging', checkIn: '2027-07-10', checkOut: '2027-07-13' })));
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/places/h2'), place({ kind: 'lodging' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/places/h3'), place({ kind: 'lodging', checkIn: '2027-07-13', checkOut: '2027-07-13' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/places/h4'), place({ kind: 'lodging', day: '2027-07-12' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/places/p5'), place({ checkIn: '2027-07-10' })));
+  });
+
+  test('a follower still cannot set a day', async () => {
+    await storedPlace('p1');
+    await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'trips/t1/places/p1'), { day: '2027-07-12', updatedAt: serverTimestamp() }));
+  });
+});

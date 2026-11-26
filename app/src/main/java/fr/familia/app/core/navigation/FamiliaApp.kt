@@ -1327,6 +1327,7 @@ fun FamiliaApp(
                                 stepId = route.stepId,
                                 kind = TripPlaceKind.entries.firstOrNull { it.name == route.kind },
                                 presetName = route.name,
+                                presetDay = route.day?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() },
                             )
                         }
                     }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.time.LocalDate
 import java.time.LocalTime
 
 sealed interface PlaceEditUiState {
@@ -44,6 +45,9 @@ sealed interface PlaceEditUiState {
         val destinationLat: Double? = null,
         val destinationLng: Double? = null,
         val hasChanges: Boolean = false,
+        /** Récit 122: the first and the last day of the stay of the destination, for « Jour » and the nights. */
+        val stayStart: LocalDate? = null,
+        val stayEnd: LocalDate? = null,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
     ) : PlaceEditUiState
@@ -68,6 +72,8 @@ class PlaceEditViewModel(
     private val kind: TripPlaceKind? = null,
     /** The name a new place starts with (chosen in a search); null for an empty name. */
     private val presetName: String? = null,
+    /** Récit 122: the day of a new place added from « ＋ Ajouter » of a day; null for « À caser ». */
+    private val presetDay: LocalDate? = null,
     private val writeTimeoutMillis: Long = 4_000,
     /** Keeps the draft when Android stops the app in the background (audit design n° 3). */
     private val savedState: SavedStateHandle = SavedStateHandle(),
@@ -96,7 +102,16 @@ class PlaceEditViewModel(
             val trip = tripRepo.getTrip(tripId)
             val existing = placeId?.let { placeRepo.getPlace(tripId, it) }
             val step = (existing?.stepId ?: stepId)?.let { tripRepo.getStep(tripId, it) }
-            Loaded(family, trip, existing, step?.id, step?.place, step?.takeIf { it.hasPosition }?.lat, step?.takeIf { it.hasPosition }?.lng)
+            // Récit 122: the stay of the destination, as « Le trajet » draws it.
+            val stay = if (trip != null && step != null) {
+                withTimeoutOrNull(writeTimeoutMillis) { tripRepo.observeSteps(tripId).first() }
+                    ?.let { steps -> fr.familia.app.feature.trips.detail.tripTimeline(trip, steps).destinations.firstOrNull { it.step.id == step.id } }
+                    ?.let { it.start to it.end }
+                    ?: (step.departDate to (step.arriveDate ?: step.departDate))
+            } else {
+                null
+            }
+            Loaded(family, trip, existing, step?.id, step?.place, step?.takeIf { it.hasPosition }?.lat, step?.takeIf { it.hasPosition }?.lng, stay)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -117,7 +132,7 @@ class PlaceEditViewModel(
         editedKind = placeKind
         // Kept with the draft: a place saved just before Android stopped the app is not written twice.
         editedId = loaded.existing?.id ?: savedState.get<String>(DRAFT_ID) ?: placeRepo.newPlaceId(tripId).also { savedState[DRAFT_ID] = it }
-        initialForm = loaded.existing?.let { PlaceForm.from(it) } ?: PlaceForm(name = presetName.orEmpty().take(MAX_PLACE_NAME))
+        initialForm = loaded.existing?.let { PlaceForm.from(it) } ?: PlaceForm(name = presetName.orEmpty().take(MAX_PLACE_NAME), day = presetDay.takeIf { placeKind != TripPlaceKind.Lodging })
         val form = if (canEdit) restoreDraft() ?: initialForm else initialForm
         _uiState.value = PlaceEditUiState.Editing(
             kind = placeKind,
@@ -131,6 +146,8 @@ class PlaceEditViewModel(
             destinationLat = loaded.lat,
             destinationLng = loaded.lng,
             hasChanges = form != initialForm,
+            stayStart = loaded.stay?.first,
+            stayEnd = loaded.stay?.second,
         )
     }
 
@@ -142,6 +159,7 @@ class PlaceEditViewModel(
         val destination: String?,
         val lat: Double?,
         val lng: Double?,
+        val stay: Pair<LocalDate, LocalDate>?,
     )
 
     private fun unavailable() {
@@ -176,6 +194,9 @@ class PlaceEditViewModel(
         savedState[DRAFT_PICK_ADDRESS] = form.pick?.address
         savedState[DRAFT_PICK_LAT] = form.pick?.lat?.toString()
         savedState[DRAFT_PICK_LNG] = form.pick?.lng?.toString()
+        savedState[DRAFT_DAY] = form.day?.toString().orEmpty()
+        savedState[DRAFT_CHECK_IN] = form.checkIn?.toString().orEmpty()
+        savedState[DRAFT_CHECK_OUT] = form.checkOut?.toString().orEmpty()
     }
 
     /** The draft kept before Android stopped the app, or null when there is none. */
@@ -194,6 +215,9 @@ class PlaceEditViewModel(
                     lng = savedState.get<String>(DRAFT_PICK_LNG)?.toDoubleOrNull(),
                 )
             },
+            day = savedState.get<String>(DRAFT_DAY).toDate(),
+            checkIn = savedState.get<String>(DRAFT_CHECK_IN).toDate(),
+            checkOut = savedState.get<String>(DRAFT_CHECK_OUT).toDate(),
         )
     }
 
@@ -250,5 +274,10 @@ class PlaceEditViewModel(
         const val DRAFT_PICK_ADDRESS = "place_draft_pick_address"
         const val DRAFT_PICK_LAT = "place_draft_pick_lat"
         const val DRAFT_PICK_LNG = "place_draft_pick_lng"
+        const val DRAFT_DAY = "place_draft_day"
+        const val DRAFT_CHECK_IN = "place_draft_check_in"
+        const val DRAFT_CHECK_OUT = "place_draft_check_out"
     }
 }
+
+private fun String?.toDate(): LocalDate? = this?.takeIf { it.isNotEmpty() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
