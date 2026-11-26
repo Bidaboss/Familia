@@ -2848,3 +2848,10 @@ Sur un téléphone en Android 10 ou plus :
 5. Dans « Le trajet », sous la carte de la destination : l'hébergement, seulement les jours qui ont quelque chose, et « À caser » ; pas de jours vides ni de « ＋ Ajouter ».
 6. Raccourcir l'étape d'une nuit (−) : les lieux du jour supprimé repassent dans « À caser ».
 7. Quelqu'un qui suit sans participer voit les jours, sans « ＋ Ajouter » ni « Choisir le jour ».
+
+## Carnet de baroudeur : un voyage de plusieurs destinations ajoutées à la main compte pour un (retour du 26/11)
+
+**Publier Firebase : non.** Seulement « APK de publication ».
+1. Dans le carnet, ajouter à la main trois destinations qui se suivent (ex. le 1er juin pour 2 jours, le 3 juin pour 1 jour, le 4 juin pour 3 jours) : « Voyages » augmente de 1, pas de 3 ; « Jours sur la route » compte du 1er au 6 juin, soit 6.
+2. Une destination ajoutée avec un jour d'écart ou plus compte comme un autre voyage.
+3. Les destinations restent chacune sur la carte et dans « destinations ».
