@@ -189,7 +189,16 @@ internal object VoyageScreens {
                 stayId = "s2",
                 actions = fr.familia.app.feature.trips.detail.TimelineActions(
                     onNights = { _, _ -> fr.familia.app.feature.trips.detail.NightsChange.Blocked(fr.familia.app.feature.trips.detail.NightsBlock.OneNight) },
-                    onAddPlace = { _, _ -> },
+                    onAddPlace = { _, _, _ -> },
+                    onPlaceDay = { _, _ -> },
+                    // Récit 122: an accommodation, a spot on a day and a restaurant « À caser ».
+                    places = mapOf(
+                        "s2" to listOf(
+                            fr.familia.app.core.model.TripPlace("p1", "s2", fr.familia.app.core.model.TripPlaceKind.Lodging, "Gîte des Pins", null, null, null, null, null),
+                            fr.familia.app.core.model.TripPlace("p2", "s2", fr.familia.app.core.model.TripPlaceKind.Spot, "Phare de la Noé", null, null, null, java.time.LocalTime.of(14, 30), null, day = previewTripDetail().steps.first { it.id == "s2" }.departDate),
+                            fr.familia.app.core.model.TripPlace("p3", "s2", fr.familia.app.core.model.TripPlaceKind.Restaurant, "Crêperie de Samoure", null, null, null, null, null),
+                        ),
+                    ),
                 ),
                 links = fr.familia.app.feature.trips.detail.DestinationLinks(onEdit = {}, onAllAbout = {}, onOpenPhrases = null, onOpenMoney = null),
                 onSelect = {},

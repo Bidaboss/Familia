@@ -1259,7 +1259,7 @@ fun FamiliaApp(
                             onOpenPlace = { placeId -> navController.navigate(TripPlaceDestination(tripId, placeId)) },
                             onOpenPhrases = { country -> navController.navigate(TripPhrasesDestination(tripId, country)) },
                             onOpenMoney = { currency -> navController.navigate(TripMoneyDestination(tripId, currency)) },
-                            onAddPlace = { stepId, kind -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name)) },
+                            onAddPlace = { stepId, kind, day -> navController.navigate(TripPlaceAddDestination(tripId, stepId, kind = kind.name, day = day?.toString())) },
                             onInsertStep = { kind, day ->
                                 // Fiche F2 §3: a destination is chosen in its own screen and added in one touch; a transport keeps the form.
                                 if (kind == fr.familia.app.feature.trips.step.StepAddKind.Destination) {

@@ -2837,3 +2837,14 @@ Sur un téléphone en Android 10 ou plus :
 4. Ouvrir un hébergement : la tuile « Nuits » montre « 5 nuits, dim. 11 → ven. 16 » (tout le séjour). « Changer » : choisir l'arrivée puis le matin du départ ; « Tout le séjour » revient au séjour entier.
 5. Un membre qui suit le voyage sans y participer lit le jour et les nuits, sans bouton.
 6. Le rangement par jour sous la destination viendra dans la partie 2.
+
+## Voyage : l'étape se range par jour (récit 122, partie 2, DESIGN-GAZETTE-1 A)
+
+**Publier Firebase : non** pour cette PR (les règles des jours sont arrivées avec la partie 1), puis « APK de publication ».
+1. Ouvrir une destination de plusieurs nuits qui a un hébergement, des restaurants et des spots : l'hébergement est en haut dans une tuile crème (« Hébergement · 5 nuits, dim. 11 → ven. 16 »), puis une section par jour (« Lun. 12 avril · J2 ») avec ses lieux triés par heure, puis « À caser » en jaune pointillé.
+2. Les lieux saisis avant cette version sont tous dans « À caser ». « Choisir le jour » ouvre la feuille des jours ; un jour choisi range le lieu sous ce jour, chez tout le monde. « Pas encore de jour (à caser) » le remet en bas.
+3. « ＋ Ajouter » d'un jour propose Restaurant ou Spot ; la page du lieu s'ouvre avec ce jour rempli. « ＋ Hébergement » ajoute un hébergement.
+4. Un jour sans rien : « Rien de prévu, journée libre ».
+5. Dans « Le trajet », sous la carte de la destination : l'hébergement, seulement les jours qui ont quelque chose, et « À caser » ; pas de jours vides ni de « ＋ Ajouter ».
+6. Raccourcir l'étape d'une nuit (−) : les lieux du jour supprimé repassent dans « À caser ».
+7. Quelqu'un qui suit sans participer voit les jours, sans « ＋ Ajouter » ni « Choisir le jour ».
