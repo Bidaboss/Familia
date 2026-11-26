@@ -1,6 +1,5 @@
 package fr.familia.app.feature.trips.map
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -135,8 +134,7 @@ fun TripMapBackdrop(
     // The keyboard open: the sheet takes the whole screen, so the field being typed stays above it.
     val keyboard = WindowInsets.isImeVisible
     LaunchedEffect(keyboard, mapLayout) { if (keyboard && mapLayout) level = 2 }
-    // Retour first lowers the sheet; the screen's own Retour (ask before leaving) comes after it.
-    BackHandler(enabled = mapLayout && level > 0 && !header.full) { level -= 1 }
+    // Retour never lowers the sheet (l'admin, 26/11): the screen's own Retour (ask before leaving) comes at once.
     // One layout with or without the map: [content] keeps its place, so it is not made again when the steps arrive.
     BoxWithConstraints(Modifier.fillMaxSize().background(TripPathColors.Sky)) {
         val low = maxHeight * backdropSheetShare(0)

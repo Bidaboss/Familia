@@ -252,8 +252,8 @@ enum class TopLevelDestination(
     HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, "🤝", Feature.HelpRequests),
     /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (l'admin 22/11). */
     Trips(TripsDestination, R.string.nav_trips, "🧳", Feature.Trips, double = true),
-    /** Papa, maman, fille, garçon (l'admin, 25/11). */
-    Members(MembersRoute, R.string.nav_members, "👨‍👩‍👧‍👦"),
+    /** The family picto of the prototype (👪), as in its bottom bar (l'admin, 26/11). */
+    Members(MembersRoute, R.string.nav_members, "👪"),
     ;
 
     /** A child reads « Mes envies » on the Cadeaux tab (carte DESIGN-4). */

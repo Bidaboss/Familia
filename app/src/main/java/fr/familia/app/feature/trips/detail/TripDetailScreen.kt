@@ -42,7 +42,6 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
@@ -67,7 +66,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.semantics.heading
@@ -208,8 +206,7 @@ fun TripDetailScreen(
             if (success?.isParticipant == true) {
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     quickAdd?.let { QuickAddButton(it) }
-                    // Fiche F2 §1: the dark « + » of the sheet opens the menu of the « + » and adds at the end of the trip.
-                    if (illustrated && success != null) timeline?.let { EndAddButton(success.trip, success.steps, it) }
+                    // No big dark « + » at the bottom right (l'admin, 26/11): the « + » of the path adds at the end.
                     // DESIGN-99 A (E-10): on the path, steps are added by the « + » of « Le trajet »; no floating button over the cards.
                     if (!illustrated) {
                         ExtendedFloatingActionButton(
@@ -415,10 +412,9 @@ private fun PathContent(
     LaunchedEffect(state.trip.id) { TripOpenTiming.reached("écran") }
     val expanded = level >= 1
     var selected by rememberSaveable(state.trip.id) { mutableStateOf<Int?>(null) }
-    // Back first puts the map back as it was (règle 25, « Retour dézoome »), then lowers the sheet.
-    androidx.activity.compose.BackHandler(enabled = mapLayout && (selected != null || level > 0)) {
-        if (selected != null) selected = null else level -= 1
-    }
+    // Back first puts the map back as it was (règle 25, « Retour dézoome »); it never lowers the sheet:
+    // it goes straight to the screen before (l'admin, 26/11).
+    androidx.activity.compose.BackHandler(enabled = mapLayout && selected != null) { selected = null }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
     // Three heights as on the prototype (DESIGN-98 A): 22 % at the bottom, 48 % in the middle, the whole screen.
     val lowHeight = maxHeight * backdropSheetShare(0)
@@ -838,26 +834,5 @@ private fun TripDetailPathPreview() {
                 illustrated = true,
             )
         }
-    }
-}
-
-/** The dark round « + » (60 dp) at the bottom right of the sheet (fiche F2 §1): the menu of a « + », after the last element. */
-@Composable
-private fun EndAddButton(trip: fr.familia.app.core.model.Trip, steps: List<fr.familia.app.core.model.TripStep>, actions: TimelineActions) {
-    if (actions.onInsertStep == null) return
-    var open by remember { mutableStateOf(false) }
-    val line = remember(trip, steps) { tripTimeline(trip, steps) }
-    val spot = remember(trip, line) { insertSpots(trip, line.rows).last() }
-    Box {
-        FloatingActionButton(
-            onClick = { open = true },
-            shape = CircleShape,
-            containerColor = TripSheetColors.Deep,
-            contentColor = Color.White,
-            modifier = Modifier.size(60.dp),
-        ) {
-            Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.timeline_add_end_a11y), modifier = Modifier.size(28.dp))
-        }
-        TimelineAddMenu(open, { open = false }, spot, actions, line.destinations.isNotEmpty())
     }
 }
