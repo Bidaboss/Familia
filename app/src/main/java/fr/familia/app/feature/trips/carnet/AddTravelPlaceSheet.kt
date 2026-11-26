@@ -250,8 +250,8 @@ fun AddTravelPlaceSheet(
             onDismissRequest = { askingRemove = false },
             title = { Text(stringResource(R.string.carnet_remove_title, editing.title)) },
             text = { Text(stringResource(R.string.carnet_remove_body)) },
-            confirmButton = { TextButton(onClick = { askingRemove = false; onRemoveTrip() }) { Text(stringResource(R.string.carnet_remove), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = { askingRemove = false }) { Text(stringResource(R.string.action_cancel)) } },
+            confirmButton = { TextButton(onClick = { askingRemove = false; onRemoveTrip() }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.carnet_remove), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { askingRemove = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
