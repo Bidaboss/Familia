@@ -45,34 +45,44 @@ fun CarnetRoute(container: AppContainer?, currentMember: Member, onBack: () -> U
     val adding by viewModel.adding.collectAsStateWithLifecycle()
     var sheet by rememberSaveable { mutableStateOf(false) }
     var lastName by rememberSaveable { mutableStateOf("") }
+    /** « Modifier le voyage »: the id of the first place of the trip open in the sheet, else null. */
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var edited by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
-    val added = stringResource(R.string.carnet_added, lastName)
+    val added = stringResource(if (edited) R.string.carnet_edited else R.string.carnet_added, lastName)
     LaunchedEffect(adding) {
         if (adding == AddState.Saved) {
             sheet = false
+            editingId = null
             viewModel.resetAdding()
             snackbar.showSnackbar(added)
         }
     }
+    val editing = editingId?.let { id -> (state as? CarnetUiState.Ready)?.manual?.let(::manualGroups)?.firstOrNull { it.places.first().id == id } }
     val locator = container?.placeLocator
     CarnetScreen(
         state = state,
         onBack = onBack,
-        onAdd = if (container?.travelPlaceRepository != null) ({ viewModel.resetAdding(); sheet = true }) else null,
+        onAdd = if (container?.travelPlaceRepository != null) ({ viewModel.resetAdding(); editingId = null; sheet = true }) else null,
         onRemove = viewModel::removeTrip,
         snackbar = snackbar,
+        onEdit = { trip -> viewModel.resetAdding(); editingId = trip.places.first().id; sheet = true },
     )
-    if (sheet) {
-        AddTravelPlaceSheet(
+    if (sheet && (editingId == null || editing != null)) {
+        // A new key for each trip: the sheet starts again from what is saved.
+        androidx.compose.runtime.key(editingId) { AddTravelPlaceSheet(
             today = (state as? CarnetUiState.Ready)?.today ?: familyToday(),
             saving = adding == AddState.Saving,
             failed = adding == AddState.Failed,
             suggest = { query -> locator?.suggest(query, 6).orEmpty() },
             onSave = { name, date, stops ->
                 lastName = name ?: fr.familia.app.feature.trips.edit.destinationName(stops.first().first)
-                viewModel.addTrip(name, date, stops)
+                edited = editing != null
+                viewModel.addTrip(name, date, stops, replacing = editing)
             },
-            onDismiss = { sheet = false },
-        )
+            onDismiss = { sheet = false; editingId = null },
+            editing = editing,
+            onRemoveTrip = editing?.let { trip -> { sheet = false; editingId = null; viewModel.removeTrip(trip) } },
+        ) }
     }
 }

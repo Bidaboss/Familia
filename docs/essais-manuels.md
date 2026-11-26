@@ -2867,3 +2867,14 @@ Sur un téléphone en Android 10 ou plus :
 6. Un voyage à un seul lieu sans nom s'ajoute comme avant.
 7. Les anciennes destinations dont les dates se suivent apparaissent regroupées en un seul voyage, sans rien refaire.
 
+## Carnet de baroudeur : « Modifier le voyage » (demande du 26/11)
+
+**Publier Firebase : non** (les règles ne changent pas : les lieux sont remplacés, jamais modifiés).
+1. Carnet de baroudeur, « Ajoutés à la main » : chaque voyage a un crayon à côté de « Retirer ». Toucher la ligne ou le crayon ouvre « Modifier le voyage », déjà rempli : nom, départ, lieux numérotés avec leurs jours.
+2. Changer le nom du voyage, le départ, les jours d'un lieu : les dates des lieux suivants se décalent, le bouton affiche « Enregistrer · N jours ».
+3. Corriger le nom d'un lieu dans « Nom du lieu » (par exemple « Samoure 281 00 » en « Samoure »).
+4. Faire glisser un lieu par sa poignée ⠿ au-dessus ou au-dessous d'un autre : les numéros et les dates suivent. Avec TalkBack, la poignée propose « Monter » et « Descendre ».
+5. « ＋ Ajouter un autre lieu » ajoute un lieu ; la croix ✕ retire un lieu ; sur le dernier lieu, elle demande s'il faut retirer le voyage.
+6. « Enregistrer » : la feuille se ferme, « … modifié » s'affiche, et les compteurs, les pays et le planisphère suivent. Un groupe d'anciennes destinations modifié devient un seul voyage enregistré.
+7. « Annuler » ferme sans rien changer. « Retirer ce voyage », en rouge, demande confirmation puis retire tout le voyage.
+8. « Voir comme » : ni crayon, ni ligne à toucher.

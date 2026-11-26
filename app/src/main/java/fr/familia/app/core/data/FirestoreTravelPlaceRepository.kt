@@ -47,6 +47,18 @@ class FirestoreTravelPlaceRepository(private val db: FirebaseFirestore) : Travel
         batch.commit().await()
     }
 
+    override suspend fun replaceTrip(memberId: String, oldIds: List<String>, places: List<TravelPlace>, name: String?) {
+        if (places.isEmpty()) return
+        val refs = places.map { places(memberId).document() }
+        val tripId = refs.first().id
+        val tripName = name?.trim()?.take(TravelPlace.MAX_NAME)?.ifEmpty { null }
+        // The old places go and the new ones come in the same batch: the carnet never shows both or none.
+        val batch = db.batch()
+        oldIds.forEach { batch.delete(places(memberId).document(it)) }
+        places.zip(refs).forEach { (place, ref) -> batch.set(ref, dataOf(place.copy(tripId = tripId, tripName = tripName))) }
+        batch.commit().await()
+    }
+
     override suspend fun deletePlaces(memberId: String, placeIds: List<String>) {
         if (placeIds.isEmpty()) return
         val batch = db.batch()
