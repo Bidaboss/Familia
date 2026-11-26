@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -213,29 +214,37 @@ fun HomeR1bisScreen(
         // La gazette est l'Accueil (récit 115); « Ma journée » opens over it, never on its own (brief §3).
         val summary = myDaySummary(ready, days, mySurprises, surprisesToRate.size, helpCount, actions.onOpenSurprise != null)
         val onPhotoSummary = top != null && photoTheme != null
-        Box(Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize().then(if (myDayOpen) Modifier.clearAndSetSemantics { } else Modifier)) {
-                feed { MyDaySummaryLine(summary, onPhoto = onPhotoSummary, onOpen = { onMyDay(true) }) }
-            }
-            if (myDayOpen) {
-                BackHandler { onMyDay(false) }
-                val close = { onMyDay(false) }
+        // The zipper of the brief §7 (PR 8): the gazette opens in a V on « Ma journée »; the line
+        // of the header and the ✕ stay the way without a gesture.
+        if (myDayOpen) BackHandler { onMyDay(false) }
+        val close = { onMyDay(false) }
+        MyDayZipper(
+            open = myDayOpen,
+            onOpen = onMyDay,
+            waiting = summary.toAnswer,
+            gazette = { feed { MyDaySummaryLine(summary, onPhoto = onPhotoSummary, onOpen = { onMyDay(true) }) } },
+            myDay = {
                 MyDayLayer(photoTheme.takeIf { onPhotoSummary }) {
-                    if (onPhotoSummary) {
-                        PhotoDayList(
-                            ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme!!), actions, r1,
-                            PhotoSlots({ MyDayTitle(onPhoto = true, onClose = close) }, joinMe, firstSteps, helpTodos, nowTravelling, challenge, null, buttons, mySurprises, surprisesToRate),
-                            0, null,
-                        )
-                    } else {
-                        Column(Modifier.fillMaxSize()) {
-                            Box(Modifier.padding(horizontal = ClaySpacing.screen)) { MyDayTitle(onPhoto = false, onClose = close) }
-                            ClassicDay(Modifier.weight(1f), null, joinMe, frise, detail, firstSteps, buttons, todo, newsAndChallenge, nowTravelling, hasTodo, calm, goodNews != null || challenge != null, padding)
+                    CompositionLocalProvider(LocalMyDayBottom provides MY_DAY_ZIPPER_ROOM) {
+                        if (onPhotoSummary) {
+                            PhotoDayList(
+                                ready, days, LocalDate.ofEpochDay(chosen), { chosen = it.toEpochDay() }, PhotoColors.of(photoTheme!!), actions, r1,
+                                PhotoSlots({ MyDayTitle(onPhoto = true, onClose = close) }, joinMe, firstSteps, helpTodos, nowTravelling, challenge, null, buttons, mySurprises, surprisesToRate),
+                                0, null,
+                            )
+                        } else {
+                            Column(Modifier.fillMaxSize()) {
+                                Box(Modifier.padding(horizontal = ClaySpacing.screen)) { MyDayTitle(onPhoto = false, onClose = close) }
+                                ClassicDay(
+                                    Modifier.weight(1f), null, joinMe, frise, detail, firstSteps, buttons, todo, newsAndChallenge, nowTravelling, hasTodo, calm,
+                                    goodNews != null || challenge != null, PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = MY_DAY_ZIPPER_ROOM),
+                                )
+                            }
                         }
                     }
                 }
-            }
-        }
+            },
+        )
         return
     }
     if (top != null && photoTheme != null) {

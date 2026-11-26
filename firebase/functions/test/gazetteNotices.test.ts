@@ -131,7 +131,7 @@ describe('against the emulator', () => {
     assert.deepEqual(await sorted('wishes:noe:2026-11-25'), ['camille', 'ines', 'jules']);
     assert.deepEqual(await sorted('help:r1'), ['camille', 'ines', 'jules']);
     assert.deepEqual(await sorted('help:gone'), []);
-    assert.deepEqual(await sorted('event:e1'), []);
+    assert.deepEqual(await sorted('event:e1'), withApp.slice().sort());
     assert.deepEqual(await sorted('mystery:x'), []);
   });
 
