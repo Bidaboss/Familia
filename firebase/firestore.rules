@@ -3341,14 +3341,10 @@ service cloud.firestore {
     // Récit 122: the day of a restaurant or a spot (« yyyy-MM-dd », absent = « À caser »), the nights
     // of an accommodation (checkIn, then the morning of checkOut, absent = the whole stay). Each is
     // optional, so a version of the app without them still writes; the app keeps them in the stay.
-    function isTripPlaceDay(d) {
-      return d is string && d.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
-    }
-
     function isValidTripPlaceDays(p) {
-      return (!('day' in p) || (p.kind != 'lodging' && isTripPlaceDay(p.day)))
-        && (!('checkIn' in p) || (p.kind == 'lodging' && isTripPlaceDay(p.checkIn)))
-        && (!('checkOut' in p) || (p.kind == 'lodging' && isTripPlaceDay(p.checkOut)))
+      return (!('day' in p) || (p.kind != 'lodging' && isDay(p.day)))
+        && (!('checkIn' in p) || (p.kind == 'lodging' && isDay(p.checkIn)))
+        && (!('checkOut' in p) || (p.kind == 'lodging' && isDay(p.checkOut)))
         && (!('checkIn' in p) || !('checkOut' in p) || p.checkIn < p.checkOut);
     }
 

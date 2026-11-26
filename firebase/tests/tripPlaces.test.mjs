@@ -119,6 +119,8 @@ describe('the day of a place and the nights of an accommodation (récit 122)', (
     await assertSucceeds(setDoc(doc(db, 'trips/t1/places/p2'), place({ kind: 'spot' })));
     await assertFails(setDoc(doc(db, 'trips/t1/places/p3'), place({ day: '12/07/2027' })));
     await assertFails(setDoc(doc(db, 'trips/t1/places/p4'), place({ day: null })));
+    await assertFails(setDoc(doc(db, 'trips/t1/places/p6'), place({ day: '2027-13-32' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/places/h5'), place({ kind: 'lodging', checkIn: '2027-07-10', checkOut: '2027-07-32' })));
   });
 
   test('an accommodation takes its nights, never a day', async () => {
