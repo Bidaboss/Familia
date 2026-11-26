@@ -84,7 +84,8 @@ class CarnetViewModel(
             .mapLatest { address -> address?.let { homePoint(it) } }
 
     val uiState: StateFlow<CarnetUiState> = combine(finished, manual, home, day) { done, added, point, now ->
-        val all = done + added.map { CarnetTrip(it.date, it.days, listOf(CarnetStop(it.name, it.lat, it.lng, it.countryCode)), manual = true) }
+        // A trip of several destinations added one by one counts once (retour de l'admin du 26/11).
+        val all = done + manualTrips(added)
         CarnetUiState.Ready(carnetOf(all, point), added, now, canAdd = places != null) as CarnetUiState
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CarnetUiState.Loading)
 

@@ -101,4 +101,32 @@ class CarnetStatsTest {
         assertEquals("", flagOf("P"))
         assertEquals("Portugal", countryName("PT"))
     }
+
+    private fun place(name: String, date: LocalDate, days: Int) =
+        fr.familia.app.core.model.TravelPlace(name, name, null, "GR", 37.0, 25.0, date, days)
+
+    @Test
+    fun `hand-added destinations that follow each other make one trip`() {
+        val d = LocalDate.of(2024, 6, 1)
+        // A week in the islands added one destination at a time, then another trip a month later.
+        val places = listOf(
+            place("Samoure", d, 2),
+            place("Camilles", d.plusDays(2), 1),
+            place("Noé", d.plusDays(3), 3),
+            place("Noé bis", d.plusDays(4), 1),
+            place("Lyon", d.plusDays(30), 2),
+        )
+        val trips = manualTrips(places)
+        assertEquals(2, trips.size)
+        assertEquals(listOf("Samoure", "Camilles", "Noé", "Noé bis"), trips[0].stops.map { it.name })
+        // From the 1st to the 6th: six days, not the sum of each destination.
+        assertEquals(6, trips[0].days)
+        assertEquals(d, trips[0].start)
+        assertTrue(trips.all { it.manual })
+        assertEquals(2, carnetOf(trips, null).trips)
+        assertEquals(8, carnetOf(trips, null).days)
+        // A day without a destination between two: two trips.
+        assertEquals(2, manualTrips(listOf(place("A", d, 1), place("B", d.plusDays(2), 1))).size)
+        assertEquals(emptyList<CarnetTrip>(), manualTrips(emptyList()))
+    }
 }

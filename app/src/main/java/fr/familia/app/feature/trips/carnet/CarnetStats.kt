@@ -23,6 +23,33 @@ data class CarnetTrip(
         get() = if (manual) 0 else stops.zipWithNext { a, b -> flightKm(a.lat, a.lng, b.lat, b.lng) }.sum().roundToInt()
 }
 
+/**
+ * The hand-added destinations as trips (retour de l'admin du 26/11): a trip of several destinations is
+ * added one destination at a time, so destinations whose days follow each other or overlap (the next
+ * starts at the latest the day after the last day of the one before) make one trip, from its first
+ * day to its last, its places in order. Each destination alone is one trip, as before.
+ */
+fun manualTrips(places: List<fr.familia.app.core.model.TravelPlace>): List<CarnetTrip> {
+    val groups = mutableListOf<MutableList<fr.familia.app.core.model.TravelPlace>>()
+    var lastDay: LocalDate? = null
+    places.sortedWith(compareBy({ it.date }, { it.name.lowercase() })).forEach { place ->
+        val end = place.date.plusDays(place.days.coerceAtLeast(1) - 1L)
+        val touching = lastDay?.let { !place.date.isAfter(it.plusDays(1)) } == true
+        if (touching) groups.last() += place else groups += mutableListOf(place)
+        lastDay = if (touching && lastDay!!.isAfter(end)) lastDay else end
+    }
+    return groups.map { group ->
+        val start = group.first().date
+        val last = group.maxOf { it.date.plusDays(it.days.coerceAtLeast(1) - 1L) }
+        CarnetTrip(
+            start = start,
+            days = java.time.temporal.ChronoUnit.DAYS.between(start, last).toInt() + 1,
+            stops = group.map { CarnetStop(it.name, it.lat, it.lng, it.countryCode) },
+            manual = true,
+        )
+    }
+}
+
 /** The four ranks of the prototype, by countries: 0, 3, 6, then 12. */
 enum class CarnetRank(val countries: Int) { Hiker(0), Explorer(3), GlobeTrotter(6), GreatTraveller(12) }
 
