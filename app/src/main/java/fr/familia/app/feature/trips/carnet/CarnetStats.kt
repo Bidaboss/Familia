@@ -24,30 +24,57 @@ data class CarnetTrip(
 }
 
 /**
- * The hand-added destinations as trips (retour de l'admin du 26/11): a trip of several destinations is
- * added one destination at a time, so destinations whose days follow each other or overlap (the next
- * starts at the latest the day after the last day of the one before) make one trip, from its first
- * day to its last, its places in order. Each destination alone is one trip, as before.
+ * A trip added by hand (« Ajouter un voyage », retour de l'admin du 26/11): its places in order, its
+ * [name] (else the first place), from its first day to its last.
  */
-fun manualTrips(places: List<fr.familia.app.core.model.TravelPlace>): List<CarnetTrip> {
-    val groups = mutableListOf<MutableList<fr.familia.app.core.model.TravelPlace>>()
+data class ManualTrip(val name: String?, val places: List<fr.familia.app.core.model.TravelPlace>) {
+    val start: LocalDate get() = places.first().date
+    val end: LocalDate get() = places.maxOf { it.date.plusDays(it.days.coerceAtLeast(1) - 1L) }
+    val days: Int get() = java.time.temporal.ChronoUnit.DAYS.between(start, end).toInt() + 1
+    val title: String get() = name ?: places.first().name
+}
+
+/**
+ * The hand-added destinations as trips, most recent first. The places saved together by « Ajouter un
+ * voyage » share a tripId: one trip. The places added alone before it (no tripId) whose days follow each
+ * other or overlap (the next starts at the latest the day after the last day of the one before) also make
+ * one trip, so a trip already added one destination at a time counts once without anything to redo.
+ */
+fun manualGroups(places: List<fr.familia.app.core.model.TravelPlace>): List<ManualTrip> {
+    val byDate = compareBy<fr.familia.app.core.model.TravelPlace>({ it.date }, { it.name.lowercase() })
+    val saved = places.filter { it.tripId != null }.groupBy { it.tripId }.values.map { group ->
+        val ordered = group.sortedWith(byDate)
+        ManualTrip(ordered.firstNotNullOfOrNull { it.tripName }, ordered)
+    }
+    val loose = mutableListOf<MutableList<fr.familia.app.core.model.TravelPlace>>()
     var lastDay: LocalDate? = null
-    places.sortedWith(compareBy({ it.date }, { it.name.lowercase() })).forEach { place ->
+    places.filter { it.tripId == null }.sortedWith(byDate).forEach { place ->
         val end = place.date.plusDays(place.days.coerceAtLeast(1) - 1L)
         val touching = lastDay?.let { !place.date.isAfter(it.plusDays(1)) } == true
-        if (touching) groups.last() += place else groups += mutableListOf(place)
+        if (touching) loose.last() += place else loose += mutableListOf(place)
         lastDay = if (touching && lastDay!!.isAfter(end)) lastDay else end
     }
-    return groups.map { group ->
-        val start = group.first().date
-        val last = group.maxOf { it.date.plusDays(it.days.coerceAtLeast(1) - 1L) }
+    return (saved + loose.map { ManualTrip(null, it) }).sortedByDescending { it.start }
+}
+
+/** The hand-added trips as the carnet counts them: one trip each, its days from first to last. */
+fun manualTrips(places: List<fr.familia.app.core.model.TravelPlace>): List<CarnetTrip> =
+    manualGroups(places).map { trip ->
         CarnetTrip(
-            start = start,
-            days = java.time.temporal.ChronoUnit.DAYS.between(start, last).toInt() + 1,
-            stops = group.map { CarnetStop(it.name, it.lat, it.lng, it.countryCode) },
+            start = trip.start,
+            days = trip.days,
+            stops = trip.places.map { CarnetStop(it.name, it.lat, it.lng, it.countryCode) },
             manual = true,
         )
     }
+
+/**
+ * « Ajouter un voyage »: the day each place starts, one after the other from [start]: 3 days from the
+ * 6th, then the next from the 9th (« 6 → 9 sept. », « 9 → 12 sept. », as on the mock-up).
+ */
+fun chainedDays(start: LocalDate, days: List<Int>): List<LocalDate> {
+    var day = start
+    return days.map { n -> day.also { day = it.plusDays(n.coerceAtLeast(1).toLong()) } }
 }
 
 /** The four ranks of the prototype, by countries: 0, 3, 6, then 12. */

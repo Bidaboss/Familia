@@ -3529,9 +3529,13 @@ service cloud.firestore {
       return timestamp.date(int(d[0]), int(d[1]), int(d[2]));
     }
 
+    // « Ajouter un voyage » (retour de l'admin du 26/11): the places of one trip share an optional
+    // tripId (the id of its first place) and tripName; older versions write neither.
     function isValidTravelPlace(p) {
       return p.keys().hasAll(['name', 'country', 'countryCode', 'lat', 'lng', 'date', 'days', 'createdAt'])
-        && p.keys().hasOnly(['name', 'country', 'countryCode', 'lat', 'lng', 'date', 'days', 'createdAt'])
+        && p.keys().hasOnly(['name', 'country', 'countryCode', 'lat', 'lng', 'date', 'days', 'createdAt', 'tripId', 'tripName'])
+        && (!('tripId' in p) || (p.tripId is string && p.tripId.matches('^[A-Za-z0-9_-]{1,64}$')))
+        && (!('tripName' in p) || (p.tripName is string && p.tripName.size() > 0 && p.tripName.size() <= 80))
         && p.name is string && p.name.size() > 0 && p.name.size() <= 80
         && (p.country == null || (p.country is string && p.country.size() > 0 && p.country.size() <= 60))
         && (p.countryCode == null || (p.countryCode is string && p.countryCode.matches('^[A-Z]{2}$')))

@@ -112,4 +112,32 @@ class CarnetViewModelTest {
         assertTrue(places.places.value["adult1"].orEmpty().isEmpty())
         job.cancel()
     }
+
+    @Test
+    fun `a trip of several places counts once, its places one after the other`() = runTest {
+        val places = FakePlaces()
+        val vm = CarnetViewModel(FakeTrips(initial = emptyList()), null, places, FakeMembers(), FakeLocator(), "adult1", flowOf(today))
+        val job = launch { vm.uiState.collect {} }
+        val start = LocalDate.of(2025, 9, 6)
+        vm.addTrip(
+            "Les îles",
+            start,
+            listOf(
+                Place(31.63, -8.0, address = "Marrakech, Maroc") to 3,
+                Place(33.57, -7.59, address = "Casablanca, Maroc") to 3,
+                Place(34.02, -6.84, address = "Rabat, Maroc") to 2,
+            ),
+        )
+        assertEquals(AddState.Saved, vm.adding.value)
+        val saved = places.places.value["adult1"].orEmpty()
+        assertEquals(listOf(start, start.plusDays(3), start.plusDays(6)), saved.map { it.date })
+        assertTrue(saved.all { it.tripName == "Les îles" })
+        val ready = vm.uiState.first { (it as? CarnetUiState.Ready)?.manual?.size == 3 } as CarnetUiState.Ready
+        assertEquals(1, ready.carnet.trips)
+        assertEquals(8, ready.carnet.days)
+        assertEquals(3, ready.carnet.destinations)
+        vm.removeTrip(manualGroups(ready.manual).single())
+        assertTrue(places.places.value["adult1"].orEmpty().isEmpty())
+        job.cancel()
+    }
 }

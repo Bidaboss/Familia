@@ -1028,6 +1028,8 @@ Droits : ceux qui suivent le voyage lisent ; chaque participant choisit une autr
 | `lat`, `lng` | nombres | Le point, pour l'icône sur le planisphère |
 | `date` | texte « yyyy-MM-dd » | Le premier jour du voyage, jamais dans le futur (l'appli demande un jour passé), pas avant 1900 |
 | `days` | entier, 1 à 365 | Le nombre de jours |
+| `tripId` | texte, facultatif | « Ajouter un voyage » (26/11) : l'id du premier lieu, commun à tous les lieux d'un même voyage ; absent pour un lieu ajouté seul |
+| `tripName` | texte, facultatif, 1 à 80 | Le nom du voyage (« Le tour des îles ») ; absent : le premier lieu |
 | `createdAt` | horodatage | Heure du serveur |
 
 Un voyage fait hors de l'appli (règle 38) : ni étape, ni kilomètre, ni photo. Privé : seul son membre le lit, l'ajoute et le supprime, l'admin principal compris ; jamais modifié. Absent de « Voir comme ». La suppression du membre l'efface (`deleteMemberData`). Tests : `firebase/tests/travelPlaces.test.mjs`.

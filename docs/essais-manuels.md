@@ -2855,3 +2855,15 @@ Sur un téléphone en Android 10 ou plus :
 1. Dans le carnet, ajouter à la main trois destinations qui se suivent (ex. le 1er juin pour 2 jours, le 3 juin pour 1 jour, le 4 juin pour 3 jours) : « Voyages » augmente de 1, pas de 3 ; « Jours sur la route » compte du 1er au 6 juin, soit 6.
 2. Une destination ajoutée avec un jour d'écart ou plus compte comme un autre voyage.
 3. Les destinations restent chacune sur la carte et dans « destinations ».
+
+## Carnet de baroudeur : « Ajouter un voyage » avec plusieurs lieux (récit 123)
+
+**Publier Firebase : oui** (les règles acceptent `tripId` et `tripName`), puis « APK de publication ».
+1. Carnet de baroudeur, « Ajouter un voyage » : nom facultatif (« Le tour des îles »), « Départ » (une date passée), « Lieux visités » avec le lieu 1.
+2. Chercher et choisir un lieu : la carte montre « 6 sept. → 9 sept. » et « − 3 j + ». « ＋ Ajouter un autre lieu » ajoute le lieu 2, qui commence le jour où le lieu 1 se termine. Changer les jours du lieu 1 décale les dates du lieu 2.
+3. Le bouton est grisé tant qu'un lieu n'est pas choisi ou que le départ manque ; ensuite, il affiche « Ajouter au carnet · 8 jours ».
+4. Après l'ajout : « Au compteur » donne 1 voyage de plus, les jours du voyage et toutes ses destinations ; le planisphère a un point par lieu.
+5. « Ajoutés à la main » : « Le tour des îles », « sept. 2025 · 8 j · 3 lieux », puis les lieux avec leurs jours. « Retirer » demande confirmation, puis retire tout le voyage.
+6. Un voyage à un seul lieu sans nom s'ajoute comme avant.
+7. Les anciennes destinations dont les dates se suivent apparaissent regroupées en un seul voyage, sans rien refaire.
+

@@ -16,4 +16,17 @@ interface TravelPlaceRepository {
     suspend fun addPlace(memberId: String, place: TravelPlace)
 
     suspend fun deletePlace(memberId: String, placeId: String)
+
+    /**
+     * « Ajouter un voyage »: adds [places] as one trip named [name] (null: the first place), all at
+     * once where the store allows it. Their ids, [TravelPlace.tripId] and [TravelPlace.tripName] are made here.
+     */
+    suspend fun addTrip(memberId: String, places: List<TravelPlace>, name: String?) {
+        places.forEach { addPlace(memberId, it.copy(tripName = name)) }
+    }
+
+    /** Removes a whole trip: each of its places. */
+    suspend fun deletePlaces(memberId: String, placeIds: List<String>) {
+        placeIds.forEach { deletePlace(memberId, it) }
+    }
 }
