@@ -2866,3 +2866,4 @@ Sur un téléphone en Android 10 ou plus :
 5. « Ajoutés à la main » : « Le tour des îles », « sept. 2025 · 8 j · 3 lieux », puis les lieux avec leurs jours. « Retirer » demande confirmation, puis retire tout le voyage.
 6. Un voyage à un seul lieu sans nom s'ajoute comme avant.
 7. Les anciennes destinations dont les dates se suivent apparaissent regroupées en un seul voyage, sans rien refaire.
+
