@@ -88,7 +88,11 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
             combine(sources.map { source -> source.cards(window).catch { emit(emptyList()) } }) { lists -> mergeFeed(lists.toList()) }
         }
     }
-    val cards by flow.collectAsStateWithLifecycle(initialValue = null)
+    // Back from a publication the gazette comes back at once, where it was (l'admin, 26/11): the last
+    // cards of this member show while the fresh ones load, so the list is never empty (and scrolled to
+    // the top) for a moment.
+    val cards by flow.collectAsStateWithLifecycle(initialValue = FeedCardsMemory.of(me.id))
+    LaunchedEffect(cards) { cards?.let { FeedCardsMemory.keep(me.id, it) } }
     val context = LocalContext.current
     val prefs = remember(context) { FeedPreferences(context.applicationContext) }
     var seenAt by remember(me.id) { mutableStateOf(prefs.seenAt(me.id)) }
@@ -127,6 +131,8 @@ fun FeedList(
     val cards = state.cards
     val context = state.context
     LaunchedEffect(cards) { state.onSeen() }
+    // Before the early return below, so the scroll is kept (saved) whatever the loading does.
+    val listState = rememberLazyListState()
     if (cards == null || context == null) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
@@ -152,7 +158,6 @@ fun FeedList(
             GazetteThreadRequest.consume()
         }
     }
-    val listState = rememberLazyListState()
     val nameOf: (String) -> String? = remember(context) { { id -> context.member(id)?.firstName } }
     Box(modifier.fillMaxSize()) {
     LazyColumn(
@@ -230,5 +235,18 @@ fun FeedList(
     if (detail != null && social != null && state.social != null) {
         FeedCardDetail(detail, social, context, state.social, onClose = { detailKey = null })
     }
+    }
+}
+
+/** The last cards shown for a member, kept for the session so the gazette reopens as it was. */
+internal object FeedCardsMemory {
+    private var memberId: String? = null
+    private var cards: List<FeedCard>? = null
+
+    fun of(member: String): List<FeedCard>? = if (memberId == member) cards else null
+
+    fun keep(member: String, list: List<FeedCard>) {
+        memberId = member
+        cards = list
     }
 }
