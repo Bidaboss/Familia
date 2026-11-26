@@ -52,9 +52,9 @@ class DealFeedCard(val deal: GoodDeal) : FeedCard {
                 FeedHeader(
                     member = context.member(deal.authorId),
                     name = deal.authorName,
+                    action = stringResource(if (address) R.string.feed_action_address else R.string.feed_action_deal),
+                    emoji = if (address) "📍" else "🏷️",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(if (address) R.string.feed_label_address else R.string.feed_label_deal),
-                    tone = tone,
                 )
             },
         ) {

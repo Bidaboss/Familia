@@ -48,11 +48,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.data.FAMILY_ZONE
@@ -63,7 +60,6 @@ import fr.familia.app.core.model.GazettePost
 import fr.familia.app.core.model.PostPlace
 import fr.familia.app.core.model.canRemoveGazettePost
 import fr.familia.app.core.photo.StorageImage
-import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.formatTime
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -188,7 +184,7 @@ private fun RemoveDialog(onConfirm: () -> Unit, onClose: () -> Unit) {
     )
 }
 
-/** « (A) Alix a publié 3 photos   ⋯ » then « 8 h 12 · modifié ». */
+/** « (A) **Alix** a publié 3 photos   ⋯ » then « 📷 8 h 12 · modifié ». */
 @Composable
 private fun PostHeader(post: GazettePost, context: FeedContext, onMenu: (() -> Unit)?) {
     val author = context.member(post.authorId)
@@ -201,31 +197,25 @@ private fun PostHeader(post: GazettePost, context: FeedContext, onMenu: (() -> U
     val time = formatTime((post.createdAt ?: Instant.now()).atZone(FAMILY_ZONE).toLocalTime())
     val edited = stringResource(R.string.gazette_post_edited)
     val pending = stringResource(R.string.gazette_post_pending)
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        if (author != null) MemberAvatar(author, size = if (LocalFeedGlass.current) 40.dp else 30.dp)
-        Column(Modifier.weight(1f)) {
-            Text(
-                buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(name) }
-                    append(" ")
-                    append(what)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                listOfNotNull(time, edited.takeIf { post.isEdited }, pending.takeIf { post.pending }).joinToString(" · "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (onMenu != null) {
-            IconButton(onClick = onMenu, modifier = Modifier.size(56.dp)) {
-                Text("⋯", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
-            }
-        }
+    val emoji = when {
+        post.photoIds.isNotEmpty() -> "📷"
+        post.text.isBlank() && post.place != null -> "📍"
+        else -> "✏️"
     }
+    FeedHeader(
+        member = author,
+        name = name,
+        action = what,
+        emoji = emoji,
+        time = listOfNotNull(time, edited.takeIf { post.isEdited }, pending.takeIf { post.pending }).joinToString(" · "),
+        trailing = onMenu?.let { menu ->
+            {
+                IconButton(onClick = menu, modifier = Modifier.size(56.dp)) {
+                    Text("⋯", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+        },
+    )
 }
 
 /**
@@ -313,12 +303,13 @@ private fun openOnMap(context: Context, lat: Double, lng: Double, label: String)
     }
 }
 
-/** The photos one by one, « 1 / 3 » in the corner (fiche C5). */
+/** The photos one by one, edge to edge, « 1 / 3 » in a dark pill in the corner (fiche C5). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PostPhotos(post: GazettePost) {
     val pager = rememberPagerState { post.photoIds.size }
-    Box(Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(16.dp))) {
+    // Edge to edge in the card (prototype: 366 × 200 dp in a card of 368).
+    Box(Modifier.feedEdgeToEdge().fillMaxWidth().aspectRatio(366f / 200f)) {
         HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
             StorageImage(
                 post.photoPath(post.photoIds[page]),

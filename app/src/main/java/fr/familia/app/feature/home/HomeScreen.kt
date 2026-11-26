@@ -65,7 +65,6 @@ import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.PhotoScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -310,16 +309,8 @@ fun HomeRoute(
                     val publish: (() -> Unit)? = if (f.context?.readOnly == false) onPublishPost else null
                     if (photo != null) {
                         // The folded header (brief §3, fiche Y1): « Bonjour » and the line of « Ma
-                        // journée », then the title of the gazette, a glass card each.
-                        val top: @Composable () -> Unit = {
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                photo.header(summary)
-                                PhotoSection(
-                                    title = stringResource(R.string.home_photo_feed),
-                                    colors = PhotoColors.of(photo.theme),
-                                )
-                            }
-                        }
+                        // journée »; no title over the gazette (prototype, retour du 26/11).
+                        val top: @Composable () -> Unit = { photo.header(summary) }
                         CompositionLocalProvider(LocalFeedGlass provides true) { FeedList(f, top = top, onPublish = publish) }
                     } else {
                         FeedList(f, top = { summary() }, onPublish = publish)

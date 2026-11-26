@@ -18,7 +18,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -62,7 +66,7 @@ class FeedState(
 )
 
 /** The brown of « ＋ Publier » (brief §3: « brun très foncé, texte clair »). */
-private val PublishBrown = Color(0xFF3B2A1E)
+private val PublishBrown = Color(0xFF3A2A1A)
 
 /** « Voir plus ancien » goes back 14 days each time, 12 weeks at most. */
 private const val MAX_PAGES = 6
@@ -149,6 +153,7 @@ fun FeedList(
         }
     }
     val listState = rememberLazyListState()
+    val nameOf: (String) -> String? = remember(context) { { id -> context.member(id)?.firstName } }
     Box(modifier.fillMaxSize()) {
     LazyColumn(
         state = listState,
@@ -171,12 +176,13 @@ fun FeedList(
         }
         feedDays(cards).forEach { (day, onDay) ->
             item(key = "day-$day") {
-                FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel), Modifier.padding(vertical = 4.dp))
+                FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel), feedDayEmoji(day, context.today))
             }
             items(onDay, key = { it.key }) { card ->
                 // Only a card whose comments live on its thread has a detail; the others open their page.
                 val openDetail: (() -> Unit)? = if (state.social != null && card.social?.own == null) ({ detailKey = card.key }) else null
                 CompositionLocalProvider(
+                    LocalFeedMemberName provides nameOf,
                     LocalFeedSocialEnv provides state.social,
                     LocalFeedCardSocial provides card.social,
                     LocalFeedCardDetail provides openDetail,
@@ -187,8 +193,14 @@ fun FeedList(
         }
         if (state.canLoadMore) {
             item(key = "more") {
-                OutlinedButton(onClick = state.onMore, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.feed_more))
+                // A button of cream glass, dark brown text (prototype), readable on the photo.
+                Button(
+                    onClick = state.onMore,
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xF2FFFAF2), contentColor = PublishBrown),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                ) {
+                    Text(stringResource(R.string.feed_more), fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
@@ -198,10 +210,13 @@ fun FeedList(
         val atTop by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 40 } }
         val label = stringResource(R.string.gazette_publish_fab)
         ExtendedFloatingActionButton(
-            text = { Text(label, fontWeight = FontWeight.ExtraBold) },
-            icon = { Text("＋", fontWeight = FontWeight.ExtraBold) },
+            // Prototype: 16 sp, 800, radius 24, a marked shadow.
+            text = { Text(label, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) },
+            icon = { Text("＋", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold) },
             expanded = atTop,
             onClick = onPublish,
+            shape = RoundedCornerShape(24.dp),
+            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 10.dp, pressedElevation = 6.dp),
             containerColor = PublishBrown,
             contentColor = Color(0xFFFFF6EA),
             modifier = Modifier

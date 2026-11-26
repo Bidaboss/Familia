@@ -15,19 +15,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRail
-import androidx.compose.material.icons.outlined.Add
 import fr.familia.app.feature.albums.FeedPhotosDestination
 import fr.familia.app.feature.albums.FeedPhotosRoute
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
 import fr.familia.app.feature.all.ModuleSpec
 import fr.familia.app.core.ui.ModuleEmoji
-import fr.familia.app.feature.home.HomeAddOptions
-import fr.familia.app.feature.home.HomeAddSheet
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -838,23 +834,6 @@ fun FamiliaApp(
         var accountOpen by rememberSaveable { mutableStateOf(false) }
         // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
         val useRail = LocalConfiguration.current.screenWidthDp >= 600
-        var addOpen by rememberSaveable { mutableStateOf(false) }
-        // The « + » of the Accueil: what can be added, each only with its module.
-        if (addOpen) {
-            HomeAddSheet(
-                options = HomeAddOptions(
-                    // « Dire où je suis » first (DESIGN, 17/11): it left the Accueil for « + ».
-                    onWhereAmI = if (features.isOn(Feature.Places)) ({ navController.navigate(JoinMeDestination) { launchSingleTop = true } }) else null,
-                    onEvent = { navController.navigate(EventEditDestination()) },
-                    // « Une photo » chooses its album (DESIGN, 17/11).
-                    onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,
-                    onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
-                    // « Ajouter une envie » only on the screen of the wishes (retour de l'admin, 18/11).
-                    onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
-                ),
-                onDismiss = { addOpen = false },
-            )
-        }
         if (accountOpen) {
             val shareContext = LocalContext.current
             val inViewAs = LocalViewAs.current.viewed != null
@@ -928,10 +907,6 @@ fun FamiliaApp(
                         greeting = if (tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
                         // The Planning is a page (récit 82), and Entraide once Voyages is in the bar: the round « Retour » goes back to the Accueil.
                         onBack = if (TopLevelDestination.isPage(tab, features)) ({ if (!navController.popBackStack()) navController.navigateToTab(TopLevelDestination.Home) }) else null,
-                        onAdd = when {
-                            tab == TopLevelDestination.Home -> ({ addOpen = true })
-                            else -> null
-                        },
                     )
                 }
             },
@@ -974,17 +949,10 @@ fun FamiliaApp(
             },
         ) { innerPadding ->
             // Consumed here, so the inner screens with their own Scaffold do not add the system bars again.
-            // R1 bis on a tablet (§5): the tabs go to a rail on the left, with « + » at its top on the Accueil.
+            // R1 bis on a tablet (§5): the tabs go to a rail on the left (the gazette has « ＋ Publier », brief §3).
             Row(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
             if (onTab && useRail) {
                 NavigationRail(
-                    header = {
-                        if (currentDestination.isOn(TopLevelDestination.Home)) {
-                            FloatingActionButton(onClick = { addOpen = true }) {
-                                Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add))
-                            }
-                        }
-                    },
                     modifier = Modifier.width(88.dp),
                 ) {
                     tabs.forEach { destination ->
@@ -1030,7 +998,6 @@ fun FamiliaApp(
                                     PhotoHomeHeader(
                                         firstName = currentMember.firstName,
                                         today = today,
-                                        onAdd = { addOpen = true },
                                         avatar = { AccountButton(currentMember) { accountOpen = true } },
                                         summary = summary,
                                     )
@@ -2227,8 +2194,6 @@ private fun TabTopBar(
     onAccount: (() -> Unit)? = null,
     /** « Bonjour Camille » in place of the tab name, on the R1 bis Accueil. */
     greeting: String? = null,
-    /** The « + » of the R1 bis Accueil, before « ? ». The Planning has its « + Ajouter » at the bottom (récit 75). */
-    onAdd: (() -> Unit)? = null,
     /** The round « Retour » of a tab opened as a page: the Planning (récit 82). */
     onBack: (() -> Unit)? = null,
     /** The tab lies on the banner of its photo (règle 20): its title is white until the content scrolls under it. */
@@ -2303,14 +2268,7 @@ private fun TabTopBar(
                     }
                     HelpButton(ScreenHelp.Planning)
                 }
-                TopLevelDestination.Home -> {
-                    onAdd?.let { add ->
-                        IconButton(onClick = add, modifier = Modifier.size(56.dp)) {
-                            Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add))
-                        }
-                    }
-                    HelpButton(ScreenHelp.Home)
-                }
+                TopLevelDestination.Home -> HelpButton(ScreenHelp.Home)
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
                 TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
                 TopLevelDestination.Trips -> HelpButton(ScreenHelp.Trips)

@@ -2,6 +2,7 @@ package fr.familia.app.feature.feed
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -21,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.heading
@@ -31,11 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.text.TextStyle
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.theme.LocalClayColors
-import fr.familia.app.core.theme.PhotoSectionShadow
-import fr.familia.app.core.theme.PhotoSectionText
 import fr.familia.app.core.theme.photoCard
 import fr.familia.app.core.ui.MemberAvatar
 
@@ -90,8 +92,7 @@ fun FeedCardShell(
             Modifier
                 .clip(shape)
                 .then(if (onOpen != null) Modifier.clickable(onClick = onOpen) else Modifier)
-                // The 5 dp of the former bar go to the left margin: the content does not move.
-                .padding(start = 17.dp, end = 12.dp, top = 12.dp, bottom = 10.dp),
+                .padding(start = CARD_SIDE, end = CARD_SIDE, top = 10.dp, bottom = 4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             header?.invoke()
@@ -145,8 +146,9 @@ private fun GlassCard(
                     .fillMaxWidth()
                     .photoCard(GLASS_CORNER)
                     .then(if (onOpen != null) Modifier.clickable(onClick = onOpen) else Modifier)
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                    // The prototype (.fcard): 10 dp at the top, 14 on the sides, 4 at the bottom.
+                    .padding(start = CARD_SIDE, end = CARD_SIDE, top = 10.dp, bottom = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 header?.invoke()
                 content()
@@ -158,21 +160,53 @@ private fun GlassCard(
 
 private val GLASS_CORNER = 24.dp
 
-/** « (I) Inès · 9 h 12          [Bonne nouvelle] »: who, when, and the module. */
+/** The side margin inside a card; a photo goes over it, edge to edge ([feedEdgeToEdge]). */
+private val CARD_SIDE = 14.dp
+
+/**
+ * A photo of a card from edge to edge (prototype: 366 dp in a card of 368): it takes the side
+ * margins of the card back.
+ */
+fun Modifier.feedEdgeToEdge(): Modifier = layout { measurable, constraints ->
+    val side = CARD_SIDE.roundToPx()
+    val wide = if (constraints.hasBoundedWidth) constraints.maxWidth + 2 * side else constraints.maxWidth
+    val placeable = measurable.measure(constraints.copy(minWidth = wide, maxWidth = wide))
+    val shown = (placeable.width - 2 * side).coerceAtLeast(0)
+    layout(shown, placeable.height) { placeable.place(-side, 0) }
+}
+
+/**
+ * The top of a card (prototype, .fh): who in bold and what, « **Alix** a publié 3 photos », then the
+ * emoji of the kind of card and the time, « 📷 8 h 12 ». No pill of the module: the emoji says it.
+ * [trailing] is the « ⋯ » of my own publication.
+ */
 @Composable
-fun FeedHeader(member: Member?, name: String, time: String, label: String, tone: FeedTone) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        val glass = LocalFeedGlass.current
-        if (member != null) MemberAvatar(member, size = if (glass) 40.dp else 30.dp)
-        Text(
-            "$name · $time",
-            style = if (glass) MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp) else MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-        FeedLabel(label, tone)
+fun FeedHeader(
+    member: Member?,
+    name: String,
+    action: String,
+    emoji: String,
+    time: String,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (member != null) MemberAvatar(member, size = 34.dp)
+        Column(Modifier.weight(1f)) {
+            val style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp, lineHeight = 19.sp)
+            Text(
+                androidx.compose.ui.text.buildAnnotatedString {
+                    pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold))
+                    append(name)
+                    pop()
+                    if (action.isNotBlank()) append(" $action")
+                },
+                style = style,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text("$emoji $time", style = style, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        }
+        trailing?.invoke()
     }
 }
 
@@ -192,7 +226,7 @@ fun FeedLabel(label: String, tone: FeedTone) {
     )
 }
 
-/** « Hugo : Champion ! », the last comment of a card, on one line. */
+/** « **Hugo** Champion ! », the last comment of a card, on one line (prototype: no colon). */
 @Composable
 fun FeedLastComment(name: String, text: String) {
     Text(
@@ -200,7 +234,7 @@ fun FeedLastComment(name: String, text: String) {
             pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold))
             append(name)
             pop()
-            append(" : ")
+            append(" ")
             append(text.replace(Regex("\\s+"), " "))
         },
         style = MaterialTheme.typography.bodyMedium,
@@ -210,19 +244,44 @@ fun FeedLastComment(name: String, text: String) {
     )
 }
 
-/** « Aujourd'hui ———— », the day of the cards under it. */
+/** The orange of the day marks (prototype, .fd). */
+private val DayOrange = Color(0xFFE8902F)
+
+/** The brown of the inside of a day mark, on the photo as on the cream. */
+private val DayBrown = Color(0xE63A2A1A)
+
+/**
+ * « ── (☀️) Aujourd'hui · mardi 24 novembre ── » (prototype, .fnew.fd): a pill outlined in orange,
+ * centered, the emoji of the day in an orange round, a short white line on each side.
+ */
 @Composable
-fun FeedDayHeader(label: String, modifier: Modifier = Modifier) {
+fun FeedDayHeader(label: String, emoji: String, modifier: Modifier = Modifier) {
     val glass = LocalFeedGlass.current
-    // On the photo: white with its shadow, like « Aujourd'hui » (dark with « Le haut seulement »).
-    val ink = if (glass) PhotoSectionText else MaterialTheme.colorScheme.onSurface
-    val style: TextStyle = if (glass) MaterialTheme.typography.titleLarge.copy(shadow = PhotoSectionShadow) else MaterialTheme.typography.titleLarge
-    Row(modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = style, color = ink, modifier = Modifier.semantics { heading() })
-        Spacer(Modifier.width(10.dp))
-        Box(
-            Modifier.weight(1f).height(2.dp).clip(RoundedCornerShape(1.dp))
-                .background(if (glass) ink.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
-        )
+    val line = if (glass) Color.White else MaterialTheme.colorScheme.outlineVariant
+    Row(
+        modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Box(Modifier.width(32.dp).height(2.dp).clip(RoundedCornerShape(1.dp)).background(line))
+        Spacer(Modifier.width(12.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .clip(RoundedCornerShape(24.dp))
+                .background(DayBrown)
+                .border(BorderStroke(2.5.dp, DayOrange), RoundedCornerShape(24.dp))
+                .padding(start = 5.dp, end = 16.dp, top = 5.dp, bottom = 5.dp)
+                .semantics(mergeDescendants = true) { heading() },
+        ) {
+            Box(Modifier.size(32.dp).clip(CircleShape).background(DayOrange), contentAlignment = Alignment.Center) {
+                Text(emoji, fontSize = 16.sp, modifier = Modifier.clearAndSetSemantics { })
+            }
+            Spacer(Modifier.width(10.dp))
+            Text(label, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        Spacer(Modifier.width(12.dp))
+        Box(Modifier.width(32.dp).height(2.dp).clip(RoundedCornerShape(1.dp)).background(line))
     }
 }

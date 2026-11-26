@@ -7,6 +7,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,6 +60,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
@@ -167,7 +176,7 @@ fun reactionSummary(thread: GazetteThread): List<String> =
         .map { it.key }
 
 /** The bar under a card: J'aime, Commenter, the 2 latest comments, and the field once opened. */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun FeedSocialBar(
     social: FeedSocial,
@@ -195,6 +204,7 @@ fun FeedSocialBar(
     val context = LocalContext.current
     val failed = stringResource(R.string.feed_social_failed)
     var choosing by remember { mutableStateOf(false) }
+    var whoLiked by remember { mutableStateOf(false) }
     var writing by rememberSaveable(social.threadId) { mutableStateOf(false) }
     fun react(reaction: String?) {
         scope.launch {
@@ -209,7 +219,8 @@ fun FeedSocialBar(
     }
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // J'aime, Commenter and « Qui a aimé ? » on one line, the last one going under when it is narrow.
+        FlowRow(verticalArrangement = Arrangement.Center) {
             val likeLabel = stringResource(R.string.feed_social_like)
             val count = thread.reactions.size
             val spoken = if (count > 0) pluralStringResource(R.plurals.feed_social_likes, count, count) else likeLabel
@@ -242,17 +253,14 @@ fun FeedSocialBar(
                             }
                         },
                 ) {
-                    Text(mine ?: "♡", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.width(6.dp))
+                    // « ♡ 8 J'aime » (prototype): 18 sp, bold, dark brown, the count from 1.
+                    Text(mine ?: "♡", style = BarStyle, color = BarInk)
+                    Spacer(Modifier.width(8.dp))
                     if (count > 0) {
-                        Text(
-                            reactionSummary(thread).filter { it != mine }.take(2).joinToString("") + " $count",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
+                        Text("$count", style = BarStyle, color = BarInk)
                         Spacer(Modifier.width(6.dp))
                     }
-                    Text(likeLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold)
+                    Text(likeLabel, style = BarStyle, color = BarInk)
                 }
                 DropdownMenu(expanded = choosing, onDismissRequest = { choosing = false }) {
                     Row {
@@ -290,36 +298,52 @@ fun FeedSocialBar(
                             role = Role.Button
                         },
                 ) {
-                    Text("💬", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.width(6.dp))
-                    Text(commentLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold)
-                }
-                Spacer(Modifier.weight(1f))
-                if (comments.count > 0 && openComments != null) {
-                    // The counter opens the card and all its comments (brief §4).
-                    val countText = pluralStringResource(R.plurals.feed_comment_count, comments.count, comments.count)
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .heightIn(min = 56.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .combinedClickable(onClick = openComments)
-                            .padding(horizontal = 8.dp)
-                            .clearAndSetSemantics {
-                                contentDescription = countText
-                                role = Role.Button
-                            },
-                    ) {
-                        Text(
-                            pluralStringResource(R.plurals.feed_social_comments, comments.count, comments.count),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    // « 💬 2 Commenter » (prototype).
+                    Text("💬", style = BarStyle, color = BarInk)
+                    Spacer(Modifier.width(8.dp))
+                    if (comments.count > 0) {
+                        Text("${comments.count}", style = BarStyle, color = BarInk)
+                        Spacer(Modifier.width(6.dp))
                     }
+                    Text(commentLabel, style = BarStyle, color = BarInk)
                 }
             }
+            if (!inDetail && count > 0) {
+                // « Qui a aimé ? » (prototype): who gave which J'aime.
+                Text(
+                    stringResource(R.string.feed_who_liked),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+                    color = BarInk,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier
+                        .heightIn(min = 56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .combinedClickable(onClick = { whoLiked = true })
+                        .padding(horizontal = 8.dp, vertical = 18.dp)
+                        .semantics { role = Role.Button },
+                )
+            }
         }
-        if (!inDetail) comments.last.takeLast(FEED_COMMENTS_SHOWN).forEach { FeedCommentText(it) }
+        if (!inDetail) {
+            // The 2 last comments; a touch opens the card with all of them (brief §4).
+            val shown = comments.last.takeLast(FEED_COMMENTS_SHOWN)
+            if (shown.isNotEmpty()) {
+                val allLabel = pluralStringResource(R.plurals.feed_comment_count, comments.count, comments.count)
+                Column(
+                    if (openComments != null) {
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .combinedClickable(onClickLabel = allLabel, onClick = openComments)
+                    } else {
+                        Modifier
+                    },
+                    verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+                ) { shown.forEach { FeedCommentText(it) } }
+            }
+        }
+        if (whoLiked) WhoLikedSheet(thread, onClose = { whoLiked = false })
         if (!inDetail && writing && canComment) {
             FeedCommentField(
                 onSend = { text ->
@@ -339,6 +363,43 @@ fun FeedSocialBar(
                     }
                 },
             )
+        }
+    }
+}
+
+/** The ink and the size of the bar (prototype: 18 sp, 700, #3A2A1A). */
+private val BarInk = androidx.compose.ui.graphics.Color(0xFF3A2A1A)
+private val BarStyle = androidx.compose.ui.text.TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+/** The first name of a member of the family, for « Qui a aimé ? »; given by the gazette. */
+val LocalFeedMemberName = staticCompositionLocalOf<(String) -> String?> { { null } }
+
+/** « Qui a aimé ? »: each J'aime with who gave it, the most given first. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WhoLikedSheet(thread: GazetteThread, onClose: () -> Unit) {
+    val nameOf = LocalFeedMemberName.current
+    val order = reactionSummary(thread)
+    val rows = thread.reactions.entries
+        .mapNotNull { (id, emoji) -> nameOf(id)?.let { emoji to it } }
+        .sortedWith(compareBy<Pair<String, String>> { order.indexOf(it.first) }.thenBy { it.second })
+    ModalBottomSheet(onDismissRequest = onClose) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp).navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                stringResource(R.string.feed_who_liked_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 8.dp).semantics { heading() },
+            )
+            rows.forEach { (emoji, name) ->
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(emoji, style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.width(12.dp))
+                    Text(name, style = MaterialTheme.typography.bodyLarge)
+                }
+            }
         }
     }
 }

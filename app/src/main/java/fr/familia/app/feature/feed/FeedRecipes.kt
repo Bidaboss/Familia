@@ -80,9 +80,9 @@ class RecipeFeedCard(
                 FeedHeader(
                     member = context.member(recipe.authorId),
                     name = recipe.authorName,
+                    action = stringResource(R.string.feed_action_recipe),
+                    emoji = "🍳",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_recipe),
-                    tone = tone,
                 )
             },
         ) {

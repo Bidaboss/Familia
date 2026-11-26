@@ -106,9 +106,9 @@ class FilmFeedCard(
                 FeedHeader(
                     member = author,
                     name = author?.firstName ?: film.authorName,
+                    action = stringResource(R.string.feed_action_film),
+                    emoji = "🎬",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_film),
-                    tone = tone,
                 )
             },
         ) {

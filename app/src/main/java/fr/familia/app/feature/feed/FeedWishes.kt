@@ -1,12 +1,9 @@
 package fr.familia.app.feature.feed
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.R
 import fr.familia.app.core.data.FAMILY_ZONE
@@ -101,26 +98,20 @@ class WishesFeedCard(val wishes: WishesDay) : FeedCard {
                 FeedHeader(
                     member = person,
                     name = name,
+                    action = pluralStringResource(R.plurals.feed_action_wishes, wishes.titles.size, wishes.titles.size),
+                    emoji = "🎁",
                     time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_wishes),
-                    tone = tone,
                 )
             },
         ) {
-            Column {
-                Text(
-                    pluralStringResource(R.plurals.feed_wishes_added, wishes.titles.size, name, wishes.titles.size),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                )
-                Text(
-                    wishes.titles.joinToString(" · "),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            // The header says « a ajouté 6 envies »: here only what they are (prototype).
+            Text(
+                wishes.titles.joinToString(" · "),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
