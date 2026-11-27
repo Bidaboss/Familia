@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -95,7 +94,8 @@ const val TRIP_COVER_KEY = "_trip"
 /** The place named by the title of the trip, looked for once (récit 124); null while looking or when the name is no sure place. */
 @Composable
 fun rememberTripNamePlace(title: String, photos: PlacePhotos?): NamedPlace? {
-    val found by produceState<NamedPlace?>(null, title, photos) { value = photos?.ofTripName(title) }
+    var found by androidx.compose.runtime.remember(title, photos) { mutableStateOf<NamedPlace?>(null) }
+    LaunchedEffect(title, photos) { found = photos?.ofTripName(title) }
     return found
 }
 
