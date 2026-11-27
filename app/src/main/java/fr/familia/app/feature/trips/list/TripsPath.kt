@@ -24,6 +24,8 @@ data class TripSummary(
     val distanceKm: Int? = null,
     /** The photo chosen for that destination with « Autre photo », the same for the whole family; null: the one found. */
     val cover: fr.familia.app.core.place.PlacePhoto? = null,
+    /** The photo chosen with « Autre photo » for the place named by the trip (récit 124); null: the one found. */
+    val nameCover: fr.familia.app.core.place.PlacePhoto? = null,
 )
 
 /**

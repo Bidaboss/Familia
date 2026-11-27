@@ -72,6 +72,14 @@ describe('chosen cover photo of a destination', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/covers/nowhere'), cover(ADULT)));
   });
 
+  test('the photo of the place named by the trip goes under « _trip », never under another missing destination (récit 124)', async () => {
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/covers/_trip'), cover(NEIGHBOUR)));
+    await assertSucceeds(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/covers/_trip')));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'trips/t1/covers/_trip'), cover(OTHER_ADULT)));
+    await assertFails(setDoc(doc(as(env, ADULT), 'trips/t1/covers/trip'), cover(ADULT)));
+    await assertFails(setDoc(doc(as(env, ADULT), 'trips/t1/covers/_trip'), cover(ADULT, { url: 'https://example.com/a.jpg' })));
+  });
+
   test('a participant or the admin principal removes it', async () => {
     await storedCover();
     await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/covers/s1')));

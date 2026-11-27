@@ -52,4 +52,37 @@ class TripCoverTest {
         assertEquals(listOf("Printemps"), places.map { it.name })
         assertFalse(places.single().fromStep)
     }
+
+    @Test
+    fun thePlaceNamedByTheTripComesFirstThenTheDestinationsEachOnce() {
+        val steps = listOf(step(StepType.Lodging, "Naxos", 11), step(StepType.Lodging, "Cyclades", 13))
+        val named = fr.familia.app.core.place.NamedPlace("Cyclades", 37.0, 25.0)
+        val places = coverPlacesWithName(trip, steps, named, chosenForName = false)
+        assertEquals(listOf("Cyclades", "Naxos"), places.map { it.name })
+        assertEquals(TRIP_COVER_KEY, places[0].stepId)
+        assertEquals(37.0, places[0].point!!.lat, 0.0)
+    }
+
+    @Test
+    fun withoutASurePlaceTheCoverStaysOnTheDestinations() {
+        val steps = listOf(step(StepType.Lodging, "Naxos", 11))
+        assertEquals(coverPlaces(trip, steps), coverPlacesWithName(trip, steps, null, chosenForName = false))
+        assertEquals(coverPlaces(trip, emptyList()), coverPlacesWithName(trip, emptyList(), null, chosenForName = false))
+    }
+
+    @Test
+    fun aPhotoChosenForTheNameStaysWhenTheNameChanges() {
+        val steps = listOf(step(StepType.Lodging, "Naxos", 11))
+        val places = coverPlacesWithName(trip, steps, null, chosenForName = true)
+        assertEquals(listOf("Printemps", "Naxos"), places.map { it.name })
+        assertEquals(TRIP_COVER_KEY, places[0].stepId)
+        assertFalse(places[0].fromStep)
+        assertNull(places[0].point)
+    }
+
+    @Test
+    fun aTripWithoutStepsShowsThePlaceOfItsNameInsteadOfItsTitle() {
+        val named = fr.familia.app.core.place.NamedPlace("Cyclades", 37.0, 25.0)
+        assertEquals(listOf("Cyclades"), coverPlacesWithName(trip, emptyList(), named, chosenForName = false).map { it.name })
+    }
 }
