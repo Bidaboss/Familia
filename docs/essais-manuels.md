@@ -2878,3 +2878,13 @@ Sur un téléphone en Android 10 ou plus :
 6. « Enregistrer » : la feuille se ferme, « … modifié » s'affiche, et les compteurs, les pays et le planisphère suivent. Un groupe d'anciennes destinations modifié devient un seul voyage enregistré.
 7. « Annuler » ferme sans rien changer. « Retirer ce voyage », en rouge, demande confirmation puis retire tout le voyage.
 8. « Voir comme » : ni crayon, ni ligne à toucher.
+
+## Voyages : la photo d'après le nom du voyage (récit 124)
+
+**Publier Firebase : oui** (« Autre photo » peut se ranger sous `_trip`, la photo du nom du voyage), puis « APK de publication ».
+1. Créer (ou renommer) un voyage « Les Cyclades » avec une destination « Naxos ». La grande photo montre d'abord les Cyclades (l'étiquette dit « Cyclades »), puis Naxos. La tuile de la liste des voyages montre la photo des Cyclades.
+2. « Voyage aux Cyclades 2026 », « Week-end à Rome », « Vacances en Bretagne été 2027 » trouvent aussi le lieu (les mots autour du nom sont laissés de côté).
+3. Un nom qui n'est pas un lieu sûr (« Vacances de Mamie », « Printemps ») : rien ne change, la photo est celle de la première destination, sinon le dessin.
+4. Sur la photo des Cyclades, « Autre photo » propose les autres photos autour des Cyclades ; sur Naxos, celles autour de Naxos. La tuile de la liste suit le choix.
+5. Renommer ensuite le voyage « Printemps » : la photo choisie à la main reste en premier, sous le nom du voyage, sans « Autre photo ».
+6. « Crédits des photos », en bas du voyage, cite aussi la photo du nom.

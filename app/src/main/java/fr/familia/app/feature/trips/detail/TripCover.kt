@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,7 +55,9 @@ import fr.familia.app.R
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.core.place.NamedPlace
 import fr.familia.app.core.place.PlacePhoto
+import fr.familia.app.core.place.foldedName
 import fr.familia.app.core.place.PlacePhotos
 import fr.familia.app.core.power.rememberBatterySaving
 import fr.familia.app.feature.trips.PlaceCover
@@ -86,6 +89,31 @@ fun coverPlaces(trip: Trip, steps: List<TripStep>): List<CoverPlace> {
     return places.ifEmpty { listOf(CoverPlace(trip.title, null, fromStep = false)) }.take(MAX_COVER_PLACES)
 }
 
+/** The key of the photo of the name of the trip among the photos chosen with « Autre photo » (récit 124). */
+const val TRIP_COVER_KEY = "_trip"
+
+/** The place named by the title of the trip, looked for once (récit 124); null while looking or when the name is no sure place. */
+@Composable
+fun rememberTripNamePlace(title: String, photos: PlacePhotos?): NamedPlace? {
+    val found by produceState<NamedPlace?>(null, title, photos) { value = photos?.ofTripName(title) }
+    return found
+}
+
+/**
+ * The places of the cover with the name of the trip first (récit 124): the place it names
+ * (« Les Cyclades »), else, when a photo was chosen by hand for the name and the name changed since,
+ * that photo under the title; then the destinations, each once. Without either, [coverPlaces].
+ */
+fun coverPlacesWithName(trip: Trip, steps: List<TripStep>, named: NamedPlace?, chosenForName: Boolean): List<CoverPlace> {
+    val places = coverPlaces(trip, steps)
+    val first = when {
+        named != null -> CoverPlace(named.title, GeoPoint(named.lat, named.lng), stepId = TRIP_COVER_KEY)
+        chosenForName -> CoverPlace(trip.title, null, fromStep = false, stepId = TRIP_COVER_KEY)
+        else -> return places
+    }
+    return (listOf(first) + places.filter { it.fromStep }).distinctBy { foldedName(it.name) }.take(MAX_COVER_PLACES)
+}
+
 /** A transport written « Paris → Bordeaux »: its point is not the one of its arrival. */
 private fun isRoute(step: TripStep): Boolean = step.type != StepType.Lodging && step.type != StepType.Activity && '→' in step.place
 
@@ -114,7 +142,8 @@ fun TripCoverCarousel(
     /** True while the other photo is looked for: the button waits. */
     choosing: Boolean = false,
 ) {
-    val places = coverPlaces(trip, steps)
+    // Récit 124: the place of the name of the trip first, then its destinations.
+    val places = coverPlacesWithName(trip, steps, rememberTripNamePlace(trip.title, photos), TRIP_COVER_KEY in covers)
     val pager = rememberPagerState { places.size }
     val context = LocalContext.current
     var paused by rememberSaveable { mutableStateOf(animationsOff(context) || talkBackOn(context)) }
@@ -255,13 +284,13 @@ private fun CoverFigure(value: String, label: String) {
  */
 @Composable
 fun TripPhotoCredits(trip: Trip, steps: List<TripStep>, photos: PlacePhotos?, modifier: Modifier = Modifier, covers: Map<String, PlacePhoto> = emptyMap()) {
-    if (photos == null || steps.isEmpty()) return
-    val places = coverPlaces(trip, steps)
+    if (photos == null) return
+    val places = coverPlacesWithName(trip, steps, rememberTripNamePlace(trip.title, photos), TRIP_COVER_KEY in covers)
     var credits by androidx.compose.runtime.remember { mutableStateOf(emptyList<Pair<String, String>>()) }
     LaunchedEffect(places, photos, covers) {
         val found = mutableListOf<Pair<String, String>>()
         // The free title of a trip without a destination never goes to Wikipedia, as on the cover.
-        for (place in places.filter { it.fromStep }) {
+        for (place in places.filter { it.fromStep || it.stepId?.let(covers::containsKey) == true }) {
             // « Autre photo »: the photo chosen for the family, else the one found.
             val photo = place.stepId?.let { covers[it] } ?: photos.of(place.name, place.point?.lat, place.point?.lng)
             if (photo != null && found.none { it.second == photo.credit }) found += place.name to photo.credit

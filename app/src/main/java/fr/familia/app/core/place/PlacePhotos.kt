@@ -35,7 +35,17 @@ interface PlacePhotos {
      * the second chance of a cover whose image could not be shown (retour E-47).
      */
     suspend fun near(lat: Double, lng: Double, except: String? = null): PlacePhoto? = null
+
+    /**
+     * The place named by the title of a trip (récit 124, « Les Cyclades »): only a sure one, a page
+     * of Wikipedia with a position whose title is the name itself, and that has a photo. Null for any
+     * other name (« Vacances de Mamie »): the cover keeps the photo of the first destination.
+     */
+    suspend fun ofTripName(name: String): NamedPlace? = null
 }
+
+/** The place found for the title of a trip: the title of its page and its point. */
+data class NamedPlace(val title: String, val lat: Double, val lng: Double)
 
 /** The summary service of Wikipedia in French then the image info of Commons: free, no key, a generic User-Agent. */
 class WikimediaPlacePhotos(
@@ -43,6 +53,27 @@ class WikimediaPlacePhotos(
     private val onRefused: (String) -> Unit = {},
 ) : PlacePhotos {
     private val known = java.util.concurrent.ConcurrentHashMap<String, Result<PlacePhoto?>>()
+    private val named = java.util.concurrent.ConcurrentHashMap<String, Result<NamedPlace?>>()
+
+    override suspend fun ofTripName(name: String): NamedPlace? {
+        val candidates = tripNameCandidates(name)
+        if (candidates.isEmpty()) return null
+        val key = foldedName(candidates.first())
+        named[key]?.let { return it.getOrNull() }
+        val found = withContext(Dispatchers.IO) {
+            withTimeoutOrNull(TIMEOUT_MS) {
+                runCatching {
+                    candidates.firstNotNullOfOrNull { candidate ->
+                        read(photoSummaryUrl(candidate))?.let(::parseSummaryPlace)?.takeIf { isSureNameMatch(candidate, it.title) }
+                    }
+                }
+            }
+        }
+        // A sure place without any photo, even around it, is no cover: the first destination stays.
+        val place = found?.getOrNull()?.takeIf { of(it.title, it.lat, it.lng) != null }
+        if (found != null && found.isSuccess) named[key] = Result.success(place)
+        return place
+    }
 
     override suspend fun of(place: String): PlacePhoto? {
         val title = place.trim().take(MAX_TITLE).takeIf { it.isNotEmpty() } ?: return null
@@ -180,6 +211,63 @@ fun noPhotoLine(withPoint: Boolean): String =
  */
 fun titleCandidates(place: String): List<String> =
     listOf(place.trim(), place.substringBefore(',').trim()).filter { it.isNotEmpty() }.distinct()
+
+/** Words around the place in the title of a trip: « Voyage aux », « Vacances en », « Week-end à ». */
+private val TRIP_NAME_PREFIX = Regex(
+    "^(?:(?:mon|notre|nos|le|la|les|un|une)\\s+)?(?:grand\\s+|petit\\s+)?(?:voyage|vacances|séjour|sejour|week-end|weekend|week end|escapade|road[- ]?trip|tour|circuit|virée|viree|trip)s?(?![\\p{L}])(?:\\s+(?:d[\'’]été|d[\'’]hiver|de printemps|d[\'’]automne|de noël|de la toussaint|de pâques|en famille)(?![\\p{L}]))?(?:\\s+(?:dans les|dans le|dans la|aux|au|à|a|en|des|du|de|chez|vers|sur)(?=\\s)|\\s+d[\'’])?\\s*",
+    RegexOption.IGNORE_CASE,
+)
+
+/** « 2026 », « été 2026 », « (août) » or « en famille » at the end of the title of a trip. */
+private val TRIP_NAME_SUFFIX = Regex(
+    "(?:\\s*[-–—,:]?\\s*(?:\\((?:[^)]*)\\)|(?:en|l')?\\s*(?:été|hiver|printemps|automne)|en famille|(?:19|20)\\d{2}(?:\\s*[-/]\\s*(?:19|20)?\\d{2})?))+\\s*$",
+    RegexOption.IGNORE_CASE,
+)
+
+/** « Les », « La », « Le », « L' » at the start of a name. */
+private val LEADING_ARTICLE = Regex("^(?:(?:les|la|le)\\s+|l['’]\\s*)", RegexOption.IGNORE_CASE)
+
+/**
+ * The names tried for the title of a trip (récit 124): « Voyage aux Cyclades 2026 » gives
+ * « Cyclades »; « Les Cyclades » gives « Les Cyclades » then « Cyclades ». Empty for a name too short
+ * to be a place. Never twice.
+ */
+fun tripNameCandidates(title: String): List<String> {
+    val plain = title.replace(Regex("\\p{So}|\\p{Cs}"), " ").replace(Regex("\\s+"), " ").trim()
+    val cleaned = plain.replace(TRIP_NAME_SUFFIX, "").replace(TRIP_NAME_PREFIX, "").replace(TRIP_NAME_SUFFIX, "").trim(' ', '-', ',', '!', '.')
+    val name = cleaned.ifEmpty { return emptyList() }
+    return listOf(name, name.replace(LEADING_ARTICLE, "").trim())
+        .filter { it.length >= 3 && it.length <= 60 && it.any(Char::isLetter) }
+        .distinct()
+}
+
+/**
+ * Whether the page [title] is surely the place [name] (récit 124, no false friend): the same name,
+ * folded, without its first article nor a precision in brackets: « Cyclades » for « Les Cyclades »
+ * is sure, « Paris Saint-Germain » for « Paris » is not.
+ */
+fun isSureNameMatch(name: String, title: String): Boolean {
+    fun core(text: String) = foldedName(text.substringBefore(" (").replace(LEADING_ARTICLE, ""))
+    val wanted = core(name)
+    return wanted.length >= 3 && wanted == core(title)
+}
+
+/**
+ * The place of a summary of Wikipedia: its title and point, only for a page about one place
+ * (« standard », with coordinates). Null for a disambiguation, a person, a word, something unreadable.
+ */
+fun parseSummaryPlace(json: String): NamedPlace? = runCatching {
+    val root = Json.parseToJsonElement(json).jsonObject
+    if (root["type"]?.jsonPrimitive?.contentOrNull != "standard") return@runCatching null
+    val point = root["coordinates"]?.jsonObject ?: return@runCatching null
+    val lat = point["lat"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull() ?: return@runCatching null
+    val lng = point["lon"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull() ?: return@runCatching null
+    if (lat !in -90.0..90.0 || lng !in -180.0..180.0) return@runCatching null
+    val title = root["titles"]?.jsonObject?.get("normalized")?.jsonPrimitive?.contentOrNull
+        ?: root["title"]?.jsonPrimitive?.contentOrNull
+        ?: return@runCatching null
+    NamedPlace(title.trim(), lat, lng)
+}.getOrNull()
 
 /** The search of French Wikipedia for [place]: the three best pages, with their main image. */
 fun searchPhotosUrl(place: String): String =

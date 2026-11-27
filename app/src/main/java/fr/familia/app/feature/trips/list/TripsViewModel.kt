@@ -95,6 +95,7 @@ class TripsViewModel(
                                 km = fr.familia.app.feature.trips.detail.tripFigures(trip, steps, 0)?.distanceKm,
                                 // « Autre photo »: the photo chosen for the first destination, for everyone.
                                 cover = first?.stepId?.let { covers[it] },
+                                nameCover = covers[fr.familia.app.feature.trips.detail.TRIP_COVER_KEY],
                             )
                         }
                         .catch { e -> if (e is CancellationException) throw e else emit(trip.id to TripWhere(null, null, null)) }
@@ -114,6 +115,7 @@ class TripsViewModel(
                 placeName = places[trip.id]?.name?.ifEmpty { null },
                 distanceKm = places[trip.id]?.km,
                 cover = places[trip.id]?.cover,
+                nameCover = places[trip.id]?.nameCover,
             )
         }
             .groupBy { tripPhase(it.trip, day) }
@@ -128,4 +130,4 @@ class TripsViewModel(
 }
 
 /** What the steps of a trip tell the list: where it goes, its name, how far it goes. */
-private data class TripWhere(val point: GeoPoint?, val name: String?, val km: Int?, val cover: fr.familia.app.core.place.PlacePhoto? = null)
+private data class TripWhere(val point: GeoPoint?, val name: String?, val km: Int?, val cover: fr.familia.app.core.place.PlacePhoto? = null, val nameCover: fr.familia.app.core.place.PlacePhoto? = null)

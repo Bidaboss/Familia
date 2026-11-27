@@ -521,13 +521,16 @@ private fun HeroCard(
             .clearAndSetSemantics { contentDescription = "$description. $openLabel" },
     ) {
         // The photo of the place (règles 10, 12), the drawn landscape when there is none: the labels always show (E-30).
+        // Récit 124: the place named by the trip first (« Les Cyclades »), as on its cover, else its first destination.
+        val named = fr.familia.app.feature.trips.detail.rememberTripNamePlace(trip.title, photos)
+        val byName = named != null || summary.nameCover != null
         PlaceCover(
-            place = summary.placeName,
-            point = summary.place,
+            place = if (byName) named?.title else summary.placeName,
+            point = if (byName) named?.let { fr.familia.app.feature.trips.map.GeoPoint(it.lat, it.lng) } else summary.place,
             landscape = trip.landscape,
             photos = photos,
             modifier = Modifier.fillMaxSize(),
-            chosen = summary.cover,
+            chosen = if (byName) summary.nameCover else summary.cover,
             // Retour du 25/11 soir : the credit is inside the trip, at its bottom.
             showCredit = false,
         )
